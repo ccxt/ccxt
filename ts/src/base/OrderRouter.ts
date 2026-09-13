@@ -132,6 +132,10 @@ class OrderRouter {
 
     maxNotionalUsd: number;
 
+    //  resolved once by loadWebSocket, so a caller watching several routes pays the dynamic
+    //  import a single time. Not a connection — the constructor, shared by all sockets.
+    webSocketImpl: any;
+
     //  in-process idempotency ledger: the identity of every plan this instance has
     //  already executed live. TWO structures for one ledger, in every port: a FIFO
     //  list that fixes the eviction order, and a dictionary used as a set so the
@@ -531,13 +535,7 @@ class OrderRouter {
         if (fromAsset === undefined || toAsset === undefined || fromAsset === '' || toAsset === '') {
             throw new ArgumentsRequired ('fetchRoute requires fromAsset and toAsset');
         }
-        const hasAmountIn = (params['amountIn'] !== undefined) && (params['amountIn'] !== null);
-        const hasAmountOut = (params['amountOut'] !== undefined) && (params['amountOut'] !== null);
-        if (hasAmountIn === hasAmountOut) {
-            //  refused client-side for the same reason the router refuses it: a
-            //  typo must not become a confidently wrong route
-            throw new BadRequest ('fetchRoute requires exactly one of amountIn or amountOut');
-        }
+        this.assertRouteAmounts (params, 'fetchRoute');
         //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         //  logs, but a URL does not stay inside that process: the standard deployment
         //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
@@ -578,6 +576,125 @@ class OrderRouter {
         route['clientRequestedFrom'] = fromAsset.toUpperCase ();
         route['clientRequestedTo'] = toAsset.toUpperCase ();
         return route;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#assertRouteAmounts
+     * @description refuses neither-or-both amounts before a byte reaches the wire
+     * @param {object} params the route parameters
+     * @param {string} method the caller's name, for the message
+     * @returns {undefined}
+     */
+    assertRouteAmounts (params: Dict, method: string) {
+        const hasAmountIn = (params['amountIn'] !== undefined) && (params['amountIn'] !== null);
+        const hasAmountOut = (params['amountOut'] !== undefined) && (params['amountOut'] !== null);
+        if (hasAmountIn === hasAmountOut) {
+            //  refused client-side for the same reason the router refuses it: a typo must not
+            //  become a confidently wrong route. Shared by fetchRoute and watchRoute because
+            //  the service runs ONE parser for both and they must not disagree about what is
+            //  valid — the spec says so, and says what happened the last time they did.
+            throw new BadRequest (method + ' requires exactly one of amountIn or amountOut');
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#streamUrl
+     * @description builds the wss url for GET /stream/route, refusing what the endpoint refuses
+     * @param {string} fromAsset the asset being spent
+     * @param {string} toAsset the asset being acquired
+     * @param {object} params the route parameters
+     * @returns {string} the fully-formed websocket url
+     */
+    streamUrl (fromAsset: string, toAsset: string, params: Dict): string {
+        if (fromAsset === undefined || toAsset === undefined || fromAsset === '' || toAsset === '') {
+            throw new ArgumentsRequired ('watchRoute requires fromAsset and toAsset');
+        }
+        this.assertRouteAmounts (params, 'watchRoute');
+        //  REFUSED HERE, not by the server closing the socket on us. A stream is held open for
+        //  minutes and carries no channel to update the holdings it was opened with, so every
+        //  frame after the first would price a portfolio the caller may already have traded
+        //  away. The service refuses both outright; saying so client-side turns a 1008 close
+        //  mid-stream into an ordinary BadRequest before anything is opened.
+        if (params['balances'] !== undefined && params['balances'] !== null) {
+            throw new BadRequest ('OrderRouter: /stream/route does not accept balances — a socket outlives the holdings it was opened with. Use fetchRoute');
+        }
+        if (params['balanceMode'] !== undefined && params['balanceMode'] !== null) {
+            throw new BadRequest ('OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use fetchRoute');
+        }
+        //  includeQuotes is deliberately NOT defaulted here. The service defaults it to false on
+        //  this endpoint and true on the REST one, and routeQuery omits what the caller did not
+        //  set — so the caller gets the endpoint's own default, which is the cheaper one.
+        const query = this.routeQuery (fromAsset, toAsset, params);
+        let url = this.baseUrl;
+        if (url.indexOf ('https://') === 0) {
+            url = 'wss://' + url.slice (8);
+        } else if (url.indexOf ('http://') === 0) {
+            url = 'ws://' + url.slice (7);
+        }
+        return url + '/stream/route?' + query;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#streamHandshakeError
+     * @description maps a failed websocket upgrade onto the same exception the REST path raises for that status
+     * @param {string} message the transport's error message
+     * @returns {object} the error to throw
+     */
+    streamHandshakeError (message: string): any {
+        //  401, 429 and 503 are real HTTP statuses on this endpoint: they happen BEFORE the
+        //  upgrade, so they never arrive as close codes. The transport reports them only as
+        //  text — "Unexpected server response: 401" — and a caller who gets
+        //  ExchangeNotAvailable for a bad key cannot tell a wrong key from a dead router.
+        const marker = 'Unexpected server response: ';
+        const at = message.indexOf (marker);
+        if (at >= 0) {
+            const status = this.parseNumber (message.slice (at + marker.length, at + marker.length + 3), 0);
+            if (status === 401 || status === 403) {
+                return new AuthenticationError ('OrderRouter: unauthorized');
+            }
+            if (status === 429) {
+                return new RateLimitExceeded ('OrderRouter: rate limit exceeded');
+            }
+        }
+        return new ExchangeNotAvailable ('OrderRouter: ' + message);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#streamCloseError
+     * @description maps a websocket close code onto the exception the same refusal raises over REST
+     * @param {int} code the websocket close code
+     * @param {object} lastFrame the last frame received, which carries the reason on a refusal
+     * @returns {object} the error to throw, or undefined for an ordinary close
+     */
+    streamCloseError (code: number, lastFrame: Dict): any {
+        if (code === 1008) {
+            //  the service sends ONE json frame carrying the same `error` string the REST
+            //  endpoint would have answered a 400 with — including a bridged exact-out, which
+            //  REST refuses as a 501. Same refusal, same exception.
+            const message = this.stringAt (lastFrame, 'error', 'the router rejected the stream request');
+            return new BadRequest ('OrderRouter: ' + message);
+        }
+        if (code === 1013) {
+            //  try again later: the cache was cold when the socket was accepted. A stream
+            //  carries no status codes once open, so this is the only way the service can say
+            //  what a REST 503 says — and it is the same retry, not a fault.
+            const message = this.stringAt (lastFrame, 'error', 'the router cache is cold');
+            return new ExchangeNotAvailable ('OrderRouter: ' + message + this.coldCacheSuffix (lastFrame));
+        }
+        if (code === 1000 || code === 1005 || code === 0) {
+            //  a clean close, or a close with no code, which is what a caller-requested stop
+            //  looks like from here
+            return undefined;
+        }
+        return new ExchangeNotAvailable ('OrderRouter: the route stream closed with code ' + code.toString ());
     }
 
     /**
@@ -920,6 +1037,157 @@ class OrderRouter {
         //  reach a route that does not exist
         const url = this.baseUrl + '/orderbook/' + encodeURIComponent (exchangeId) + '/' + encodeURIComponent (symbol);
         return await this.request (url, 'GET', {});
+    }
+
+    /**
+     * @method
+     * @name OrderRouter#watchRoute
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /stream/route
+     * @description the same route as fetchRoute, pushed over a websocket whenever any market it depends on moves. Every leg of every candidate path is watched, so a bridged route does not miss half the price changes that alter its answer. BLOCKS until the stream ends: the hook is how you read it
+     * @param {string} fromAsset the asset being spent, e.g. USDT
+     * @param {string} toAsset the asset being acquired, e.g. BTC
+     * @param {object} params the same parameters fetchRoute accepts, EXCEPT balances and balanceMode, which this endpoint refuses — a socket outlives the holdings it was opened with
+     * @param {function} onRoute called with each RouteResult as it arrives, stamped with the client-side keys fetchRoute stamps. Return 'stop' to close the socket cleanly and return; any other value keeps watching. It runs between frames, so do no slow work in it — the service pushes up to ten times a second
+     * @returns {object} the last route seen, or an empty dict if the stream ended before any frame
+     */
+    async watchRoute (fromAsset: string, toAsset: string, params: Dict = {}, onRoute: any = undefined): Promise<Dict> {
+        if (onRoute === undefined) {
+            //  there is no other way to read a stream, and a socket opened with nowhere to put
+            //  the frames is a leak, not a default
+            throw new ArgumentsRequired ('watchRoute requires an onRoute callback');
+        }
+        //  built BEFORE the socket, so a refusal this client can make itself costs no connection
+        const url = this.streamUrl (fromAsset, toAsset, params);
+        const requestId = this.stringAt (params, 'requestId', '');
+        const WebSocketImpl = await this.loadWebSocket ();
+        const headers: Dict = { 'x-api-key': this.apiKey };
+        if (requestId !== '' && requestId.length <= 200) {
+            headers['x-request-id'] = requestId;
+        }
+        const socket = new WebSocketImpl (url, { 'headers': headers });
+        const upperFrom = fromAsset.toUpperCase ();
+        const upperTo = toAsset.toUpperCase ();
+        const requiredFullFill = this.boolAt (params, 'requireFullFill', false);
+        let lastFrame: Dict = {};
+        let lastRoute: Dict = {};
+        let settled = false;
+        return await new Promise ((resolve, reject) => {
+            //  the timeout guards the HANDSHAKE only. A stream that has opened is meant to sit
+            //  idle between market moves, and killing it for being quiet would defeat the point.
+            let handshakeTimer: any = setTimeout (() => {
+                handshakeTimer = undefined;
+                if (!settled) {
+                    settled = true;
+                    try { socket.close (); } catch (e) { /* already gone */ }
+                    reject (new RequestTimeout ('OrderRouter stream did not open within ' + this.timeoutMs.toString () + 'ms'));
+                }
+            }, this.timeoutMs);
+            const clearHandshake = () => {
+                if (handshakeTimer !== undefined) {
+                    clearTimeout (handshakeTimer);
+                    handshakeTimer = undefined;
+                }
+            };
+            socket.onopen = () => {
+                clearHandshake ();
+            };
+            socket.onmessage = (event: any) => {
+                if (settled) {
+                    return;
+                }
+                let frame: Dict = {};
+                try {
+                    frame = JSON.parse (event.data.toString ());
+                } catch (e) {
+                    settled = true;
+                    clearHandshake ();
+                    try { socket.close (); } catch (err) { /* already gone */ }
+                    reject (new ExchangeError ('OrderRouter stream sent a non-JSON frame'));
+                    return;
+                }
+                //  Held whether or not it looks like a route: a REFUSAL arrives as one ordinary
+                //  frame and only the close code that follows says it was one. Without keeping
+                //  it, streamCloseError would have nothing to report but a number.
+                lastFrame = frame;
+                if (this.stringAt (frame, 'error', '') !== '') {
+                    //  not a route — wait for the close code to say which refusal it is
+                    return;
+                }
+                //  the same client-side stamps fetchRoute applies, for the same reason: every
+                //  frame is a route that buildExecutionPlan may be handed, and it checks the
+                //  answer against the question rather than trusting the server's echo
+                frame['clientRequestedFrom'] = upperFrom;
+                frame['clientRequestedTo'] = upperTo;
+                frame['clientRequestedRequireFullFill'] = requiredFullFill;
+                lastRoute = frame;
+                let verdict: any = undefined;
+                try {
+                    verdict = onRoute (frame);
+                } catch (e) {
+                    //  Propagated, unlike execute's onStep. That hook is protected because losing
+                    //  the report would destroy the only account of orders already live; nothing
+                    //  here has been placed, so swallowing a caller's bug would only hide it.
+                    settled = true;
+                    clearHandshake ();
+                    try { socket.close (); } catch (err) { /* already gone */ }
+                    reject (e);
+                    return;
+                }
+                if (verdict === 'stop') {
+                    settled = true;
+                    clearHandshake ();
+                    try { socket.close (1000); } catch (err) { /* already gone */ }
+                    resolve (lastRoute);
+                }
+            };
+            socket.onerror = (event: any) => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                clearHandshake ();
+                const message = this.stringAt (event, 'message', 'the route stream failed');
+                reject (this.streamHandshakeError (message));
+            };
+            socket.onclose = (event: any) => {
+                clearHandshake ();
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                const code = this.numberAt (event, 'code', 0);
+                const failure = this.streamCloseError (code, lastFrame);
+                if (failure === undefined) {
+                    resolve (lastRoute);
+                } else {
+                    reject (failure);
+                }
+            };
+        });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#loadWebSocket
+     * @description resolves the websocket implementation used by watchRoute
+     * @returns {object} a WebSocket constructor taking (url, options)
+     */
+    async loadWebSocket (): Promise<any> {
+        if (this.webSocketImpl !== undefined) {
+            return this.webSocketImpl;
+        }
+        //  The `ws` package rather than a global WebSocket, and deliberately: the service
+        //  authenticates the socket with an x-api-key HEADER, and neither a browser WebSocket
+        //  nor Node's own global one can set request headers. Imported dynamically so a browser
+        //  bundle that never calls watchRoute does not pull it in.
+        try {
+            const loaded: any = await import ('ws');
+            this.webSocketImpl = (loaded['default'] !== undefined) ? loaded['default'] : loaded;
+            return this.webSocketImpl;
+        } catch (e) {
+            throw new NotSupported ('OrderRouter.watchRoute needs the ws package, which ccxt depends on but a browser bundle cannot provide — a browser WebSocket cannot send the x-api-key header the router requires. Use fetchRoute, or proxy the stream server-side');
+        }
     }
 
     /**

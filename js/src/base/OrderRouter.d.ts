@@ -14,6 +14,7 @@ declare class OrderRouter {
     baseUrl: string;
     timeoutMs: number;
     maxNotionalUsd: number;
+    webSocketImpl: any;
     executedPlanIds: string[];
     executedPlanIdSet: Dict;
     /**
@@ -166,6 +167,46 @@ declare class OrderRouter {
     /**
      * @ignore
      * @method
+     * @name OrderRouter#assertRouteAmounts
+     * @description refuses neither-or-both amounts before a byte reaches the wire
+     * @param {object} params the route parameters
+     * @param {string} method the caller's name, for the message
+     * @returns {undefined}
+     */
+    assertRouteAmounts(params: Dict, method: string): void;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#streamUrl
+     * @description builds the wss url for GET /stream/route, refusing what the endpoint refuses
+     * @param {string} fromAsset the asset being spent
+     * @param {string} toAsset the asset being acquired
+     * @param {object} params the route parameters
+     * @returns {string} the fully-formed websocket url
+     */
+    streamUrl(fromAsset: string, toAsset: string, params: Dict): string;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#streamHandshakeError
+     * @description maps a failed websocket upgrade onto the same exception the REST path raises for that status
+     * @param {string} message the transport's error message
+     * @returns {object} the error to throw
+     */
+    streamHandshakeError(message: string): any;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#streamCloseError
+     * @description maps a websocket close code onto the exception the same refusal raises over REST
+     * @param {int} code the websocket close code
+     * @param {object} lastFrame the last frame received, which carries the reason on a refusal
+     * @returns {object} the error to throw, or undefined for an ordinary close
+     */
+    streamCloseError(code: number, lastFrame: Dict): any;
+    /**
+     * @ignore
+     * @method
      * @name OrderRouter#assertBalancesApplied
      * @description throws unless the router confirmed it read the holdings that were sent
      * @param {object} route the RouteResult
@@ -284,6 +325,26 @@ declare class OrderRouter {
      * @returns {object} the cached book
      */
     fetchCachedOrderBook(exchangeId: string, symbol: string): Promise<Dict>;
+    /**
+     * @method
+     * @name OrderRouter#watchRoute
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /stream/route
+     * @description the same route as fetchRoute, pushed over a websocket whenever any market it depends on moves. Every leg of every candidate path is watched, so a bridged route does not miss half the price changes that alter its answer. BLOCKS until the stream ends: the hook is how you read it
+     * @param {string} fromAsset the asset being spent, e.g. USDT
+     * @param {string} toAsset the asset being acquired, e.g. BTC
+     * @param {object} params the same parameters fetchRoute accepts, EXCEPT balances and balanceMode, which this endpoint refuses — a socket outlives the holdings it was opened with
+     * @param {function} onRoute called with each RouteResult as it arrives, stamped with the client-side keys fetchRoute stamps. Return 'stop' to close the socket cleanly and return; any other value keeps watching. It runs between frames, so do no slow work in it — the service pushes up to ten times a second
+     * @returns {object} the last route seen, or an empty dict if the stream ended before any frame
+     */
+    watchRoute(fromAsset: string, toAsset: string, params?: Dict, onRoute?: any): Promise<Dict>;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#loadWebSocket
+     * @description resolves the websocket implementation used by watchRoute
+     * @returns {object} a WebSocket constructor taking (url, options)
+     */
+    loadWebSocket(): Promise<any>;
     /**
      * @method
      * @name OrderRouter#fetchRouteWithBalances

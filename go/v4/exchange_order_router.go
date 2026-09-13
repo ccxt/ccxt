@@ -60,6 +60,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 //  ---------------------------------------------------------------------------
@@ -593,14 +595,8 @@ func (this *OrderRouter) FetchRoute(fromAsset string, toAsset string, params map
 	if fromAsset == "" || toAsset == "" {
 		return nil, ArgumentsRequired("fetchRoute requires fromAsset and toAsset")
 	}
-	amountIn, hasAmountIn := params["amountIn"]
-	amountOut, hasAmountOut := params["amountOut"]
-	hasAmountIn = hasAmountIn && amountIn != nil
-	hasAmountOut = hasAmountOut && amountOut != nil
-	if hasAmountIn == hasAmountOut {
-		// refused client-side for the same reason the router refuses it: a typo
-		// must not become a confidently wrong route
-		return nil, BadRequest("fetchRoute requires exactly one of amountIn or amountOut")
+	if err := routerAssertRouteAmounts(params, "fetchRoute"); err != nil {
+		return nil, err
 	}
 	// HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
 	// logs, but a URL does not stay inside that process: the standard deployment
@@ -652,6 +648,171 @@ func (this *OrderRouter) FetchRoute(fromAsset string, toAsset string, params map
 	route["clientRequestedFrom"] = strings.ToUpper(fromAsset)
 	route["clientRequestedTo"] = strings.ToUpper(toAsset)
 	return route, nil
+}
+
+// routerAssertRouteAmounts refuses neither-or-both amounts before a byte reaches the wire.
+//
+// Shared by FetchRoute and WatchRoute because the service runs ONE parser for both and they
+// must not disagree about what is valid.
+func routerAssertRouteAmounts(params map[string]any, method string) error {
+	amountIn, hasAmountIn := params["amountIn"]
+	amountOut, hasAmountOut := params["amountOut"]
+	hasAmountIn = hasAmountIn && amountIn != nil
+	hasAmountOut = hasAmountOut && amountOut != nil
+	if hasAmountIn == hasAmountOut {
+		// refused client-side for the same reason the router refuses it: a typo must not
+		// become a confidently wrong route
+		return BadRequest(method + " requires exactly one of amountIn or amountOut")
+	}
+	return nil
+}
+
+// StreamUrl builds the wss url for GET /stream/route, refusing what the endpoint refuses.
+func (this *OrderRouter) StreamUrl(fromAsset string, toAsset string, params map[string]any) (string, error) {
+	if fromAsset == "" || toAsset == "" {
+		return "", ArgumentsRequired("watchRoute requires fromAsset and toAsset")
+	}
+	if err := routerAssertRouteAmounts(params, "watchRoute"); err != nil {
+		return "", err
+	}
+	// REFUSED HERE, not by the server closing the socket on us. A stream is held open for
+	// minutes and carries no channel to update the holdings it was opened with, so every frame
+	// after the first would price a portfolio the caller may already have traded away.
+	if balances, ok := params["balances"]; ok && balances != nil {
+		return "", BadRequest("OrderRouter: /stream/route does not accept balances — a socket outlives the holdings it was opened with. Use FetchRoute")
+	}
+	if mode, ok := params["balanceMode"]; ok && mode != nil {
+		return "", BadRequest("OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use FetchRoute")
+	}
+	// includeQuotes is deliberately NOT defaulted: the service defaults it to false on this
+	// endpoint and true on the REST one, and RouteQuery omits what the caller did not set.
+	query, err := this.RouteQuery(fromAsset, toAsset, params)
+	if err != nil {
+		return "", err
+	}
+	url := this.BaseUrl
+	if strings.HasPrefix(url, "https://") {
+		url = "wss://" + url[8:]
+	} else if strings.HasPrefix(url, "http://") {
+		url = "ws://" + url[7:]
+	}
+	return url + "/stream/route?" + query, nil
+}
+
+// routerStreamCloseError maps a websocket close code onto the exception the same refusal
+// raises over REST.
+func (this *OrderRouter) routerStreamCloseError(code int, lastFrame map[string]any) error {
+	if code == 1008 {
+		// the service sends ONE json frame carrying the same `error` string the REST endpoint
+		// would have answered a 400 with — including a bridged exact-out, which REST refuses
+		// as a 501. Same refusal, same error.
+		return BadRequest("OrderRouter: " + routerStringAt(lastFrame, "error", "the router rejected the stream request"))
+	}
+	if code == 1013 {
+		// try again later: the cache was cold when the socket was accepted. A stream carries
+		// no status codes once open, so this is the only way the service can say what a REST
+		// 503 says — and it is the same retry, not a fault.
+		message := routerStringAt(lastFrame, "error", "the router cache is cold")
+		return ExchangeNotAvailable("OrderRouter: " + message + this.routerColdCacheSuffix(lastFrame))
+	}
+	if code == 1000 || code == 1005 || code == 0 {
+		// a clean close, or one with no code, which is what a caller-requested stop looks like
+		return nil
+	}
+	return ExchangeNotAvailable("OrderRouter: the route stream closed with code " + strconv.Itoa(code))
+}
+
+// WatchRoute is the same route as FetchRoute, pushed over a websocket whenever any market it
+// depends on moves.
+//
+// BLOCKS until the stream ends: onRoute is how you read it. Return "stop" from the hook to close
+// the socket cleanly; the call then returns the last route it saw. Every frame is stamped with
+// the same client-side keys FetchRoute stamps, so it can go straight into BuildExecutionPlan.
+//
+// balances and balanceMode are refused — see StreamUrl for why — and includeQuotes is left to
+// the endpoint's own default, which is false here and true on REST.
+func (this *OrderRouter) WatchRoute(fromAsset string, toAsset string, params map[string]any, onRoute func(map[string]any) string) (map[string]any, error) {
+	if onRoute == nil {
+		// there is no other way to read a stream, and a socket opened with nowhere to put the
+		// frames is a leak, not a default
+		return nil, ArgumentsRequired("watchRoute requires an onRoute callback")
+	}
+	// built BEFORE the socket, so a refusal this client can make itself costs no connection
+	url, err := this.StreamUrl(fromAsset, toAsset, params)
+	if err != nil {
+		return nil, err
+	}
+	header := http.Header{}
+	header.Set("x-api-key", this.ApiKey)
+	if requestId := routerStringAt(params, "requestId", ""); requestId != "" && len(requestId) <= 200 {
+		header.Set("x-request-id", requestId)
+	}
+	dialer := websocket.Dialer{
+		// the timeout guards the HANDSHAKE only. A stream that has opened is meant to sit idle
+		// between market moves, and killing it for being quiet would defeat the point.
+		HandshakeTimeout: time.Duration(this.TimeoutMs) * time.Millisecond,
+	}
+	connection, response, err := dialer.Dial(url, header)
+	if err != nil {
+		// 401, 429 and 503 are real HTTP statuses on this endpoint: they happen BEFORE the
+		// upgrade, so they never arrive as close codes. A caller who gets ExchangeNotAvailable
+		// for a bad key cannot tell a wrong key from a dead router.
+		if response != nil {
+			if response.StatusCode == 401 || response.StatusCode == 403 {
+				return nil, AuthenticationError("OrderRouter: unauthorized")
+			}
+			if response.StatusCode == 429 {
+				return nil, RateLimitExceeded("OrderRouter: rate limit exceeded")
+			}
+		}
+		return nil, ExchangeNotAvailable("OrderRouter: " + err.Error())
+	}
+	defer connection.Close()
+	upperFrom := strings.ToUpper(fromAsset)
+	upperTo := strings.ToUpper(toAsset)
+	requiredFullFill := routerBoolAt(params, "requireFullFill", false)
+	lastFrame := map[string]any{}
+	lastRoute := map[string]any{}
+	for {
+		_, payload, readErr := connection.ReadMessage()
+		if readErr != nil {
+			code := 0
+			if closeErr, ok := readErr.(*websocket.CloseError); ok {
+				code = closeErr.Code
+			}
+			if failure := this.routerStreamCloseError(code, lastFrame); failure != nil {
+				return nil, failure
+			}
+			return lastRoute, nil
+		}
+		var decoded any
+		if err := json.Unmarshal(payload, &decoded); err != nil {
+			return nil, ExchangeError("OrderRouter stream sent a non-JSON frame")
+		}
+		frame := routerContainer(decoded)
+		if frame == nil {
+			frame = map[string]any{}
+		}
+		// Held whether or not it looks like a route: a REFUSAL arrives as one ordinary frame and
+		// only the close code that follows says it was one.
+		lastFrame = frame
+		if routerStringAt(frame, "error", "") != "" {
+			// not a route — wait for the close code to say which refusal it is
+			continue
+		}
+		// the same client-side stamps FetchRoute applies, for the same reason: every frame is a
+		// route BuildExecutionPlan may be handed, and it checks the answer against the question
+		frame["clientRequestedFrom"] = upperFrom
+		frame["clientRequestedTo"] = upperTo
+		frame["clientRequestedRequireFullFill"] = requiredFullFill
+		lastRoute = frame
+		if onRoute(frame) == "stop" {
+			// a caller-requested stop is a CLEAN close, so the service sees a normal shutdown
+			// rather than a dropped socket
+			_ = connection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			return lastRoute, nil
+		}
+	}
 }
 
 // assertBalancesApplied errors unless the router confirmed it read the holdings that

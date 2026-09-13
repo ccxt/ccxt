@@ -602,13 +602,7 @@ class OrderRouter {
         if (($fromAsset === null) || ($toAsset === null) || ($fromAsset === '') || ($toAsset === '')) {
             throw new ArgumentsRequired('fetchRoute requires fromAsset and toAsset');
         }
-        $hasAmountIn = isset($params['amountIn']);
-        $hasAmountOut = isset($params['amountOut']);
-        if ($hasAmountIn === $hasAmountOut) {
-            //  refused client-side for the same reason the router refuses it: a
-            //  typo must not become a confidently wrong route
-            throw new BadRequest('fetchRoute requires exactly one of amountIn or amountOut');
-        }
+        $this->assertRouteAmounts($params, 'fetchRoute');
         //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         //  logs, but a URL does not stay inside that process: the standard deployment
         //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
@@ -646,6 +640,80 @@ class OrderRouter {
         $route['clientRequestedFrom'] = strtoupper($fromAsset);
         $route['clientRequestedTo'] = strtoupper($toAsset);
         return $route;
+    }
+
+    /**
+     * @ignore
+     * refuses neither-or-both amounts before a byte reaches the wire
+     * @param array $params the route parameters
+     * @param string $method the caller's name, for the message
+     * @return void
+     */
+    public function assertRouteAmounts($params, $method) {
+        $hasAmountIn = isset($params['amountIn']);
+        $hasAmountOut = isset($params['amountOut']);
+        if ($hasAmountIn === $hasAmountOut) {
+            //  refused client-side for the same reason the router refuses it: a typo must not
+            //  become a confidently wrong route. Shared by fetchRoute and watchRoute because the
+            //  service runs ONE parser for both and they must not disagree about what is valid.
+            throw new BadRequest($method . ' requires exactly one of amountIn or amountOut');
+        }
+    }
+
+    /**
+     * builds the wss url for GET /stream/route, refusing what the endpoint refuses
+     * @param string $fromAsset the asset being spent
+     * @param string $toAsset the asset being acquired
+     * @param array $params the route parameters
+     * @return string the fully-formed websocket url
+     */
+    public function streamUrl($fromAsset, $toAsset, $params) {
+        if (($fromAsset === null) || ($toAsset === null) || ($fromAsset === '') || ($toAsset === '')) {
+            throw new ArgumentsRequired('watchRoute requires fromAsset and toAsset');
+        }
+        $this->assertRouteAmounts($params, 'watchRoute');
+        //  REFUSED HERE, not by the server closing the socket on us. A stream is held open for
+        //  minutes and carries no channel to update the holdings it was opened with, so every
+        //  frame after the first would price a portfolio the caller may already have traded away.
+        if ($this->fieldAt($params, 'balances') !== null) {
+            throw new BadRequest('OrderRouter: /stream/route does not accept balances — a socket outlives the holdings it was opened with. Use fetchRoute');
+        }
+        if ($this->fieldAt($params, 'balanceMode') !== null) {
+            throw new BadRequest('OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use fetchRoute');
+        }
+        //  includeQuotes is deliberately NOT defaulted: the service defaults it to false on this
+        //  endpoint and true on the REST one, and routeQuery omits what the caller did not set.
+        $query = $this->routeQuery($fromAsset, $toAsset, $params);
+        $url = $this->baseUrl;
+        if (strpos($url, 'https://') === 0) {
+            $url = 'wss://' . substr($url, 8);
+        } elseif (strpos($url, 'http://') === 0) {
+            $url = 'ws://' . substr($url, 7);
+        }
+        return $url . '/stream/route?' . $query;
+    }
+
+    /**
+     * NOT IMPLEMENTED IN SYNCHRONOUS PHP, and refused rather than approximated.
+     *
+     * /stream/route is a WebSocket, and this class is synchronous: it does its I/O with curl,
+     * which cannot hold a socket open and dispatch frames, and ccxt's own websocket client lives
+     * in php/pro and is driven by a ReactPHP event loop. Polling fetchRoute on a timer is NOT the
+     * same thing — the stream pushes on every market move that changes the answer, across every
+     * leg of every candidate path — so this does not silently substitute one for the other.
+     *
+     * streamUrl() above IS implemented and tested, so the url grammar and the client-side
+     * refusals stay verified in this port and cannot drift from the other five.
+     *
+     * @param string $fromAsset the asset being spent
+     * @param string $toAsset the asset being acquired
+     * @param array $params the route parameters
+     * @param callable $onRoute called with each RouteResult
+     * @return void
+     */
+    public function watchRoute($fromAsset, $toAsset, $params = array(), $onRoute = null) {
+        $this->streamUrl($fromAsset, $toAsset, $params);
+        throw new NotSupported('OrderRouter.watchRoute needs a websocket, which synchronous PHP ccxt has no client for. Use fetchRoute, or consume /stream/route from php/pro or a server-side proxy');
     }
 
     /**

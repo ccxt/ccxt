@@ -8618,9 +8618,53 @@ if (readiness['status'] !== 'ready') {
 }
 ```
 
-The service also exposes `/metrics` (Prometheus) and `/stream/route` (the same route pushed over a
-WebSocket as the books move). Neither has a client method yet — scrape `/metrics` with your own
-tooling, and open the socket yourself if you need the stream.
+`/metrics` (Prometheus) has no client method: it answers `text/plain` and this class parses every
+response as JSON. Scrape it with your own tooling.
+
+### Watching a route — `watchRoute`
+
+`/stream/route` is the same request over a WebSocket: identical parameters, identical response
+body, pushed whenever any market the route depends on moves. Every leg of every candidate path is
+watched, so a bridged route does not miss half the price changes that alter its answer.
+
+`watchRoute` BLOCKS for the life of the stream, and the hook is how you read it. Return `'stop'`
+to close the socket cleanly; the call then returns the last route it saw.
+
+```javascript
+const last = await router.watchRoute ('USDT', 'BTC', { 'amountIn': 1000 }, (route) => {
+    console.log (route['effectiveRate'], route['impactBps']);
+    //  every frame is stamped exactly as fetchRoute stamps its answer, so it can go
+    //  straight into buildExecutionPlan
+    return (route['impactBps'] < 5) ? 'stop' : 'continue';
+});
+```
+
+Three things differ from `fetchRoute`, all of them the endpoint's own rules rather than this
+client's:
+
+- **`balances` and `balanceMode` are refused**, and refused client-side before a socket is opened.
+  A stream is held open for minutes and carries no channel to update the holdings it was opened
+  with, so every frame after the first would price a portfolio you may already have traded away.
+  Use `fetchRoute` when you need a funded-aware route.
+- **`includeQuotes` defaults to false here**, where it defaults to true on REST. One socket
+  measured 658 frames/sec at 9.3KB, almost all of it the per-venue diagnostic. Pass it explicitly
+  if you want it anyway.
+- **Refusals arrive as close codes, not HTTP statuses.** Once the socket is open there are no
+  status codes left, so the service sends one JSON frame and closes: `1008` for what REST answers
+  as a `400` (including a bridged exact-out, which REST refuses as a `501`), and `1013` for a cold
+  cache. The client raises the same exceptions the REST path raises for those — `BadRequest` and
+  `ExchangeNotAvailable` — so you do not have to learn a second vocabulary. A failed upgrade is
+  still an ordinary status: `401` raises `AuthenticationError`, `429` `RateLimitExceeded`.
+
+A hook that throws stops the stream and the exception reaches you — the opposite of `execute`'s
+`onStep`, which is protected because losing that report would destroy the only account of orders
+already live. Nothing has been placed here, so swallowing your bug would only hide it.
+
+**Availability.** `watchRoute` is implemented in TypeScript/JavaScript, C#, Go and Rust. In
+**Python and PHP it raises `NotSupported`**: those ports are synchronous — they do their I/O with
+`requests` and curl — and neither has a websocket client to drive. Polling `fetchRoute` on a timer
+is not the same thing and is not silently substituted for it. `streamUrl` IS implemented in both,
+so the url grammar and the client-side refusals stay verified in every port.
 
 ### When the router is still warming up
 

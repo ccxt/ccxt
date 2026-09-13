@@ -1384,6 +1384,157 @@ test('a POST carries a JSON body and the key, a GET carries no body at all', asy
         getStub.restore();
     }
 });
+//  ---------------------------------------------------------------------------
+//  watchRoute. The websocket implementation is injected on the instance — which
+//  is the reason loadWebSocket caches it there — so every frame, close code and
+//  refusal below is driven by hand and nothing opens a socket.
+//  ---------------------------------------------------------------------------
+class FakeSocket {
+    constructor(url, options) {
+        this.url = url;
+        this.options = options;
+        this.closedWith = [];
+        FakeSocket.last = this;
+    }
+    close(code = undefined) {
+        this.closedWith.push(code);
+    }
+    //  the driver: hand a frame to the client as the service would
+    deliver(payload) {
+        this.onmessage({ 'data': JSON.stringify(payload) });
+    }
+    shut(code) {
+        this.onclose({ 'code': code });
+    }
+}
+//  watchRoute awaits loadWebSocket before it constructs anything, so the fake is not there
+//  synchronously. One turn of the event loop is enough and says why.
+async function socketOpened() {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    return FakeSocket.last;
+}
+function streamingRouter(config = {}) {
+    const merged = { 'apiKey': 'k', 'baseUrl': 'https://example.test/api' };
+    const keys = Object.keys(config);
+    for (let i = 0; i < keys.length; i++) {
+        merged[keys[i]] = config[keys[i]];
+    }
+    const streamer = new OrderRouter(merged);
+    streamer.webSocketImpl = FakeSocket;
+    return streamer;
+}
+test('streamUrl upgrades the scheme and carries the route grammar unchanged', () => {
+    const streamer = streamingRouter();
+    const url = streamer.streamUrl('usdt', 'btc', { 'amountIn': 0.001, 'strategy': 'split_capped', 'maxVenues': 3, 'exchanges': ['binance', 'kraken'], 'certified': true });
+    assert.strictEqual(url, 'wss://example.test/api/stream/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true');
+    //  a plain-http base becomes ws://, not wss://
+    const insecure = streamingRouter({ 'baseUrl': 'http://localhost:8080' });
+    assert.strictEqual(insecure.streamUrl('USDT', 'BTC', { 'amountIn': 1 }).indexOf('ws://localhost:8080/stream/route?'), 0);
+    //  includeQuotes is NOT defaulted: the endpoint's own default is false, and sending
+    //  nothing is how the caller gets it
+    assert.strictEqual(url.indexOf('includeQuotes'), -1);
+});
+test('the stream refuses what the endpoint refuses, before opening a socket', () => {
+    const streamer = streamingRouter();
+    //  a socket outlives the holdings it was opened with, so the service refuses both
+    assert.throws(() => streamer.streamUrl('USDT', 'BTC', { 'amountIn': 1, 'balances': 'binance.USDT:1000' }), BadRequest);
+    assert.throws(() => streamer.streamUrl('USDT', 'BTC', { 'amountIn': 1, 'balanceMode': 'require' }), BadRequest);
+    //  the same exclusivity fetchRoute enforces — one parser server-side, one rule here
+    assert.throws(() => streamer.streamUrl('USDT', 'BTC', {}), BadRequest);
+    assert.throws(() => streamer.streamUrl('USDT', 'BTC', { 'amountIn': 1, 'amountOut': 1 }), BadRequest);
+    assert.throws(() => streamer.streamUrl('', 'BTC', { 'amountIn': 1 }), ArgumentsRequired);
+});
+test('every pushed frame is stamped and handed to the hook, and stop closes cleanly', async () => {
+    const streamer = streamingRouter();
+    const seen = [];
+    const watching = streamer.watchRoute('usdt', 'btc', { 'amountIn': 10, 'requireFullFill': true }, (route) => {
+        seen.push(route);
+        return (seen.length === 2) ? 'stop' : 'continue';
+    });
+    const socket = await socketOpened();
+    //  the key travels as a header, which is why watchRoute needs the ws package
+    assert.strictEqual(socket.options['headers']['x-api-key'], 'k');
+    socket.onopen();
+    socket.deliver({ 'hops': [], 'fillRatio': 1 });
+    socket.deliver({ 'hops': [], 'fillRatio': 0.5 });
+    const last = await watching;
+    assert.strictEqual(seen.length, 2, 'the hook stopped the stream and was not called again');
+    //  every frame carries the client-side stamps, because every frame is a route
+    //  buildExecutionPlan may be handed
+    assert.strictEqual(seen[0]['clientRequestedFrom'], 'USDT');
+    assert.strictEqual(seen[0]['clientRequestedTo'], 'BTC');
+    assert.strictEqual(seen[0]['clientRequestedRequireFullFill'], true);
+    assert.strictEqual(last['fillRatio'], 0.5, 'the last route seen is returned');
+    assert.deepStrictEqual(socket.closedWith, [1000], 'a caller-requested stop is a clean close');
+});
+test('a 1008 close is the same refusal a 400 is over REST', async () => {
+    const streamer = streamingRouter();
+    const watching = streamer.watchRoute('USDT', 'BTC', { 'amountOut': 1 }, () => 'continue');
+    const socket = await socketOpened();
+    socket.onopen();
+    //  the service sends ONE frame carrying the reason, then closes with the code
+    socket.deliver({ 'error': 'exact_out_multi_hop_unsupported' });
+    socket.shut(1008);
+    await assert.rejects(async () => { await watching; }, (e) => {
+        assert.strictEqual(e.constructor.name, 'BadRequest');
+        assert.ok(e.message.indexOf('exact_out_multi_hop_unsupported') >= 0, e.message);
+        return true;
+    });
+});
+test('a 1013 close is a cold cache, and says so the same way a 503 does', async () => {
+    const streamer = streamingRouter();
+    const watching = streamer.watchRoute('USDT', 'BTC', { 'amountIn': 10 }, () => 'continue');
+    const socket = await socketOpened();
+    socket.onopen();
+    socket.deliver({ 'error': 'cache is cold', 'reason': 'cache_cold', 'bookCount': 12, 'freshCount': 0, 'minFreshBooksForReady': 1 });
+    socket.shut(1013);
+    await assert.rejects(async () => { await watching; }, (e) => {
+        //  a RETRY, in the same class the REST path uses — not a bare ExchangeError
+        assert.strictEqual(e.constructor.name, 'ExchangeNotAvailable');
+        assert.ok(e.message.indexOf('0 of 12 books fresh') >= 0, e.message);
+        return true;
+    });
+});
+test('an ordinary close ends the watch, an unexpected one raises', async () => {
+    const streamer = streamingRouter();
+    const watching = streamer.watchRoute('USDT', 'BTC', { 'amountIn': 10 }, () => 'continue');
+    let socket = await socketOpened();
+    socket.onopen();
+    socket.deliver({ 'hops': [], 'fillRatio': 1 });
+    socket.shut(1000);
+    const last = await watching;
+    assert.strictEqual(last['fillRatio'], 1, 'the last route survives a clean close');
+    const abrupt = streamingRouter();
+    const failing = abrupt.watchRoute('USDT', 'BTC', { 'amountIn': 10 }, () => 'continue');
+    socket = await socketOpened();
+    socket.onopen();
+    socket.shut(1011);
+    await assert.rejects(async () => { await failing; }, (e) => {
+        assert.strictEqual(e.constructor.name, 'ExchangeNotAvailable');
+        assert.ok(e.message.indexOf('1011') >= 0, e.message);
+        return true;
+    });
+});
+test('a hook that throws stops the stream instead of being swallowed', async () => {
+    //  the opposite of execute's onStep, and deliberately: that hook is protected because
+    //  losing the report would destroy the only account of orders already live. Nothing has
+    //  been placed here, so swallowing a caller's bug would only hide it.
+    const streamer = streamingRouter();
+    const watching = streamer.watchRoute('USDT', 'BTC', { 'amountIn': 10 }, () => {
+        throw new Error('the caller has a bug');
+    });
+    const socket = await socketOpened();
+    socket.onopen();
+    socket.deliver({ 'hops': [] });
+    await assert.rejects(async () => { await watching; }, /the caller has a bug/);
+    assert.strictEqual(socket.closedWith.length, 1, 'and the socket is not left open');
+});
+test('watchRoute refuses to open a socket with nowhere to put the frames', async () => {
+    const streamer = streamingRouter();
+    await assert.rejects(async () => {
+        await streamer.watchRoute('USDT', 'BTC', { 'amountIn': 10 });
+    }, ArgumentsRequired);
+});
 test('formatNumber never emits exponent notation', () => {
     assert.strictEqual(router.formatNumber(0.0000001), '0.0000001');
     assert.throws(() => router.formatNumber(1e21), BadRequest, 'refused rather than rendered as 1e+21 in one language and not the others');

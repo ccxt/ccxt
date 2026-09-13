@@ -57,6 +57,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
+using System.Net.WebSockets;
 using Newtonsoft.Json;
 using System.Numerics;
 using System.Text;
@@ -749,14 +750,7 @@ public class OrderRouter
         {
             throw new ArgumentsRequired("fetchRoute requires fromAsset and toAsset");
         }
-        var hasAmountIn = this.ValueAt(parameters, "amountIn") != null;
-        var hasAmountOut = this.ValueAt(parameters, "amountOut") != null;
-        if (hasAmountIn == hasAmountOut)
-        {
-            //  refused client-side for the same reason the router refuses it: a
-            //  typo must not become a confidently wrong route
-            throw new BadRequest("fetchRoute requires exactly one of amountIn or amountOut");
-        }
+        this.AssertRouteAmounts(parameters, "fetchRoute");
         //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         //  logs, but a URL does not stay inside that process: the standard deployment
         //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
@@ -798,6 +792,236 @@ public class OrderRouter
         route["clientRequestedFrom"] = fromAsset.ToUpperInvariant();
         route["clientRequestedTo"] = toAsset.ToUpperInvariant();
         return route;
+    }
+
+    /// <summary>
+    /// Refuses neither-or-both amounts before a byte reaches the wire. Shared by FetchRoute and
+    /// WatchRoute because the service runs ONE parser for both and they must not disagree about
+    /// what is valid.
+    /// </summary>
+    public void AssertRouteAmounts(dict parameters, string method)
+    {
+        var hasAmountIn = this.ValueAt(parameters, "amountIn") != null;
+        var hasAmountOut = this.ValueAt(parameters, "amountOut") != null;
+        if (hasAmountIn == hasAmountOut)
+        {
+            //  refused client-side for the same reason the router refuses it: a typo must not
+            //  become a confidently wrong route
+            throw new BadRequest(method + " requires exactly one of amountIn or amountOut");
+        }
+    }
+
+    /// <summary>
+    /// Builds the wss url for GET /stream/route, refusing what the endpoint refuses.
+    /// </summary>
+    public string StreamUrl(string fromAsset, string toAsset, dict parameters)
+    {
+        if (fromAsset == null || toAsset == null || fromAsset == "" || toAsset == "")
+        {
+            throw new ArgumentsRequired("watchRoute requires fromAsset and toAsset");
+        }
+        this.AssertRouteAmounts(parameters, "watchRoute");
+        //  REFUSED HERE, not by the server closing the socket on us. A stream is held open for
+        //  minutes and carries no channel to update the holdings it was opened with, so every
+        //  frame after the first would price a portfolio the caller may already have traded away.
+        if (this.ValueAt(parameters, "balances") != null)
+        {
+            throw new BadRequest("OrderRouter: /stream/route does not accept balances — a socket outlives the holdings it was opened with. Use FetchRoute");
+        }
+        if (this.ValueAt(parameters, "balanceMode") != null)
+        {
+            throw new BadRequest("OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use FetchRoute");
+        }
+        //  includeQuotes is deliberately NOT defaulted: the service defaults it to false on this
+        //  endpoint and true on the REST one, and RouteQuery omits what the caller did not set.
+        var query = this.RouteQuery(fromAsset, toAsset, parameters);
+        var url = this.baseUrl;
+        if (url.StartsWith("https://", StringComparison.Ordinal))
+        {
+            url = "wss://" + url.Substring(8);
+        }
+        else if (url.StartsWith("http://", StringComparison.Ordinal))
+        {
+            url = "ws://" + url.Substring(7);
+        }
+        return url + "/stream/route?" + query;
+    }
+
+    /// <summary>
+    /// Maps a websocket close code onto the exception the same refusal raises over REST.
+    /// Returns null for an ordinary close.
+    /// </summary>
+    public Exception StreamCloseError(int code, dict lastFrame)
+    {
+        if (code == 1008)
+        {
+            //  the service sends ONE json frame carrying the same `error` string the REST
+            //  endpoint would have answered a 400 with — including a bridged exact-out, which
+            //  REST refuses as a 501. Same refusal, same exception.
+            return new BadRequest("OrderRouter: " + this.StringAt(lastFrame, "error", "the router rejected the stream request"));
+        }
+        if (code == 1013)
+        {
+            //  try again later: the cache was cold when the socket was accepted. A stream
+            //  carries no status codes once open, so this is the only way the service can say
+            //  what a REST 503 says — and it is the same retry, not a fault.
+            var message = this.StringAt(lastFrame, "error", "the router cache is cold");
+            return new ExchangeNotAvailable("OrderRouter: " + message + this.ColdCacheSuffix(lastFrame));
+        }
+        if (code == 1000 || code == 1005 || code == 0)
+        {
+            //  a clean close, or one with no code, which is what a caller-requested stop looks
+            //  like from here
+            return null;
+        }
+        return new ExchangeNotAvailable("OrderRouter: the route stream closed with code " + code.ToString(CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>
+    /// The same route as FetchRoute, pushed over a websocket whenever any market it depends on
+    /// moves.
+    ///
+    /// BLOCKS until the stream ends: onRoute is how you read it. Return "stop" from the hook to
+    /// close the socket cleanly; the call then returns the last route it saw. Every frame is
+    /// stamped with the same client-side keys FetchRoute stamps, so it can go straight into
+    /// BuildExecutionPlan. balances and balanceMode are refused — see StreamUrl for why — and
+    /// includeQuotes is left to the endpoint's own default, which is false here.
+    /// </summary>
+    public virtual async Task<dict> WatchRoute(string fromAsset, string toAsset, dict parameters = null, Func<dict, string> onRoute = null)
+    {
+        if (onRoute == null)
+        {
+            //  there is no other way to read a stream, and a socket opened with nowhere to put
+            //  the frames is a leak, not a default
+            throw new ArgumentsRequired("watchRoute requires an onRoute callback");
+        }
+        //  built BEFORE the socket, so a refusal this client can make itself costs no connection
+        var url = this.StreamUrl(fromAsset, toAsset, parameters);
+        var upperFrom = fromAsset.ToUpperInvariant();
+        var upperTo = toAsset.ToUpperInvariant();
+        var requiredFullFill = this.BoolAt(parameters, "requireFullFill", false);
+        var requestId = this.StringAt(parameters, "requestId", "");
+        dict lastFrame = new dict();
+        dict lastRoute = new dict();
+        using (var socket = new ClientWebSocket())
+        {
+            socket.Options.SetRequestHeader("x-api-key", this.apiKey);
+            if (requestId != "" && requestId.Length <= 200)
+            {
+                socket.Options.SetRequestHeader("x-request-id", requestId);
+            }
+            try
+            {
+                //  the timeout guards the HANDSHAKE only. A stream that has opened is meant to
+                //  sit idle between market moves, and killing it for being quiet would defeat
+                //  the point.
+                using (var handshake = new CancellationTokenSource(TimeSpan.FromMilliseconds(this.timeoutMs)))
+                {
+                    await socket.ConnectAsync(new Uri(url), handshake.Token);
+                }
+            }
+            catch (Exception e)
+            {
+                throw this.StreamHandshakeError(e.Message);
+            }
+            var buffer = new byte[65536];
+            var pending = new StringBuilder();
+            while (socket.State == WebSocketState.Open)
+            {
+                WebSocketReceiveResult received = null;
+                try
+                {
+                    received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                }
+                catch (Exception)
+                {
+                    //  the peer vanished without a close frame; treat it as a close with no code
+                    break;
+                }
+                if (received.MessageType == WebSocketMessageType.Close)
+                {
+                    break;
+                }
+                pending.Append(Encoding.UTF8.GetString(buffer, 0, received.Count));
+                if (!received.EndOfMessage)
+                {
+                    //  a frame split across reads is not a frame yet
+                    continue;
+                }
+                var text = pending.ToString();
+                pending.Clear();
+                dict frame = null;
+                try
+                {
+                    frame = this.AsDict(JsonHelper.Deserialize(text));
+                }
+                catch (Exception)
+                {
+                    frame = null;
+                }
+                if (frame == null)
+                {
+                    throw new ExchangeError("OrderRouter stream sent a non-JSON frame");
+                }
+                //  Held whether or not it looks like a route: a REFUSAL arrives as one ordinary
+                //  frame and only the close code that follows says it was one.
+                lastFrame = frame;
+                if (this.StringAt(frame, "error", "") != "")
+                {
+                    //  not a route — wait for the close code to say which refusal it is
+                    continue;
+                }
+                //  the same client-side stamps FetchRoute applies, for the same reason: every
+                //  frame is a route BuildExecutionPlan may be handed
+                frame["clientRequestedFrom"] = upperFrom;
+                frame["clientRequestedTo"] = upperTo;
+                frame["clientRequestedRequireFullFill"] = requiredFullFill;
+                lastRoute = frame;
+                if (onRoute(frame) == "stop")
+                {
+                    //  a caller-requested stop is a CLEAN close, so the service sees a normal
+                    //  shutdown rather than a dropped socket
+                    try
+                    {
+                        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                    }
+                    catch (Exception)
+                    {
+                        //  already gone
+                    }
+                    return lastRoute;
+                }
+            }
+            var code = (socket.CloseStatus == null) ? 0 : (int)socket.CloseStatus;
+            var failure = this.StreamCloseError(code, lastFrame);
+            if (failure != null)
+            {
+                throw failure;
+            }
+            return lastRoute;
+        }
+    }
+
+    /// <summary>
+    /// Maps a failed websocket upgrade onto the same exception the REST path raises for that
+    /// status. 401, 429 and 503 happen BEFORE the upgrade, so they never arrive as close codes,
+    /// and the transport reports them only as text.
+    /// </summary>
+    public Exception StreamHandshakeError(string message)
+    {
+        if (message == null)
+        {
+            message = "the route stream failed";
+        }
+        if (message.IndexOf("401", StringComparison.Ordinal) >= 0 || message.IndexOf("403", StringComparison.Ordinal) >= 0)
+        {
+            return new AuthenticationError("OrderRouter: unauthorized");
+        }
+        if (message.IndexOf("429", StringComparison.Ordinal) >= 0)
+        {
+            return new RateLimitExceeded("OrderRouter: rate limit exceeded");
+        }
+        return new ExchangeNotAvailable("OrderRouter: " + message);
     }
 
     /// <summary>

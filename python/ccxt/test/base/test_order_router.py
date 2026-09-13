@@ -1213,6 +1213,28 @@ def test_balances_echo_is_verified():
     assert no_balances.last_method == 'GET'
 
 
+@test('stream_url upgrades the scheme and refuses what /stream/route refuses')
+def test_stream_url():
+    streamer = OrderRouter({'apiKey': 'k', 'baseUrl': 'https://example.test/api'})
+    url = streamer.stream_url('usdt', 'btc', {'amountIn': 0.001, 'strategy': 'split_capped', 'maxVenues': 3, 'exchanges': ['binance', 'kraken'], 'certified': True})
+    assert url == 'wss://example.test/api/stream/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true', url
+    # includeQuotes is NOT defaulted: the endpoint's own default is false, and sending nothing is
+    # how the caller gets it
+    assert url.find('includeQuotes') == -1
+    # a plain-http base becomes ws://, not wss://
+    insecure = OrderRouter({'apiKey': 'k', 'baseUrl': 'http://localhost:8080'})
+    assert insecure.stream_url('USDT', 'BTC', {'amountIn': 1}).find('ws://localhost:8080/stream/route?') == 0
+    # a socket outlives the holdings it was opened with, so the service refuses both
+    assert_raises(BadRequest, lambda: streamer.stream_url('USDT', 'BTC', {'amountIn': 1, 'balances': 'binance.USDT:1000'}), 'balances')
+    assert_raises(BadRequest, lambda: streamer.stream_url('USDT', 'BTC', {'amountIn': 1, 'balanceMode': 'require'}), 'balanceMode')
+    # the same exclusivity fetch_route enforces — one parser server-side, one rule here
+    assert_raises(BadRequest, lambda: streamer.stream_url('USDT', 'BTC', {}), 'neither amount')
+    assert_raises(BadRequest, lambda: streamer.stream_url('USDT', 'BTC', {'amountIn': 1, 'amountOut': 1}), 'both amounts')
+    assert_raises(ArgumentsRequired, lambda: streamer.stream_url('', 'BTC', {'amountIn': 1}), 'an empty from_asset')
+    # and the stream itself is refused rather than approximated by polling
+    assert_raises(NotSupported, lambda: streamer.watch_route('USDT', 'BTC', {'amountIn': 1}, lambda route: 'continue'), 'no websocket in sync python')
+
+
 @test('a caller-chosen audit id travels as x-request-id')
 def test_request_id_header():
     # the service mints one when absent; supplying one is what lets a caller join their own

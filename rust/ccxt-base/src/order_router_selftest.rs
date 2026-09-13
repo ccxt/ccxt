@@ -1035,6 +1035,106 @@ fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String
     Ok(())
 }
 
+fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
+    let mut config = HashMap::new();
+    config.insert("apiKey".to_string(), Value::Str("k".to_string()));
+    config.insert("baseUrl".to_string(), Value::Str("https://example.test/api".to_string()));
+    let streamer = OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())?;
+    let mut params = HashMap::new();
+    params.insert("amountIn".to_string(), Value::Float(0.001));
+    params.insert("strategy".to_string(), Value::Str("split_capped".to_string()));
+    params.insert("maxVenues".to_string(), Value::Int(3));
+    params.insert(
+        "exchanges".to_string(),
+        Value::List(vec![Value::Str("binance".into()), Value::Str("kraken".into())]),
+    );
+    params.insert("certified".to_string(), Value::Bool(true));
+    let url = streamer
+        .stream_url("usdt", "btc", &Value::Map(params))
+        .map_err(|e| e.to_string())?;
+    let expected = "wss://example.test/api/stream/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true";
+    if url != expected {
+        return Err(format!("expected\n  {expected}\ngot\n  {url}"));
+    }
+    // includeQuotes is NOT defaulted: the endpoint's own default is false
+    if url.contains("includeQuotes") {
+        return Err("includeQuotes is left to the endpoint default".to_string());
+    }
+    // a plain-http base becomes ws://, not wss://
+    let mut plain_config = HashMap::new();
+    plain_config.insert("apiKey".to_string(), Value::Str("k".to_string()));
+    plain_config.insert("baseUrl".to_string(), Value::Str("http://localhost:8080".to_string()));
+    let insecure = OrderRouter::new(&Value::Map(plain_config)).map_err(|e| e.to_string())?;
+    let mut one = HashMap::new();
+    one.insert("amountIn".to_string(), Value::Float(1.0));
+    let plain = insecure
+        .stream_url("USDT", "BTC", &Value::Map(one.clone()))
+        .map_err(|e| e.to_string())?;
+    if !plain.starts_with("ws://localhost:8080/stream/route?") {
+        return Err(format!("http becomes ws, got {plain}"));
+    }
+    // a socket outlives the holdings it was opened with, so the service refuses both
+    let mut with_balances = one.clone();
+    with_balances.insert("balances".to_string(), Value::Str("binance.USDT:1000".to_string()));
+    if streamer.stream_url("USDT", "BTC", &Value::Map(with_balances)).is_ok() {
+        return Err("balances are refused on the stream".to_string());
+    }
+    let mut with_mode = one.clone();
+    with_mode.insert("balanceMode".to_string(), Value::Str("require".to_string()));
+    if streamer.stream_url("USDT", "BTC", &Value::Map(with_mode)).is_ok() {
+        return Err("balanceMode is refused with them".to_string());
+    }
+    // the same exclusivity fetch_route enforces — one parser server-side, one rule here
+    if streamer.stream_url("USDT", "BTC", &Value::Map(HashMap::new())).is_ok() {
+        return Err("neither amount is refused".to_string());
+    }
+    if streamer.stream_url("", "BTC", &Value::Map(one)).is_ok() {
+        return Err("an empty fromAsset is refused".to_string());
+    }
+    // close codes carry the same meaning the REST statuses do
+    let mut refusal_frame = HashMap::new();
+    refusal_frame.insert(
+        "error".to_string(),
+        Value::Str("exact_out_multi_hop_unsupported".to_string()),
+    );
+    match r.stream_close_error(1008, &Value::Map(refusal_frame)) {
+        Some(e) => {
+            if e.kind != "BadRequest" || !e.to_string().contains("exact_out_multi_hop_unsupported") {
+                return Err(format!("1008 is the same refusal a 400 is, got {e}"));
+            }
+        }
+        None => return Err("1008 must refuse".to_string()),
+    }
+    let mut cold_frame = HashMap::new();
+    cold_frame.insert("error".to_string(), Value::Str("cache is cold".to_string()));
+    cold_frame.insert("bookCount".to_string(), Value::Int(12));
+    cold_frame.insert("freshCount".to_string(), Value::Int(0));
+    cold_frame.insert("minFreshBooksForReady".to_string(), Value::Int(1));
+    match r.stream_close_error(1013, &Value::Map(cold_frame)) {
+        Some(e) => {
+            if e.kind != "ExchangeNotAvailable" || !e.to_string().contains("0 of 12 books fresh") {
+                return Err(format!("1013 is a cold cache, got {e}"));
+            }
+        }
+        None => return Err("1013 must refuse".to_string()),
+    }
+    if r.stream_close_error(1000, &Value::Map(HashMap::new())).is_some() {
+        return Err("a clean close is not an error".to_string());
+    }
+    match r.stream_close_error(1011, &Value::Map(HashMap::new())) {
+        Some(e) if e.kind == "ExchangeNotAvailable" => {}
+        other => return Err(format!("an unexpected close raises, got {other:?}")),
+    }
+    // and a failed upgrade keeps the REST vocabulary
+    if r.stream_handshake_error("Unexpected server response: 401").kind != "AuthenticationError" {
+        return Err("401 at the handshake is an auth error".to_string());
+    }
+    if r.stream_handshake_error("Unexpected server response: 429").kind != "RateLimitExceeded" {
+        return Err("429 at the handshake is a rate limit".to_string());
+    }
+    Ok(())
+}
+
 fn balances_echo_is_verified(r: &OrderRouter) -> Result<(), String> {
     // /route declares its query without a JSON schema, so a server that predates the balances
     // feature answers byte-identically to one that never received any. It is the EMPTY wallet
@@ -1552,6 +1652,7 @@ pub fn run() -> Result<usize, String> {
         ("a route carrying balances is POSTed, and the holdings never appear in the url", Box::new(|| route_body_carries_the_holdings_and_the_url_never_does(&router()?))),
         ("a fee the router already subtracted is not subtracted a second time", Box::new(|| fee_is_not_subtracted_twice(&router()?))),
         ("a router that ignored the balances is caught, including when the wallet is empty", Box::new(|| balances_echo_is_verified(&router()?))),
+        ("streamUrl upgrades the scheme, and close codes keep the REST vocabulary", Box::new(|| stream_url_and_close_codes(&router()?))),
         ("execute: dry_run is the default and a forgotten live flag places nothing", Box::new(|| dry_run_places_nothing(&router()?))),
         ("execute: an unknown strategy is refused even in dry run", Box::new(|| an_unknown_strategy_is_refused_even_in_dry_run(&router()?))),
         ("execute: sequential places IOC limit orders in plan order", Box::new(|| sequential_places_and_fills(&router()?))),

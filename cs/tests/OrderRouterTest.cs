@@ -91,6 +91,7 @@ public class OrderRouterTest
         Run("a fee the router already subtracted is not subtracted a second time", FeeIsNotDoubleSubtracted);
         RunAsync("a router that ignored the balances is caught, including when the wallet is empty", BalancesEchoIsVerified);
         RunAsync("a caller-chosen audit id travels as x-request-id", RequestIdHeader);
+        Run("streamUrl upgrades the scheme, and close codes keep the REST vocabulary", StreamUrlAndCloseCodes);
         Run("buildUnwindPlan is never automatic and never nets across venues", UnwindNeverNetsAcrossVenues);
         Run("a buy-side unwind order never spends more quote than the residual actually holds", UnwindBuyIsFundable);
         //  3. execute — stub venues only, and not one real order anywhere
@@ -1147,6 +1148,42 @@ public class OrderRouterTest
         EqualString((string)router.ReconcileExecutionStep(plan, 0, expectedOut - 0.9)["verdict"], "halt", "outside the tolerance");
         EqualString((string)router.ReconcileExecutionStep(plan, 0, expectedOut - 0.9)["reason"], "shortfall_exceeds_tolerance", "and says why");
         Throws<BadRequest>(() => router.ReconcileExecutionStep(plan, 7, 1), "an out-of-range step index is refused");
+    }
+
+    private static void StreamUrlAndCloseCodes()
+    {
+        var router = NewRouter();
+        var streamer = new OrderRouter(new dict() { { "apiKey", "k" }, { "baseUrl", "https://example.test/api" } });
+        var url = streamer.StreamUrl("usdt", "btc", new dict()
+        {
+            { "amountIn", 0.001 },
+            { "strategy", "split_capped" },
+            { "maxVenues", 3 },
+            { "exchanges", new list() { "binance", "kraken" } },
+            { "certified", true },
+        });
+        EqualString(url, "wss://example.test/api/stream/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true", "the stream url is deterministic");
+        //  includeQuotes is NOT defaulted: the endpoint's own default is false
+        Ok(url.IndexOf("includeQuotes", StringComparison.Ordinal) < 0, "includeQuotes is left to the endpoint default");
+        //  a plain-http base becomes ws://, not wss://
+        var insecure = new OrderRouter(new dict() { { "apiKey", "k" }, { "baseUrl", "http://localhost:8080" } });
+        Ok(insecure.StreamUrl("USDT", "BTC", new dict() { { "amountIn", 1.0 } }).StartsWith("ws://localhost:8080/stream/route?", StringComparison.Ordinal), "http becomes ws");
+        //  a socket outlives the holdings it was opened with, so the service refuses both
+        Throws<BadRequest>(() => streamer.StreamUrl("USDT", "BTC", new dict() { { "amountIn", 1.0 }, { "balances", "binance.USDT:1000" } }), "balances are refused on the stream");
+        Throws<BadRequest>(() => streamer.StreamUrl("USDT", "BTC", new dict() { { "amountIn", 1.0 }, { "balanceMode", "require" } }), "balanceMode is refused with them");
+        //  the same exclusivity FetchRoute enforces — one parser server-side, one rule here
+        Throws<BadRequest>(() => streamer.StreamUrl("USDT", "BTC", new dict()), "neither amount is refused");
+        Throws<ArgumentsRequired>(() => streamer.StreamUrl("", "BTC", new dict() { { "amountIn", 1.0 } }), "an empty fromAsset is refused");
+        //  close codes carry the same meaning the REST statuses do
+        var refusal = router.StreamCloseError(1008, new dict() { { "error", "exact_out_multi_hop_unsupported" } });
+        Ok(refusal is BadRequest && refusal.Message.IndexOf("exact_out_multi_hop_unsupported", StringComparison.Ordinal) >= 0, "1008 is the same refusal a 400 is");
+        var cold = router.StreamCloseError(1013, new dict() { { "error", "cache is cold" }, { "bookCount", 12.0 }, { "freshCount", 0.0 }, { "minFreshBooksForReady", 1.0 } });
+        Ok(cold is ExchangeNotAvailable && cold.Message.IndexOf("0 of 12 books fresh", StringComparison.Ordinal) >= 0, "1013 is a cold cache");
+        Ok(router.StreamCloseError(1000, new dict()) == null, "a clean close is not an error");
+        Ok(router.StreamCloseError(1011, new dict()) is ExchangeNotAvailable, "an unexpected close raises");
+        //  and a failed upgrade keeps the REST vocabulary
+        Ok(router.StreamHandshakeError("Unexpected server response: 401") is AuthenticationError, "401 at the handshake is an auth error");
+        Ok(router.StreamHandshakeError("Unexpected server response: 429") is RateLimitExceeded, "429 at the handshake is a rate limit");
     }
 
     private static async Task BalancesEchoIsVerified()

@@ -1050,8 +1050,15 @@ if ($readiness['status'] !== 'ready') {
 }
 ```
 
-`/metrics` (Prometheus) and `/stream/route` (the route pushed over a WebSocket as books move) have
-no client method yet — scrape and subscribe with your own tooling.
+`/metrics` (Prometheus) has no client method — it answers `text/plain` and this class parses every
+response as JSON.
+
+**Watching a route.** `/stream/route` pushes the same RouteResult whenever any market the route
+depends on moves. `watchRoute` raises **`NotSupported`** in PHP: this port is synchronous and has no
+websocket client to drive, and polling `fetchRoute` on a timer is not the same thing, so it is refused
+rather than silently substituted. `streamUrl` IS implemented, so the url grammar and the
+client-side refusals stay verified here. The endpoint refuses `balances` and `balanceMode` — a
+socket outlives the holdings it was opened with — and defaults `includeQuotes` to false.
 
 ### Watching a run, and stopping it
 

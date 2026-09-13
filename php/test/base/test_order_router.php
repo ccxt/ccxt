@@ -821,6 +821,35 @@ function order_router_test_balances_echo_is_verified($router) {
     order_router_assert($noBalances->lastMethod === 'GET', 'a route with no holdings stays a GET');
 }
 
+function order_router_test_stream_url($router) {
+    $streamer = new OrderRouter(array('apiKey' => 'k', 'baseUrl' => 'https://example.test/api'));
+    $url = $streamer->streamUrl('usdt', 'btc', array('amountIn' => 0.001, 'strategy' => 'split_capped', 'maxVenues' => 3, 'exchanges' => array('binance', 'kraken'), 'certified' => true));
+    order_router_assert($url === 'wss://example.test/api/stream/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true', 'the stream url is deterministic, got ' . $url);
+    //  includeQuotes is NOT defaulted: the endpoint's own default is false
+    order_router_assert(strpos($url, 'includeQuotes') === false, 'includeQuotes is left to the endpoint default');
+    //  a plain-http base becomes ws://, not wss://
+    $insecure = new OrderRouter(array('apiKey' => 'k', 'baseUrl' => 'http://localhost:8080'));
+    order_router_assert(strpos($insecure->streamUrl('USDT', 'BTC', array('amountIn' => 1)), 'ws://localhost:8080/stream/route?') === 0, 'http becomes ws');
+    //  a socket outlives the holdings it was opened with, so the service refuses both
+    order_router_assert_throws(function () use ($streamer) {
+        $streamer->streamUrl('USDT', 'BTC', array('amountIn' => 1, 'balances' => 'binance.USDT:1000'));
+    }, BadRequest::class, 'balances are refused on the stream');
+    order_router_assert_throws(function () use ($streamer) {
+        $streamer->streamUrl('USDT', 'BTC', array('amountIn' => 1, 'balanceMode' => 'require'));
+    }, BadRequest::class, 'balanceMode is refused with them');
+    //  the same exclusivity fetchRoute enforces
+    order_router_assert_throws(function () use ($streamer) {
+        $streamer->streamUrl('USDT', 'BTC', array());
+    }, BadRequest::class, 'neither amount is refused');
+    order_router_assert_throws(function () use ($streamer) {
+        $streamer->streamUrl('', 'BTC', array('amountIn' => 1));
+    }, ArgumentsRequired::class, 'an empty fromAsset is refused');
+    //  and the stream itself is refused rather than approximated by polling
+    order_router_assert_throws(function () use ($streamer) {
+        $streamer->watchRoute('USDT', 'BTC', array('amountIn' => 1), function ($route) { return 'continue'; });
+    }, NotSupported::class, 'no websocket in sync php');
+}
+
 function order_router_test_request_id_header($router) {
     //  the service mints one when absent; supplying one is what lets a caller join their own
     //  log to the router's decision log for a request that never returned a body
@@ -1799,6 +1828,7 @@ function test_order_router() {
         'a fee the router already subtracted is not subtracted a second time' => 'ccxt\order_router_test_fee_not_double_subtracted',
         'a router that ignored the balances is caught, including when the wallet is empty' => 'ccxt\order_router_test_balances_echo_is_verified',
         'a caller-chosen audit id travels as x-request-id' => 'ccxt\order_router_test_request_id_header',
+        'streamUrl upgrades the scheme and refuses what /stream/route refuses' => 'ccxt\order_router_test_stream_url',
         'buildUnwindPlan is never automatic and never nets across venues' => 'ccxt\order_router_test_unwind_is_never_automatic',
         'a buy-side unwind order never spends more quote than the residual actually holds' => 'ccxt\order_router_test_unwind_buy_is_fundable',
         'dry_run is the default: a live-looking call with live unset places nothing' => 'ccxt\order_router_test_dry_run_is_the_default',

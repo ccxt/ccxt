@@ -729,6 +729,58 @@ func TestOrderRouterReconcileHaltsOnATotalMissAndAnOverToleranceShortfall(t *tes
 	}
 }
 
+func TestOrderRouterStreamUrlAndCloseCodes(t *testing.T) {
+	router := routerTestRouter(t)
+	streamer, err := NewOrderRouter(map[string]any{"apiKey": "k", "baseUrl": "https://example.test/api"})
+	if err != nil {
+		t.Fatalf("NewOrderRouter: %v", err)
+	}
+	url, err := streamer.StreamUrl("usdt", "btc", map[string]any{"amountIn": 0.001, "strategy": "split_capped", "maxVenues": 3.0, "exchanges": []any{"binance", "kraken"}, "certified": true})
+	expected := "wss://example.test/api/stream/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true"
+	if err != nil || url != expected {
+		t.Fatalf("stream url mismatch\n got %v\nwant %v (%v)", url, expected, err)
+	}
+	// includeQuotes is NOT defaulted: the endpoint's own default is false
+	if strings.Contains(url, "includeQuotes") {
+		t.Fatalf("includeQuotes is left to the endpoint default, got %v", url)
+	}
+	// a plain-http base becomes ws://, not wss://
+	insecure, _ := NewOrderRouter(map[string]any{"apiKey": "k", "baseUrl": "http://localhost:8080"})
+	plain, _ := insecure.StreamUrl("USDT", "BTC", map[string]any{"amountIn": 1.0})
+	if !strings.HasPrefix(plain, "ws://localhost:8080/stream/route?") {
+		t.Fatalf("http becomes ws, got %v", plain)
+	}
+	// a socket outlives the holdings it was opened with, so the service refuses both
+	if _, err := streamer.StreamUrl("USDT", "BTC", map[string]any{"amountIn": 1.0, "balances": "binance.USDT:1000"}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("balances are refused on the stream, got %v", err)
+	}
+	if _, err := streamer.StreamUrl("USDT", "BTC", map[string]any{"amountIn": 1.0, "balanceMode": "require"}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("balanceMode is refused with them, got %v", err)
+	}
+	// the same exclusivity FetchRoute enforces — one parser server-side, one rule here
+	if _, err := streamer.StreamUrl("USDT", "BTC", map[string]any{}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("neither amount is refused, got %v", err)
+	}
+	if _, err := streamer.StreamUrl("", "BTC", map[string]any{"amountIn": 1.0}); routerErrorCode(err) != "ArgumentsRequired" {
+		t.Fatalf("an empty fromAsset is refused, got %v", err)
+	}
+	// close codes carry the same meaning the REST statuses do
+	refusal := router.routerStreamCloseError(1008, map[string]any{"error": "exact_out_multi_hop_unsupported"})
+	if routerErrorCode(refusal) != "BadRequest" || !strings.Contains(refusal.Error(), "exact_out_multi_hop_unsupported") {
+		t.Fatalf("1008 is the same refusal a 400 is, got %v", refusal)
+	}
+	cold := router.routerStreamCloseError(1013, map[string]any{"error": "cache is cold", "bookCount": 12.0, "freshCount": 0.0, "minFreshBooksForReady": 1.0})
+	if routerErrorCode(cold) != "ExchangeNotAvailable" || !strings.Contains(cold.Error(), "0 of 12 books fresh") {
+		t.Fatalf("1013 is a cold cache, got %v", cold)
+	}
+	if router.routerStreamCloseError(1000, map[string]any{}) != nil {
+		t.Fatalf("a clean close is not an error")
+	}
+	if routerErrorCode(router.routerStreamCloseError(1011, map[string]any{})) != "ExchangeNotAvailable" {
+		t.Fatalf("an unexpected close raises")
+	}
+}
+
 func TestOrderRouterBalancesEchoIsVerified(t *testing.T) {
 	// /route declares its query without a JSON schema, so a server that predates the balances
 	// feature answers byte-identically to one that never received any. It is the EMPTY wallet

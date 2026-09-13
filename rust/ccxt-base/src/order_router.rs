@@ -1622,6 +1622,220 @@ impl OrderRouter {
         })
     }
 
+    /// Refuses neither-or-both amounts before a byte reaches the wire.
+    ///
+    /// Shared by `fetch_route` and `watch_route` because the service runs ONE parser
+    /// for both and they must not disagree about what is valid.
+    pub fn assert_route_amounts(params: &Value, method: &str) -> RouterResult<()> {
+        let has_amount_in = field(params, "amountIn").is_some();
+        let has_amount_out = field(params, "amountOut").is_some();
+        if has_amount_in == has_amount_out {
+            return Err(bad_request(&format!(
+                "{method} requires exactly one of amountIn or amountOut"
+            )));
+        }
+        Ok(())
+    }
+
+    /// Builds the wss url for `GET /stream/route`, refusing what the endpoint refuses.
+    pub fn stream_url(&self, from_asset: &str, to_asset: &str, params: &Value) -> RouterResult<String> {
+        if from_asset.is_empty() || to_asset.is_empty() {
+            return Err(arguments_required("watchRoute requires fromAsset and toAsset"));
+        }
+        Self::assert_route_amounts(params, "watchRoute")?;
+        // REFUSED HERE, not by the server closing the socket on us. A stream is held open
+        // for minutes and carries no channel to update the holdings it was opened with, so
+        // every frame after the first would price a portfolio the caller may already have
+        // traded away.
+        if field(params, "balances").is_some() {
+            return Err(bad_request(
+                "OrderRouter: /stream/route does not accept balances — a socket outlives the holdings it was opened with. Use fetch_route",
+            ));
+        }
+        if field(params, "balanceMode").is_some() {
+            return Err(bad_request(
+                "OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use fetch_route",
+            ));
+        }
+        // includeQuotes is deliberately NOT defaulted: the service defaults it to false on
+        // this endpoint and true on the REST one, and the query builder omits what the
+        // caller did not set.
+        let mut query = format!(
+            "from={}&to={}",
+            Self::encode_uri_component(&from_asset.to_uppercase()),
+            Self::encode_uri_component(&to_asset.to_uppercase())
+        );
+        for key in ROUTE_QUERY_KEYS.iter() {
+            let value = match field(params, key) {
+                Some(found) => found,
+                None => continue,
+            };
+            let text = self.query_text(value)?;
+            query.push('&');
+            query.push_str(key);
+            query.push('=');
+            query.push_str(&Self::encode_uri_component(&text));
+        }
+        let base = if let Some(rest) = self.base_url.strip_prefix("https://") {
+            format!("wss://{rest}")
+        } else if let Some(rest) = self.base_url.strip_prefix("http://") {
+            format!("ws://{rest}")
+        } else {
+            self.base_url.clone()
+        };
+        Ok(format!("{base}/stream/route?{query}"))
+    }
+
+    /// Maps a websocket close code onto the error the same refusal raises over REST.
+    /// `None` for an ordinary close.
+    pub fn stream_close_error(&self, code: u16, last_frame: &Value) -> Option<ExchangeError> {
+        if code == 1008 {
+            // the service sends ONE json frame carrying the same `error` string the REST
+            // endpoint would have answered a 400 with — including a bridged exact-out,
+            // which REST refuses as a 501. Same refusal, same error.
+            let message = self.string_at(last_frame, "error", "the router rejected the stream request");
+            return Some(bad_request(&format!("OrderRouter: {message}")));
+        }
+        if code == 1013 {
+            // try again later: the cache was cold when the socket was accepted. A stream
+            // carries no status codes once open, so this is the only way the service can say
+            // what a REST 503 says — and it is the same retry, not a fault.
+            let message = self.string_at(last_frame, "error", "the router cache is cold");
+            let cold = self.cold_cache_suffix(last_frame);
+            return Some(ExchangeError::new(
+                "ExchangeNotAvailable",
+                format!("OrderRouter: {message}{cold}"),
+            ));
+        }
+        if code == 1000 || code == 1005 || code == 0 {
+            // a clean close, or one with no code, which is what a caller-requested stop
+            // looks like from here
+            return None;
+        }
+        Some(ExchangeError::new(
+            "ExchangeNotAvailable",
+            format!("OrderRouter: the route stream closed with code {code}"),
+        ))
+    }
+
+    /// The same route as `fetch_route`, pushed over a websocket whenever any market it
+    /// depends on moves.
+    ///
+    /// BLOCKS until the stream ends: `on_route` is how you read it. Return `"stop"` from the
+    /// hook to close the socket cleanly; the call then returns the last route it saw. Every
+    /// frame is stamped with the same client-side keys `fetch_route` stamps, so it can go
+    /// straight into `build_execution_plan`.
+    ///
+    /// `balances` and `balanceMode` are refused — see `stream_url` for why — and
+    /// `includeQuotes` is left to the endpoint's own default, which is false here.
+    ///
+    /// Unlike `execute`'s step hook, this one is a plain parameter rather than something
+    /// stored on the client: nothing here has to survive in a `Value`, so the closed-enum
+    /// workaround `set_on_step` needs does not apply.
+    pub async fn watch_route(
+        &self,
+        from_asset: &str,
+        to_asset: &str,
+        params: &Value,
+        on_route: &mut dyn FnMut(&Value) -> String,
+    ) -> RouterResult<Value> {
+        use futures::StreamExt;
+        use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+        use tokio_tungstenite::tungstenite::Message;
+
+        // built BEFORE the socket, so a refusal this client can make itself costs no
+        // connection
+        let url = self.stream_url(from_asset, to_asset, params)?;
+        let mut request = url.as_str().into_client_request().map_err(|e| {
+            ExchangeError::new("ExchangeNotAvailable", format!("OrderRouter: {e}"))
+        })?;
+        {
+            let headers = request.headers_mut();
+            let key = self.api_key.parse().map_err(|_| {
+                bad_request("OrderRouter: the apiKey cannot be sent as a header")
+            })?;
+            headers.insert("x-api-key", key);
+            let request_id = self.string_at(params, "requestId", "");
+            if !request_id.is_empty() && request_id.len() <= 200 {
+                if let Ok(value) = request_id.parse() {
+                    headers.insert("x-request-id", value);
+                }
+            }
+        }
+        let (socket, _response) = match tokio_tungstenite::connect_async(request).await {
+            Ok(pair) => pair,
+            Err(e) => return Err(self.stream_handshake_error(&e.to_string())),
+        };
+        let (_write, mut read) = socket.split();
+        let upper_from = from_asset.to_uppercase();
+        let upper_to = to_asset.to_uppercase();
+        let required_full_fill = self.bool_at(params, "requireFullFill", false);
+        let mut last_frame = Value::Map(HashMap::new());
+        let mut last_route = Value::Map(HashMap::new());
+        while let Some(next) = read.next().await {
+            let message = match next {
+                Ok(found) => found,
+                Err(_) => break,
+            };
+            match message {
+                Message::Close(frame) => {
+                    let code = frame.map(|f| u16::from(f.code)).unwrap_or(0);
+                    return match self.stream_close_error(code, &last_frame) {
+                        Some(failure) => Err(failure),
+                        None => Ok(last_route),
+                    };
+                }
+                Message::Text(text) => {
+                    let parsed: serde_json::Value = serde_json::from_str(&text)
+                        .map_err(|_| exchange_error("OrderRouter stream sent a non-JSON frame"))?;
+                    let mut frame = Value::from_json(&parsed);
+                    // Held whether or not it looks like a route: a REFUSAL arrives as one
+                    // ordinary frame and only the close code that follows says it was one.
+                    last_frame = frame.clone();
+                    if !self.string_at(&frame, "error", "").is_empty() {
+                        // not a route — wait for the close code to say which refusal it is
+                        continue;
+                    }
+                    // the same client-side stamps fetch_route applies, for the same reason:
+                    // every frame is a route build_execution_plan may be handed
+                    Self::put(&mut frame, "clientRequestedFrom", Value::Str(upper_from.clone()));
+                    Self::put(&mut frame, "clientRequestedTo", Value::Str(upper_to.clone()));
+                    Self::put(
+                        &mut frame,
+                        "clientRequestedRequireFullFill",
+                        Value::Bool(required_full_fill),
+                    );
+                    last_route = frame.clone();
+                    if on_route(&frame) == "stop" {
+                        return Ok(last_route);
+                    }
+                }
+                _ => {
+                    // ping/pong/binary: tungstenite answers pings itself, and this endpoint
+                    // sends nothing binary
+                }
+            }
+        }
+        // the stream ended without a close frame
+        match self.stream_close_error(0, &last_frame) {
+            Some(failure) => Err(failure),
+            None => Ok(last_route),
+        }
+    }
+
+    /// Maps a failed websocket upgrade onto the same error the REST path raises for that
+    /// status. 401, 429 and 503 happen BEFORE the upgrade, so they never arrive as close
+    /// codes, and the transport reports them only as text.
+    pub fn stream_handshake_error(&self, message: &str) -> ExchangeError {
+        if message.contains("401") || message.contains("403") {
+            return ExchangeError::new("AuthenticationError", "OrderRouter: unauthorized".to_string());
+        }
+        if message.contains("429") {
+            return ExchangeError::new("RateLimitExceeded", "OrderRouter: rate limit exceeded".to_string());
+        }
+        ExchangeError::new("ExchangeNotAvailable", format!("OrderRouter: {message}"))
+    }
+
     /// Builds the fully-formed `/route` url, including the query string.
     ///
     /// Split out from `fetch_route` so the URL construction — the part that has
@@ -1636,13 +1850,7 @@ impl OrderRouter {
         if from_asset.is_empty() || to_asset.is_empty() {
             return Err(arguments_required("fetchRoute requires fromAsset and toAsset"));
         }
-        let has_amount_in = field(params, "amountIn").is_some();
-        let has_amount_out = field(params, "amountOut").is_some();
-        if has_amount_in == has_amount_out {
-            // Refused client-side for the same reason the router refuses it: a
-            // typo must not become a confidently wrong route.
-            return Err(bad_request("fetchRoute requires exactly one of amountIn or amountOut"));
-        }
+        Self::assert_route_amounts(params, "fetchRoute")?;
         let mut query = format!(
             "from={}&to={}",
             Self::encode_uri_component(&from_asset.to_uppercase()),
@@ -1681,11 +1889,7 @@ impl OrderRouter {
         if from_asset.is_empty() || to_asset.is_empty() {
             return Err(arguments_required("fetchRoute requires fromAsset and toAsset"));
         }
-        let has_amount_in = field(params, "amountIn").is_some();
-        let has_amount_out = field(params, "amountOut").is_some();
-        if has_amount_in == has_amount_out {
-            return Err(bad_request("fetchRoute requires exactly one of amountIn or amountOut"));
-        }
+        Self::assert_route_amounts(params, "fetchRoute")?;
         let mut body = Value::Dict(Arc::new(HashMap::new()));
         Self::put(&mut body, "from", Value::Str(from_asset.to_uppercase()));
         Self::put(&mut body, "to", Value::Str(to_asset.to_uppercase()));

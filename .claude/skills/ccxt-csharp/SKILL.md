@@ -1048,8 +1048,17 @@ if ((string)readiness["status"] != "ready")
 }
 ```
 
-`/metrics` (Prometheus) and `/stream/route` (the route pushed over a WebSocket as books move) have
-no client method yet — scrape and subscribe with your own tooling.
+`/metrics` (Prometheus) has no client method — it answers `text/plain` and this class parses every
+response as JSON.
+
+**Watching a route.** `WatchRoute` holds a WebSocket open and calls your hook with each RouteResult as
+the books move; return `'stop'` to close cleanly and get the last route back. Every frame is
+stamped exactly as `FetchRoute` stamps its answer, so it can go straight into the plan builder. Three
+endpoint rules differ from `FetchRoute`: `balances` and `balanceMode` are **refused** (a socket outlives
+the holdings it was opened with — refused client-side, before anything opens), `includeQuotes`
+defaults to **false**, and refusals arrive as close codes rather than statuses — `1008` raises
+`BadRequest` and `1013` raises `ExchangeNotAvailable`, the same classes the REST path uses. A hook
+that throws stops the stream and reaches you, unlike execute's step hook.
 
 ### Watching a run, and stopping it
 

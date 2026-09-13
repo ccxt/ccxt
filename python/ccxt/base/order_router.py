@@ -539,12 +539,7 @@ class OrderRouter:
         """
         if from_asset is None or to_asset is None or from_asset == '' or to_asset == '':
             raise ArgumentsRequired('fetch_route requires from_asset and to_asset')
-        has_amount_in = params.get('amountIn') is not None
-        has_amount_out = params.get('amountOut') is not None
-        if has_amount_in == has_amount_out:
-            # refused client-side for the same reason the router refuses it: a
-            # typo must not become a confidently wrong route
-            raise BadRequest('fetch_route requires exactly one of amountIn or amountOut')
+        self.assert_route_amounts(params, 'fetch_route')
         # HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         # logs, but a URL does not stay inside that process: the standard deployment
         # puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
@@ -579,6 +574,21 @@ class OrderRouter:
         route['clientRequestedFrom'] = from_asset.upper()
         route['clientRequestedTo'] = to_asset.upper()
         return route
+
+    def assert_route_amounts(self, params, method):
+        """
+        refuses neither-or-both amounts before a byte reaches the wire
+
+        :param dict params: the route parameters
+        :param str method: the caller's name, for the message
+        """
+        has_amount_in = params.get('amountIn') is not None
+        has_amount_out = params.get('amountOut') is not None
+        if has_amount_in == has_amount_out:
+            # refused client-side for the same reason the router refuses it: a typo must not
+            # become a confidently wrong route. Shared by fetch_route and watch_route because the
+            # service runs ONE parser for both and they must not disagree about what is valid.
+            raise BadRequest(method + ' requires exactly one of amountIn or amountOut')
 
     def assert_balances_applied(self, route, params):
         """
@@ -837,6 +847,57 @@ class OrderRouter:
         # reach a route that does not exist
         url = self.base_url + '/orderbook/' + quote(exchange_id, safe=URL_COMPONENT_SAFE) + '/' + quote(symbol, safe=URL_COMPONENT_SAFE)
         return self.request(url, 'GET', {})
+
+    def stream_url(self, from_asset, to_asset, params):
+        """
+        builds the wss url for GET /stream/route, refusing what the endpoint refuses
+
+        :param str from_asset: the asset being spent
+        :param str to_asset: the asset being acquired
+        :param dict params: the route parameters
+        :returns str: the fully-formed websocket url
+        """
+        if from_asset is None or to_asset is None or from_asset == '' or to_asset == '':
+            raise ArgumentsRequired('watchRoute requires from_asset and to_asset')
+        self.assert_route_amounts(params, 'watchRoute')
+        # REFUSED HERE, not by the server closing the socket on us. A stream is held open for
+        # minutes and carries no channel to update the holdings it was opened with, so every
+        # frame after the first would price a portfolio the caller may already have traded away.
+        if params.get('balances') is not None:
+            raise BadRequest('OrderRouter: /stream/route does not accept balances — a socket outlives the holdings it was opened with. Use fetch_route')
+        if params.get('balanceMode') is not None:
+            raise BadRequest('OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use fetch_route')
+        # includeQuotes is deliberately NOT defaulted: the service defaults it to False on this
+        # endpoint and True on the REST one, and route_query omits what the caller did not set.
+        query = self.route_query(from_asset, to_asset, params)
+        url = self.base_url
+        if url.find('https://') == 0:
+            url = 'wss://' + url[8:]
+        elif url.find('http://') == 0:
+            url = 'ws://' + url[7:]
+        return url + '/stream/route?' + query
+
+    def watch_route(self, from_asset, to_asset, params={}, on_route=None):
+        """
+        NOT IMPLEMENTED IN SYNCHRONOUS PYTHON, and refused rather than approximated.
+
+        /stream/route is a WebSocket, and this class is synchronous: it does its I/O with
+        `requests`, which has no websocket support, and ccxt's own websocket client lives in
+        ccxt.async_support and needs a running event loop. Polling fetch_route on a timer is NOT
+        the same thing — the stream pushes on every market move that changes the answer, across
+        every leg of every candidate path — so this does not silently substitute one for the
+        other.
+
+        stream_url() above IS implemented and tested, so the url grammar and the client-side
+        refusals stay verified in this port and cannot drift from the other five.
+
+        :param str from_asset: the asset being spent
+        :param str to_asset: the asset being acquired
+        :param dict params: the route parameters
+        :param on_route: called with each RouteResult
+        """
+        self.stream_url(from_asset, to_asset, params)
+        raise NotSupported('OrderRouter.watch_route needs a websocket, which synchronous ccxt has no client for. Use fetch_route, or consume /stream/route from ccxt.pro / a server-side proxy')
 
     def fetch_route_with_balances(self, from_asset, to_asset, venues, params={}):
         """
