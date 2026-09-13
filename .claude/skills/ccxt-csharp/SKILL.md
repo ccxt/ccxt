@@ -989,9 +989,16 @@ regardless of the strategy requested** — a call that looks live but forgot the
 
 ### The service, and what it costs
 
-`https://docs.ccxt.com/router/api`, described by
-[openapi.yaml](https://docs.ccxt.com/router/openapi.yaml). Everything except `/health` and
-`/ready` needs the key, sent as `x-api-key`.
+`https://docs.ccxt.com/router/api`. Everything except `/health` and `/ready` needs the key, sent
+as `x-api-key`; get one at [docs.ccxt.com/router/signup](https://docs.ccxt.com/router/signup).
+
+**The full contract is published as OpenAPI 3.1 at
+`https://docs.ccxt.com/router/openapi.yaml`, and it is public — no key needed.**
+`curl -O https://docs.ccxt.com/router/openapi.yaml` and point codegen at it, import it into
+Postman/Insomnia, or diff it between deploys. It is the authority on every field this client
+reads; where the two disagree, the spec is right. Rendered prose version:
+[/router/docs](https://docs.ccxt.com/router/docs) and
+[/router/docs/api](https://docs.ccxt.com/router/docs/api).
 
 **Free to use for now, up to the published rate limit** — not a permanent commitment, so expect a
 paid tier eventually. Your existing key is how that would be billed; nothing in the client changes.

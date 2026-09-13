@@ -8567,9 +8567,32 @@ hold.
 
 ## The service
 
-`OrderRouter` talks to `https://docs.ccxt.com/router/api`, whose OpenAPI description lives at
-[docs.ccxt.com/router/openapi.yaml](https://docs.ccxt.com/router/openapi.yaml). Everything except
-`/health` and `/ready` needs an API key, sent as `x-api-key`.
+`OrderRouter` talks to `https://docs.ccxt.com/router/api`. Everything except `/health` and
+`/ready` needs an API key, sent as `x-api-key`; you get one at
+[docs.ccxt.com/router/signup](https://docs.ccxt.com/router/signup).
+
+### The OpenAPI spec
+
+The full contract is published as OpenAPI 3.1 and is **public — no key, no signup, no
+`x-api-key`**:
+
+```
+https://docs.ccxt.com/router/openapi.yaml
+```
+
+```bash
+curl -O https://docs.ccxt.com/router/openapi.yaml
+```
+
+It is the authority on every field this client reads, and it is there to be used rather than only
+read: point `openapi-generator`, `oapi-codegen` or any other codegen at it to build a client in a
+language ccxt does not cover, import it into Postman or Insomnia to poke at the endpoints by hand,
+or diff it between deploys to see what changed. If this client and the spec ever disagree, the spec
+is right and the disagreement is a bug worth reporting.
+
+Prefer prose? The same contract is rendered at
+[docs.ccxt.com/router/docs](https://docs.ccxt.com/router/docs), with a per-endpoint reference at
+[/router/docs/api](https://docs.ccxt.com/router/docs/api).
 
 **The service is free to use for now, up to the published rate limit.** That is not a permanent
 commitment: it holds live books for ~60 venues and running it costs real money, so expect a paid
