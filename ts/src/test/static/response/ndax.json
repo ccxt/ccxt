@@ -74,6 +74,7 @@
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT",
+                    null,
                     10
                 ],
                 "httpResponse": [
