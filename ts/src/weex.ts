@@ -183,7 +183,7 @@ export default class weex extends Exchange {
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
-                'setPositionMode': true,
+                'setPositionMode': false,
                 'signIn': false,
                 'transfer': false,
                 'withdraw': false,
@@ -288,7 +288,7 @@ export default class weex extends Exchange {
                     'get': {
                         'capi/v3/account/balance': { 'cost': 10 } as Endpoint<List>, // done
                         'capi/v3/account/commissionRate': { 'cost': 10 } as Endpoint<Dict>, // done
-                        'capi/v3/account/accountConfig': { 'cost': 10 } as Endpoint<Dict>, // not unified
+                        'capi/v3/account/accountConfig': { 'cost': 10 } as Endpoint<Dict>, // done
                         'capi/v3/account/symbolConfig': { 'cost': 10 } as Endpoint<List>, // done
                         'capi/v3/account/position/allPosition': { 'cost': 15 } as Endpoint<List>, // done
                         'capi/v3/account/position/singlePosition': { 'cost': 3 } as Endpoint<List>, // done
@@ -398,7 +398,7 @@ export default class weex extends Exchange {
                     '-2200': OrderNotFound, // SPOT_ORDER_NOT_EXIST Order does not exist.
                     '-3006': InvalidOrder, // CONTRACT_DOES_NOT_SUPPORT_CONTRACT_UNITS Contract does not support ordering by contract units.
                     '-3007': InvalidOrder, // CONTRACT_MAX_ORDER_QUANTITY_EXCEEDED Maximum contract order quantity exceeded.
-                    '-3200': InvalidOrder, // CONTRACT_ORDER_NOT_EXIST Order does not exist.
+                    '-3200': OrderNotFound, // CONTRACT_ORDER_NOT_EXIST Order does not exist.
                     '-3235': PermissionDenied, // CONTRACT_NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
                     '-3236': PermissionDenied, // CONTRACT_NO_PERMISSION_API No permission to access this API.
                     '-3313': InvalidOrder, // CONTRACT_LEVERAGE_ERROR Leverage exceeds maximum limit.
@@ -3831,13 +3831,6 @@ export default class weex extends Exchange {
         if (marginType === 'ISOLATED') {
             marginMode = 'isolated';
         }
-        const separatedMode = this.safeString (position, 'separatedMode');
-        let hedged: Bool = undefined;
-        if (separatedMode === 'COMBINED') {
-            hedged = false;
-        } else if (separatedMode === 'SEPARATED') {
-            hedged = true;
-        }
         const notional = this.safeString (position, 'openValue');
         const size = this.safeString (position, 'size');
         const entryPrice = Precise.stringDiv (notional, size);
@@ -3858,7 +3851,7 @@ export default class weex extends Exchange {
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidatePrice'),
             'marginMode': marginMode,
-            'hedged': hedged,
+            'hedged': undefined, // callers should use fetchPositionMode for the account-wide hedge flag — separatedMode here describes per-symbol segregation, not the hedge mode
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'initialMargin': this.safeNumber (position, 'marginSize'),
@@ -4052,6 +4045,7 @@ export default class weex extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.separatedType] "COMBINED" or "SEPARATED" position segregation mode, only some contracts support "SEPARATED" and the rest reject it
      * @returns {object} response from the exchange
      */
     override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
@@ -4193,60 +4187,27 @@ export default class weex extends Exchange {
     /**
      * @method
      * @name weex#fetchPositionMode
-     * @description fetchs the position mode, hedged or one way
-     * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
-     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @description fetches the position mode, hedged or one way, the setting is account-wide on weex
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountConfig
+     * @param {string} [symbol] not used by weex fetchPositionMode
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     * @returns {object} an object detailing whether the account is in hedged or one-way mode
      */
     override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (this.extend (request, params));
-        const entry = this.safeDict (response, 0, {});
-        const separatedType = this.safeString (entry, 'separatedType');
+        const response = await this.contractPrivateGetCapiV3AccountAccountConfig (params);
+        //
+        //     {
+        //         "canTrade": true,
+        //         "canDeposit": true,
+        //         "canWithdraw": true,
+        //         "dualSidePosition": true,
+        //         "updateTime": 1789203607645
+        //     }
+        //
         return {
             'info': response,
-            'hedged': (separatedType === 'SEPARATED'),
+            'hedged': this.safeBool (response, 'dualSidePosition'),
         };
-    }
-
-    /**
-     * @method
-     * @name weex#setPositionMode
-     * @description set hedged to true or false for a market
-     * @see https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
-     * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
-     * @returns {object} response from the exchange
-     */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
-        }
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const market = this.market (symbol);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setPositionMode', params);
-        if (marginMode === undefined) {
-            throw new ArgumentsRequired (this.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required');
-        }
-        const separatedType = hedged ? 'SEPARATED' : 'COMBINED';
-        const request: Dict = {
-            'symbol': market['id'],
-            'marginType': this.encodeMarginMode (marginMode),
-            'separatedType': separatedType,
-        };
-        return await this.contractPrivatePostCapiV3AccountMarginType (this.extend (request, params));
     }
 
     async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
@@ -4422,13 +4383,18 @@ export default class weex extends Exchange {
         //     }
         //
         const message = this.safeString (response, 'msg');
-        if (message !== undefined) {
-            const errorCode = this.safeString (response, 'code');
+        const errorCode = this.safeString (response, 'code');
+        if ((message !== undefined) && (errorCode !== '200')) {
+            // endpoints like account/marginType answer with a success envelope carrying code "200" and msg "success" which must not throw
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            throw new ExchangeError (this.id + ' ' + body);
+            const codeAsString = code.toString ();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                // an error envelope on a 2xx must still throw, unmapped 4xx/5xx fall through to the http-status classification
+                throw new ExchangeError (feedback);
+            }
         }
         return undefined;
     }
