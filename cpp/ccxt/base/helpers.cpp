@@ -474,6 +474,23 @@ ccxt::any getObjectKeys (const ccxt::any& v) {
     return ccxt::any (out);
 }
 
+// keysort(obj) + getObjectKeys(result) without materialising the sorted dict:
+// sorts the key strings (same comparator as keysort — std::sort byte order)
+// and returns them as a list. Used by the setMarkets tail for symbols/ids.
+ccxt::any sortedObjectKeys (const ccxt::any& v) {
+    if (!ccxt::isDict (v)) return ccxt::any (list {});
+    std::vector<std::string> keys;
+    for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
+        keys.push_back (kv.first);
+    }
+    std::sort (keys.begin (), keys.end ());
+    list out;
+    for (const auto& key : keys) {
+        out.push (ccxt::any (key));
+    }
+    return ccxt::any (out);
+}
+
 ccxt::any getObjectValues (const ccxt::any& v) {
     list out;
     if (ccxt::isDict (v)) {

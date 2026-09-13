@@ -737,6 +737,19 @@ class CppTranspilerDriver {
             log.warn ('[cpp] setMarkets: currency-precision anchors not found, skipping rewrite');
         }
 
+        // (4) symbols/ids via sorted keys — keysort + getObjectKeys materialises
+        // two full sorted dict copies (9k+ entry copies) that are immediately
+        // discarded; ::sortedObjectKeys sorts the key strings directly with the
+        // same comparator (std::sort byte order, matching keysort's).
+        const ksRe =
+            /ccxt::any marketsSortedBySymbol = this->keysort\(this->markets\);[\s\S]*?this->symbols = getObjectKeys\(marketsSortedBySymbol\);\s*\n\s*this->ids = getObjectKeys\(marketsSortedById\);/;
+        if (ksRe.test (sm)) {
+            sm = sm.replace (ksRe,
+                '    this->symbols = ::sortedObjectKeys(this->markets);\n    this->ids = ::sortedObjectKeys(this->markets_by_id);');
+        } else {
+            log.warn ('[cpp] setMarkets: keysort-tail anchor not found, skipping rewrite');
+        }
+
         return impls.slice (0, start) + sm + impls.slice (end);
     }
 

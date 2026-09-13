@@ -566,7 +566,11 @@ ccxt::any ExchangeBase::indexBy (ccxt::any array, ccxt::any key) {
     if (!isList (values)) {
         return ccxt::any (out);
     }
-    for (const auto& item : ccxt::any_cast<list> (values).items ()) {
+    const ccxt::list valueList = ccxt::any_cast<list> (values);
+    // pre-size: the setMarkets indexBy builds a 4625-key dict — without this
+    // the entries vector walks a 12-step geometric growth chain
+    out.store->reserve (valueList.size ());
+    for (const auto& item : valueList.items ()) {
         const ccxt::any value = getValue (item, key);
         if (value.has_value ()) {
             out.set (str (value), item);
