@@ -1114,8 +1114,11 @@ class ndax(Exchange, ImplicitAPI):
             timestamp = self.safe_integer(trade, 6)
             id = self.safe_string(trade, 0)
             marketId = self.safe_string(trade, 1)
-            takerSide = self.safe_value(trade, 8)
-            side = 'sell' if (takerSide is True) else 'buy'
+            takerSide = self.safe_integer(trade, 8)
+            if takerSide == 0:
+                side = 'buy'
+            elif takerSide == 1:
+                side = 'sell'
             orderId = self.safe_string(trade, 4)
         else:
             timestamp = self.safe_integer_2(trade, 'TradeTimeMS', 'ReceiveTime')

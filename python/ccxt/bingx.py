@@ -3163,7 +3163,10 @@ class bingx(Exchange, ImplicitAPI):
                     if slPrice is not None:
                         slRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
                     slQuantity = self.safe_string(stopLossDict, 'quantity', stringifiedAmount)
-                    slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
+                    slQuantityRequest = self.parse_to_numeric(slQuantity)
+                    if market['inverse'] is not True:
+                        slQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
+                    slRequest['quantity'] = slQuantityRequest
                     request['stopLoss'] = self.json(slRequest)
                 if hasTakeProfit:
                     tkTriggerPrice = self.safe_string_2(takeProfitDict, 'triggerPrice', 'stopPrice')
@@ -3178,7 +3181,10 @@ class bingx(Exchange, ImplicitAPI):
                     if slPrice is not None:
                         tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
                     tkQuantity = self.safe_string(takeProfitDict, 'quantity', stringifiedAmount)
-                    tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
+                    tkQuantityRequest = self.parse_to_numeric(tkQuantity)
+                    if market['inverse'] is not True:
+                        tkQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
+                    tpRequest['quantity'] = tkQuantityRequest
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
             hedged = self.safe_bool(params, 'hedged', False)

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.weex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -105,7 +105,7 @@ class weex(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
@@ -3210,9 +3210,7 @@ class weex(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         if accountType == 'contract':
-            if currency is None:
-                raise ExchangeError(self.id + ' fetchLedger() could not resolve currency')
-            if code is not None:
+            if currency is not None:
                 request['currency'] = currency['id']
             if since is not None:
                 request['startTime'] = since
@@ -3336,6 +3334,97 @@ class weex(Exchange, ImplicitAPI):
             'position_close_short': 'trade',
         }
         return self.safe_string(types, type, type)
+
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve(default 20, max 100)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchFundingHistory', symbol, since, limit, params, 100)
+        market = None
+        request = {
+            'incomeType': 'position_funding',  # deposit, withdraw, transfer_in, transfer_out, margin_move_in, margin_move_out, position_open_long, position_open_short, position_close_long, position_close_short, position_funding, order_fill_fee_income, order_liquidate_fee_income, start_liquidate, finish_liquidate, order_fix_margin_amount, tracking_follow_pay, tracking_system_pre_receive, tracking_follow_back, tracking_trader_income, tracking_third_party_share
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            if market['swap'] is not True:
+                raise NotSupported(self.id + ' fetchFundingHistory() supports swap contracts only')
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        # the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        hasSince = ('startTime' in request)
+        hasUntil = ('endTime' in request)
+        if hasSince and not hasUntil:
+            request['endTime'] = self.milliseconds()
+        elif hasUntil and not hasSince:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires since to be set when until is used')
+        response = self.contractPrivatePostCapiV3AccountIncome(self.extend(request, params))
+        #
+        #     {
+        #         "hasNextPage": False,
+        #         "nextKey": null,
+        #         "items": [
+        #             {
+        #                 "billId": "793622764958253481",
+        #                 "asset": "USDT",
+        #                 "symbol": "VIRTUALUSDT",
+        #                 "income": "0.00000378",
+        #                 "incomeType": "position_funding",
+        #                 "balance": "29.36239410",
+        #                 "fillFee": "0",
+        #                 "time": "1789214411964",
+        #                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+        #             }
+        #         ]
+        #     }
+        #
+        items = self.safe_list(response, 'items', [])
+        return self.parse_incomes(items, market, since, limit)
+
+    def parse_income(self, income: object, market: Market = None) -> object:
+        #
+        #     {
+        #         "billId": "793622764958253481",
+        #         "asset": "USDT",
+        #         "symbol": "VIRTUALUSDT",
+        #         "income": "0.00000378",
+        #         "incomeType": "position_funding",
+        #         "balance": "29.36239410",
+        #         "fillFee": "0",
+        #         "time": "1789214411964",
+        #         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        #     }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        currencyId = self.safe_string(income, 'asset')
+        timestamp = self.safe_integer(income, 'time')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': self.safe_currency_code(currencyId),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(income, 'billId'),
+            'amount': self.safe_number(income, 'income'),
+        }
 
     def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """

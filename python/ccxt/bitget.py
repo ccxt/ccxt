@@ -1477,7 +1477,8 @@ class bitget(Exchange, ImplicitAPI):
                     '40014': PermissionDenied,  # Incorrect permissions
                     '40015': ExchangeError,  # System is abnormal, please try again later
                     '40016': PermissionDenied,  # The user must bind the phone or Google
-                    '40017': ExchangeError,  # Parameter verification failed
+                    '40017': BadRequest,  # Parameter verification failed
+                    '400172': BadRequest,  # {"code":"400172","msg":"Parameter verification failed","requestTime":1789206270550,"data":null} - v3 uta twin of 40017
                     '40018': PermissionDenied,  # Invalid IP
                     '40019': BadRequest,  # {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
                     '40031': AccountSuspended,  # The account has been cancelled and cannot be used again
@@ -4258,10 +4259,12 @@ class bitget(Exchange, ImplicitAPI):
         fetch the trading fees for a market
 
         https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+        https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         if self.markets is None:
@@ -4270,6 +4273,26 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
+        uta = None
+        uta, params = self.handle_uta_and_params(params, 'fetchTradingFee', False)
+        if uta is True:
+            productType = None
+            productType, params = self.handle_product_type_and_params(market, params)
+            request['category'] = productType
+            utaResponse = self.privateUtaGetV3AccountFeeRate(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1789206261241,
+            #         "data": {
+            #             "makerFeeRate": "0.001",
+            #             "takerFeeRate": "0.001"
+            #         }
+            #     }
+            #
+            utaData = self.safe_dict(utaResponse, 'data', {})
+            return self.parse_trading_fee(utaData, market)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchTradingFee', params)
         if market['spot'] is True:
@@ -4301,10 +4324,12 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/market/Get-Symbols
         https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
         https://www.bitget.com/api-doc/margin/common/support-currencies
+        https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.margin]: set to True for spot margin
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         if self.markets is None:
@@ -4314,6 +4339,51 @@ class bitget(Exchange, ImplicitAPI):
         marketType = None
         marginMode, params = self.handle_margin_mode_and_params('fetchTradingFees', params)
         marketType, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
+        uta = None
+        uta, params = self.handle_uta_and_params(params, 'fetchTradingFees', False)
+        if uta is True:
+            utaMargin = self.safe_bool(params, 'margin', False)
+            params = self.omit(params, 'margin')
+            request = {}
+            if marketType == 'spot':
+                if (marginMode is not None) or (utaMargin is True):
+                    request['category'] = 'MARGIN'
+                else:
+                    request['category'] = 'SPOT'
+            elif (marketType == 'swap') or (marketType == 'future'):
+                productType = None
+                productType, params = self.handle_product_type_and_params(None, params)
+                request['category'] = productType
+            else:
+                raise NotSupported(self.id + ' does not support ' + marketType + ' market')
+            utaResponse = self.privateUtaGetV3AccountAllFeeRate(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1789206286428,
+            #         "data": [
+            #             {
+            #                 "makerFeeRate": "0.00036",
+            #                 "takerFeeRate": "0.001",
+            #                 "symbol": "BTCUSDT"
+            #             }
+            #         ]
+            #     }
+            #
+            rows = self.safe_list(utaResponse, 'data', [])
+            utaResult = {}
+            for i in range(0, len(rows)):
+                entry = rows[i]
+                entryMarketId = self.safe_string(entry, 'symbol')
+                if (entryMarketId is None) or (self.markets_by_id is None) or not (entryMarketId in self.markets_by_id):
+                    continue  # skip ids missing from the loaded market map, a raw id must not become a unified symbol key
+                entryMarket = self.safe_market(entryMarketId, None, None, marketType)
+                entrySymbol = self.safe_string(entryMarket, 'symbol')
+                if (entrySymbol is None) or (entrySymbol == entryMarketId):
+                    continue  # safeMarket found no market of self type and fell back to a raw-id structure
+                utaResult[entrySymbol] = self.parse_trading_fee(entry, entryMarket)
+            return utaResult
         if marketType == 'spot':
             margin = self.safe_bool(params, 'margin', False)
             params = self.omit(params, 'margin')
