@@ -82,6 +82,7 @@ bool isInteger (const ccxt::any& v);
 ccxt::any getArrayLength (const ccxt::any& v);
 ccxt::any getStringLength (const ccxt::any& v);
 ccxt::any getObjectKeys (const ccxt::any& v);
+ccxt::any sortedObjectKeys (const ccxt::any& v);
 ccxt::any getObjectValues (const ccxt::any& v);
 void arrayPush (const ccxt::any& arr, const ccxt::any& v);
 ccxt::any pop (const ccxt::any& arr);
