@@ -142,6 +142,39 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             assert (Precise.stringLe (quoteVolume, baseHigh), 'quoteVolume should be <= baseVolume * high' + logText);
         }
     }
+    //
+    // change & percentage
+    //
+    // the Manual defines both against open: change is `last - open`, and
+    // percentage is `(change/open) * 100`
+    const changeString = exchange.safeString (entry, 'change');
+    const percentageString = exchange.safeString (entry, 'percentage');
+    if ((changeString !== undefined) && (open !== undefined) && (close !== undefined) && !('compareChange' in skippedProperties)) {
+        // the window is the larger of two roundings: float residue on a change
+        // safeTicker derived, which needs a part per million of the price, and an
+        // exchange's own rounding, which its reported decimals reveal
+        const pricePart = Precise.stringDiv (Precise.stringAbs (close), '1000000');
+        const changeDecimals = exchange.precisionFromString (changeString);
+        let changeQuantum = exchange.parsePrecision (exchange.numberToString (changeDecimals));
+        // a change of "0" prints no decimals, so its apparent step is a whole unit
+        // and accepts anything on a micro-priced asset. a per cent of the price
+        // caps it, and covers whole units on a price in the tens of thousands
+        const quantumCap = Precise.stringDiv (Precise.stringAbs (close), '100');
+        changeQuantum = Precise.stringMin (changeQuantum, quantumCap);
+        const changeWindow = Precise.stringMax (pricePart, changeQuantum);
+        const difference = Precise.stringAbs (Precise.stringSub (changeString, Precise.stringSub (close, open)));
+        assert (Precise.stringLe (difference, changeWindow), '`change` should be `last - open`' + logText);
+    }
+    if ((changeString !== undefined) && (percentageString !== undefined) && (open !== undefined) && !('comparePercentage' in skippedProperties)) {
+        const derived = Precise.stringMul (Precise.stringDiv (changeString, open), '100');
+        // exchanges round the percentage, so allow one part in fifty of the derived
+        // value plus a floor for moves near zero. a ratio where a percentage
+        // belongs is out by a hundred and clears that by three orders of magnitude
+        const relative = Precise.stringDiv (Precise.stringAbs (derived), '50');
+        const allowed = Precise.stringMax (relative, '0.01');
+        const gap = Precise.stringAbs (Precise.stringSub (percentageString, derived));
+        assert (Precise.stringLe (gap, allowed), '`percentage` should be `(change/open) * 100`' + logText);
+    }
     // open and close should be between High & Low
     if (high !== undefined && low !== undefined && !('compareOHLC' in skippedProperties)) {
         if (open !== undefined) {
