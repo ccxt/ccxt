@@ -155,13 +155,20 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         // exchange's own rounding, which its reported decimals reveal
         const pricePart = Precise.stringDiv (Precise.stringAbs (close), '1000000');
         const changeDecimals = exchange.precisionFromString (changeString);
-        let changeQuantum = exchange.parsePrecision (exchange.numberToString (changeDecimals));
-        // a change of "0" prints no decimals, so its apparent step is a whole unit
-        // and accepts anything on a micro-priced asset. a per cent of the price
-        // caps it, and covers whole units on a price in the tens of thousands
-        const quantumCap = Precise.stringDiv (Precise.stringAbs (close), '100');
-        changeQuantum = Precise.stringMin (changeQuantum, quantumCap);
-        const changeWindow = Precise.stringMax (pricePart, changeQuantum);
+        // exponent notation ("1e4") makes `precisionFromString` return a negative
+        // count, which `parsePrecision` would turn into a step of 10000 - a string
+        // like that reveals no rounding at all, so fall back to the price part
+        // instead of letting it widen the window
+        let changeWindow = pricePart;
+        if (changeDecimals >= 0) {
+            let changeQuantum = exchange.parsePrecision (exchange.numberToString (changeDecimals));
+            // a change of "0" prints no decimals, so its apparent step is a whole unit
+            // and accepts anything on a micro-priced asset. a per cent of the price
+            // caps it, and covers whole units on a price in the tens of thousands
+            const quantumCap = Precise.stringDiv (Precise.stringAbs (close), '100');
+            changeQuantum = Precise.stringMin (changeQuantum, quantumCap);
+            changeWindow = Precise.stringMax (pricePart, changeQuantum);
+        }
         const difference = Precise.stringAbs (Precise.stringSub (changeString, Precise.stringSub (close, open)));
         assert (Precise.stringLe (difference, changeWindow), '`change` should be `last - open`' + logText);
     }
