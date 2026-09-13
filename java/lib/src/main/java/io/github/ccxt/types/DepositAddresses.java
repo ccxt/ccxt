@@ -7,12 +7,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class DepositAddresses {
+public final class DepositAddresses extends TypedMap {
     public Map<String, DepositAddress> depositAddresses;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public DepositAddresses(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.depositAddresses = new LinkedHashMap<>();

@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Bit2cApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetExchangesPairTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetExchangesPairTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetExchangesPairTicker", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetExchangesPairOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetExchangesPairOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetExchangesPairOrderbook", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetExchangesPairOrderbookTop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetExchangesPairOrderbookTop (Object... optionalArgs)
     {
         return this.callAsync ("publicGetExchangesPairOrderbookTop", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetExchangesPairTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetExchangesPairTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetExchangesPairTrades", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetExchangesPairLasttrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetExchangesPairLasttrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetExchangesPairLasttrades", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMerchantCreateCheckout (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMerchantCreateCheckout (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMerchantCreateCheckout", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFundsAddCoinFundsRequest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFundsAddCoinFundsRequest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFundsAddCoinFundsRequest", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFundsWithdrawCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFundsWithdrawCoin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFundsWithdrawCoin", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderAddFund (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderAddFund (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderAddFund", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderAddOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderAddOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderAddOrder", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderGetById (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderGetById (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderGetById", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderAddOrderMarketPriceBuy (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderAddOrderMarketPriceBuy (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderAddOrderMarketPriceBuy", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderAddOrderMarketPriceSell (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderAddOrderMarketPriceSell (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderAddOrderMarketPriceSell", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderCancelOrder", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderAddCoinFundsRequest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderAddCoinFundsRequest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderAddCoinFundsRequest", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderAddStopOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderAddStopOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderAddStopOrder", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPaymentGetMyId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPaymentGetMyId (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPaymentGetMyId", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPaymentSend (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPaymentSend (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPaymentSend", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  privatePostPaymentPay (Object... optionalArgs)
+    public CompletableFuture<String>  privatePostPaymentPay (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPaymentPay", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountBalance", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountBalanceV2 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountBalanceV2 (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountBalanceV2", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrderMyOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrderMyOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrderMyOrders", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrderGetById (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrderGetById (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrderGetById", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrderAccountHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrderAccountHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrderAccountHistory", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrderOrderHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrderOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrderOrderHistory", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class Bit2cApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrderHistoryByOrderId (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrderHistoryByOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrderHistoryByOrderId", optionalArgs);
     }

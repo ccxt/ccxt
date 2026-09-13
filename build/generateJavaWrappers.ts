@@ -1,14 +1,13 @@
 #!/usr/bin/env tsx
 /**
- * Java Typed Wrapper Generator for CCXT
+ * Java Typed Surface Generator for CCXT
  *
- * Generates per-exchange typed subclasses that extend the transpiled Core classes.
- * Each typed class (e.g., Binance extends BinanceCore) adds typed method overloads
- * that delegate to the parent's untyped methods via super.method().
- *
- * This is safe because Java resolves overloads at compile time: BinanceCore.java
- * is compiled without knowledge of Binance.java's typed overloads, so internal
- * calls always bind to the untyped varargs methods.
+ * Emits ONE interface per tier (TypedSurface for Exchange, PredictionTypedSurface
+ * for PredictionExchange). The abstract `CompletableFuture<T> m(Object..., Object...
+ * optionalArgs)` signatures mirror the transpiled cores, which build/javaTypedCore.ts
+ * types in place; the `default` methods are the typed-parameter sync (blocking) and
+ * async overloads, dispatching with explicit (Object) casts so the call always
+ * reaches the transpiled per-exchange override virtually.
  *
  * Usage: tsx build/generateJavaWrappers.ts
  */
@@ -18,11 +17,12 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
 import { JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
+import { typedReturnTable } from './javaTypedCore.js';
+import type { JavaTier } from './javaTypedCore.js';
+import { applyJavaImports } from './javaUtilImports.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
-const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
-const WS_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
-const PREDICTION_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
+const BASE_PKG = './java/lib/src/main/java/io/github/ccxt/';
 
 // Known CCXT types that have Java equivalents in io.github.ccxt.types
 const KNOWN_TYPES = new Set([
@@ -117,7 +117,7 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
 // repay{Cross,Isolated,}Margin). They are annotated Promise<MarginModification> /
 // Promise<MarginLoan> in Exchange.ts and share setMargin's already-wrapped shape;
 // without these prefixes they were silently left as CompletableFuture<Object> on
-// the Core with no typed overload. 'loadAccounts' is the same gap: the parser
+// the exchange with no typed overload. 'loadAccounts' is the same gap: the parser
 // already infers Promise<Account[]> from `this.accounts!: Account[]` / fetchAccounts,
 // but the name missed every prefix so no typed overload was emitted. The prefixes
 // are deliberately narrow so the sync helpers (addFetchCache, addKeyInArrayItems,
@@ -147,14 +147,14 @@ function shouldCreateWrapper(name: string): boolean {
     return ALLOWED_PREFIXES.some(p => name.startsWith(p));
 }
 
-interface ParamInfo {
+export interface ParamInfo {
     name: string;
     javaType: string;
     isOptional: boolean;
     defaultValue: string | null;
 }
 
-interface MethodInfo {
+export interface MethodInfo {
     name: string;
     javaReturnType: string;
     isArray: boolean;
@@ -164,23 +164,9 @@ interface MethodInfo {
     isWatch: boolean;
 }
 
-// User-facing methods with no required params for which we DO emit typed
-// zero-arg + truncation overloads. The default rule (skip if no required
-// params) protects against collisions with internal `this.method()` and
-// `this.method(null)` calls in transpiled WS Core code that expect the
-// parent's `Object... varargs` to match. For these methods we've audited
-// the TS sources, confirmed no internal zero-arg call sites remain (the
-// few that existed were updated to pass `params` / `{}`), and the typed
-// overloads are safe to emit.
-//
-// Adding to this list requires:
-//   1. `grep -r "await this\.<method>\s*(\s*)" ts/src/` returns no hits
-//   2. None of the remaining call sites pass `null` literally without an
-//      explicit cast — they should always pass a typed value
-//
-// loadMarkets / loadAccounts / loadTimeDifference / signIn etc. are NOT in
-// this list because their internal call sites are too numerous to refactor
-// (loadMarkets alone has 3000+ `this.loadMarkets()` zero-arg call sites).
+// Zero-required-param methods that get typed zero-arg + truncation defaults.
+// javaTranspiler routes internal `this.<m>()` / `this.<m>(null)` calls on these
+// names to the varargs core (`new Object[0]`) so the typed default never binds.
 export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     // REST
     'fetchBalance',
@@ -196,12 +182,8 @@ export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     'fetchAccounts',
     'fetchCurrencies',
     'fetchMarkets',
-    // WebSocket variants — same zero-required-param shape, same typed return.
-    // Only includes methods that exist on at least one exchange's TS source AND
-    // have a base `Object... varargs` definition on Exchange.java (so the
-    // untyped async alias `fetchXWsAsync(Object...)` can delegate to it).
-    // `fetchCurrenciesWs` is excluded because its TS body uses `new Promise()`
-    // which doesn't transpile to Java — no base method, no delegate target.
+    // WebSocket variants with a base `Object...` core. `fetchCurrenciesWs` is
+    // excluded: its TS body uses `new Promise()`, which has no Java core.
     'fetchBalanceWs',
     'fetchOrdersWs',
     'fetchMyTradesWs',
@@ -211,12 +193,8 @@ export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     'fetchPositionsWs',
 ]);
 
-// WS subscription methods (watch*) with all-optional parameters. They get
-// typed truncation overloads only — NO async siblings (watch* methods ship
-// sync-only by design) and NO base-class alias / regex rewrite (their
-// internal call sites don't trigger overload-resolution collisions; verified
-// via grep over ts/src/pro/*.ts). Keeps the user-facing surface symmetric
-// with their REST `fetch*` counterparts which already get truncations.
+// watch* methods with all-optional parameters: typed truncation overloads only,
+// no async siblings (watch* is sync-only) and no internal-call rewrite.
 const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchTickers',
     'watchBalance',
@@ -225,7 +203,7 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchPositions',
 ]);
 
-function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
+export function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
     const strippedBaseFile = writeOverloadStrippedFile (sourceFile);
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
@@ -293,8 +271,16 @@ function capitalize(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+// Core return type of a unified method: the typed family javaTypedCore.ts emits on the
+// transpiled tier, or `Object` for the hand-written base bodies (fetchMarkets, ...).
+function coreReturnType(m: MethodInfo, table: Map<string, MethodInfo>): string {
+    const typed = table.get(m.name);
+    return typed ? typed.javaReturnType : 'Object';
+}
+
+// Conversion of an untyped core result; only the SURFACE_ONLY names still need one.
 function genReturnExpr(m: MethodInfo): string {
-    if (m.isArray && m.elementType) return `toTypedList(res, ${m.elementType}::new)`;
+    if (m.isArray && m.elementType) return `Helpers.toTypedList(res, ${m.elementType}::new)`;
     if (m.javaReturnType === 'Object') return 'res';
     if (m.javaReturnType === 'Long') return '(res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return '(res instanceof Number n) ? n.doubleValue() : null';
@@ -305,7 +291,7 @@ function genReturnExpr(m: MethodInfo): string {
 }
 
 function genAsyncReturnExpr(m: MethodInfo): string {
-    if (m.isArray && m.elementType) return `res -> toTypedList(res, ${m.elementType}::new)`;
+    if (m.isArray && m.elementType) return `res -> Helpers.toTypedList(res, ${m.elementType}::new)`;
     if (m.javaReturnType === 'Object') return 'res -> res';
     if (m.javaReturnType === 'Long') return 'res -> (res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return 'res -> (res instanceof Number n) ? n.doubleValue() : null';
@@ -316,22 +302,14 @@ function genAsyncReturnExpr(m: MethodInfo): string {
 }
 
 /**
- * Generate the super.method() delegation call.
- *
- * For REST typed wrappers: simple super.method(args) works because the Core
- * parent only has untyped methods (typed overloads are on this class).
- *
- * For WS typed wrappers: must cast all args to (Object) because the WS Core
- * parent inherits REST typed overloads from the typed REST class. Without
- * casts, super.watchTicker(symbol, params) would match the REST typed overload
- * (returning List<Trade>) instead of the WS untyped implementation
- * (returning CompletableFuture<Object>).
+ * Generate the delegation call to the untyped `Object...` core method.
+ * Every argument is cast to (Object) so the typed default never re-binds to
+ * itself and always reaches the `CompletableFuture<Object>` varargs signature.
  */
 function genDelegateCall(methodName: string, allParams: ParamInfo[], castToObject = false): string {
     if (castToObject) {
-        // For WS: cast all args to (Object) and coalesce null params to empty map.
-        // This is needed because Helpers.getArg returns null for explicit null args
-        // instead of the default value, causing NPE in extend() calls.
+        // Cast all args to (Object) and coalesce null params to empty map: Helpers.getArg
+        // returns null for explicit null args instead of the default, which NPEs in extend().
         //
         // SS-05 exception: arguments at parameter positions the transpiler retyped to
         // `String` (JAVA_STRING_PARAM_POSITIONS) must NOT be cast — an `(Object)` cast
@@ -346,14 +324,15 @@ function genDelegateCall(methodName: string, allParams: ParamInfo[], castToObjec
             if (p.name === 'params') return `${cast}(${p.name} != null ? ${p.name} : new java.util.HashMap<String, Object>())`;
             return `${cast}${p.name}`;
         }).join(', ');
-        return `super.${methodName}(${args})`;
+        return `this.${methodName}(${args})`;
     }
     const args = allParams.map(p => p.name).join(', ');
-    return `super.${methodName}(${args})`;
+    return `this.${methodName}(${args})`;
 }
 
-function genMethod(m: MethodInfo, castToObject = false): string {
+function genMethod(m: MethodInfo, coreType: string, castToObject = false): string {
     const methodName = camelCase(m.name);
+    const typedCore = coreType === m.javaReturnType;
     const allParams = [...m.requiredParams, ...m.optionalParams];
     const fullParamDecl = allParams.map(p => `${p.javaType} ${p.name}`).join(', ');
     const delegateCall = genDelegateCall(methodName, allParams, castToObject);
@@ -373,11 +352,15 @@ function genMethod(m: MethodInfo, castToObject = false): string {
     //     catch (NetworkError e) { ... }
     //
     // — same shape as JDK exceptions, no .getCause() unwrap needed.
-    lines.push(`    @SuppressWarnings("unchecked")`);
-    lines.push(`    public ${m.javaReturnType} ${methodName}(${fullParamDecl}) {`);
-    lines.push(`        Object res = Helpers.joinUnwrapped(${delegateCall});`);
-    lines.push(`        return ${genReturnExpr(m)};`);
-    lines.push(`    }`);
+    if (typedCore) {
+        lines.push(`    default ${m.javaReturnType} ${methodName}(${fullParamDecl}) { return Helpers.joinUnwrapped(${delegateCall}); }`);
+    } else {
+        lines.push(`    @SuppressWarnings("unchecked")`);
+        lines.push(`    default ${m.javaReturnType} ${methodName}(${fullParamDecl}) {`);
+        lines.push(`        Object res = Helpers.joinUnwrapped(${delegateCall});`);
+        lines.push(`        return ${genReturnExpr(m)};`);
+        lines.push(`    }`);
+    }
 
     // Truncation overloads: required + first k optionals, for k = 0 .. N-1.
     // Each truncation has a unique arity, so Java's overload resolution is
@@ -388,7 +371,7 @@ function genMethod(m: MethodInfo, castToObject = false): string {
     // when the method is on the ZERO_REQUIRED_TYPED_WHITELIST. The default
     // rule skips them because the resulting zero-arg / single-null overloads
     // can collide with internal `this.method()` / `this.method(null)` calls
-    // in transpiled WS Core code that expect the parent's `Object... varargs`
+    // in transpiled WS code that expect the core `Object... varargs`
     // signature (e.g. `this.loadMarkets()` zero-arg, called from 3000+ sites).
     // Whitelisted methods have had their internal zero-arg call sites
     // audited and fixed in TS source — see the whitelist comment above.
@@ -406,19 +389,20 @@ function genMethod(m: MethodInfo, castToObject = false): string {
             const presentArgs = presentParams.map(p => p.name).join(', ');
             const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr).join(', ');
             const allArgs = presentArgs ? `${presentArgs}, ${trailingDefaults}` : trailingDefaults;
-            lines.push(`    public ${m.javaReturnType} ${methodName}(${presentDecl}) { return ${methodName}(${allArgs}); }`);
+            lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { return ${methodName}(${allArgs}); }`);
         }
     }
 
-    // Async method (full params). Emitted for both fetch* (REST) and watch*
-    // (WS) — symmetric typed-async surface. For watch*, the sync wrapper
-    // joins on the same `super.<method>(...)` Future; the async wrapper
-    // hands the typed Future back to the caller so they can compose without
-    // blocking the calling thread.
-    lines.push(`    @SuppressWarnings("unchecked")`);
-    lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
-    lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
-    lines.push(`    }`);
+    // Async method (full params), for fetch* (REST) and watch* (WS) alike. The core
+    // future is already typed, so this is the typed-parameter spelling of the same call.
+    if (typedCore) {
+        lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) { return ${delegateCall}; }`);
+    } else {
+        lines.push(`    @SuppressWarnings("unchecked")`);
+        lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
+        lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
+        lines.push(`    }`);
+    }
 
     // Async truncation overloads — symmetric with the sync truncations above.
     // Without these, `binance.fetchOrdersAsync()` would fall through to the
@@ -436,7 +420,7 @@ function genMethod(m: MethodInfo, castToObject = false): string {
             const presentArgs = presentParams.map(p => p.name).join(', ');
             const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr).join(', ');
             const allArgs = presentArgs ? `${presentArgs}, ${trailingDefaults}` : trailingDefaults;
-            lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${presentDecl}) { return ${methodName}Async(${allArgs}); }`);
+            lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${presentDecl}) { return ${methodName}Async(${allArgs}); }`);
         }
     }
 
@@ -462,89 +446,89 @@ function genMethod(m: MethodInfo, castToObject = false): string {
                 ? `${p.name} == null ? null : java.util.Arrays.asList(${p.name})`
                 : p.name
         ).join(', ');
-        lines.push(`    public ${m.javaReturnType} ${methodName}(${stringArrDecl}) { return ${methodName}(${delegateArgs}); }`);
-        lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${stringArrDecl}) { return ${methodName}Async(${delegateArgs}); }`);
+        lines.push(`    default ${m.javaReturnType} ${methodName}(${stringArrDecl}) { return ${methodName}(${delegateArgs}); }`);
+        lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${stringArrDecl}) { return ${methodName}Async(${delegateArgs}); }`);
     }
 
     return lines.join('\n');
 }
 
-/**
- * Memoized `genMethod`.
- *
- * `genMethod` is a pure function of `(m, castToObject)` — it never reads
- * `exchangeId` or the target java package — yet it is invoked once per
- * exchange per method (106 REST + ~80 WS + 5 prediction wrappers), rebuilding
- * the same ~180 method-body strings ~19k times. Cache on `MethodInfo` object
- * identity so each unique (method, castToObject) pair is built exactly once.
- *
- * Safety: `MethodInfo` objects are never mutated after construction, and
- * `toPredictionMethods` produces NEW objects via spread for every remapped
- * return type — so prediction bodies can never share a cache slot with the
- * REST bodies they were derived from. Methods it passes through unchanged
- * keep their identity, which is correct: identical input, identical output.
- * Output is byte-for-byte identical to calling `genMethod` directly.
- */
-const genMethodCacheSync = new WeakMap<MethodInfo, string>();
-const genMethodCacheCast = new WeakMap<MethodInfo, string>();
-function genMethodCached(m: MethodInfo, castToObject = false): string {
-    const cache = castToObject ? genMethodCacheCast : genMethodCacheSync;
-    let out = cache.get(m);
-    if (out === undefined) {
-        out = genMethod(m, castToObject);
-        cache.set(m, out);
+// --- Hoisted typed surface ---
+// Every typed overload is a `default` method on ONE generated interface per tier that the
+// tier base class implements. The default dispatches to the abstract core signature with
+// explicit (Object) casts, so it always reaches the transpiled override. The abstract
+// signature must match the transpiled override exactly: return family (javaTypedCore.ts)
+// and the SS-05 `String` positions (JAVA_STRING_PARAM_POSITIONS); Java overrides are invariant.
+function genAbstractDecl(m: MethodInfo, coreType: string): string {
+    const name = camelCase(m.name);
+    const retyped = JAVA_STRING_PARAM_POSITIONS[m.name] ?? [];
+    for (const k of retyped) {
+        if (k >= m.requiredParams.length) throw new Error(`${m.name}: String position ${k} falls into the Object... tail`);
+    }
+    const req = m.requiredParams.map((p, k) => `${retyped.includes(k) ? 'String' : 'Object'} ${p.name}`).join(', ');
+    return `    CompletableFuture<${coreType}> ${name}(${req ? req + ', ' : ''}Object... optionalArgs);`;
+}
+// Erased parameter list (types only, `Object...` == `Object[]`) of a core declaration.
+function eraseParams(paramList: string): string {
+    return paramList.split(',').map(p => p.trim().replace(/\.\.\./, '[]').replace(/\s+\w+$/, '')).filter(Boolean).join(', ');
+}
+// Cores spell the return in simple names once written (build/javaUtilImports.ts); the qualified
+// java.util / io.github.ccxt.types spelling is accepted too so the check does not depend on the collapse.
+function eraseReturn(t: string): string {
+    return t.replace(/\bjava\.util\./g, '').replace(/\bio\.github\.ccxt\.types\./g, '');
+}
+// A per-tier override whose signature differs from the abstract decl is a silent OVERLOAD (the
+// base tier's body runs) or a compile error. Returns `file:line: m expected ... actual ...`.
+let erasureChecked = 0;
+function assertErasureMatches(methods: MethodInfo[], table: Map<string, MethodInfo>, files: string[]): string[] {
+    const expected = new Map<string, string>();
+    for (const m of methods) {
+        const d = genAbstractDecl(m, coreReturnType(m, table)).match(/CompletableFuture<(.+)> (\w+)\((.*)\);$/)!;
+        expected.set(d[2], `<${d[1]}> (${eraseParams(d[3])})`);
+    }
+    const declRe = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+)> (\w+)\((.*)\)\s*\{?\s*$/;
+    const out: string[] = [];
+    for (const file of files) {
+        const lines = fs.readFileSync(file, 'utf-8').split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const d = lines[i].match(declRe);
+            if (!d || !expected.has(d[2])) continue;
+            erasureChecked++;
+            const actual = `<${eraseReturn(d[1])}> (${eraseParams(d[3])})`;
+            if (actual !== expected.get(d[2])) out.push(`${file}:${i + 1}: ${d[2]} expected ${expected.get(d[2])} actual ${actual}`);
+        }
     }
     return out;
 }
-
-/**
- * Generate a typed exchange wrapper class that extends the Core class.
- *
- * e.g., Binance extends BinanceCore with typed overloads.
- */
-function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[], javaPackage = 'io.github.ccxt.exchanges'): string {
-    const className = capitalize(exchangeId);
-    const coreClassName = className + 'Core';
-
+export function generateTypedSurfaceInterface(ifaceName: string, methods: MethodInfo[], tier: JavaTier): string {
+    const table = typedReturnTable(tier);
+    // one name, one return family on every tier: the surface spells what the core declares
+    methods = methods.map(m => table.get(m.name) ?? m);
     const lines: string[] = [];
-
-    // Header
     lines.push(`// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:`);
     lines.push(`// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code`);
     lines.push(``);
-    lines.push(`package ${javaPackage};`);
-    lines.push(``);
-    lines.push(`import io.github.ccxt.Helpers;`);
-    lines.push(`import io.github.ccxt.types.*;`);
-    lines.push(``);
-    lines.push(`import java.util.List;`);
-    lines.push(`import java.util.Map;`);
-    lines.push(`import java.util.concurrent.CompletableFuture;`);
-    lines.push(`import java.util.stream.Collectors;`);
+    lines.push(`package io.github.ccxt;`);
+    // single-type imports are inserted here by applyJavaImports from the names the body uses
     lines.push(``);
     lines.push(`/**`);
-    lines.push(` * Typed wrapper for ${exchangeId}. Extends ${coreClassName} with typed method overloads.`);
+    lines.push(` * Typed sync + async surface shared by every exchange. Declared ONCE; each default`);
+    lines.push(` * method dispatches to the typed \`Object...\` core method (overridden per exchange).`);
     lines.push(` */`);
-    lines.push(`public class ${className} extends ${coreClassName} {`);
+    lines.push(`public interface ${ifaceName} {`);
     lines.push(``);
-
-    // Constructors
-    lines.push(`    public ${className}() {`);
-    lines.push(`        super();`);
-    lines.push(`    }`);
+    lines.push(`    // --- abstract core signatures (implemented by the transpiled tiers) ---`);
+    lines.push(`    CompletableFuture<Object> loadMarkets(Object... optionalArgs);`);
+    const seen = new Set<string>();
+    for (const m of methods) {
+        const d = genAbstractDecl(m, coreReturnType(m, table));
+        if (!seen.has(d)) { seen.add(d); lines.push(d); }
+    }
     lines.push(``);
-    lines.push(`    public ${className}(Object options) {`);
-    lines.push(`        super(options);`);
-    lines.push(`    }`);
-    lines.push(``);
-
-    // toTypedList is inherited from Exchange (defined once, not duplicated per exchange)
-
-    // loadMarkets special overloads
     lines.push(`    // --- loadMarkets (special: first arg is boolean reload) ---`);
     lines.push(`    @SuppressWarnings("unchecked")`);
-    lines.push(`    public Map<String, MarketInterface> loadMarkets(boolean reload) {`);
-    lines.push(`        Object res = super.loadMarkets(reload).join();`);
+    lines.push(`    default Map<String, MarketInterface> loadMarkets(boolean reload) {`);
+    lines.push(`        Object res = Helpers.joinUnwrapped(this.loadMarkets((Object) reload));`);
     lines.push(`        java.util.LinkedHashMap<String, MarketInterface> result = new java.util.LinkedHashMap<>();`);
     lines.push(`        for (Map.Entry<String, Object> entry : ((Map<String, Object>) res).entrySet()) {`);
     lines.push(`            result.put(entry.getKey(), new MarketInterface(entry.getValue()));`);
@@ -552,8 +536,8 @@ function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[], j
     lines.push(`        return result;`);
     lines.push(`    }`);
     lines.push(`    @SuppressWarnings("unchecked")`);
-    lines.push(`    public CompletableFuture<Map<String, MarketInterface>> loadMarketsAsync(boolean reload) {`);
-    lines.push(`        return super.loadMarkets(reload).thenApply(res -> {`);
+    lines.push(`    default CompletableFuture<Map<String, MarketInterface>> loadMarketsAsync(boolean reload) {`);
+    lines.push(`        return this.loadMarkets((Object) reload).thenApply(res -> {`);
     lines.push(`            java.util.LinkedHashMap<String, MarketInterface> result = new java.util.LinkedHashMap<>();`);
     lines.push(`            for (Map.Entry<String, Object> entry : ((Map<String, Object>) res).entrySet()) {`);
     lines.push(`                result.put(entry.getKey(), new MarketInterface(entry.getValue()));`);
@@ -562,76 +546,17 @@ function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[], j
     lines.push(`        });`);
     lines.push(`    }`);
     lines.push(``);
-
-    // All typed methods
     for (const m of methods) {
-        lines.push(genMethodCached(m));
+        lines.push(genMethod(m, coreReturnType(m, table), true));
         lines.push('');
     }
-
     lines.push(`}`);
-
     return lines.join('\n');
 }
 
-/**
- * Generate a typed WS wrapper that extends the WS Core class.
- * Only includes watch method overloads (REST typed methods are inherited
- * from the typed REST parent via the chain: pro.BinanceCore → Binance → BinanceCore).
- */
-function generateTypedWsClass(exchangeId: string, watchMethods: MethodInfo[]): string {
-    const className = capitalize(exchangeId);
-    const coreClassName = className + 'Core';
-
-    const lines: string[] = [];
-
-    lines.push(`// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:`);
-    lines.push(`// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code`);
-    lines.push(``);
-    lines.push(`package io.github.ccxt.exchanges.pro;`);
-    lines.push(``);
-    lines.push(`import io.github.ccxt.Helpers;`);
-    lines.push(`import io.github.ccxt.types.*;`);
-    lines.push(``);
-    lines.push(`import java.util.List;`);
-    lines.push(`import java.util.Map;`);
-    lines.push(`import java.util.concurrent.CompletableFuture;`);
-    lines.push(``);
-    lines.push(`/**`);
-    lines.push(` * Typed WS wrapper for ${exchangeId}. Extends ${coreClassName} with typed watch method overloads.`);
-    lines.push(` * REST typed methods (fetchTicker, createOrder, etc.) are inherited from the typed REST class.`);
-    lines.push(` */`);
-    lines.push(`public class ${className} extends ${coreClassName} {`);
-    lines.push(``);
-    lines.push(`    public ${className}() {`);
-    lines.push(`        super();`);
-    lines.push(`    }`);
-    lines.push(``);
-    lines.push(`    public ${className}(Object options) {`);
-    lines.push(`        super(options);`);
-    lines.push(`    }`);
-    lines.push(``);
-
-    // Only watch method overloads — REST overloads are inherited from typed REST parent.
-    // castToObject=true because the WS Core parent inherits REST typed overloads,
-    // so we need (Object) casts to force the untyped varargs WS implementation.
-    for (const m of watchMethods) {
-        lines.push(genMethodCached(m, true));
-        lines.push('');
-    }
-
-    lines.push(`}`);
-
-    return lines.join('\n');
-}
-
-// REST typed wrappers include only non-watch, non-*Ws methods. Both watch* and
-// *Ws (WS-API variants) live on the pro typed wrapper, since their
-// implementations are in the WS Core (pro/<Exchange>Core.java), not the REST
-// Core. A typed REST `createOrderWs(...)` would `super.createOrderWs(...)` into
-// REST BinanceCore — which has no such method — falling through to base
-// Exchange.createOrderWs which throws NotSupported.
-const isWsApi = (m: MethodInfo) => m.name.endsWith('Ws');
+// *Ws (WS-API variants) are grouped with watch* methods on the same interface; on a
+// REST-only instance they fall through to the base NotSupported thrower at runtime.
+export const isWsApi = (m: MethodInfo) => m.name.endsWith('Ws');
 
 // Prediction exchanges return the native dedicated Prediction* types. The shared
 // restMethods list is parsed from base Exchange.ts (base return types), so remap the
@@ -646,7 +571,7 @@ const PREDICTION_TYPE_MAP: Record<string, string> = {
     'TradingFeeInterface': 'PredictionTradingFee',
     'OpenInterest': 'PredictionOpenInterest',
 };
-function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
+export function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
     return rest.map((m) => {
         if (m.isArray && m.elementType && PREDICTION_TYPE_MAP[m.elementType]) {
             const elem = PREDICTION_TYPE_MAP[m.elementType];
@@ -660,13 +585,12 @@ function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
 }
 // Prediction-only base methods (fetchSettlements, ...) live on PredictionExchange.ts, not
 // Exchange.ts, so the shared restMethods list (parsed from Exchange.ts) misses them. Parse the
-// prediction base and add the methods NOT already present. Every prediction Core extends
-// PredictionExchange, so super.<method>() resolves on all — safe to share across the exchanges.
-const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
-// Exchange-specific prediction methods that are NOT on any base (e.g. limitless.redeem returns a
-// plain dict / Object and only exists on limitless). Only their own exchange's wrapper gets them,
-// so super.<method>() resolves. Declared explicitly to avoid wrapping internal exchange helpers.
-const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
+// prediction base and add the methods NOT already present. Every prediction exchange extends
+// PredictionExchange, so the abstract core signature resolves on all of them.
+export const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
+// Prediction methods implemented by some venue but absent from PredictionExchange.ts (its base
+// stub throws NotSupported). `redeem` returns `Promise<any>`, so it cannot be parsed from TS.
+export const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
     'limitless': [{
         name: 'redeem',
         javaReturnType: 'Object', isArray: false, elementType: null,
@@ -679,11 +603,11 @@ const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
     }],
 };
 // Exchange-tier method names no prediction venue (or PredictionExchange) implements. Prediction
-// venues extend PredictionExchange (not the Exchange tier), so wrapping these would emit a typed
-// method whose super.<method>() resolves nowhere — and would re-expose the symbol-based surface
-// (closePosition, fetchGreeks, ...) prediction deliberately drops. Exclude them from the wrappers,
-// matching javaTranspiler's PredictionExchange injection.
-function predictionTierExcludeNames(): Set<string> {
+// venues extend PredictionExchange (not the Exchange tier), so declaring these would demand a
+// core signature no tier implements — and would re-expose the symbol-based surface
+// (closePosition, fetchGreeks, ...) prediction deliberately drops. Exclude them from the
+// interface, matching javaTranspiler's PredictionExchange injection.
+export function predictionTierExcludeNames(): Set<string> {
     const src = fs.readFileSync(TS_BASE_FILE, 'utf8').split('\n');
     const es = src.findIndex(l => l.startsWith('export default class Exchange extends BaseExchange'));
     const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;
@@ -712,8 +636,6 @@ function predictionTierExcludeNames(): Set<string> {
     }
     return exclude;
 }
-const EXCHANGE_BASE_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
-const EXCHANGE_TIER_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
 
 /**
  * Detect whether this module is the process entry point.
@@ -745,15 +667,6 @@ function main() {
         console.log(`  ${m.name}(${allParams.map(p => `${p.javaType} ${p.name}${p.isOptional ? '?' : ''}`).join(', ')}) -> ${m.javaReturnType}`);
     }
 
-    // Generate REST typed wrappers
-    if (!fs.existsSync(EXCHANGES_FOLDER)) {
-        console.error(`Exchanges folder not found: ${EXCHANGES_FOLDER}`);
-        process.exit(1);
-    }
-
-    const coreFiles = fs.readdirSync(EXCHANGES_FOLDER).filter(f => f.endsWith('Core.java'));
-    let generated = 0;
-
     const restMethods = methods.filter(m => !m.isWatch && !isWsApi(m));
 
     const baseMethodNames = new Set(methods.map(m => m.name));
@@ -767,80 +680,25 @@ function main() {
 
     const predictionExclude = predictionTierExcludeNames();
     const predictionRestMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnlyMethods);
-    for (const coreFile of coreFiles) {
-        const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
-        const className = capitalize(exchangeId);
-        const outputPath = `${EXCHANGES_FOLDER}${className}.java`;
+    const wsMethods = methods.filter(m => m.isWatch || isWsApi(m));
+    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', applyJavaImports(generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods), 'rest'), true), 'utf-8');
+    const predictionExtra = Object.values(PREDICTION_EXCHANGE_METHODS).flat();
+    const predictionMethods = predictionRestMethods.concat(predictionExtra);
+    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', applyJavaImports(generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction'), true), 'utf-8');
+    console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionMethods.length} methods)`);
 
-        const content = generateTypedExchangeClass(exchangeId, restMethods);
-        fs.writeFileSync(outputPath, content, 'utf-8');
-        generated++;
+    const exchangesDir = BASE_PKG + 'exchanges/';
+    const javaFiles = (dir: string) => fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.java')).map(f => dir + f) : [];
+    const mainTierFiles = [ BASE_PKG + 'BaseExchange.java', BASE_PKG + 'Exchange.java' ].concat(javaFiles(exchangesDir), javaFiles(exchangesDir + 'pro/'));
+    const predictionTierFiles = [ BASE_PKG + 'PredictionExchange.java' ].concat(javaFiles(exchangesDir + 'prediction/'));
+    const mismatches = assertErasureMatches(restMethods.concat(wsMethods), typedReturnTable('rest'), mainTierFiles)
+        .concat(assertErasureMatches(predictionMethods, typedReturnTable('prediction'), predictionTierFiles));
+    if (mismatches.length > 0) {
+        console.error(`\nERROR: ${mismatches.length} core override(s) do not erase to the abstract interface signature:`);
+        for (const x of mismatches) console.error(`  ${x}`);
+        process.exit(1);
     }
-
-    console.log(`Generated ${generated} REST typed wrappers`);
-
-    // Generate WS typed wrappers
-    if (fs.existsSync(WS_EXCHANGES_FOLDER)) {
-        const wsCoreFiles = fs.readdirSync(WS_EXCHANGES_FOLDER).filter(f => f.endsWith('Core.java'));
-        const watchMethods = methods.filter(m => m.isWatch || isWsApi(m));
-        let wsGenerated = 0;
-
-        for (const coreFile of wsCoreFiles) {
-            const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
-            const className = capitalize(exchangeId);
-            const outputPath = `${WS_EXCHANGES_FOLDER}${className}.java`;
-
-            const content = generateTypedWsClass(exchangeId, watchMethods);
-            fs.writeFileSync(outputPath, content, 'utf-8');
-            wsGenerated++;
-        }
-
-        console.log(`Generated ${wsGenerated} WS typed wrappers`);
-    }
-
-    // Generate prediction REST typed wrappers (io.github.ccxt.exchanges.prediction).
-    // Prediction exchanges extend their own <Cap>Api (which extends Exchange), so
-    // they are NOT aliases — emit full typed wrappers, same as regular exchanges.
-    if (fs.existsSync(PREDICTION_EXCHANGES_FOLDER)) {
-        const predCoreFiles = fs.readdirSync(PREDICTION_EXCHANGES_FOLDER).filter(f => f.endsWith('Core.java'));
-        let predGenerated = 0;
-        for (const coreFile of predCoreFiles) {
-            const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
-            const className = capitalize(exchangeId);
-            const outputPath = `${PREDICTION_EXCHANGES_FOLDER}${className}.java`;
-            const exchangeMethods = predictionRestMethods.concat(PREDICTION_EXCHANGE_METHODS[exchangeId] || []);
-            const content = generateTypedExchangeClass(exchangeId, exchangeMethods, 'io.github.ccxt.exchanges.prediction');
-            fs.writeFileSync(outputPath, content, 'utf-8');
-            predGenerated++;
-        }
-        console.log(`Generated ${predGenerated} prediction REST typed wrappers`);
-    }
-
-    console.log(`\nGenerated ${generated} typed exchange wrappers in ${EXCHANGES_FOLDER}`);
-
-    // Safety net: verify an Object... varargs alias exists for every whitelisted
-    // method. Missing aliases produced the silent CI break that motivated this
-    // whitelist; loud-failing here prevents the same trap. The aliases are split
-    // across two tiers after the base/Exchange split: base-infra methods (fetchBalance,
-    // fetchTime, ...) keep their aliases on BaseExchange.java, while the trading methods
-    // that moved to the Exchange tier (fetchOrders, fetchTickers, fetchPositions, ...)
-    // carry their aliases on Exchange.java. Check both.
-    {
-        let src = '';
-        if (fs.existsSync(EXCHANGE_BASE_FILE)) src += fs.readFileSync(EXCHANGE_BASE_FILE, 'utf-8');
-        if (fs.existsSync(EXCHANGE_TIER_FILE)) src += '\n' + fs.readFileSync(EXCHANGE_TIER_FILE, 'utf-8');
-        const missing: string[] = [];
-        for (const m of ZERO_REQUIRED_TYPED_WHITELIST) {
-            const aliasRe = new RegExp(`\\b${m}Async\\s*\\(\\s*Object\\.\\.\\.\\s*\\w+\\s*\\)`);
-            if (!aliasRe.test(src)) missing.push(`${m}Async(Object... args)`);
-        }
-        if (missing.length > 0) {
-            console.error(`\nERROR: BaseExchange.java / Exchange.java are missing untyped async aliases for ${missing.length} whitelisted method(s):`);
-            for (const m of missing) console.error(`  - public CompletableFuture<Object> ${m} { return ${m.replace('Async', '').replace(/\(.*/, '')}(args); }`);
-            console.error(`\nAdd them above the "METHODS BELOW THIS LINE ARE TRANSPILED" marker in the tier that declares the method.`);
-            process.exit(1);
-        }
-    }
+    console.log(`Erasure check: ${erasureChecked} core declarations match their abstract interface signature`);
 
     console.log('Done!');
 }

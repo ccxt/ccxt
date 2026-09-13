@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class WooApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PubGetHistKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PubGetHistKline (Object... optionalArgs)
     {
         return this.callAsync ("v1PubGetHistKline", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PubGetHistTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PubGetHistTrades (Object... optionalArgs)
     {
         return this.callAsync ("v1PubGetHistTrades", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetInfo (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetInfo", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetInfoSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetInfoSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetInfoSymbol", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetSystemInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetSystemInfo (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetSystemInfo", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetMarketTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetMarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetMarketTrades", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetToken (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetToken", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetTokenNetwork (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetTokenNetwork (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetTokenNetwork", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetFundingRates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetFundingRates (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetFundingRates", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetFundingRateSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetFundingRateSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetFundingRateSymbol", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetFundingRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetFundingRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetFundingRateHistory", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetFutures (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetFutures", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetFuturesSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetFuturesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetFuturesSymbol", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetOrderbookSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetOrderbookSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetOrderbookSymbol", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetKline (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetKline", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetClientToken (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientToken", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetOrderOid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetOrderOid (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetOrderOid", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetClientOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientOrderClientOrderId", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetOrders", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientTradeTid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetClientTradeTid (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientTradeTid", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetOrderOidTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetOrderOidTrades (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetOrderOidTrades", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetClientTrades (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientTrades", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientHistTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetClientHistTrades (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientHistTrades", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetStakingYieldHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetStakingYieldHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetStakingYieldHistory", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientHolding (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetClientHolding (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientHolding", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetAssetDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetAssetDeposit (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetAssetDeposit", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetAssetHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetAssetHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetAssetHistory", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetSubAccountAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetSubAccountAll (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetSubAccountAll", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetSubAccountAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetSubAccountAssets (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetSubAccountAssets", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetSubAccountAssetDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetSubAccountAssetDetail (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetSubAccountAssetDetail", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetSubAccountIpRestriction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetSubAccountIpRestriction (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetSubAccountIpRestriction", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetAssetMainSubTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetAssetMainSubTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetAssetMainSubTransferHistory", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetTokenInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetTokenInterest (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetTokenInterest", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetTokenInterestToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetTokenInterestToken (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetTokenInterestToken", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetInterestHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetInterestHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetInterestHistory", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetInterestRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetInterestRepay (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetInterestRepay", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetFundingFeeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetFundingFeeHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetFundingFeeHistory", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetPositions (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetPositions", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPositionSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetPositionSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetPositionSymbol", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientTransactionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetClientTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientTransactionHistory", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientFuturesLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateGetClientFuturesLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientFuturesLeverage", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostOrder", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostOrderCancelAllAfter (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostOrderCancelAllAfter (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostOrderCancelAllAfter", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostAssetLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostAssetLtv (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostAssetLtv", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostAssetInternalWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostAssetInternalWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostAssetInternalWithdraw", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostInterestRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostInterestRepay (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostInterestRepay", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientAccountMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostClientAccountMode (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostClientAccountMode", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientPositionMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostClientPositionMode (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostClientPositionMode", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostClientLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostClientLeverage", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientFuturesLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostClientFuturesLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostClientFuturesLeverage", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientIsolatedMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostClientIsolatedMargin (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostClientIsolatedMargin", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateDeleteOrder", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateDeleteClientOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateDeleteClientOrder (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateDeleteClientOrder", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v1PrivateDeleteOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v1PrivateDeleteOrders (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateDeleteOrders", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateDeleteAssetWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivateDeleteAssetWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateDeleteAssetWithdraw", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetSystemInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetSystemInfo (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetSystemInfo", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetInstruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetInstruments (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetInstruments", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetToken (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetToken", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetTokenNetwork (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetTokenNetwork (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetTokenNetwork", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetTokenInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetTokenInfo (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetTokenInfo", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarketTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetMarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarketTrades", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarketTradesHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetMarketTradesHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarketTradesHistory", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetOrderbook", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetKline (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetKline", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetKlineHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetKlineHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetKlineHistory", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetFutures (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetFutures", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetFundingRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetFundingRate", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetFundingRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetFundingRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetFundingRateHistory", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetInsuranceFund (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetInsuranceFund (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetInsuranceFund", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetTradeOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetTradeOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetTradeOrder", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetTradeOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetTradeOrders (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetTradeOrders", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetTradeAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetTradeAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetTradeAlgoOrder", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetTradeAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetTradeAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetTradeAlgoOrders", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetTradeTransaction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetTradeTransaction (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetTradeTransaction", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetTradeTransactionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetTradeTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetTradeTransactionHistory", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetTradeTradingFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetTradeTradingFee (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetTradeTradingFee", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccountInfo", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccountTokenConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccountTokenConfig (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccountTokenConfig", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccountSymbolConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccountSymbolConfig (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccountSymbolConfig", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccountSubAccountsAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccountSubAccountsAll (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccountSubAccountsAll", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccountReferralSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccountReferralSummary (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccountReferralSummary", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccountReferralRewardHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccountReferralRewardHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccountReferralRewardHistory", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccountCredentials (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccountCredentials (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccountCredentials", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAssetBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAssetBalances (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAssetBalances", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAssetTokenHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAssetTokenHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAssetTokenHistory", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAssetTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAssetTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAssetTransferHistory", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAssetWalletHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAssetWalletHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAssetWalletHistory", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAssetWalletDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAssetWalletDeposit (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAssetWalletDeposit", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAssetStakingYieldHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAssetStakingYieldHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAssetStakingYieldHistory", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetFuturesPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetFuturesPositions (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetFuturesPositions", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetFuturesLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetFuturesLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetFuturesLeverage", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetFuturesDefaultMarginMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetFuturesDefaultMarginMode (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetFuturesDefaultMarginMode", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetFuturesFundingFeeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetFuturesFundingFeeHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetFuturesFundingFeeHistory", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetSpotMarginInterestRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetSpotMarginInterestRate (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetSpotMarginInterestRate", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetSpotMarginInterestHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetSpotMarginInterestHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetSpotMarginInterestHistory", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetSpotMarginMaxMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetSpotMarginMaxMargin (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetSpotMarginMaxMargin", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAlgoOrderOid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAlgoOrderOid (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAlgoOrderOid", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAlgoOrders", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetPositions (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetPositions", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetBuypower (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetBuypower (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetBuypower", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetConvertExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetConvertExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetConvertExchangeInfo", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetConvertAssetInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetConvertAssetInfo (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetConvertAssetInfo", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetConvertRfq (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetConvertRfq (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetConvertRfq", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetConvertTrade (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetConvertTrade (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetConvertTrade", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetConvertTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetConvertTrades (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetConvertTrades", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostTradeOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostTradeOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostTradeOrder", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostTradeAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostTradeAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostTradeAlgoOrder", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostTradeCancelAllAfter (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostTradeCancelAllAfter (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostTradeCancelAllAfter", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostAccountTradingMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostAccountTradingMode (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostAccountTradingMode", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostAccountListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostAccountListenKey (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostAccountListenKey", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostAssetTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostAssetTransfer (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostAssetTransfer", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostAssetWalletWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostAssetWalletWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostAssetWalletWithdraw", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostSpotMarginLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostSpotMarginLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostSpotMarginLeverage", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostSpotMarginInterestRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostSpotMarginInterestRepay (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostSpotMarginInterestRepay", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostFuturesDefaultMarginModeReset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostFuturesDefaultMarginModeReset (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostFuturesDefaultMarginModeReset", optionalArgs);
     }
@@ -1290,7 +1293,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostIsolatedMarginMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostIsolatedMarginMargin (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostIsolatedMarginMargin", optionalArgs);
     }
@@ -1301,7 +1304,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostAlgoOrder", optionalArgs);
     }
@@ -1312,7 +1315,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostConvertRft (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostConvertRft (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostConvertRft", optionalArgs);
     }
@@ -1323,7 +1326,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutTradeOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutTradeOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutTradeOrder", optionalArgs);
     }
@@ -1334,7 +1337,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutTradeAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutTradeAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutTradeAlgoOrder", optionalArgs);
     }
@@ -1345,7 +1348,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutFuturesLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutFuturesLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutFuturesLeverage", optionalArgs);
     }
@@ -1356,7 +1359,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutFuturesPositionMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutFuturesPositionMode (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutFuturesPositionMode", optionalArgs);
     }
@@ -1367,7 +1370,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutFuturesDefaultMarginMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutFuturesDefaultMarginMode (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutFuturesDefaultMarginMode", optionalArgs);
     }
@@ -1378,7 +1381,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutFuturesDefaultMarginModeSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutFuturesDefaultMarginModeSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutFuturesDefaultMarginModeSymbol", optionalArgs);
     }
@@ -1389,7 +1392,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutOrderOid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutOrderOid (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutOrderOid", optionalArgs);
     }
@@ -1400,7 +1403,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutOrderClientClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutOrderClientClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutOrderClientClientOrderId", optionalArgs);
     }
@@ -1411,7 +1414,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutAlgoOrderOid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutAlgoOrderOid (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutAlgoOrderOid", optionalArgs);
     }
@@ -1422,7 +1425,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutAlgoOrderClientClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutAlgoOrderClientClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutAlgoOrderClientClientOrderId", optionalArgs);
     }
@@ -1433,7 +1436,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteTradeOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteTradeOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteTradeOrder", optionalArgs);
     }
@@ -1444,7 +1447,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteTradeOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteTradeOrders (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteTradeOrders", optionalArgs);
     }
@@ -1455,7 +1458,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteTradeAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteTradeAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteTradeAlgoOrder", optionalArgs);
     }
@@ -1466,7 +1469,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteTradeAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteTradeAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteTradeAlgoOrders", optionalArgs);
     }
@@ -1477,7 +1480,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteTradeAllOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteTradeAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteTradeAllOrders", optionalArgs);
     }
@@ -1488,7 +1491,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteAlgoOrderOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteAlgoOrderOrderId (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteAlgoOrderOrderId", optionalArgs);
     }
@@ -1499,7 +1502,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteAlgoOrdersPending (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteAlgoOrdersPending (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteAlgoOrdersPending", optionalArgs);
     }
@@ -1510,7 +1513,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteAlgoOrdersPendingSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteAlgoOrdersPendingSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteAlgoOrdersPendingSymbol", optionalArgs);
     }
@@ -1521,7 +1524,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteOrdersPending (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteOrdersPending (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteOrdersPending", optionalArgs);
     }
@@ -1532,7 +1535,7 @@ public class WooApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteAssetWalletWithdrawWithdrawId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateDeleteAssetWalletWithdrawWithdrawId (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteAssetWalletWithdrawWithdrawId", optionalArgs);
     }

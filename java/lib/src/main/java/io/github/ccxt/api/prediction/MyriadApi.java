@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api.prediction;
 import io.github.ccxt.PredictionExchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class MyriadApi extends PredictionExchange
 {
@@ -25,7 +28,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetQuestions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetQuestions (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetQuestions", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetQuestionsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetQuestionsId (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetQuestionsId", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarkets", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetMarketsId (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsId", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsNetworkIdId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetMarketsNetworkIdId (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsNetworkIdId", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsIdEvents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetMarketsIdEvents (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdEvents", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsIdOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetMarketsIdOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdOrderbook", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  myriadPublicGetMarketsIdTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  myriadPublicGetMarketsIdTrades (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdTrades", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsIdHolders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetMarketsIdHolders (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdHolders", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetMarketsIdReferrals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetMarketsIdReferrals (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetMarketsIdReferrals", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetEvents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetEvents (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetEvents", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetOrders", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetOrdersHash (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetOrdersHash (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetOrdersHash", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetUsersAddressEvents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetUsersAddressEvents (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetUsersAddressEvents", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetUsersAddressReferrals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetUsersAddressReferrals (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetUsersAddressReferrals", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetUsersAddressPortfolio (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetUsersAddressPortfolio (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetUsersAddressPortfolio", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetUsersAddressMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetUsersAddressMarkets (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetUsersAddressMarkets", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetTags (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetTags (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetTags", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicGetTopics (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicGetTopics (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicGetTopics", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostMarketsQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostMarketsQuote (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostMarketsQuote", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostMarketsClaim (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostMarketsClaim (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostMarketsClaim", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostOrders (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostOrders", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostOrdersCancelBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostOrdersCancelBatch (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostOrdersCancelBatch", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostOrdersCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostOrdersCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostOrdersCancelAll", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsSplit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostPositionsSplit (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsSplit", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsMerge (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostPositionsMerge (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsMerge", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostPositionsRedeem (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsRedeem", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsRedeemVoided (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostPositionsRedeemVoided (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsRedeemVoided", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsNegRiskSplit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostPositionsNegRiskSplit (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsNegRiskSplit", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicPostPositionsNegRiskMerge (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicPostPositionsNegRiskMerge (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicPostPositionsNegRiskMerge", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPublicDeleteOrdersHash (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPublicDeleteOrdersHash (Object... optionalArgs)
     {
         return this.callAsync ("myriadPublicDeleteOrdersHash", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class MyriadApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  myriadPrivatePostMarketsQuoteWithFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  myriadPrivatePostMarketsQuoteWithFee (Object... optionalArgs)
     {
         return this.callAsync ("myriadPrivatePostMarketsQuoteWithFee", optionalArgs);
     }

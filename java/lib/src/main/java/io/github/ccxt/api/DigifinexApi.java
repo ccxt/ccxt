@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class DigifinexApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetMarketSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetMarketSymbols (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetMarketSymbols", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetKline (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetKline", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetMarginCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetMarginCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetMarginCurrencies", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetMarginSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetMarginSymbols (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetMarginSymbols", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetMarkets", optionalArgs);
     }
@@ -80,7 +82,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetOrderBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetOrderBook", optionalArgs);
     }
@@ -91,7 +93,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetPing (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetPing", optionalArgs);
     }
@@ -102,7 +104,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetSpotSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetSpotSymbols (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetSpotSymbols", optionalArgs);
     }
@@ -113,7 +115,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetTime (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetTime", optionalArgs);
     }
@@ -124,7 +126,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetTrades", optionalArgs);
     }
@@ -135,7 +137,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetTradesSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetTradesSymbols (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetTradesSymbols", optionalArgs);
     }
@@ -146,7 +148,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetTicker", optionalArgs);
     }
@@ -157,7 +159,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetCurrencies", optionalArgs);
     }
@@ -168,7 +170,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicApiWeight (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicApiWeight (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicApiWeight", optionalArgs);
     }
@@ -179,7 +181,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicCandles", optionalArgs);
     }
@@ -190,7 +192,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicCandlesHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicCandlesHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicCandlesHistory", optionalArgs);
     }
@@ -201,7 +203,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicDepth", optionalArgs);
     }
@@ -212,7 +214,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicFundingRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicFundingRate", optionalArgs);
     }
@@ -223,7 +225,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicFundingRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicFundingRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicFundingRateHistory", optionalArgs);
     }
@@ -234,7 +236,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicInstrument (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicInstrument (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicInstrument", optionalArgs);
     }
@@ -245,7 +247,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicInstruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicInstruments", optionalArgs);
     }
@@ -256,7 +258,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicTicker", optionalArgs);
     }
@@ -267,7 +269,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicTickers", optionalArgs);
     }
@@ -278,7 +280,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicTime (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicTime", optionalArgs);
     }
@@ -289,7 +291,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetPublicTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSwapGetPublicTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetPublicTrades", optionalArgs);
     }
@@ -300,7 +302,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarketFinancelog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarketFinancelog (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarketFinancelog", optionalArgs);
     }
@@ -311,7 +313,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarketMytrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarketMytrades (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarketMytrades", optionalArgs);
     }
@@ -322,7 +324,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarketOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarketOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarketOrder", optionalArgs);
     }
@@ -333,7 +335,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarketOrderDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarketOrderDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarketOrderDetail", optionalArgs);
     }
@@ -344,7 +346,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarketOrderCurrent (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarketOrderCurrent (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarketOrderCurrent", optionalArgs);
     }
@@ -355,7 +357,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarketOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarketOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarketOrderHistory", optionalArgs);
     }
@@ -366,7 +368,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarginAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarginAssets (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarginAssets", optionalArgs);
     }
@@ -377,7 +379,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarginFinancelog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarginFinancelog (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarginFinancelog", optionalArgs);
     }
@@ -388,7 +390,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarginMytrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarginMytrades (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarginMytrades", optionalArgs);
     }
@@ -399,7 +401,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarginOrder", optionalArgs);
     }
@@ -410,7 +412,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarginOrderCurrent (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarginOrderCurrent (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarginOrderCurrent", optionalArgs);
     }
@@ -421,7 +423,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarginOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarginOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarginOrderHistory", optionalArgs);
     }
@@ -432,7 +434,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetMarginPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetMarginPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMarginPositions", optionalArgs);
     }
@@ -443,7 +445,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetOtcFinancelog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetOtcFinancelog (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetOtcFinancelog", optionalArgs);
     }
@@ -454,7 +456,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetSpotAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetSpotAssets (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetSpotAssets", optionalArgs);
     }
@@ -465,7 +467,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetSpotFinancelog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetSpotFinancelog (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetSpotFinancelog", optionalArgs);
     }
@@ -476,7 +478,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetSpotMytrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetSpotMytrades (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetSpotMytrades", optionalArgs);
     }
@@ -487,7 +489,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetSpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetSpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetSpotOrder", optionalArgs);
     }
@@ -498,7 +500,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetSpotOrderCurrent (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetSpotOrderCurrent (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetSpotOrderCurrent", optionalArgs);
     }
@@ -509,7 +511,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetSpotOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetSpotOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetSpotOrderHistory", optionalArgs);
     }
@@ -520,7 +522,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetDepositAddress", optionalArgs);
     }
@@ -531,7 +533,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetDepositHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetDepositHistory", optionalArgs);
     }
@@ -542,7 +544,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetWithdrawHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetWithdrawHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetWithdrawHistory", optionalArgs);
     }
@@ -553,7 +555,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostMarketOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostMarketOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostMarketOrderCancel", optionalArgs);
     }
@@ -564,7 +566,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostMarketOrderNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostMarketOrderNew (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostMarketOrderNew", optionalArgs);
     }
@@ -575,7 +577,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostMarketOrderBatchNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostMarketOrderBatchNew (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostMarketOrderBatchNew", optionalArgs);
     }
@@ -586,7 +588,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostMarginOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostMarginOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostMarginOrderCancel", optionalArgs);
     }
@@ -597,7 +599,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostMarginOrderNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostMarginOrderNew (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostMarginOrderNew", optionalArgs);
     }
@@ -608,7 +610,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostMarginPositionClose (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostMarginPositionClose (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostMarginPositionClose", optionalArgs);
     }
@@ -619,7 +621,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostSpotOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostSpotOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostSpotOrderCancel", optionalArgs);
     }
@@ -630,7 +632,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostSpotOrderNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostSpotOrderNew (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostSpotOrderNew", optionalArgs);
     }
@@ -641,7 +643,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostTransfer", optionalArgs);
     }
@@ -652,7 +654,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostWithdrawNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostWithdrawNew (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostWithdrawNew", optionalArgs);
     }
@@ -663,7 +665,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostWithdrawCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostWithdrawCancel (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostWithdrawCancel", optionalArgs);
     }
@@ -674,7 +676,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetAccountBalance", optionalArgs);
     }
@@ -685,7 +687,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetAccountPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetAccountPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetAccountPositions", optionalArgs);
     }
@@ -696,7 +698,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetAccountFinanceRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetAccountFinanceRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetAccountFinanceRecord", optionalArgs);
     }
@@ -707,7 +709,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetAccountTradingFeeRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetAccountTradingFeeRate (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetAccountTradingFeeRate", optionalArgs);
     }
@@ -718,7 +720,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetAccountTransferRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetAccountTransferRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetAccountTransferRecord", optionalArgs);
     }
@@ -729,7 +731,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetAccountFundingFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetAccountFundingFee (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetAccountFundingFee", optionalArgs);
     }
@@ -740,7 +742,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetTradeHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetTradeHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetTradeHistoryOrders", optionalArgs);
     }
@@ -751,7 +753,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetTradeHistoryTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetTradeHistoryTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetTradeHistoryTrades", optionalArgs);
     }
@@ -762,7 +764,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetTradeOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetTradeOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetTradeOpenOrders", optionalArgs);
     }
@@ -773,7 +775,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetTradeOrderInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapGetTradeOrderInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetTradeOrderInfo", optionalArgs);
     }
@@ -784,7 +786,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostAccountTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostAccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostAccountTransfer", optionalArgs);
     }
@@ -795,7 +797,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostAccountLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostAccountLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostAccountLeverage", optionalArgs);
     }
@@ -806,7 +808,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostAccountPositionMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostAccountPositionMode (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostAccountPositionMode", optionalArgs);
     }
@@ -817,7 +819,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostAccountPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostAccountPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostAccountPositionMargin", optionalArgs);
     }
@@ -828,7 +830,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostTradeBatchCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostTradeBatchCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostTradeBatchCancelOrder", optionalArgs);
     }
@@ -839,7 +841,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostTradeBatchOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostTradeBatchOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostTradeBatchOrder", optionalArgs);
     }
@@ -850,7 +852,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostTradeCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostTradeCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostTradeCancelOrder", optionalArgs);
     }
@@ -861,7 +863,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostTradeOrderPlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostTradeOrderPlace (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostTradeOrderPlace", optionalArgs);
     }
@@ -872,7 +874,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowSponsorOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowSponsorOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowSponsorOrder", optionalArgs);
     }
@@ -883,7 +885,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowCloseOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowCloseOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowCloseOrder", optionalArgs);
     }
@@ -894,7 +896,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowCancelOrder", optionalArgs);
     }
@@ -905,7 +907,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowUserCenterCurrent (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowUserCenterCurrent (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowUserCenterCurrent", optionalArgs);
     }
@@ -916,7 +918,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowUserCenterHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowUserCenterHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowUserCenterHistory", optionalArgs);
     }
@@ -927,7 +929,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowExpertCurrentOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowExpertCurrentOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowExpertCurrentOpenOrder", optionalArgs);
     }
@@ -938,7 +940,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowAddAlgo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowAddAlgo (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowAddAlgo", optionalArgs);
     }
@@ -949,7 +951,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowCancelAlgo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowCancelAlgo (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowCancelAlgo", optionalArgs);
     }
@@ -960,7 +962,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowAccountAvailable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowAccountAvailable (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowAccountAvailable", optionalArgs);
     }
@@ -971,7 +973,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowPlanTask (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowPlanTask (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowPlanTask", optionalArgs);
     }
@@ -982,7 +984,7 @@ public class DigifinexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPostFollowInstrumentList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSwapPostFollowInstrumentList (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapPostFollowInstrumentList", optionalArgs);
     }

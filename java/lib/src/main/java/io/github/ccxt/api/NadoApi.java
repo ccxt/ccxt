@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class NadoApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gatewayPublicGetSymbols (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gatewayPublicGetSymbols (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicGetSymbols", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPublicGetQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gatewayPublicGetQuery (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicGetQuery", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPublicGetEdgeQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gatewayPublicGetEdgeQuery (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicGetEdgeQuery", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPublicPostQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gatewayPublicPostQuery (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicPostQuery", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPublicPostEdgeQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gatewayPublicPostEdgeQuery (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPublicPostEdgeQuery", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPrivatePostExecute (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gatewayPrivatePostExecute (Object... optionalArgs)
     {
         return this.callAsync ("gatewayPrivatePostExecute", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gatewayV2PublicGetAssets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gatewayV2PublicGetAssets (Object... optionalArgs)
     {
         return this.callAsync ("gatewayV2PublicGetAssets", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  gatewayV2PublicGetPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  gatewayV2PublicGetPairs (Object... optionalArgs)
     {
         return this.callAsync ("gatewayV2PublicGetPairs", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayV2PublicGetOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  gatewayV2PublicGetOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("gatewayV2PublicGetOrderbook", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archivePost (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  archivePost (Object... optionalArgs)
     {
         return this.callAsync ("archivePost", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archiveV2PublicGetTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  archiveV2PublicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetTickers", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archiveV2PublicGetContracts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  archiveV2PublicGetContracts (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetContracts", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  archiveV2PublicGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  archiveV2PublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetTrades", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archiveV2PublicGetSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  archiveV2PublicGetSymbols (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetSymbols", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  triggerPrivatePostExecute (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  triggerPrivatePostExecute (Object... optionalArgs)
     {
         return this.callAsync ("triggerPrivatePostExecute", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class NadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  triggerPrivatePostQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  triggerPrivatePostQuery (Object... optionalArgs)
     {
         return this.callAsync ("triggerPrivatePostQuery", optionalArgs);
     }

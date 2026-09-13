@@ -6,9 +6,12 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.BinanceCore;
+import io.github.ccxt.exchanges.Binance;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
-public class BinanceusApi extends BinanceCore
+public class BinanceusApi extends Binance
 {
 
     public BinanceusApi () {
@@ -25,7 +28,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCopyTradingFuturesUserStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCopyTradingFuturesUserStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCopyTradingFuturesUserStatus", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCopyTradingFuturesLeadSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCopyTradingFuturesLeadSymbol (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCopyTradingFuturesLeadSymbol", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSystemStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSystemStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSystemStatus", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccountSnapshot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccountSnapshot (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccountSnapshot", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccountInfo", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginAsset", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginPair (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginPair", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginAllAssets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginAllAssets (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginAllAssets", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginAllPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginAllPairs (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginAllPairs", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginPriceIndex (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginPriceIndex (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginPriceIndex", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetSpotDelistSchedule (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetSpotDelistSchedule (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSpotDelistSchedule", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetAssetDividend (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetAssetDividend (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetAssetDividend", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetDribblet (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetDribblet (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetDribblet", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetTransfer", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetAssetDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetAssetDetail (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetAssetDetail", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetTradeFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetTradeFee (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetTradeFee", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetLedgerTransferCloudMiningQueryByPage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetLedgerTransferCloudMiningQueryByPage (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetLedgerTransferCloudMiningQueryByPage", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetConvertTransferQueryByPage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetConvertTransferQueryByPage (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetConvertTransferQueryByPage", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetAssetWalletBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetAssetWalletBalance (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetWalletBalance", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetCustodyTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetCustodyTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetCustodyTransferHistory", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginBorrowRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginBorrowRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginBorrowRepay", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginLoan (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginLoan", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginRepay", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginAccount", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginTransfer", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginInterestHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginInterestHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginInterestHistory", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginForceLiquidationRec (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginForceLiquidationRec (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginForceLiquidationRec", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginOrder", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginOpenOrders", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginAllOrders", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginMyTrades", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginMaxBorrowable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginMaxBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginMaxBorrowable", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginMaxTransferable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginMaxTransferable (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginMaxTransferable", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginTradeCoeff (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginTradeCoeff (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginTradeCoeff", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginIsolatedTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginIsolatedTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginIsolatedTransfer", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginIsolatedAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginIsolatedAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginIsolatedAccount", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginIsolatedPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginIsolatedPair (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginIsolatedPair", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginIsolatedAllPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginIsolatedAllPairs (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginIsolatedAllPairs", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginIsolatedAccountLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginIsolatedAccountLimit (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginIsolatedAccountLimit", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginInterestRateHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginInterestRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginInterestRateHistory", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginOrderList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginOrderList", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginAllOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginAllOrderList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginAllOrderList", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginOpenOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginOpenOrderList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginOpenOrderList", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginCrossMarginData (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginCrossMarginData (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginCrossMarginData", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginIsolatedMarginData (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginIsolatedMarginData (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginIsolatedMarginData", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginIsolatedMarginTier (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginIsolatedMarginTier (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginIsolatedMarginTier", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginRateLimitOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginRateLimitOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginRateLimitOrder", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginDribblet (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginDribblet (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginDribblet", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginDust (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginDust (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginDust", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginCrossMarginCollateralRatio (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginCrossMarginCollateralRatio (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginCrossMarginCollateralRatio", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginExchangeSmallLiability (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginExchangeSmallLiability (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginExchangeSmallLiability", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginExchangeSmallLiabilityHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginExchangeSmallLiabilityHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginExchangeSmallLiabilityHistory", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginNextHourlyInterestRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginNextHourlyInterestRate (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginNextHourlyInterestRate", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginCapitalFlow (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginCapitalFlow (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginCapitalFlow", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginDelistSchedule (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginDelistSchedule (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginDelistSchedule", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarginAvailableInventory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarginAvailableInventory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginAvailableInventory", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetMarginLeverageBracket (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetMarginLeverageBracket (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarginLeverageBracket", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanVipLoanableData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanVipLoanableData (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanVipLoanableData", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanVipCollateralData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanVipCollateralData (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanVipCollateralData", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanVipRequestData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanVipRequestData (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanVipRequestData", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLoanVipRequestInterestRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLoanVipRequestInterestRate (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanVipRequestInterestRate", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLoanIncome (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLoanIncome (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanIncome", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanOngoingOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanOngoingOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanOngoingOrders", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanLtvAdjustmentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanLtvAdjustmentHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanLtvAdjustmentHistory", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanBorrowHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanBorrowHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanBorrowHistory", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanRepayHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanRepayHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanRepayHistory", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanLoanableData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanLoanableData (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanLoanableData", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanCollateralData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanCollateralData (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanCollateralData", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanRepayCollateralRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanRepayCollateralRate (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanRepayCollateralRate", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanFlexibleOngoingOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanFlexibleOngoingOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanFlexibleOngoingOrders", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanFlexibleBorrowHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanFlexibleBorrowHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanFlexibleBorrowHistory", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanFlexibleRepayHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanFlexibleRepayHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanFlexibleRepayHistory", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanFlexibleLtvAdjustmentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanFlexibleLtvAdjustmentHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanFlexibleLtvAdjustmentHistory", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanVipOngoingOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanVipOngoingOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanVipOngoingOrders", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanVipRepayHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanVipRepayHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanVipRepayHistory", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLoanVipCollateralAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLoanVipCollateralAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLoanVipCollateralAccount", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetFiatOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetFiatOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetFiatOrders", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetFiatPayments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetFiatPayments (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetFiatPayments", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetFuturesTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetFuturesTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetFuturesTransfer", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetFuturesHistDataLink (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetFuturesHistDataLink (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetFuturesHistDataLink", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetRebateTaxQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetRebateTaxQuery (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetRebateTaxQuery", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCapitalConfigGetall (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCapitalConfigGetall (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalConfigGetall", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCapitalDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCapitalDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalDepositAddress", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCapitalDepositAddressList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCapitalDepositAddressList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalDepositAddressList", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCapitalDepositHisrec (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCapitalDepositHisrec (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalDepositHisrec", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCapitalDepositSubAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCapitalDepositSubAddress (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalDepositSubAddress", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCapitalDepositSubHisrec (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCapitalDepositSubHisrec (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalDepositSubHisrec", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCapitalWithdrawHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCapitalWithdrawHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalWithdrawHistory", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCapitalWithdrawAddressList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCapitalWithdrawAddressList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalWithdrawAddressList", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCapitalContractConvertibleCoins (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCapitalContractConvertibleCoins (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalContractConvertibleCoins", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetConvertTradeFlow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetConvertTradeFlow (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetConvertTradeFlow", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetConvertExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetConvertExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetConvertExchangeInfo", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetConvertAssetInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetConvertAssetInfo (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetConvertAssetInfo", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetConvertOrderStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetConvertOrderStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetConvertOrderStatus", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetConvertLimitQueryOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetConvertLimitQueryOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetConvertLimitQueryOpenOrders", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccountStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccountStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccountStatus", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccountApiTradingStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccountApiTradingStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccountApiTradingStatus", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccountApiRestrictionsIpRestriction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccountApiRestrictionsIpRestriction (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccountApiRestrictionsIpRestriction", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBnbBurn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBnbBurn (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBnbBurn", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountFuturesAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountFuturesAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountFuturesAccount", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountFuturesAccountSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountFuturesAccountSummary (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountFuturesAccountSummary", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetSubAccountFuturesPositionRisk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetSubAccountFuturesPositionRisk (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountFuturesPositionRisk", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountFuturesInternalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountFuturesInternalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountFuturesInternalTransfer", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountList", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountMarginAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountMarginAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountMarginAccount", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountMarginAccountSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountMarginAccountSummary (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountMarginAccountSummary", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountSpotSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountSpotSummary (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountSpotSummary", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetSubAccountStatus (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetSubAccountStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountStatus", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetSubAccountSubTransferHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetSubAccountSubTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountSubTransferHistory", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetSubAccountTransferSubUserHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetSubAccountTransferSubUserHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountTransferSubUserHistory", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountUniversalTransfer", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountTransactionStatistics (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountTransactionStatistics (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountTransactionStatistics", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSubAccountSubAccountApiIpRestriction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountSubAccountApiIpRestriction (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSubAccountSubAccountApiIpRestriction", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetManagedSubaccountAsset (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetManagedSubaccountAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountAsset", optionalArgs);
     }
@@ -1290,7 +1293,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetManagedSubaccountAccountSnapshot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetManagedSubaccountAccountSnapshot (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountAccountSnapshot", optionalArgs);
     }
@@ -1301,7 +1304,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetManagedSubaccountQueryTransLogForInvestor (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetManagedSubaccountQueryTransLogForInvestor (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountQueryTransLogForInvestor", optionalArgs);
     }
@@ -1312,7 +1315,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetManagedSubaccountQueryTransLogForTradeParent (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetManagedSubaccountQueryTransLogForTradeParent (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountQueryTransLogForTradeParent", optionalArgs);
     }
@@ -1323,7 +1326,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetManagedSubaccountFetchFutureAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetManagedSubaccountFetchFutureAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountFetchFutureAsset", optionalArgs);
     }
@@ -1334,7 +1337,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetManagedSubaccountMarginAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetManagedSubaccountMarginAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountMarginAsset", optionalArgs);
     }
@@ -1345,7 +1348,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetManagedSubaccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetManagedSubaccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountInfo", optionalArgs);
     }
@@ -1356,7 +1359,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetManagedSubaccountDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetManagedSubaccountDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountDepositAddress", optionalArgs);
     }
@@ -1367,7 +1370,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetManagedSubaccountQueryTransLog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetManagedSubaccountQueryTransLog (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetManagedSubaccountQueryTransLog", optionalArgs);
     }
@@ -1378,7 +1381,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingDailyProductList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingDailyProductList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingDailyProductList", optionalArgs);
     }
@@ -1389,7 +1392,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingDailyUserLeftQuota (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingDailyUserLeftQuota (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingDailyUserLeftQuota", optionalArgs);
     }
@@ -1400,7 +1403,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingDailyUserRedemptionQuota (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingDailyUserRedemptionQuota (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingDailyUserRedemptionQuota", optionalArgs);
     }
@@ -1411,7 +1414,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingDailyTokenPosition (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingDailyTokenPosition (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingDailyTokenPosition", optionalArgs);
     }
@@ -1422,7 +1425,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingUnionAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingUnionAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingUnionAccount", optionalArgs);
     }
@@ -1433,7 +1436,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingUnionPurchaseRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingUnionPurchaseRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingUnionPurchaseRecord", optionalArgs);
     }
@@ -1444,7 +1447,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingUnionRedemptionRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingUnionRedemptionRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingUnionRedemptionRecord", optionalArgs);
     }
@@ -1455,7 +1458,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingUnionInterestHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingUnionInterestHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingUnionInterestHistory", optionalArgs);
     }
@@ -1466,7 +1469,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingProjectList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingProjectList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingProjectList", optionalArgs);
     }
@@ -1477,7 +1480,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingProjectPositionList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingProjectPositionList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingProjectPositionList", optionalArgs);
     }
@@ -1488,7 +1491,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingEthHistoryStakingHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingEthHistoryStakingHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingEthHistoryStakingHistory", optionalArgs);
     }
@@ -1499,7 +1502,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingEthHistoryRedemptionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingEthHistoryRedemptionHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingEthHistoryRedemptionHistory", optionalArgs);
     }
@@ -1510,7 +1513,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingEthHistoryRewardsHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingEthHistoryRewardsHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingEthHistoryRewardsHistory", optionalArgs);
     }
@@ -1521,7 +1524,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingEthQuota (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingEthQuota (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingEthQuota", optionalArgs);
     }
@@ -1532,7 +1535,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingEthHistoryRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingEthHistoryRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingEthHistoryRateHistory", optionalArgs);
     }
@@ -1543,7 +1546,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingAccount", optionalArgs);
     }
@@ -1554,7 +1557,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingWbethHistoryWrapHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingWbethHistoryWrapHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingWbethHistoryWrapHistory", optionalArgs);
     }
@@ -1565,7 +1568,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingWbethHistoryUnwrapHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingWbethHistoryUnwrapHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingWbethHistoryUnwrapHistory", optionalArgs);
     }
@@ -1576,7 +1579,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEthStakingEthHistoryWbethRewardsHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEthStakingEthHistoryWbethRewardsHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEthStakingEthHistoryWbethRewardsHistory", optionalArgs);
     }
@@ -1587,7 +1590,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSolStakingSolHistoryStakingHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSolStakingSolHistoryStakingHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSolStakingSolHistoryStakingHistory", optionalArgs);
     }
@@ -1598,7 +1601,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSolStakingSolHistoryRedemptionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSolStakingSolHistoryRedemptionHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSolStakingSolHistoryRedemptionHistory", optionalArgs);
     }
@@ -1609,7 +1612,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSolStakingSolHistoryBnsolRewardsHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSolStakingSolHistoryBnsolRewardsHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSolStakingSolHistoryBnsolRewardsHistory", optionalArgs);
     }
@@ -1620,7 +1623,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSolStakingSolHistoryRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSolStakingSolHistoryRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSolStakingSolHistoryRateHistory", optionalArgs);
     }
@@ -1631,7 +1634,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSolStakingAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSolStakingAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSolStakingAccount", optionalArgs);
     }
@@ -1642,7 +1645,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSolStakingSolQuota (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSolStakingSolQuota (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSolStakingSolQuota", optionalArgs);
     }
@@ -1653,7 +1656,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMiningPubAlgoList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMiningPubAlgoList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMiningPubAlgoList", optionalArgs);
     }
@@ -1664,7 +1667,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMiningPubCoinList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMiningPubCoinList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMiningPubCoinList", optionalArgs);
     }
@@ -1675,7 +1678,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMiningWorkerDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMiningWorkerDetail (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMiningWorkerDetail", optionalArgs);
     }
@@ -1686,7 +1689,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMiningWorkerList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMiningWorkerList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMiningWorkerList", optionalArgs);
     }
@@ -1697,7 +1700,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMiningPaymentList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMiningPaymentList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMiningPaymentList", optionalArgs);
     }
@@ -1708,7 +1711,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMiningStatisticsUserStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMiningStatisticsUserStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMiningStatisticsUserStatus", optionalArgs);
     }
@@ -1719,7 +1722,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMiningStatisticsUserList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMiningStatisticsUserList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMiningStatisticsUserList", optionalArgs);
     }
@@ -1730,7 +1733,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMiningPaymentUid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMiningPaymentUid (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMiningPaymentUid", optionalArgs);
     }
@@ -1741,7 +1744,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBswapPools (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBswapPools (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapPools", optionalArgs);
     }
@@ -1752,7 +1755,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBswapLiquidity (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBswapLiquidity (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapLiquidity", optionalArgs);
     }
@@ -1763,7 +1766,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBswapLiquidityOps (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBswapLiquidityOps (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapLiquidityOps", optionalArgs);
     }
@@ -1774,7 +1777,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBswapQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBswapQuote (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapQuote", optionalArgs);
     }
@@ -1785,7 +1788,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBswapSwap (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBswapSwap (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapSwap", optionalArgs);
     }
@@ -1796,7 +1799,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBswapPoolConfigure (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBswapPoolConfigure (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapPoolConfigure", optionalArgs);
     }
@@ -1807,7 +1810,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBswapAddLiquidityPreview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBswapAddLiquidityPreview (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapAddLiquidityPreview", optionalArgs);
     }
@@ -1818,7 +1821,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBswapRemoveLiquidityPreview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBswapRemoveLiquidityPreview (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapRemoveLiquidityPreview", optionalArgs);
     }
@@ -1829,7 +1832,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBswapUnclaimedRewards (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBswapUnclaimedRewards (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapUnclaimedRewards", optionalArgs);
     }
@@ -1840,7 +1843,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBswapClaimedHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBswapClaimedHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBswapClaimedHistory", optionalArgs);
     }
@@ -1851,7 +1854,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBlvtTokenInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBlvtTokenInfo (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBlvtTokenInfo", optionalArgs);
     }
@@ -1862,7 +1865,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBlvtSubscribeRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBlvtSubscribeRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBlvtSubscribeRecord", optionalArgs);
     }
@@ -1873,7 +1876,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBlvtRedeemRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBlvtRedeemRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBlvtRedeemRecord", optionalArgs);
     }
@@ -1884,7 +1887,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBlvtUserLimit (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBlvtUserLimit (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBlvtUserLimit", optionalArgs);
     }
@@ -1895,7 +1898,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetApiReferralIfNewUser (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetApiReferralIfNewUser (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApiReferralIfNewUser", optionalArgs);
     }
@@ -1906,7 +1909,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetApiReferralCustomization (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetApiReferralCustomization (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApiReferralCustomization", optionalArgs);
     }
@@ -1917,7 +1920,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetApiReferralUserCustomization (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetApiReferralUserCustomization (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApiReferralUserCustomization", optionalArgs);
     }
@@ -1928,7 +1931,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetApiReferralRebateRecentRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetApiReferralRebateRecentRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApiReferralRebateRecentRecord", optionalArgs);
     }
@@ -1939,7 +1942,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetApiReferralRebateHistoricalRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetApiReferralRebateHistoricalRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApiReferralRebateHistoricalRecord", optionalArgs);
     }
@@ -1950,7 +1953,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetApiReferralKickbackRecentRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetApiReferralKickbackRecentRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApiReferralKickbackRecentRecord", optionalArgs);
     }
@@ -1961,7 +1964,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetApiReferralKickbackHistoricalRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetApiReferralKickbackHistoricalRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApiReferralKickbackHistoricalRecord", optionalArgs);
     }
@@ -1972,7 +1975,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerSubAccountApi (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerSubAccountApi (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountApi", optionalArgs);
     }
@@ -1983,7 +1986,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerSubAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccount", optionalArgs);
     }
@@ -1994,7 +1997,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerSubAccountApiCommissionFutures (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerSubAccountApiCommissionFutures (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountApiCommissionFutures", optionalArgs);
     }
@@ -2005,7 +2008,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerSubAccountApiCommissionCoinFutures (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerSubAccountApiCommissionCoinFutures (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountApiCommissionCoinFutures", optionalArgs);
     }
@@ -2016,7 +2019,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBrokerInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBrokerInfo (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerInfo", optionalArgs);
     }
@@ -2027,7 +2030,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerTransfer (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerTransfer", optionalArgs);
     }
@@ -2038,7 +2041,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBrokerTransferFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBrokerTransferFutures (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerTransferFutures", optionalArgs);
     }
@@ -2049,7 +2052,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerRebateRecentRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerRebateRecentRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerRebateRecentRecord", optionalArgs);
     }
@@ -2060,7 +2063,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerRebateHistoricalRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerRebateHistoricalRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerRebateHistoricalRecord", optionalArgs);
     }
@@ -2071,7 +2074,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBrokerSubAccountBnbBurnStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBrokerSubAccountBnbBurnStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountBnbBurnStatus", optionalArgs);
     }
@@ -2082,7 +2085,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerSubAccountDepositHist (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerSubAccountDepositHist (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountDepositHist", optionalArgs);
     }
@@ -2093,7 +2096,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBrokerSubAccountSpotSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBrokerSubAccountSpotSummary (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountSpotSummary", optionalArgs);
     }
@@ -2104,7 +2107,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBrokerSubAccountMarginSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBrokerSubAccountMarginSummary (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountMarginSummary", optionalArgs);
     }
@@ -2115,7 +2118,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBrokerSubAccountFuturesSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBrokerSubAccountFuturesSummary (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountFuturesSummary", optionalArgs);
     }
@@ -2126,7 +2129,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerRebateFuturesRecentRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerRebateFuturesRecentRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerRebateFuturesRecentRecord", optionalArgs);
     }
@@ -2137,7 +2140,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetBrokerSubAccountApiIpRestriction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetBrokerSubAccountApiIpRestriction (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerSubAccountApiIpRestriction", optionalArgs);
     }
@@ -2148,7 +2151,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetBrokerUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetBrokerUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetBrokerUniversalTransfer", optionalArgs);
     }
@@ -2159,7 +2162,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccountApiRestrictions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccountApiRestrictions (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccountApiRestrictions", optionalArgs);
     }
@@ -2170,7 +2173,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetC2cOrderMatchListUserOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetC2cOrderMatchListUserOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetC2cOrderMatchListUserOrderHistory", optionalArgs);
     }
@@ -2181,7 +2184,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetNftHistoryTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetNftHistoryTransactions (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetNftHistoryTransactions", optionalArgs);
     }
@@ -2192,7 +2195,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetNftHistoryDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetNftHistoryDeposit (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetNftHistoryDeposit", optionalArgs);
     }
@@ -2203,7 +2206,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetNftHistoryWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetNftHistoryWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetNftHistoryWithdraw", optionalArgs);
     }
@@ -2214,7 +2217,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetNftUserGetAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetNftUserGetAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetNftUserGetAsset", optionalArgs);
     }
@@ -2225,7 +2228,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetPayTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetPayTransactions (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPayTransactions", optionalArgs);
     }
@@ -2236,7 +2239,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetGiftcardVerify (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetGiftcardVerify (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetGiftcardVerify", optionalArgs);
     }
@@ -2247,7 +2250,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetGiftcardCryptographyRsaPublicKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetGiftcardCryptographyRsaPublicKey (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetGiftcardCryptographyRsaPublicKey", optionalArgs);
     }
@@ -2258,7 +2261,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetGiftcardBuyCodeTokenLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetGiftcardBuyCodeTokenLimit (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetGiftcardBuyCodeTokenLimit", optionalArgs);
     }
@@ -2269,7 +2272,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAlgoSpotOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAlgoSpotOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAlgoSpotOpenOrders", optionalArgs);
     }
@@ -2280,7 +2283,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAlgoSpotHistoricalOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAlgoSpotHistoricalOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAlgoSpotHistoricalOrders", optionalArgs);
     }
@@ -2291,7 +2294,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAlgoSpotSubOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAlgoSpotSubOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAlgoSpotSubOrders", optionalArgs);
     }
@@ -2302,7 +2305,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAlgoFuturesOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAlgoFuturesOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAlgoFuturesOpenOrders", optionalArgs);
     }
@@ -2313,7 +2316,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAlgoFuturesHistoricalOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAlgoFuturesHistoricalOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAlgoFuturesHistoricalOrders", optionalArgs);
     }
@@ -2324,7 +2327,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAlgoFuturesSubOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAlgoFuturesSubOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAlgoFuturesSubOrders", optionalArgs);
     }
@@ -2335,7 +2338,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetPortfolioAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetPortfolioAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioAccount", optionalArgs);
     }
@@ -2346,7 +2349,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetPortfolioCollateralRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetPortfolioCollateralRate (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioCollateralRate", optionalArgs);
     }
@@ -2357,7 +2360,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetPortfolioPmLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetPortfolioPmLoan (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioPmLoan", optionalArgs);
     }
@@ -2368,7 +2371,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetPortfolioInterestHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetPortfolioInterestHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioInterestHistory", optionalArgs);
     }
@@ -2379,7 +2382,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetPortfolioAssetIndexPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetPortfolioAssetIndexPrice (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioAssetIndexPrice", optionalArgs);
     }
@@ -2390,7 +2393,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetPortfolioRepayFuturesSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetPortfolioRepayFuturesSwitch (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioRepayFuturesSwitch", optionalArgs);
     }
@@ -2401,7 +2404,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetPortfolioMarginAssetLeverage (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetPortfolioMarginAssetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioMarginAssetLeverage", optionalArgs);
     }
@@ -2412,7 +2415,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetPortfolioBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetPortfolioBalance (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioBalance", optionalArgs);
     }
@@ -2423,7 +2426,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetPortfolioNegativeBalanceExchangeRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetPortfolioNegativeBalanceExchangeRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioNegativeBalanceExchangeRecord", optionalArgs);
     }
@@ -2434,7 +2437,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetPortfolioPmloanHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetPortfolioPmloanHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioPmloanHistory", optionalArgs);
     }
@@ -2445,7 +2448,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetPortfolioEarnAssetBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetPortfolioEarnAssetBalance (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioEarnAssetBalance", optionalArgs);
     }
@@ -2456,7 +2459,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetPortfolioDeltaMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetPortfolioDeltaMode (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioDeltaMode", optionalArgs);
     }
@@ -2467,7 +2470,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetPortfolioMarginCallLevel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetPortfolioMarginCallLevel (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetPortfolioMarginCallLevel", optionalArgs);
     }
@@ -2478,7 +2481,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetStakingProductList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetStakingProductList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetStakingProductList", optionalArgs);
     }
@@ -2489,7 +2492,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetStakingPosition (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetStakingPosition (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetStakingPosition", optionalArgs);
     }
@@ -2500,7 +2503,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetStakingStakingRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetStakingStakingRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetStakingStakingRecord", optionalArgs);
     }
@@ -2511,7 +2514,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetStakingPersonalLeftQuota (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetStakingPersonalLeftQuota (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetStakingPersonalLeftQuota", optionalArgs);
     }
@@ -2522,7 +2525,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingAutoInvestTargetAssetList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingAutoInvestTargetAssetList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestTargetAssetList", optionalArgs);
     }
@@ -2533,7 +2536,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingAutoInvestTargetAssetRoiList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingAutoInvestTargetAssetRoiList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestTargetAssetRoiList", optionalArgs);
     }
@@ -2544,7 +2547,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingAutoInvestAllAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingAutoInvestAllAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestAllAsset", optionalArgs);
     }
@@ -2555,7 +2558,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingAutoInvestSourceAssetList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingAutoInvestSourceAssetList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestSourceAssetList", optionalArgs);
     }
@@ -2566,7 +2569,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingAutoInvestPlanList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingAutoInvestPlanList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestPlanList", optionalArgs);
     }
@@ -2577,7 +2580,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingAutoInvestPlanId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingAutoInvestPlanId (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestPlanId", optionalArgs);
     }
@@ -2588,7 +2591,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingAutoInvestHistoryList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingAutoInvestHistoryList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestHistoryList", optionalArgs);
     }
@@ -2599,7 +2602,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingAutoInvestIndexInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingAutoInvestIndexInfo (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestIndexInfo", optionalArgs);
     }
@@ -2610,7 +2613,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingAutoInvestIndexUserSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingAutoInvestIndexUserSummary (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestIndexUserSummary", optionalArgs);
     }
@@ -2621,7 +2624,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetLendingAutoInvestOneOffStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetLendingAutoInvestOneOffStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestOneOffStatus", optionalArgs);
     }
@@ -2632,7 +2635,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingAutoInvestRedeemHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingAutoInvestRedeemHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestRedeemHistory", optionalArgs);
     }
@@ -2643,7 +2646,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetLendingAutoInvestRebalanceHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetLendingAutoInvestRebalanceHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetLendingAutoInvestRebalanceHistory", optionalArgs);
     }
@@ -2654,7 +2657,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexibleList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexibleList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexibleList", optionalArgs);
     }
@@ -2665,7 +2668,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnLockedList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnLockedList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnLockedList", optionalArgs);
     }
@@ -2676,7 +2679,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexiblePersonalLeftQuota (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexiblePersonalLeftQuota (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexiblePersonalLeftQuota", optionalArgs);
     }
@@ -2687,7 +2690,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnLockedPersonalLeftQuota (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnLockedPersonalLeftQuota (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnLockedPersonalLeftQuota", optionalArgs);
     }
@@ -2698,7 +2701,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexibleSubscriptionPreview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexibleSubscriptionPreview (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexibleSubscriptionPreview", optionalArgs);
     }
@@ -2709,7 +2712,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetSimpleEarnLockedSubscriptionPreview (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetSimpleEarnLockedSubscriptionPreview (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnLockedSubscriptionPreview", optionalArgs);
     }
@@ -2720,7 +2723,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexibleHistoryRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexibleHistoryRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexibleHistoryRateHistory", optionalArgs);
     }
@@ -2731,7 +2734,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexiblePosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexiblePosition (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexiblePosition", optionalArgs);
     }
@@ -2742,7 +2745,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnLockedPosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnLockedPosition (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnLockedPosition", optionalArgs);
     }
@@ -2753,7 +2756,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnAccount", optionalArgs);
     }
@@ -2764,7 +2767,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexibleHistorySubscriptionRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexibleHistorySubscriptionRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexibleHistorySubscriptionRecord", optionalArgs);
     }
@@ -2775,7 +2778,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnLockedHistorySubscriptionRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnLockedHistorySubscriptionRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnLockedHistorySubscriptionRecord", optionalArgs);
     }
@@ -2786,7 +2789,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexibleHistoryRedemptionRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexibleHistoryRedemptionRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexibleHistoryRedemptionRecord", optionalArgs);
     }
@@ -2797,7 +2800,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnLockedHistoryRedemptionRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnLockedHistoryRedemptionRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnLockedHistoryRedemptionRecord", optionalArgs);
     }
@@ -2808,7 +2811,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexibleHistoryRewardsRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexibleHistoryRewardsRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexibleHistoryRewardsRecord", optionalArgs);
     }
@@ -2819,7 +2822,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnLockedHistoryRewardsRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnLockedHistoryRewardsRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnLockedHistoryRewardsRecord", optionalArgs);
     }
@@ -2830,7 +2833,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetSimpleEarnFlexibleHistoryCollateralRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetSimpleEarnFlexibleHistoryCollateralRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetSimpleEarnFlexibleHistoryCollateralRecord", optionalArgs);
     }
@@ -2841,7 +2844,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetDciProductList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetDciProductList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetDciProductList", optionalArgs);
     }
@@ -2852,7 +2855,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetDciProductPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetDciProductPositions (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetDciProductPositions", optionalArgs);
     }
@@ -2863,7 +2866,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetDciProductAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetDciProductAccounts (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetDciProductAccounts", optionalArgs);
     }
@@ -2874,7 +2877,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccumulatorProductList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccumulatorProductList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccumulatorProductList", optionalArgs);
     }
@@ -2885,7 +2888,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccumulatorProductPositionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccumulatorProductPositionList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccumulatorProductPositionList", optionalArgs);
     }
@@ -2896,7 +2899,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAccumulatorProductSumHolding (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAccumulatorProductSumHolding (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAccumulatorProductSumHolding", optionalArgs);
     }
@@ -2907,7 +2910,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityMarketExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEquityMarketExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityMarketExchangeInfo", optionalArgs);
     }
@@ -2918,7 +2921,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityMarketTokenizedAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEquityMarketTokenizedAssets (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityMarketTokenizedAssets", optionalArgs);
     }
@@ -2929,7 +2932,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityMarketQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEquityMarketQuote (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityMarketQuote", optionalArgs);
     }
@@ -2940,7 +2943,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetEquityOrderOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetEquityOrderOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityOrderOpenOrders", optionalArgs);
     }
@@ -2951,7 +2954,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEquityOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityOrderHistory", optionalArgs);
     }
@@ -2962,7 +2965,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityOrderDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEquityOrderDetail (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityOrderDetail", optionalArgs);
     }
@@ -2973,7 +2976,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityTradeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEquityTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityTradeHistory", optionalArgs);
     }
@@ -2984,7 +2987,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityTokenizedConvertStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEquityTokenizedConvertStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityTokenizedConvertStatus", optionalArgs);
     }
@@ -2995,7 +2998,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityTokenizedHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetEquityTokenizedHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetEquityTokenizedHistory", optionalArgs);
     }
@@ -3006,7 +3009,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetAssetDistributionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetAssetDistributionHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetAssetDistributionHistory", optionalArgs);
     }
@@ -3017,7 +3020,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetAssetQueryTradingFee (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetAssetQueryTradingFee (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetQueryTradingFee", optionalArgs);
     }
@@ -3028,7 +3031,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetQueryTradingVolume (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetQueryTradingVolume (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetQueryTradingVolume", optionalArgs);
     }
@@ -3039,7 +3042,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetOtcCoinPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetOtcCoinPairs (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetOtcCoinPairs", optionalArgs);
     }
@@ -3050,7 +3053,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetOtcOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetOtcOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetOtcOrdersOrderId", optionalArgs);
     }
@@ -3061,7 +3064,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetOtcOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetOtcOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetOtcOrders", optionalArgs);
     }
@@ -3072,7 +3075,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetOcbsOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetOcbsOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetOcbsOrders", optionalArgs);
     }
@@ -3083,7 +3086,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetFiatpaymentQueryWithdrawHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetFiatpaymentQueryWithdrawHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetFiatpaymentQueryWithdrawHistory", optionalArgs);
     }
@@ -3094,7 +3097,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetFiatpaymentQueryDepositHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetFiatpaymentQueryDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetFiatpaymentQueryDepositHistory", optionalArgs);
     }
@@ -3105,7 +3108,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCapitalSubAccountDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCapitalSubAccountDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalSubAccountDepositAddress", optionalArgs);
     }
@@ -3116,7 +3119,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCapitalSubAccountDepositHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCapitalSubAccountDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCapitalSubAccountDepositHistory", optionalArgs);
     }
@@ -3127,7 +3130,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetQueryDustLogs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetQueryDustLogs (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetQueryDustLogs", optionalArgs);
     }
@@ -3138,7 +3141,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetAssetQueryDustAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetAssetQueryDustAssets (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetAssetQueryDustAssets", optionalArgs);
     }
@@ -3149,7 +3152,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetMarketingReferralRewardHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetMarketingReferralRewardHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetMarketingReferralRewardHistory", optionalArgs);
     }
@@ -3160,7 +3163,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetStakingAsset (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetStakingAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetStakingAsset", optionalArgs);
     }
@@ -3171,7 +3174,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetStakingStakingBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetStakingStakingBalance (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetStakingStakingBalance", optionalArgs);
     }
@@ -3182,7 +3185,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetStakingHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetStakingHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetStakingHistory", optionalArgs);
     }
@@ -3193,7 +3196,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetStakingStakingRewardsHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetStakingStakingRewardsHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetStakingStakingRewardsHistory", optionalArgs);
     }
@@ -3204,7 +3207,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCustodianBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCustodianBalance (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianBalance", optionalArgs);
     }
@@ -3215,7 +3218,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCustodianSupportedAssetList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCustodianSupportedAssetList (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianSupportedAssetList", optionalArgs);
     }
@@ -3226,7 +3229,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCustodianWalletTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCustodianWalletTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianWalletTransferHistory", optionalArgs);
     }
@@ -3237,7 +3240,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCustodianCustodianTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCustodianCustodianTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianCustodianTransferHistory", optionalArgs);
     }
@@ -3248,7 +3251,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCustodianOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCustodianOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianOpenOrders", optionalArgs);
     }
@@ -3259,7 +3262,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCustodianOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCustodianOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianOrder", optionalArgs);
     }
@@ -3270,7 +3273,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCustodianOrderHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCustodianOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianOrderHistory", optionalArgs);
     }
@@ -3281,7 +3284,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetCustodianTradeHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetCustodianTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianTradeHistory", optionalArgs);
     }
@@ -3292,7 +3295,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCustodianSettlementSetting (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCustodianSettlementSetting (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianSettlementSetting", optionalArgs);
     }
@@ -3303,7 +3306,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetCustodianSettlementHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetCustodianSettlementHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetCustodianSettlementHistory", optionalArgs);
     }
@@ -3314,7 +3317,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetClTransferHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetClTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetClTransferHistory", optionalArgs);
     }
@@ -3325,7 +3328,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetApipartnerCheckEligibility (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiGetApipartnerCheckEligibility (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApipartnerCheckEligibility", optionalArgs);
     }
@@ -3336,7 +3339,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetApipartnerRebateHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiGetApipartnerRebateHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiGetApipartnerRebateHistory", optionalArgs);
     }
@@ -3347,7 +3350,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAssetDust (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAssetDust (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAssetDust", optionalArgs);
     }
@@ -3358,7 +3361,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAssetDustBtc (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAssetDustBtc (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAssetDustBtc", optionalArgs);
     }
@@ -3369,7 +3372,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAssetTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAssetTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAssetTransfer", optionalArgs);
     }
@@ -3380,7 +3383,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiPostAssetGetFundingAsset (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiPostAssetGetFundingAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAssetGetFundingAsset", optionalArgs);
     }
@@ -3391,7 +3394,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAssetConvertTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAssetConvertTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAssetConvertTransfer", optionalArgs);
     }
@@ -3402,7 +3405,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAccountDisableFastWithdrawSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAccountDisableFastWithdrawSwitch (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAccountDisableFastWithdrawSwitch", optionalArgs);
     }
@@ -3413,7 +3416,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAccountEnableFastWithdrawSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAccountEnableFastWithdrawSwitch (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAccountEnableFastWithdrawSwitch", optionalArgs);
     }
@@ -3424,7 +3427,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostCapitalWithdrawApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostCapitalWithdrawApply (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostCapitalWithdrawApply", optionalArgs);
     }
@@ -3435,7 +3438,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostCapitalContractConvertibleCoins (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostCapitalContractConvertibleCoins (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostCapitalContractConvertibleCoins", optionalArgs);
     }
@@ -3446,7 +3449,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostCapitalDepositCreditApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostCapitalDepositCreditApply (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostCapitalDepositCreditApply", optionalArgs);
     }
@@ -3457,7 +3460,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginBorrowRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginBorrowRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginBorrowRepay", optionalArgs);
     }
@@ -3468,7 +3471,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginTransfer", optionalArgs);
     }
@@ -3479,7 +3482,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginLoan (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginLoan", optionalArgs);
     }
@@ -3490,7 +3493,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginRepay", optionalArgs);
     }
@@ -3501,7 +3504,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginOrder", optionalArgs);
     }
@@ -3512,7 +3515,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginOrderOco (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginOrderOco (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginOrderOco", optionalArgs);
     }
@@ -3523,7 +3526,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginDust (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginDust (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginDust", optionalArgs);
     }
@@ -3534,7 +3537,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginExchangeSmallLiability (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginExchangeSmallLiability (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginExchangeSmallLiability", optionalArgs);
     }
@@ -3545,7 +3548,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginIsolatedTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginIsolatedTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginIsolatedTransfer", optionalArgs);
     }
@@ -3556,7 +3559,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginIsolatedAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginIsolatedAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginIsolatedAccount", optionalArgs);
     }
@@ -3567,7 +3570,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMarginMaxLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMarginMaxLeverage (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMarginMaxLeverage", optionalArgs);
     }
@@ -3578,7 +3581,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBnbBurn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBnbBurn (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBnbBurn", optionalArgs);
     }
@@ -3589,7 +3592,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountVirtualSubAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountVirtualSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountVirtualSubAccount", optionalArgs);
     }
@@ -3600,7 +3603,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountMarginTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountMarginTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountMarginTransfer", optionalArgs);
     }
@@ -3611,7 +3614,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountMarginEnable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountMarginEnable (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountMarginEnable", optionalArgs);
     }
@@ -3622,7 +3625,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountFuturesEnable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountFuturesEnable (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountFuturesEnable", optionalArgs);
     }
@@ -3633,7 +3636,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountFuturesTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountFuturesTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountFuturesTransfer", optionalArgs);
     }
@@ -3644,7 +3647,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountFuturesInternalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountFuturesInternalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountFuturesInternalTransfer", optionalArgs);
     }
@@ -3655,7 +3658,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountTransferSubToSub (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountTransferSubToSub (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountTransferSubToSub", optionalArgs);
     }
@@ -3666,7 +3669,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountTransferSubToMaster (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountTransferSubToMaster (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountTransferSubToMaster", optionalArgs);
     }
@@ -3677,7 +3680,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountUniversalTransfer", optionalArgs);
     }
@@ -3688,7 +3691,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSubAccountOptionsEnable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountOptionsEnable (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSubAccountOptionsEnable", optionalArgs);
     }
@@ -3699,7 +3702,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostManagedSubaccountDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostManagedSubaccountDeposit (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostManagedSubaccountDeposit", optionalArgs);
     }
@@ -3710,7 +3713,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostManagedSubaccountWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostManagedSubaccountWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostManagedSubaccountWithdraw", optionalArgs);
     }
@@ -3721,7 +3724,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostUserDataStream", optionalArgs);
     }
@@ -3732,7 +3735,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostUserDataStreamIsolated (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostUserDataStreamIsolated (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostUserDataStreamIsolated", optionalArgs);
     }
@@ -3743,7 +3746,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostUserListenToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostUserListenToken (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostUserListenToken", optionalArgs);
     }
@@ -3754,7 +3757,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostFuturesTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostFuturesTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostFuturesTransfer", optionalArgs);
     }
@@ -3765,7 +3768,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLendingCustomizedFixedPurchase (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLendingCustomizedFixedPurchase (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLendingCustomizedFixedPurchase", optionalArgs);
     }
@@ -3776,7 +3779,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLendingDailyPurchase (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLendingDailyPurchase (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLendingDailyPurchase", optionalArgs);
     }
@@ -3787,7 +3790,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLendingDailyRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLendingDailyRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLendingDailyRedeem", optionalArgs);
     }
@@ -3798,7 +3801,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBswapLiquidityAdd (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBswapLiquidityAdd (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBswapLiquidityAdd", optionalArgs);
     }
@@ -3809,7 +3812,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBswapLiquidityRemove (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBswapLiquidityRemove (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBswapLiquidityRemove", optionalArgs);
     }
@@ -3820,7 +3823,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBswapSwap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBswapSwap (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBswapSwap", optionalArgs);
     }
@@ -3831,7 +3834,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBswapClaimRewards (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBswapClaimRewards (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBswapClaimRewards", optionalArgs);
     }
@@ -3842,7 +3845,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBlvtSubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBlvtSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBlvtSubscribe", optionalArgs);
     }
@@ -3853,7 +3856,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBlvtRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBlvtRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBlvtRedeem", optionalArgs);
     }
@@ -3864,7 +3867,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostApiReferralCustomization (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostApiReferralCustomization (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostApiReferralCustomization", optionalArgs);
     }
@@ -3875,7 +3878,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostApiReferralUserCustomization (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostApiReferralUserCustomization (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostApiReferralUserCustomization", optionalArgs);
     }
@@ -3886,7 +3889,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiPostApiReferralRebateHistoricalRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiPostApiReferralRebateHistoricalRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostApiReferralRebateHistoricalRecord", optionalArgs);
     }
@@ -3897,7 +3900,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiPostApiReferralKickbackHistoricalRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiPostApiReferralKickbackHistoricalRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostApiReferralKickbackHistoricalRecord", optionalArgs);
     }
@@ -3908,7 +3911,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccount", optionalArgs);
     }
@@ -3919,7 +3922,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountMargin (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountMargin", optionalArgs);
     }
@@ -3930,7 +3933,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountFutures (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountFutures", optionalArgs);
     }
@@ -3941,7 +3944,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApi (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApi", optionalArgs);
     }
@@ -3952,7 +3955,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApiPermission (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApiPermission (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApiPermission", optionalArgs);
     }
@@ -3963,7 +3966,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApiCommission (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApiCommission (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApiCommission", optionalArgs);
     }
@@ -3974,7 +3977,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApiCommissionFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApiCommissionFutures (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApiCommissionFutures", optionalArgs);
     }
@@ -3985,7 +3988,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApiCommissionCoinFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApiCommissionCoinFutures (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApiCommissionCoinFutures", optionalArgs);
     }
@@ -3996,7 +3999,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerTransfer", optionalArgs);
     }
@@ -4007,7 +4010,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerTransferFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerTransferFutures (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerTransferFutures", optionalArgs);
     }
@@ -4018,7 +4021,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiPostBrokerRebateHistoricalRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiPostBrokerRebateHistoricalRecord (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerRebateHistoricalRecord", optionalArgs);
     }
@@ -4029,7 +4032,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountBnbBurnSpot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountBnbBurnSpot (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountBnbBurnSpot", optionalArgs);
     }
@@ -4040,7 +4043,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountBnbBurnMarginInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountBnbBurnMarginInterest (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountBnbBurnMarginInterest", optionalArgs);
     }
@@ -4051,7 +4054,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountBlvt (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountBlvt (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountBlvt", optionalArgs);
     }
@@ -4062,7 +4065,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApiIpRestriction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApiIpRestriction (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApiIpRestriction", optionalArgs);
     }
@@ -4073,7 +4076,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApiIpRestrictionIpList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApiIpRestrictionIpList (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApiIpRestrictionIpList", optionalArgs);
     }
@@ -4084,7 +4087,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerUniversalTransfer", optionalArgs);
     }
@@ -4095,7 +4098,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApiPermissionUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApiPermissionUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApiPermissionUniversalTransfer", optionalArgs);
     }
@@ -4106,7 +4109,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostBrokerSubAccountApiPermissionVanillaOptions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostBrokerSubAccountApiPermissionVanillaOptions (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostBrokerSubAccountApiPermissionVanillaOptions", optionalArgs);
     }
@@ -4117,7 +4120,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostGiftcardCreateCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostGiftcardCreateCode (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostGiftcardCreateCode", optionalArgs);
     }
@@ -4128,7 +4131,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostGiftcardRedeemCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostGiftcardRedeemCode (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostGiftcardRedeemCode", optionalArgs);
     }
@@ -4139,7 +4142,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostGiftcardBuyCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostGiftcardBuyCode (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostGiftcardBuyCode", optionalArgs);
     }
@@ -4150,7 +4153,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAlgoSpotNewOrderTwap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAlgoSpotNewOrderTwap (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAlgoSpotNewOrderTwap", optionalArgs);
     }
@@ -4161,7 +4164,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAlgoFuturesNewOrderVp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAlgoFuturesNewOrderVp (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAlgoFuturesNewOrderVp", optionalArgs);
     }
@@ -4172,7 +4175,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAlgoFuturesNewOrderTwap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAlgoFuturesNewOrderTwap (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAlgoFuturesNewOrderTwap", optionalArgs);
     }
@@ -4183,7 +4186,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostStakingPurchase (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostStakingPurchase (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostStakingPurchase", optionalArgs);
     }
@@ -4194,7 +4197,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostStakingRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostStakingRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostStakingRedeem", optionalArgs);
     }
@@ -4205,7 +4208,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostStakingSetAutoStaking (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostStakingSetAutoStaking (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostStakingSetAutoStaking", optionalArgs);
     }
@@ -4216,7 +4219,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEthStakingEthStake (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEthStakingEthStake (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEthStakingEthStake", optionalArgs);
     }
@@ -4227,7 +4230,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEthStakingEthRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEthStakingEthRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEthStakingEthRedeem", optionalArgs);
     }
@@ -4238,7 +4241,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEthStakingWbethWrap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEthStakingWbethWrap (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEthStakingWbethWrap", optionalArgs);
     }
@@ -4249,7 +4252,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSolStakingSolStake (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSolStakingSolStake (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSolStakingSolStake", optionalArgs);
     }
@@ -4260,7 +4263,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSolStakingSolRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSolStakingSolRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSolStakingSolRedeem", optionalArgs);
     }
@@ -4271,7 +4274,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMiningHashTransferConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMiningHashTransferConfig (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMiningHashTransferConfig", optionalArgs);
     }
@@ -4282,7 +4285,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostMiningHashTransferConfigCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostMiningHashTransferConfigCancel (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostMiningHashTransferConfigCancel", optionalArgs);
     }
@@ -4293,7 +4296,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioRepay", optionalArgs);
     }
@@ -4304,7 +4307,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanVipRenew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanVipRenew (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanVipRenew", optionalArgs);
     }
@@ -4315,7 +4318,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanVipBorrow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanVipBorrow (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanVipBorrow", optionalArgs);
     }
@@ -4326,7 +4329,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanBorrow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanBorrow (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanBorrow", optionalArgs);
     }
@@ -4337,7 +4340,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanRepay", optionalArgs);
     }
@@ -4348,7 +4351,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanAdjustLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanAdjustLtv (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanAdjustLtv", optionalArgs);
     }
@@ -4359,7 +4362,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanCustomizeMarginCall (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanCustomizeMarginCall (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanCustomizeMarginCall", optionalArgs);
     }
@@ -4370,7 +4373,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanFlexibleRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanFlexibleRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanFlexibleRepay", optionalArgs);
     }
@@ -4381,7 +4384,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanFlexibleAdjustLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanFlexibleAdjustLtv (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanFlexibleAdjustLtv", optionalArgs);
     }
@@ -4392,7 +4395,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLoanVipRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLoanVipRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLoanVipRepay", optionalArgs);
     }
@@ -4403,7 +4406,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostConvertGetQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostConvertGetQuote (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostConvertGetQuote", optionalArgs);
     }
@@ -4414,7 +4417,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostConvertAcceptQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostConvertAcceptQuote (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostConvertAcceptQuote", optionalArgs);
     }
@@ -4425,7 +4428,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostConvertLimitPlaceOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostConvertLimitPlaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostConvertLimitPlaceOrder", optionalArgs);
     }
@@ -4436,7 +4439,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostConvertLimitCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostConvertLimitCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostConvertLimitCancelOrder", optionalArgs);
     }
@@ -4447,7 +4450,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioAutoCollection (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioAutoCollection (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioAutoCollection", optionalArgs);
     }
@@ -4458,7 +4461,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioAssetCollection (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioAssetCollection (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioAssetCollection", optionalArgs);
     }
@@ -4469,7 +4472,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioBnbTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioBnbTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioBnbTransfer", optionalArgs);
     }
@@ -4480,7 +4483,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioRepayFuturesSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioRepayFuturesSwitch (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioRepayFuturesSwitch", optionalArgs);
     }
@@ -4491,7 +4494,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioRepayFuturesNegativeBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioRepayFuturesNegativeBalance (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioRepayFuturesNegativeBalance", optionalArgs);
     }
@@ -4502,7 +4505,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioMint (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioMint (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioMint", optionalArgs);
     }
@@ -4513,7 +4516,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioRedeem", optionalArgs);
     }
@@ -4524,7 +4527,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioEarnAssetTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioEarnAssetTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioEarnAssetTransfer", optionalArgs);
     }
@@ -4535,7 +4538,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioDeltaMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioDeltaMode (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioDeltaMode", optionalArgs);
     }
@@ -4546,7 +4549,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostPortfolioMarginCallLevel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostPortfolioMarginCallLevel (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostPortfolioMarginCallLevel", optionalArgs);
     }
@@ -4557,7 +4560,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLendingAutoInvestPlanAdd (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLendingAutoInvestPlanAdd (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLendingAutoInvestPlanAdd", optionalArgs);
     }
@@ -4568,7 +4571,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLendingAutoInvestPlanEdit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLendingAutoInvestPlanEdit (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLendingAutoInvestPlanEdit", optionalArgs);
     }
@@ -4579,7 +4582,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLendingAutoInvestPlanEditStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLendingAutoInvestPlanEditStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLendingAutoInvestPlanEditStatus", optionalArgs);
     }
@@ -4590,7 +4593,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLendingAutoInvestOneOff (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLendingAutoInvestOneOff (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLendingAutoInvestOneOff", optionalArgs);
     }
@@ -4601,7 +4604,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostLendingAutoInvestRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostLendingAutoInvestRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostLendingAutoInvestRedeem", optionalArgs);
     }
@@ -4612,7 +4615,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSimpleEarnFlexibleSubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSimpleEarnFlexibleSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSimpleEarnFlexibleSubscribe", optionalArgs);
     }
@@ -4623,7 +4626,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSimpleEarnLockedSubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSimpleEarnLockedSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSimpleEarnLockedSubscribe", optionalArgs);
     }
@@ -4634,7 +4637,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSimpleEarnFlexibleRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSimpleEarnFlexibleRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSimpleEarnFlexibleRedeem", optionalArgs);
     }
@@ -4645,7 +4648,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSimpleEarnLockedRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSimpleEarnLockedRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSimpleEarnLockedRedeem", optionalArgs);
     }
@@ -4656,7 +4659,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSimpleEarnFlexibleSetAutoSubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSimpleEarnFlexibleSetAutoSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSimpleEarnFlexibleSetAutoSubscribe", optionalArgs);
     }
@@ -4667,7 +4670,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSimpleEarnLockedSetAutoSubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSimpleEarnLockedSetAutoSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSimpleEarnLockedSetAutoSubscribe", optionalArgs);
     }
@@ -4678,7 +4681,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostSimpleEarnLockedSetRedeemOption (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostSimpleEarnLockedSetRedeemOption (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostSimpleEarnLockedSetRedeemOption", optionalArgs);
     }
@@ -4689,7 +4692,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostDciProductSubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostDciProductSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostDciProductSubscribe", optionalArgs);
     }
@@ -4700,7 +4703,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostDciProductAutoCompoundEdit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostDciProductAutoCompoundEdit (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostDciProductAutoCompoundEdit", optionalArgs);
     }
@@ -4711,7 +4714,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAccumulatorProductSubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostAccumulatorProductSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAccumulatorProductSubscribe", optionalArgs);
     }
@@ -4722,7 +4725,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityOrderPlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEquityOrderPlace (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEquityOrderPlace", optionalArgs);
     }
@@ -4733,7 +4736,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEquityOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEquityOrderCancel", optionalArgs);
     }
@@ -4744,7 +4747,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityOrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEquityOrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEquityOrderCancelAll", optionalArgs);
     }
@@ -4755,7 +4758,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityTokenizedMint (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEquityTokenizedMint (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEquityTokenizedMint", optionalArgs);
     }
@@ -4766,7 +4769,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityTokenizedRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEquityTokenizedRedeem (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEquityTokenizedRedeem", optionalArgs);
     }
@@ -4777,7 +4780,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityAccountDisclaimer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEquityAccountDisclaimer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEquityAccountDisclaimer", optionalArgs);
     }
@@ -4788,7 +4791,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostEquityListenKey (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostEquityListenKey", optionalArgs);
     }
@@ -4799,7 +4802,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostOtcQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostOtcQuotes (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostOtcQuotes", optionalArgs);
     }
@@ -4810,7 +4813,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostOtcOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostOtcOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostOtcOrders", optionalArgs);
     }
@@ -4821,7 +4824,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostFiatpaymentWithdrawApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostFiatpaymentWithdrawApply (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostFiatpaymentWithdrawApply", optionalArgs);
     }
@@ -4832,7 +4835,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostStakingStake (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostStakingStake (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostStakingStake", optionalArgs);
     }
@@ -4843,7 +4846,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostStakingUnstake (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostStakingUnstake (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostStakingUnstake", optionalArgs);
     }
@@ -4854,7 +4857,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostCustodianWalletTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostCustodianWalletTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostCustodianWalletTransfer", optionalArgs);
     }
@@ -4865,7 +4868,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostCustodianCustodianTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostCustodianCustodianTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostCustodianCustodianTransfer", optionalArgs);
     }
@@ -4876,7 +4879,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostCustodianUndoTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostCustodianUndoTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostCustodianUndoTransfer", optionalArgs);
     }
@@ -4887,7 +4890,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostCustodianOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostCustodianOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostCustodianOrder", optionalArgs);
     }
@@ -4898,7 +4901,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostCustodianOcoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostCustodianOcoOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostCustodianOcoOrder", optionalArgs);
     }
@@ -4909,7 +4912,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostClTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPostClTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostClTransfer", optionalArgs);
     }
@@ -4920,7 +4923,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPutUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPutUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("sapiPutUserDataStream", optionalArgs);
     }
@@ -4931,7 +4934,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPutUserDataStreamIsolated (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiPutUserDataStreamIsolated (Object... optionalArgs)
     {
         return this.callAsync ("sapiPutUserDataStreamIsolated", optionalArgs);
     }
@@ -4942,7 +4945,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeletePortfolioMarginCallLevel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeletePortfolioMarginCallLevel (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeletePortfolioMarginCallLevel", optionalArgs);
     }
@@ -4953,7 +4956,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiDeleteMarginOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiDeleteMarginOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteMarginOpenOrders", optionalArgs);
     }
@@ -4964,7 +4967,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteMarginOrder", optionalArgs);
     }
@@ -4975,7 +4978,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteMarginOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteMarginOrderList (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteMarginOrderList", optionalArgs);
     }
@@ -4986,7 +4989,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteMarginIsolatedAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteMarginIsolatedAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteMarginIsolatedAccount", optionalArgs);
     }
@@ -4997,7 +5000,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteUserDataStream", optionalArgs);
     }
@@ -5008,7 +5011,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteUserDataStreamIsolated (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteUserDataStreamIsolated (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteUserDataStreamIsolated", optionalArgs);
     }
@@ -5019,7 +5022,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteBrokerSubAccountApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteBrokerSubAccountApi (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteBrokerSubAccountApi", optionalArgs);
     }
@@ -5030,7 +5033,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteBrokerSubAccountApiIpRestrictionIpList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteBrokerSubAccountApiIpRestrictionIpList (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteBrokerSubAccountApiIpRestrictionIpList", optionalArgs);
     }
@@ -5041,7 +5044,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteAlgoSpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteAlgoSpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteAlgoSpotOrder", optionalArgs);
     }
@@ -5052,7 +5055,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteAlgoFuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteAlgoFuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteAlgoFuturesOrder", optionalArgs);
     }
@@ -5063,7 +5066,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList", optionalArgs);
     }
@@ -5074,7 +5077,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteCustodianCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteCustodianCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteCustodianCancelOrder", optionalArgs);
     }
@@ -5085,7 +5088,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiDeleteCustodianCancelOrdersBySymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiDeleteCustodianCancelOrdersBySymbol (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteCustodianCancelOrdersBySymbol", optionalArgs);
     }
@@ -5096,7 +5099,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiDeleteCustodianCancelOcoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiDeleteCustodianCancelOcoOrder (Object... optionalArgs)
     {
         return this.callAsync ("sapiDeleteCustodianCancelOcoOrder", optionalArgs);
     }
@@ -5107,7 +5110,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetEthStakingAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetEthStakingAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetEthStakingAccount", optionalArgs);
     }
@@ -5118,7 +5121,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetSubAccountFuturesAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetSubAccountFuturesAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetSubAccountFuturesAccount", optionalArgs);
     }
@@ -5129,7 +5132,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetSubAccountFuturesAccountSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetSubAccountFuturesAccountSummary (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetSubAccountFuturesAccountSummary", optionalArgs);
     }
@@ -5140,7 +5143,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetSubAccountFuturesPositionRisk (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetSubAccountFuturesPositionRisk (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetSubAccountFuturesPositionRisk", optionalArgs);
     }
@@ -5151,7 +5154,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetLoanFlexibleOngoingOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetLoanFlexibleOngoingOrders (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetLoanFlexibleOngoingOrders", optionalArgs);
     }
@@ -5162,7 +5165,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetLoanFlexibleBorrowHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetLoanFlexibleBorrowHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetLoanFlexibleBorrowHistory", optionalArgs);
     }
@@ -5173,7 +5176,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetLoanFlexibleRepayHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetLoanFlexibleRepayHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetLoanFlexibleRepayHistory", optionalArgs);
     }
@@ -5184,7 +5187,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetLoanFlexibleLtvAdjustmentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetLoanFlexibleLtvAdjustmentHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetLoanFlexibleLtvAdjustmentHistory", optionalArgs);
     }
@@ -5195,7 +5198,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetLoanFlexibleLoanableData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetLoanFlexibleLoanableData (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetLoanFlexibleLoanableData", optionalArgs);
     }
@@ -5206,7 +5209,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetLoanFlexibleCollateralData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetLoanFlexibleCollateralData (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetLoanFlexibleCollateralData", optionalArgs);
     }
@@ -5217,7 +5220,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetPortfolioAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetPortfolioAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetPortfolioAccount", optionalArgs);
     }
@@ -5228,7 +5231,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2GetClAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2GetClAccount (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetClAccount", optionalArgs);
     }
@@ -5239,7 +5242,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiV2GetClAlertHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiV2GetClAlertHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2GetClAlertHistory", optionalArgs);
     }
@@ -5250,7 +5253,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2PostEthStakingEthStake (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2PostEthStakingEthStake (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2PostEthStakingEthStake", optionalArgs);
     }
@@ -5261,7 +5264,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2PostSubAccountSubAccountApiIpRestriction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2PostSubAccountSubAccountApiIpRestriction (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2PostSubAccountSubAccountApiIpRestriction", optionalArgs);
     }
@@ -5272,7 +5275,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2PostLoanFlexibleBorrow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2PostLoanFlexibleBorrow (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2PostLoanFlexibleBorrow", optionalArgs);
     }
@@ -5283,7 +5286,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2PostLoanFlexibleRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2PostLoanFlexibleRepay (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2PostLoanFlexibleRepay", optionalArgs);
     }
@@ -5294,7 +5297,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV2PostLoanFlexibleAdjustLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV2PostLoanFlexibleAdjustLtv (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2PostLoanFlexibleAdjustLtv", optionalArgs);
     }
@@ -5305,7 +5308,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV3GetSubAccountAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV3GetSubAccountAssets (Object... optionalArgs)
     {
         return this.callAsync ("sapiV3GetSubAccountAssets", optionalArgs);
     }
@@ -5316,7 +5319,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV3GetAccountStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV3GetAccountStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiV3GetAccountStatus", optionalArgs);
     }
@@ -5327,7 +5330,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV3GetApiTradingStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV3GetApiTradingStatus (Object... optionalArgs)
     {
         return this.callAsync ("sapiV3GetApiTradingStatus", optionalArgs);
     }
@@ -5338,7 +5341,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV3GetSubAccountList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV3GetSubAccountList (Object... optionalArgs)
     {
         return this.callAsync ("sapiV3GetSubAccountList", optionalArgs);
     }
@@ -5349,7 +5352,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV3GetSubAccountTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV3GetSubAccountTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("sapiV3GetSubAccountTransferHistory", optionalArgs);
     }
@@ -5360,7 +5363,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiV3PostAssetGetUserAsset (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  sapiV3PostAssetGetUserAsset (Object... optionalArgs)
     {
         return this.callAsync ("sapiV3PostAssetGetUserAsset", optionalArgs);
     }
@@ -5371,7 +5374,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV3PostSubAccountTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV3PostSubAccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("sapiV3PostSubAccountTransfer", optionalArgs);
     }
@@ -5382,7 +5385,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiV4GetSubAccountAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  sapiV4GetSubAccountAssets (Object... optionalArgs)
     {
         return this.callAsync ("sapiV4GetSubAccountAssets", optionalArgs);
     }
@@ -5393,7 +5396,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPublicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetPing", optionalArgs);
     }
@@ -5404,7 +5407,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPublicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetTime", optionalArgs);
     }
@@ -5415,7 +5418,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPublicGetExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPublicGetExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetExchangeInfo", optionalArgs);
     }
@@ -5426,7 +5429,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPublicGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPublicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetDepth", optionalArgs);
     }
@@ -5437,7 +5440,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetTrades", optionalArgs);
     }
@@ -5448,7 +5451,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetHistoricalTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetHistoricalTrades", optionalArgs);
     }
@@ -5459,7 +5462,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetAggTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetAggTrades (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetAggTrades", optionalArgs);
     }
@@ -5470,7 +5473,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetPremiumIndex (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetPremiumIndex (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetPremiumIndex", optionalArgs);
     }
@@ -5481,7 +5484,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetFundingRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetFundingRate", optionalArgs);
     }
@@ -5492,7 +5495,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetKlines", optionalArgs);
     }
@@ -5503,7 +5506,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetContinuousKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetContinuousKlines (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetContinuousKlines", optionalArgs);
     }
@@ -5514,7 +5517,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetIndexPriceKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetIndexPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetIndexPriceKlines", optionalArgs);
     }
@@ -5525,7 +5528,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetMarkPriceKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetMarkPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetMarkPriceKlines", optionalArgs);
     }
@@ -5536,7 +5539,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetPremiumIndexKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetPremiumIndexKlines (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetPremiumIndexKlines", optionalArgs);
     }
@@ -5547,7 +5550,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  dapiPublicGetTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Object>  dapiPublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetTicker24hr", optionalArgs);
     }
@@ -5558,7 +5561,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetTickerPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetTickerPrice", optionalArgs);
     }
@@ -5569,7 +5572,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetTickerBookTicker", optionalArgs);
     }
@@ -5580,7 +5583,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPublicGetConstituents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPublicGetConstituents (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetConstituents", optionalArgs);
     }
@@ -5591,7 +5594,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPublicGetOpenInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPublicGetOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetOpenInterest", optionalArgs);
     }
@@ -5602,7 +5605,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPublicGetFundingInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetFundingInfo (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetFundingInfo", optionalArgs);
     }
@@ -5613,7 +5616,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiDataGetDeliveryPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiDataGetDeliveryPrice (Object... optionalArgs)
     {
         return this.callAsync ("dapiDataGetDeliveryPrice", optionalArgs);
     }
@@ -5624,7 +5627,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiDataGetOpenInterestHist (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiDataGetOpenInterestHist (Object... optionalArgs)
     {
         return this.callAsync ("dapiDataGetOpenInterestHist", optionalArgs);
     }
@@ -5635,7 +5638,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiDataGetTopLongShortAccountRatio (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiDataGetTopLongShortAccountRatio (Object... optionalArgs)
     {
         return this.callAsync ("dapiDataGetTopLongShortAccountRatio", optionalArgs);
     }
@@ -5646,7 +5649,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiDataGetTopLongShortPositionRatio (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiDataGetTopLongShortPositionRatio (Object... optionalArgs)
     {
         return this.callAsync ("dapiDataGetTopLongShortPositionRatio", optionalArgs);
     }
@@ -5657,7 +5660,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiDataGetGlobalLongShortAccountRatio (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiDataGetGlobalLongShortAccountRatio (Object... optionalArgs)
     {
         return this.callAsync ("dapiDataGetGlobalLongShortAccountRatio", optionalArgs);
     }
@@ -5668,7 +5671,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiDataGetTakerBuySellVol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiDataGetTakerBuySellVol (Object... optionalArgs)
     {
         return this.callAsync ("dapiDataGetTakerBuySellVol", optionalArgs);
     }
@@ -5679,7 +5682,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiDataGetBasis (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiDataGetBasis (Object... optionalArgs)
     {
         return this.callAsync ("dapiDataGetBasis", optionalArgs);
     }
@@ -5690,7 +5693,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetPositionSideDual", optionalArgs);
     }
@@ -5701,7 +5704,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetOrderAmendment (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetOrderAmendment (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetOrderAmendment", optionalArgs);
     }
@@ -5712,7 +5715,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetOrder", optionalArgs);
     }
@@ -5723,7 +5726,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetOpenOrder", optionalArgs);
     }
@@ -5734,7 +5737,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetOpenOrders", optionalArgs);
     }
@@ -5745,7 +5748,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetOpenAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetOpenAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetOpenAlgoOrders", optionalArgs);
     }
@@ -5756,7 +5759,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetAllOrders", optionalArgs);
     }
@@ -5767,7 +5770,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetBalance (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetBalance", optionalArgs);
     }
@@ -5778,7 +5781,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetAccount", optionalArgs);
     }
@@ -5789,7 +5792,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetPositionMarginHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetPositionMarginHistory (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetPositionMarginHistory", optionalArgs);
     }
@@ -5800,7 +5803,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetPositionRisk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetPositionRisk (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetPositionRisk", optionalArgs);
     }
@@ -5811,7 +5814,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetUserTrades", optionalArgs);
     }
@@ -5822,7 +5825,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetIncome (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetIncome (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetIncome", optionalArgs);
     }
@@ -5833,7 +5836,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetLeverageBracket (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetLeverageBracket (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetLeverageBracket", optionalArgs);
     }
@@ -5844,7 +5847,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetForceOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetForceOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetForceOrders", optionalArgs);
     }
@@ -5855,7 +5858,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateGetAdlQuantile (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateGetAdlQuantile (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetAdlQuantile", optionalArgs);
     }
@@ -5866,7 +5869,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetCommissionRate", optionalArgs);
     }
@@ -5877,7 +5880,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetIncomeAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetIncomeAsyn (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetIncomeAsyn", optionalArgs);
     }
@@ -5888,7 +5891,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetIncomeAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetIncomeAsynId (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetIncomeAsynId", optionalArgs);
     }
@@ -5899,7 +5902,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetTradeAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetTradeAsyn (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetTradeAsyn", optionalArgs);
     }
@@ -5910,7 +5913,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetTradeAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetTradeAsynId (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetTradeAsynId", optionalArgs);
     }
@@ -5921,7 +5924,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetOrderAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetOrderAsyn (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetOrderAsyn", optionalArgs);
     }
@@ -5932,7 +5935,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetOrderAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetOrderAsynId (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetOrderAsynId", optionalArgs);
     }
@@ -5943,7 +5946,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetPmExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetPmExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetPmExchangeInfo", optionalArgs);
     }
@@ -5954,7 +5957,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateGetPmAccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetPmAccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetPmAccountInfo", optionalArgs);
     }
@@ -5965,7 +5968,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePostPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePostPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostPositionSideDual", optionalArgs);
     }
@@ -5976,7 +5979,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostOrder", optionalArgs);
     }
@@ -5987,7 +5990,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePostAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePostAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostAlgoOrder", optionalArgs);
     }
@@ -5998,7 +6001,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivatePostBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivatePostBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostBatchOrders", optionalArgs);
     }
@@ -6009,7 +6012,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePostCountdownCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePostCountdownCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostCountdownCancelAll", optionalArgs);
     }
@@ -6020,7 +6023,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePostLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePostLeverage (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostLeverage", optionalArgs);
     }
@@ -6031,7 +6034,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePostMarginType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePostMarginType (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostMarginType", optionalArgs);
     }
@@ -6042,7 +6045,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePostPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePostPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostPositionMargin", optionalArgs);
     }
@@ -6053,7 +6056,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePostListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePostListenKey (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostListenKey", optionalArgs);
     }
@@ -6064,7 +6067,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePutListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePutListenKey (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePutListenKey", optionalArgs);
     }
@@ -6075,7 +6078,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivatePutOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivatePutOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePutOrder", optionalArgs);
     }
@@ -6086,7 +6089,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivatePutBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivatePutBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePutBatchOrders", optionalArgs);
     }
@@ -6097,7 +6100,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateDeleteOrder", optionalArgs);
     }
@@ -6108,7 +6111,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateDeleteAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateDeleteAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateDeleteAlgoOrder", optionalArgs);
     }
@@ -6119,7 +6122,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateDeleteAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateDeleteAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateDeleteAllOpenOrders", optionalArgs);
     }
@@ -6130,7 +6133,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateDeleteBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateDeleteBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateDeleteBatchOrders", optionalArgs);
     }
@@ -6141,7 +6144,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiPrivateDeleteListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  dapiPrivateDeleteListenKey (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateDeleteListenKey", optionalArgs);
     }
@@ -6152,7 +6155,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiPrivateV2GetLeverageBracket (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPrivateV2GetLeverageBracket (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateV2GetLeverageBracket", optionalArgs);
     }
@@ -6163,7 +6166,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetPing", optionalArgs);
     }
@@ -6174,7 +6177,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTime", optionalArgs);
     }
@@ -6185,7 +6188,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetExchangeInfo", optionalArgs);
     }
@@ -6196,7 +6199,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetDepth", optionalArgs);
     }
@@ -6207,7 +6210,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetRpiDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetRpiDepth (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetRpiDepth", optionalArgs);
     }
@@ -6218,7 +6221,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTrades", optionalArgs);
     }
@@ -6229,7 +6232,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetHistoricalTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetHistoricalTrades", optionalArgs);
     }
@@ -6240,7 +6243,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetAggTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetAggTrades (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetAggTrades", optionalArgs);
     }
@@ -6251,7 +6254,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetKlines", optionalArgs);
     }
@@ -6262,7 +6265,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetContinuousKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetContinuousKlines (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetContinuousKlines", optionalArgs);
     }
@@ -6273,7 +6276,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetMarkPriceKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetMarkPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetMarkPriceKlines", optionalArgs);
     }
@@ -6284,7 +6287,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetIndexPriceKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetIndexPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetIndexPriceKlines", optionalArgs);
     }
@@ -6295,7 +6298,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetPremiumIndexKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetPremiumIndexKlines (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetPremiumIndexKlines", optionalArgs);
     }
@@ -6306,7 +6309,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetFundingRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetFundingRate", optionalArgs);
     }
@@ -6317,7 +6320,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetFundingInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetFundingInfo (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetFundingInfo", optionalArgs);
     }
@@ -6328,7 +6331,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetPremiumIndex (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetPremiumIndex (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetPremiumIndex", optionalArgs);
     }
@@ -6339,7 +6342,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  fapiPublicGetTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Object>  fapiPublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTicker24hr", optionalArgs);
     }
@@ -6350,7 +6353,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  fapiPublicGetTickerPrice (Object... optionalArgs)
+    public CompletableFuture<Object>  fapiPublicGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTickerPrice", optionalArgs);
     }
@@ -6361,7 +6364,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  fapiPublicGetTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<Object>  fapiPublicGetTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTickerBookTicker", optionalArgs);
     }
@@ -6372,7 +6375,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetOpenInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetOpenInterest", optionalArgs);
     }
@@ -6383,7 +6386,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetIndexInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetIndexInfo (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetIndexInfo", optionalArgs);
     }
@@ -6394,7 +6397,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetAssetIndex (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetAssetIndex (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetAssetIndex", optionalArgs);
     }
@@ -6405,7 +6408,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetConstituents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetConstituents (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetConstituents", optionalArgs);
     }
@@ -6416,7 +6419,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetApiTradingStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetApiTradingStatus (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetApiTradingStatus", optionalArgs);
     }
@@ -6427,7 +6430,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetLvtKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetLvtKlines (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetLvtKlines", optionalArgs);
     }
@@ -6438,7 +6441,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetConvertExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetConvertExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetConvertExchangeInfo", optionalArgs);
     }
@@ -6449,7 +6452,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetInsuranceBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPublicGetInsuranceBalance (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetInsuranceBalance", optionalArgs);
     }
@@ -6460,7 +6463,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetSymbolAdlRisk (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetSymbolAdlRisk (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetSymbolAdlRisk", optionalArgs);
     }
@@ -6471,7 +6474,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetTradingSchedule (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPublicGetTradingSchedule (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTradingSchedule", optionalArgs);
     }
@@ -6482,7 +6485,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiDataGetDeliveryPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiDataGetDeliveryPrice (Object... optionalArgs)
     {
         return this.callAsync ("fapiDataGetDeliveryPrice", optionalArgs);
     }
@@ -6493,7 +6496,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiDataGetOpenInterestHist (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiDataGetOpenInterestHist (Object... optionalArgs)
     {
         return this.callAsync ("fapiDataGetOpenInterestHist", optionalArgs);
     }
@@ -6504,7 +6507,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiDataGetTopLongShortAccountRatio (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiDataGetTopLongShortAccountRatio (Object... optionalArgs)
     {
         return this.callAsync ("fapiDataGetTopLongShortAccountRatio", optionalArgs);
     }
@@ -6515,7 +6518,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiDataGetTopLongShortPositionRatio (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiDataGetTopLongShortPositionRatio (Object... optionalArgs)
     {
         return this.callAsync ("fapiDataGetTopLongShortPositionRatio", optionalArgs);
     }
@@ -6526,7 +6529,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiDataGetGlobalLongShortAccountRatio (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiDataGetGlobalLongShortAccountRatio (Object... optionalArgs)
     {
         return this.callAsync ("fapiDataGetGlobalLongShortAccountRatio", optionalArgs);
     }
@@ -6537,7 +6540,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiDataGetTakerlongshortRatio (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiDataGetTakerlongshortRatio (Object... optionalArgs)
     {
         return this.callAsync ("fapiDataGetTakerlongshortRatio", optionalArgs);
     }
@@ -6548,7 +6551,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiDataGetBasis (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiDataGetBasis (Object... optionalArgs)
     {
         return this.callAsync ("fapiDataGetBasis", optionalArgs);
     }
@@ -6559,7 +6562,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetForceOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetForceOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetForceOrders", optionalArgs);
     }
@@ -6570,7 +6573,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetAllOrders", optionalArgs);
     }
@@ -6581,7 +6584,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetOpenOrder", optionalArgs);
     }
@@ -6592,7 +6595,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetOpenOrders", optionalArgs);
     }
@@ -6603,7 +6606,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetOrder", optionalArgs);
     }
@@ -6614,7 +6617,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetAccount", optionalArgs);
     }
@@ -6625,7 +6628,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetBalance (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetBalance", optionalArgs);
     }
@@ -6636,7 +6639,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetLeverageBracket (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetLeverageBracket (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetLeverageBracket", optionalArgs);
     }
@@ -6647,7 +6650,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetPositionMarginHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetPositionMarginHistory (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetPositionMarginHistory", optionalArgs);
     }
@@ -6658,7 +6661,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetPositionRisk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetPositionRisk (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetPositionRisk", optionalArgs);
     }
@@ -6669,7 +6672,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetPositionSideDual", optionalArgs);
     }
@@ -6680,7 +6683,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetUserTrades", optionalArgs);
     }
@@ -6691,7 +6694,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetIncome (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetIncome (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetIncome", optionalArgs);
     }
@@ -6702,7 +6705,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetCommissionRate", optionalArgs);
     }
@@ -6713,7 +6716,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetRateLimitOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetRateLimitOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetRateLimitOrder", optionalArgs);
     }
@@ -6724,7 +6727,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetApiTradingStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetApiTradingStatus (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiTradingStatus", optionalArgs);
     }
@@ -6735,7 +6738,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetMultiAssetsMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetMultiAssetsMargin (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetMultiAssetsMargin", optionalArgs);
     }
@@ -6746,7 +6749,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetApiReferralIfNewUser (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetApiReferralIfNewUser (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiReferralIfNewUser", optionalArgs);
     }
@@ -6757,7 +6760,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetApiReferralCustomization (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetApiReferralCustomization (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiReferralCustomization", optionalArgs);
     }
@@ -6768,7 +6771,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetApiReferralUserCustomization (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetApiReferralUserCustomization (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiReferralUserCustomization", optionalArgs);
     }
@@ -6779,7 +6782,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetApiReferralTraderNum (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetApiReferralTraderNum (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiReferralTraderNum", optionalArgs);
     }
@@ -6790,7 +6793,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetApiReferralOverview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetApiReferralOverview (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiReferralOverview", optionalArgs);
     }
@@ -6801,7 +6804,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetApiReferralTradeVol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetApiReferralTradeVol (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiReferralTradeVol", optionalArgs);
     }
@@ -6812,7 +6815,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetApiReferralRebateVol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetApiReferralRebateVol (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiReferralRebateVol", optionalArgs);
     }
@@ -6823,7 +6826,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetApiReferralTraderSummary (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetApiReferralTraderSummary (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetApiReferralTraderSummary", optionalArgs);
     }
@@ -6834,7 +6837,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetAdlQuantile (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetAdlQuantile (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetAdlQuantile", optionalArgs);
     }
@@ -6845,7 +6848,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetPmAccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetPmAccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetPmAccountInfo", optionalArgs);
     }
@@ -6856,7 +6859,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetOrderAmendment (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetOrderAmendment (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetOrderAmendment", optionalArgs);
     }
@@ -6867,7 +6870,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetIncomeAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetIncomeAsyn (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetIncomeAsyn", optionalArgs);
     }
@@ -6878,7 +6881,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetIncomeAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetIncomeAsynId (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetIncomeAsynId", optionalArgs);
     }
@@ -6889,7 +6892,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetOrderAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetOrderAsyn (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetOrderAsyn", optionalArgs);
     }
@@ -6900,7 +6903,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetOrderAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetOrderAsynId (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetOrderAsynId", optionalArgs);
     }
@@ -6911,7 +6914,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetTradeAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetTradeAsyn (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetTradeAsyn", optionalArgs);
     }
@@ -6922,7 +6925,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetTradeAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetTradeAsynId (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetTradeAsynId", optionalArgs);
     }
@@ -6933,7 +6936,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetFeeBurn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetFeeBurn (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetFeeBurn", optionalArgs);
     }
@@ -6944,7 +6947,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetSymbolConfig (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetSymbolConfig (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetSymbolConfig", optionalArgs);
     }
@@ -6955,7 +6958,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetAccountConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetAccountConfig (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetAccountConfig", optionalArgs);
     }
@@ -6966,7 +6969,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetConvertOrderStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetConvertOrderStatus (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetConvertOrderStatus", optionalArgs);
     }
@@ -6977,7 +6980,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetAlgoOrder", optionalArgs);
     }
@@ -6988,7 +6991,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetOpenAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetOpenAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetOpenAlgoOrders", optionalArgs);
     }
@@ -6999,7 +7002,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetAllAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateGetAllAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetAllAlgoOrders", optionalArgs);
     }
@@ -7010,7 +7013,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetStockContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateGetStockContract (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetStockContract", optionalArgs);
     }
@@ -7021,7 +7024,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivatePostBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivatePostBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostBatchOrders", optionalArgs);
     }
@@ -7032,7 +7035,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostPositionSideDual", optionalArgs);
     }
@@ -7043,7 +7046,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostPositionMargin", optionalArgs);
     }
@@ -7054,7 +7057,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostMarginType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostMarginType (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostMarginType", optionalArgs);
     }
@@ -7065,7 +7068,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostOrder", optionalArgs);
     }
@@ -7076,7 +7079,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostOrderTest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostOrderTest (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostOrderTest", optionalArgs);
     }
@@ -7087,7 +7090,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostLeverage (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostLeverage", optionalArgs);
     }
@@ -7098,7 +7101,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostListenKey (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostListenKey", optionalArgs);
     }
@@ -7109,7 +7112,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostCountdownCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostCountdownCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostCountdownCancelAll", optionalArgs);
     }
@@ -7120,7 +7123,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostMultiAssetsMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostMultiAssetsMargin (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostMultiAssetsMargin", optionalArgs);
     }
@@ -7131,7 +7134,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostApiReferralCustomization (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostApiReferralCustomization (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostApiReferralCustomization", optionalArgs);
     }
@@ -7142,7 +7145,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostApiReferralUserCustomization (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostApiReferralUserCustomization (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostApiReferralUserCustomization", optionalArgs);
     }
@@ -7153,7 +7156,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostFeeBurn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostFeeBurn (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostFeeBurn", optionalArgs);
     }
@@ -7164,7 +7167,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostConvertGetQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostConvertGetQuote (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostConvertGetQuote", optionalArgs);
     }
@@ -7175,7 +7178,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostConvertAcceptQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostConvertAcceptQuote (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostConvertAcceptQuote", optionalArgs);
     }
@@ -7186,7 +7189,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePostAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePostAlgoOrder", optionalArgs);
     }
@@ -7197,7 +7200,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePutListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePutListenKey (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePutListenKey", optionalArgs);
     }
@@ -7208,7 +7211,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePutOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivatePutOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePutOrder", optionalArgs);
     }
@@ -7219,7 +7222,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivatePutBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivatePutBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivatePutBatchOrders", optionalArgs);
     }
@@ -7230,7 +7233,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateDeleteBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateDeleteBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateDeleteBatchOrders", optionalArgs);
     }
@@ -7241,7 +7244,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateDeleteOrder", optionalArgs);
     }
@@ -7252,7 +7255,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateDeleteAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateDeleteAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateDeleteAllOpenOrders", optionalArgs);
     }
@@ -7263,7 +7266,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateDeleteListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateDeleteListenKey (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateDeleteListenKey", optionalArgs);
     }
@@ -7274,7 +7277,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateDeleteAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateDeleteAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateDeleteAlgoOrder", optionalArgs);
     }
@@ -7285,7 +7288,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateDeleteAlgoOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateDeleteAlgoOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateDeleteAlgoOpenOrders", optionalArgs);
     }
@@ -7296,7 +7299,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  fapiPublicV2GetTickerPrice (Object... optionalArgs)
+    public CompletableFuture<Object>  fapiPublicV2GetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicV2GetTickerPrice", optionalArgs);
     }
@@ -7307,7 +7310,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateV2GetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateV2GetAccount (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateV2GetAccount", optionalArgs);
     }
@@ -7318,7 +7321,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateV2GetBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateV2GetBalance (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateV2GetBalance", optionalArgs);
     }
@@ -7329,7 +7332,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateV2GetPositionRisk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateV2GetPositionRisk (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateV2GetPositionRisk", optionalArgs);
     }
@@ -7340,7 +7343,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateV3GetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiPrivateV3GetAccount (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateV3GetAccount", optionalArgs);
     }
@@ -7351,7 +7354,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateV3GetBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateV3GetBalance (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateV3GetBalance", optionalArgs);
     }
@@ -7362,7 +7365,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateV3GetPositionRisk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiPrivateV3GetPositionRisk (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateV3GetPositionRisk", optionalArgs);
     }
@@ -7373,7 +7376,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPublicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetPing", optionalArgs);
     }
@@ -7384,7 +7387,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPublicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetTime", optionalArgs);
     }
@@ -7395,7 +7398,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPublicGetExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPublicGetExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetExchangeInfo", optionalArgs);
     }
@@ -7406,7 +7409,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPublicGetIndex (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPublicGetIndex (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetIndex", optionalArgs);
     }
@@ -7417,7 +7420,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPublicGetTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetTicker", optionalArgs);
     }
@@ -7428,7 +7431,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPublicGetMark (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPublicGetMark (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetMark", optionalArgs);
     }
@@ -7439,7 +7442,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPublicGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPublicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetDepth", optionalArgs);
     }
@@ -7450,7 +7453,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPublicGetKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPublicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetKlines", optionalArgs);
     }
@@ -7461,7 +7464,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPublicGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetTrades", optionalArgs);
     }
@@ -7472,7 +7475,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPublicGetHistoricalTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPublicGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetHistoricalTrades", optionalArgs);
     }
@@ -7483,7 +7486,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPublicGetExerciseHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPublicGetExerciseHistory (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetExerciseHistory", optionalArgs);
     }
@@ -7494,7 +7497,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPublicGetOpenInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPublicGetOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetOpenInterest", optionalArgs);
     }
@@ -7505,7 +7508,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetAccount", optionalArgs);
     }
@@ -7516,7 +7519,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetPosition (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetPosition (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetPosition", optionalArgs);
     }
@@ -7527,7 +7530,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetOpenOrders", optionalArgs);
     }
@@ -7538,7 +7541,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetHistoryOrders", optionalArgs);
     }
@@ -7549,7 +7552,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetUserTrades", optionalArgs);
     }
@@ -7560,7 +7563,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetExerciseRecord (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetExerciseRecord (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetExerciseRecord", optionalArgs);
     }
@@ -7571,7 +7574,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetBill (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetBill (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetBill", optionalArgs);
     }
@@ -7582,7 +7585,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetIncomeAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetIncomeAsyn (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetIncomeAsyn", optionalArgs);
     }
@@ -7593,7 +7596,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetIncomeAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetIncomeAsynId (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetIncomeAsynId", optionalArgs);
     }
@@ -7604,7 +7607,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetMarginAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetMarginAccount (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetMarginAccount", optionalArgs);
     }
@@ -7615,7 +7618,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetMmp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetMmp (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetMmp", optionalArgs);
     }
@@ -7626,7 +7629,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetCountdownCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetCountdownCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetCountdownCancelAll", optionalArgs);
     }
@@ -7637,7 +7640,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetOrder", optionalArgs);
     }
@@ -7648,7 +7651,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetBlockOrderOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetBlockOrderOrders (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetBlockOrderOrders", optionalArgs);
     }
@@ -7659,7 +7662,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetBlockOrderExecute (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetBlockOrderExecute (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetBlockOrderExecute", optionalArgs);
     }
@@ -7670,7 +7673,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetBlockUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetBlockUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetBlockUserTrades", optionalArgs);
     }
@@ -7681,7 +7684,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateGetBlockTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateGetBlockTrades (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetBlockTrades", optionalArgs);
     }
@@ -7692,7 +7695,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateGetComission (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateGetComission (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateGetComission", optionalArgs);
     }
@@ -7703,7 +7706,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostOrder", optionalArgs);
     }
@@ -7714,7 +7717,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivatePostBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivatePostBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostBatchOrders", optionalArgs);
     }
@@ -7725,7 +7728,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostListenKey (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostListenKey", optionalArgs);
     }
@@ -7736,7 +7739,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostMmpSet (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostMmpSet (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostMmpSet", optionalArgs);
     }
@@ -7747,7 +7750,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostMmpReset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostMmpReset (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostMmpReset", optionalArgs);
     }
@@ -7758,7 +7761,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostCountdownCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostCountdownCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostCountdownCancelAll", optionalArgs);
     }
@@ -7769,7 +7772,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostCountdownCancelAllHeartBeat (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostCountdownCancelAllHeartBeat (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostCountdownCancelAllHeartBeat", optionalArgs);
     }
@@ -7780,7 +7783,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostBlockOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostBlockOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostBlockOrderCreate", optionalArgs);
     }
@@ -7791,7 +7794,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostBlockOrderExecute (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostBlockOrderExecute (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostBlockOrderExecute", optionalArgs);
     }
@@ -7802,7 +7805,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePostStockContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePostStockContract (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePostStockContract", optionalArgs);
     }
@@ -7813,7 +7816,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePutListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePutListenKey (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePutListenKey", optionalArgs);
     }
@@ -7824,7 +7827,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivatePutBlockOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivatePutBlockOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivatePutBlockOrderCreate", optionalArgs);
     }
@@ -7835,7 +7838,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateDeleteOrder", optionalArgs);
     }
@@ -7846,7 +7849,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateDeleteBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateDeleteBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateDeleteBatchOrders", optionalArgs);
     }
@@ -7857,7 +7860,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  eapiPrivateDeleteAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPrivateDeleteAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateDeleteAllOpenOrders", optionalArgs);
     }
@@ -7868,7 +7871,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateDeleteAllOpenOrdersByUnderlying (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateDeleteAllOpenOrdersByUnderlying (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateDeleteAllOpenOrdersByUnderlying", optionalArgs);
     }
@@ -7879,7 +7882,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateDeleteListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateDeleteListenKey (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateDeleteListenKey", optionalArgs);
     }
@@ -7890,7 +7893,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  eapiPrivateDeleteBlockOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  eapiPrivateDeleteBlockOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("eapiPrivateDeleteBlockOrderCreate", optionalArgs);
     }
@@ -7901,7 +7904,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPing", optionalArgs);
     }
@@ -7912,7 +7915,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTime", optionalArgs);
     }
@@ -7923,7 +7926,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDepth", optionalArgs);
     }
@@ -7934,7 +7937,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTrades", optionalArgs);
     }
@@ -7945,7 +7948,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetAggTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetAggTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAggTrades", optionalArgs);
     }
@@ -7956,7 +7959,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetHistoricalTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetHistoricalTrades", optionalArgs);
     }
@@ -7967,7 +7970,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetKlines", optionalArgs);
     }
@@ -7978,7 +7981,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetUiKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetUiKlines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetUiKlines", optionalArgs);
     }
@@ -7989,7 +7992,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker24hr", optionalArgs);
     }
@@ -8000,7 +8003,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker", optionalArgs);
     }
@@ -8011,7 +8014,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickerTradingDay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickerTradingDay (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerTradingDay", optionalArgs);
     }
@@ -8022,7 +8025,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTickerPrice (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerPrice", optionalArgs);
     }
@@ -8033,7 +8036,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerBookTicker", optionalArgs);
     }
@@ -8044,7 +8047,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetExchangeInfo", optionalArgs);
     }
@@ -8055,7 +8058,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetExecutionRules (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetExecutionRules (Object... optionalArgs)
     {
         return this.callAsync ("publicGetExecutionRules", optionalArgs);
     }
@@ -8066,7 +8069,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAvgPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAvgPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAvgPrice", optionalArgs);
     }
@@ -8077,7 +8080,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetReferencePrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetReferencePrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetReferencePrice", optionalArgs);
     }
@@ -8088,7 +8091,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetReferencePriceCalculation (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetReferencePriceCalculation (Object... optionalArgs)
     {
         return this.callAsync ("publicGetReferencePriceCalculation", optionalArgs);
     }
@@ -8099,7 +8102,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetHistoricalBlockTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetHistoricalBlockTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetHistoricalBlockTrades", optionalArgs);
     }
@@ -8110,7 +8113,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPutUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPutUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("publicPutUserDataStream", optionalArgs);
     }
@@ -8121,7 +8124,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicPostUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("publicPostUserDataStream", optionalArgs);
     }
@@ -8132,7 +8135,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicDeleteUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicDeleteUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("publicDeleteUserDataStream", optionalArgs);
     }
@@ -8143,7 +8146,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAllOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAllOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAllOrderList", optionalArgs);
     }
@@ -8154,7 +8157,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOpenOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOpenOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenOrderList", optionalArgs);
     }
@@ -8165,7 +8168,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrderList", optionalArgs);
     }
@@ -8176,7 +8179,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrder", optionalArgs);
     }
@@ -8187,7 +8190,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenOrders", optionalArgs);
     }
@@ -8198,7 +8201,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAllOrders", optionalArgs);
     }
@@ -8209,7 +8212,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccount", optionalArgs);
     }
@@ -8220,7 +8223,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMyTrades", optionalArgs);
     }
@@ -8231,7 +8234,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetRateLimitOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetRateLimitOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetRateLimitOrder", optionalArgs);
     }
@@ -8242,7 +8245,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMyPreventedMatches (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMyPreventedMatches (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMyPreventedMatches", optionalArgs);
     }
@@ -8253,7 +8256,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMyAllocations (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMyAllocations (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMyAllocations", optionalArgs);
     }
@@ -8264,7 +8267,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountCommission (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountCommission (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountCommission", optionalArgs);
     }
@@ -8275,7 +8278,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMyFilters (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetMyFilters (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMyFilters", optionalArgs);
     }
@@ -8286,7 +8289,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderOco (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderOco (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderOco", optionalArgs);
     }
@@ -8297,7 +8300,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderListOco (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderListOco (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderListOco", optionalArgs);
     }
@@ -8308,7 +8311,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderListOto (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderListOto (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderListOto", optionalArgs);
     }
@@ -8319,7 +8322,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderListOtoco (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderListOtoco (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderListOtoco", optionalArgs);
     }
@@ -8330,7 +8333,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderListOpo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderListOpo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderListOpo", optionalArgs);
     }
@@ -8341,7 +8344,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderListOpoco (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderListOpoco (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderListOpoco", optionalArgs);
     }
@@ -8352,7 +8355,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSorOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSorOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSorOrder", optionalArgs);
     }
@@ -8363,7 +8366,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSorOrderTest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSorOrderTest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSorOrderTest", optionalArgs);
     }
@@ -8374,7 +8377,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrder", optionalArgs);
     }
@@ -8385,7 +8388,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderCancelReplace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderCancelReplace (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderCancelReplace", optionalArgs);
     }
@@ -8396,7 +8399,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderTest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderTest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderTest", optionalArgs);
     }
@@ -8407,7 +8410,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOpenOrders", optionalArgs);
     }
@@ -8418,7 +8421,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrderList", optionalArgs);
     }
@@ -8429,7 +8432,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrder", optionalArgs);
     }
@@ -8440,7 +8443,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetPing (Object... optionalArgs)
     {
         return this.callAsync ("papiGetPing", optionalArgs);
     }
@@ -8451,7 +8454,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmOrder", optionalArgs);
     }
@@ -8462,7 +8465,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmOpenOrder", optionalArgs);
     }
@@ -8473,7 +8476,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmOpenOrders", optionalArgs);
     }
@@ -8484,7 +8487,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmAllOrders", optionalArgs);
     }
@@ -8495,7 +8498,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmOrder", optionalArgs);
     }
@@ -8506,7 +8509,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmOpenOrder", optionalArgs);
     }
@@ -8517,7 +8520,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmOpenOrders", optionalArgs);
     }
@@ -8528,7 +8531,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmAllOrders", optionalArgs);
     }
@@ -8539,7 +8542,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmConditionalOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmConditionalOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmConditionalOpenOrder", optionalArgs);
     }
@@ -8550,7 +8553,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmConditionalOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmConditionalOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmConditionalOpenOrders", optionalArgs);
     }
@@ -8561,7 +8564,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmConditionalOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmConditionalOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmConditionalOrderHistory", optionalArgs);
     }
@@ -8572,7 +8575,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmConditionalAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmConditionalAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmConditionalAllOrders", optionalArgs);
     }
@@ -8583,7 +8586,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmAlgoAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmAlgoAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmAlgoAlgoOrder", optionalArgs);
     }
@@ -8594,7 +8597,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmAlgoOpenAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmAlgoOpenAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmAlgoOpenAlgoOrders", optionalArgs);
     }
@@ -8605,7 +8608,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmAlgoAllAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmAlgoAllAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmAlgoAllAlgoOrders", optionalArgs);
     }
@@ -8616,7 +8619,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmConditionalOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmConditionalOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmConditionalOpenOrder", optionalArgs);
     }
@@ -8627,7 +8630,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmConditionalOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmConditionalOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmConditionalOpenOrders", optionalArgs);
     }
@@ -8638,7 +8641,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmConditionalOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmConditionalOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmConditionalOrderHistory", optionalArgs);
     }
@@ -8649,7 +8652,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmConditionalAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmConditionalAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmConditionalAllOrders", optionalArgs);
     }
@@ -8660,7 +8663,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginOrder", optionalArgs);
     }
@@ -8671,7 +8674,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetMarginOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetMarginOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginOpenOrders", optionalArgs);
     }
@@ -8682,7 +8685,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetMarginAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetMarginAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginAllOrders", optionalArgs);
     }
@@ -8693,7 +8696,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetMarginOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetMarginOrderList (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginOrderList", optionalArgs);
     }
@@ -8704,7 +8707,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetMarginAllOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetMarginAllOrderList (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginAllOrderList", optionalArgs);
     }
@@ -8715,7 +8718,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetMarginOpenOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetMarginOpenOrderList (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginOpenOrderList", optionalArgs);
     }
@@ -8726,7 +8729,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetMarginMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetMarginMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginMyTrades", optionalArgs);
     }
@@ -8737,7 +8740,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetBalance (Object... optionalArgs)
     {
         return this.callAsync ("papiGetBalance", optionalArgs);
     }
@@ -8748,7 +8751,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("papiGetAccount", optionalArgs);
     }
@@ -8759,7 +8762,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetMarginMaxBorrowable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetMarginMaxBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginMaxBorrowable", optionalArgs);
     }
@@ -8770,7 +8773,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetMarginMaxWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetMarginMaxWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginMaxWithdraw", optionalArgs);
     }
@@ -8781,7 +8784,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmPositionRisk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmPositionRisk (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmPositionRisk", optionalArgs);
     }
@@ -8792,7 +8795,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmPositionRisk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmPositionRisk (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmPositionRisk", optionalArgs);
     }
@@ -8803,7 +8806,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmPositionSideDual", optionalArgs);
     }
@@ -8814,7 +8817,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmPositionSideDual", optionalArgs);
     }
@@ -8825,7 +8828,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmUserTrades", optionalArgs);
     }
@@ -8836,7 +8839,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmUserTrades", optionalArgs);
     }
@@ -8847,7 +8850,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmLeverageBracket (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmLeverageBracket (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmLeverageBracket", optionalArgs);
     }
@@ -8858,7 +8861,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmLeverageBracket (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmLeverageBracket (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmLeverageBracket", optionalArgs);
     }
@@ -8869,7 +8872,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetMarginForceOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetMarginForceOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginForceOrders", optionalArgs);
     }
@@ -8880,7 +8883,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmForceOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmForceOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmForceOrders", optionalArgs);
     }
@@ -8891,7 +8894,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmForceOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmForceOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmForceOrders", optionalArgs);
     }
@@ -8902,7 +8905,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmApiTradingStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmApiTradingStatus (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmApiTradingStatus", optionalArgs);
     }
@@ -8913,7 +8916,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmCommissionRate", optionalArgs);
     }
@@ -8924,7 +8927,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmCommissionRate", optionalArgs);
     }
@@ -8935,7 +8938,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetMarginMarginLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetMarginMarginLoan (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginMarginLoan", optionalArgs);
     }
@@ -8946,7 +8949,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetMarginRepayLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetMarginRepayLoan (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginRepayLoan", optionalArgs);
     }
@@ -8957,7 +8960,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetMarginMarginInterestHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetMarginMarginInterestHistory (Object... optionalArgs)
     {
         return this.callAsync ("papiGetMarginMarginInterestHistory", optionalArgs);
     }
@@ -8968,7 +8971,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetPortfolioInterestHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetPortfolioInterestHistory (Object... optionalArgs)
     {
         return this.callAsync ("papiGetPortfolioInterestHistory", optionalArgs);
     }
@@ -8979,7 +8982,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmIncome (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmIncome (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmIncome", optionalArgs);
     }
@@ -8990,7 +8993,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmIncome (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmIncome (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmIncome", optionalArgs);
     }
@@ -9001,7 +9004,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmAccount (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmAccount", optionalArgs);
     }
@@ -9012,7 +9015,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmAccount (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmAccount", optionalArgs);
     }
@@ -9023,7 +9026,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetRepayFuturesSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetRepayFuturesSwitch (Object... optionalArgs)
     {
         return this.callAsync ("papiGetRepayFuturesSwitch", optionalArgs);
     }
@@ -9034,7 +9037,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmAdlQuantile (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmAdlQuantile (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmAdlQuantile", optionalArgs);
     }
@@ -9045,7 +9048,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmAdlQuantile (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmAdlQuantile (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmAdlQuantile", optionalArgs);
     }
@@ -9056,7 +9059,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmTradeAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmTradeAsyn (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmTradeAsyn", optionalArgs);
     }
@@ -9067,7 +9070,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmTradeAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmTradeAsynId (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmTradeAsynId", optionalArgs);
     }
@@ -9078,7 +9081,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmOrderAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmOrderAsyn (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmOrderAsyn", optionalArgs);
     }
@@ -9089,7 +9092,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmOrderAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmOrderAsynId (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmOrderAsynId", optionalArgs);
     }
@@ -9100,7 +9103,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmIncomeAsyn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmIncomeAsyn (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmIncomeAsyn", optionalArgs);
     }
@@ -9111,7 +9114,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmIncomeAsynId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmIncomeAsynId (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmIncomeAsynId", optionalArgs);
     }
@@ -9122,7 +9125,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmOrderAmendment (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmOrderAmendment (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmOrderAmendment", optionalArgs);
     }
@@ -9133,7 +9136,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetCmOrderAmendment (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetCmOrderAmendment (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmOrderAmendment", optionalArgs);
     }
@@ -9144,7 +9147,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmFeeBurn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmFeeBurn (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmFeeBurn", optionalArgs);
     }
@@ -9155,7 +9158,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetUmAccountConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetUmAccountConfig (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmAccountConfig", optionalArgs);
     }
@@ -9166,7 +9169,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetUmSymbolConfig (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetUmSymbolConfig (Object... optionalArgs)
     {
         return this.callAsync ("papiGetUmSymbolConfig", optionalArgs);
     }
@@ -9177,7 +9180,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmAccountConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmAccountConfig (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmAccountConfig", optionalArgs);
     }
@@ -9188,7 +9191,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiGetCmSymbolConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiGetCmSymbolConfig (Object... optionalArgs)
     {
         return this.callAsync ("papiGetCmSymbolConfig", optionalArgs);
     }
@@ -9199,7 +9202,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiGetRateLimitOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiGetRateLimitOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiGetRateLimitOrder", optionalArgs);
     }
@@ -9210,7 +9213,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostUmOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostUmOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiPostUmOrder", optionalArgs);
     }
@@ -9221,7 +9224,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostUmConditionalOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostUmConditionalOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiPostUmConditionalOrder", optionalArgs);
     }
@@ -9232,7 +9235,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostUmAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostUmAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiPostUmAlgoOrder", optionalArgs);
     }
@@ -9243,7 +9246,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostCmOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostCmOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiPostCmOrder", optionalArgs);
     }
@@ -9254,7 +9257,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostCmConditionalOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostCmConditionalOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiPostCmConditionalOrder", optionalArgs);
     }
@@ -9265,7 +9268,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiPostMarginOrder", optionalArgs);
     }
@@ -9276,7 +9279,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostMarginLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostMarginLoan (Object... optionalArgs)
     {
         return this.callAsync ("papiPostMarginLoan", optionalArgs);
     }
@@ -9287,7 +9290,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostRepayLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostRepayLoan (Object... optionalArgs)
     {
         return this.callAsync ("papiPostRepayLoan", optionalArgs);
     }
@@ -9298,7 +9301,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostMarginOrderOco (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostMarginOrderOco (Object... optionalArgs)
     {
         return this.callAsync ("papiPostMarginOrderOco", optionalArgs);
     }
@@ -9309,7 +9312,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostUmLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostUmLeverage (Object... optionalArgs)
     {
         return this.callAsync ("papiPostUmLeverage", optionalArgs);
     }
@@ -9320,7 +9323,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostCmLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostCmLeverage (Object... optionalArgs)
     {
         return this.callAsync ("papiPostCmLeverage", optionalArgs);
     }
@@ -9331,7 +9334,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostUmPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostUmPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("papiPostUmPositionSideDual", optionalArgs);
     }
@@ -9342,7 +9345,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostCmPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostCmPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("papiPostCmPositionSideDual", optionalArgs);
     }
@@ -9353,7 +9356,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostAutoCollection (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostAutoCollection (Object... optionalArgs)
     {
         return this.callAsync ("papiPostAutoCollection", optionalArgs);
     }
@@ -9364,7 +9367,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostBnbTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostBnbTransfer (Object... optionalArgs)
     {
         return this.callAsync ("papiPostBnbTransfer", optionalArgs);
     }
@@ -9375,7 +9378,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostRepayFuturesSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostRepayFuturesSwitch (Object... optionalArgs)
     {
         return this.callAsync ("papiPostRepayFuturesSwitch", optionalArgs);
     }
@@ -9386,7 +9389,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostRepayFuturesNegativeBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostRepayFuturesNegativeBalance (Object... optionalArgs)
     {
         return this.callAsync ("papiPostRepayFuturesNegativeBalance", optionalArgs);
     }
@@ -9397,7 +9400,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostListenKey (Object... optionalArgs)
     {
         return this.callAsync ("papiPostListenKey", optionalArgs);
     }
@@ -9408,7 +9411,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostAssetCollection (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostAssetCollection (Object... optionalArgs)
     {
         return this.callAsync ("papiPostAssetCollection", optionalArgs);
     }
@@ -9419,7 +9422,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostMarginRepayDebt (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostMarginRepayDebt (Object... optionalArgs)
     {
         return this.callAsync ("papiPostMarginRepayDebt", optionalArgs);
     }
@@ -9430,7 +9433,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostUmFeeBurn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostUmFeeBurn (Object... optionalArgs)
     {
         return this.callAsync ("papiPostUmFeeBurn", optionalArgs);
     }
@@ -9441,7 +9444,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPostUmStockContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPostUmStockContract (Object... optionalArgs)
     {
         return this.callAsync ("papiPostUmStockContract", optionalArgs);
     }
@@ -9452,7 +9455,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPutListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPutListenKey (Object... optionalArgs)
     {
         return this.callAsync ("papiPutListenKey", optionalArgs);
     }
@@ -9463,7 +9466,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPutUmOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPutUmOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiPutUmOrder", optionalArgs);
     }
@@ -9474,7 +9477,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiPutCmOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiPutCmOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiPutCmOrder", optionalArgs);
     }
@@ -9485,7 +9488,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiDeleteUmOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiDeleteUmOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteUmOrder", optionalArgs);
     }
@@ -9496,7 +9499,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiDeleteUmConditionalOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiDeleteUmConditionalOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteUmConditionalOrder", optionalArgs);
     }
@@ -9507,7 +9510,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiDeleteUmAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiDeleteUmAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteUmAllOpenOrders", optionalArgs);
     }
@@ -9518,7 +9521,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiDeleteUmConditionalAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiDeleteUmConditionalAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteUmConditionalAllOpenOrders", optionalArgs);
     }
@@ -9529,7 +9532,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiDeleteUmAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiDeleteUmAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteUmAlgoOrder", optionalArgs);
     }
@@ -9540,7 +9543,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiDeleteUmAlgoAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiDeleteUmAlgoAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteUmAlgoAllOpenOrders", optionalArgs);
     }
@@ -9551,7 +9554,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiDeleteCmOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiDeleteCmOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteCmOrder", optionalArgs);
     }
@@ -9562,7 +9565,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiDeleteCmConditionalOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiDeleteCmConditionalOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteCmConditionalOrder", optionalArgs);
     }
@@ -9573,7 +9576,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiDeleteCmAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiDeleteCmAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteCmAllOpenOrders", optionalArgs);
     }
@@ -9584,7 +9587,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiDeleteCmConditionalAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiDeleteCmConditionalAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteCmConditionalAllOpenOrders", optionalArgs);
     }
@@ -9595,7 +9598,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiDeleteMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiDeleteMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteMarginOrder", optionalArgs);
     }
@@ -9606,7 +9609,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  papiDeleteMarginAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  papiDeleteMarginAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteMarginAllOpenOrders", optionalArgs);
     }
@@ -9617,7 +9620,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiDeleteMarginOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiDeleteMarginOrderList (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteMarginOrderList", optionalArgs);
     }
@@ -9628,7 +9631,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiDeleteListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiDeleteListenKey (Object... optionalArgs)
     {
         return this.callAsync ("papiDeleteListenKey", optionalArgs);
     }
@@ -9639,7 +9642,7 @@ public class BinanceusApi extends BinanceCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  papiV2GetUmAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  papiV2GetUmAccount (Object... optionalArgs)
     {
         return this.callAsync ("papiV2GetUmAccount", optionalArgs);
     }

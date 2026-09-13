@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class LatokenApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetBookCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetBookCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("publicGetBookCurrencyQuote", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetChartWeek (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetChartWeek (Object... optionalArgs)
     {
         return this.callAsync ("publicGetChartWeek", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetChartWeekCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetChartWeekCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("publicGetChartWeekCurrencyQuote", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrency (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrency", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrencyAvailable (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrencyAvailable (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrencyAvailable", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrencyQuotes (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrencyQuotes (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrencyQuotes", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetCurrencyCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetCurrencyCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrencyCurrency", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPair", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPairAvailable (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPairAvailable (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPairAvailable", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickerBaseQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickerBaseQuote (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerBaseQuote", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTime", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTradeHistoryCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTradeHistoryCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradeHistoryCurrencyQuote", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTradeFeeCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTradeFeeCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradeFeeCurrencyQuote", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTradeFeeLevels (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTradeFeeLevels (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradeFeeLevels", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTransactionBindings (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTransactionBindings (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTransactionBindings", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthAccount", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthAccountCurrencyCurrencyType (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthAccountCurrencyCurrencyType (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthAccountCurrencyCurrencyType", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthAccountFiltered (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthAccountFiltered (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthAccountFiltered", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthOrder", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthOrderActive (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthOrderActive (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthOrderActive", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAuthOrderGetOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAuthOrderGetOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthOrderGetOrderId", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthOrderPairCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthOrderPairCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthOrderPairCurrencyQuote", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthOrderPairCurrencyQuoteActive (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthOrderPairCurrencyQuoteActive (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthOrderPairCurrencyQuoteActive", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthStopOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthStopOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthStopOrder", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAuthStopOrderGetOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAuthStopOrderGetOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthStopOrderGetOrderId", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthStopOrderPairCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthStopOrderPairCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthStopOrderPairCurrencyQuote", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthStopOrderPairCurrencyQuoteActive (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthStopOrderPairCurrencyQuoteActive (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthStopOrderPairCurrencyQuoteActive", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthTrade (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthTrade (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthTrade", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthTradePairCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthTradePairCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthTradePairCurrencyQuote", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAuthTradeFeeCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAuthTradeFeeCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthTradeFeeCurrencyQuote", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAuthTransaction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAuthTransaction (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthTransaction", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAuthTransactionBindings (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAuthTransactionBindings (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthTransactionBindings", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthTransactionBindingsCurrency (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAuthTransactionBindingsCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthTransactionBindingsCurrency", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAuthTransactionId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAuthTransactionId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthTransactionId", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAuthTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAuthTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthTransfer", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthOrderCancel", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthOrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthOrderCancelAll", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderCancelAllCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthOrderCancelAllCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthOrderCancelAllCurrencyQuote", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderCancelBulk (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthOrderCancelBulk (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthOrderCancelBulk", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderPlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthOrderPlace (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthOrderPlace", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderPlaceBulk (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthOrderPlaceBulk (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthOrderPlaceBulk", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthSpotDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthSpotDeposit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthSpotDeposit", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthSpotWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthSpotWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthSpotWithdraw", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthStopOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthStopOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthStopOrderCancel", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthStopOrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthStopOrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthStopOrderCancelAll", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthStopOrderCancelAllCurrencyQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthStopOrderCancelAllCurrencyQuote (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthStopOrderCancelAllCurrencyQuote", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthStopOrderPlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthStopOrderPlace (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthStopOrderPlace", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthTransactionDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthTransactionDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthTransactionDepositAddress", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthTransactionWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthTransactionWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthTransactionWithdraw", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthTransactionWithdrawCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthTransactionWithdrawCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthTransactionWithdrawCancel", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthTransactionWithdrawConfirm (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthTransactionWithdrawConfirm (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthTransactionWithdrawConfirm", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthTransactionWithdrawResendCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthTransactionWithdrawResendCode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthTransactionWithdrawResendCode", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthTransferEmail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthTransferEmail (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthTransferEmail", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthTransferId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthTransferId (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthTransferId", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class LatokenApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthTransferPhone (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAuthTransferPhone (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthTransferPhone", optionalArgs);
     }

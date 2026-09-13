@@ -6,9 +6,12 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.HitbtcCore;
+import io.github.ccxt.exchanges.Hitbtc;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
-public class BequantApi extends HitbtcCore
+public class BequantApi extends Hitbtc
 {
 
     public BequantApi () {
@@ -25,7 +28,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicCurrency", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicCurrencyCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicCurrencyCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicCurrencyCurrency", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicSymbol", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicSymbolSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicSymbolSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicSymbolSymbol", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicTicker", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicTickerSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicTickerSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicTickerSymbol", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicPriceRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicPriceRate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicPriceRate", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicPriceHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicPriceHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicPriceHistory", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicPriceTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicPriceTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicPriceTicker", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicPriceTickerSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicPriceTickerSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicPriceTickerSymbol", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicTrades", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicTradesSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPublicTradesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicTradesSymbol", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicOrderbook", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicOrderbookSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicOrderbookSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicOrderbookSymbol", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicCandles", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicCandlesSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPublicCandlesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicCandlesSymbol", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicConvertedCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicConvertedCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicConvertedCandles", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicConvertedCandlesSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPublicConvertedCandlesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicConvertedCandlesSymbol", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicFuturesInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicFuturesInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesInfo", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicFuturesInfoSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicFuturesInfoSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesInfoSymbol", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicFuturesHistoryFunding (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicFuturesHistoryFunding (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesHistoryFunding", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicFuturesHistoryFundingSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPublicFuturesHistoryFundingSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesHistoryFundingSymbol", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicFuturesCandlesIndexPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicFuturesCandlesIndexPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesCandlesIndexPrice", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicFuturesCandlesIndexPriceSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPublicFuturesCandlesIndexPriceSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesCandlesIndexPriceSymbol", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicFuturesCandlesMarkPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicFuturesCandlesMarkPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesCandlesMarkPrice", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicFuturesCandlesMarkPriceSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPublicFuturesCandlesMarkPriceSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesCandlesMarkPriceSymbol", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicFuturesCandlesPremiumIndex (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicFuturesCandlesPremiumIndex (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesCandlesPremiumIndex", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicFuturesCandlesPremiumIndexSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPublicFuturesCandlesPremiumIndexSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesCandlesPremiumIndexSymbol", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicFuturesCandlesOpenInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicFuturesCandlesOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesCandlesOpenInterest", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetPublicFuturesCandlesOpenInterestSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetPublicFuturesCandlesOpenInterestSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicFuturesCandlesOpenInterestSymbol", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotBalance", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotBalanceCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotBalanceCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotBalanceCurrency", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetSpotOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetSpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotOrder", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotOrderClientOrderId", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetSpotFee (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetSpotFee (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotFee", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotFeeSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotFeeSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotFeeSymbol", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetSpotHistoryOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetSpotHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotHistoryOrder", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetSpotHistoryTrade (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetSpotHistoryTrade (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotHistoryTrade", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMarginAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMarginAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginAccount", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMarginAccountIsolatedSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetMarginAccountIsolatedSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginAccountIsolatedSymbol", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMarginAccountCrossCurrency (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMarginAccountCrossCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginAccountCrossCurrency", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMarginOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginOrder", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMarginOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetMarginOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginOrderClientOrderId", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMarginConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetMarginConfig (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginConfig", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMarginHistoryOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMarginHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginHistoryOrder", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMarginHistoryTrade (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMarginHistoryTrade (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginHistoryTrade", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMarginHistoryPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMarginHistoryPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginHistoryPositions", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetMarginHistoryClearing (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetMarginHistoryClearing (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginHistoryClearing", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMarginSettings (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetMarginSettings (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMarginSettings", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesBalance", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesBalanceCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesBalanceCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesBalanceCurrency", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetFuturesAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFuturesAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesAccount", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesAccountIsolatedSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesAccountIsolatedSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesAccountIsolatedSymbol", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetFuturesOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesOrder", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesOrderClientOrderId", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesConfig (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesConfig", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetFuturesFee (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFuturesFee (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesFee", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesFeeSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesFeeSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesFeeSymbol", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetFuturesHistoryOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFuturesHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesHistoryOrder", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetFuturesHistoryTrade (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFuturesHistoryTrade (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesHistoryTrade", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetFuturesHistoryPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFuturesHistoryPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesHistoryPositions", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetFuturesHistoryClearing (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFuturesHistoryClearing (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesHistoryClearing", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserApiKeys (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetUserApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserApiKeys", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletBalance", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletBalanceCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletBalanceCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletBalanceCurrency", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletCryptoAddressWhiteList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletCryptoAddressWhiteList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletCryptoAddressWhiteList", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWalletCryptoAddress (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWalletCryptoAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletCryptoAddress", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWalletCryptoAddressRecentDeposit (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWalletCryptoAddressRecentDeposit (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletCryptoAddressRecentDeposit", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWalletCryptoAddressRecentWithdraw (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWalletCryptoAddressRecentWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletCryptoAddressRecentWithdraw", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletCryptoAddressCheckMine (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletCryptoAddressCheckMine (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletCryptoAddressCheckMine", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWalletTransactions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWalletTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletTransactions", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletTransactionsTxId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletTransactionsTxId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletTransactionsTxId", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletCryptoFeeEstimate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletCryptoFeeEstimate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletCryptoFeeEstimate", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletCryptoFeeWithdrawHash (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletCryptoFeeWithdrawHash (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletCryptoFeeWithdrawHash", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWalletAirdrops (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWalletAirdrops (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletAirdrops", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWalletAmountLocks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWalletAmountLocks (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletAmountLocks", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetSubAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubAccount", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetSubAccountAcl (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetSubAccountAcl (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubAccountAcl", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubAccountBalanceSubAccID (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSubAccountBalanceSubAccID (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubAccountBalanceSubAccID", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubAccountCryptoAddressSubAccIDCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSubAccountCryptoAddressSubAccIDCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubAccountCryptoAddressSubAccIDCurrency", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotOrder", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostSpotOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostSpotOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotOrderList", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMarginOrder", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostMarginOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostMarginOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMarginOrderList", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesOrder", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostFuturesOrderList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostFuturesOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesOrderList", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWalletCryptoAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWalletCryptoAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletCryptoAddress", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWalletCryptoWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWalletCryptoWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletCryptoWithdraw", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostWalletConvert (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostWalletConvert (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletConvert", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWalletTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWalletTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletTransfer", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWalletInternalWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWalletInternalWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletInternalWithdraw", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWalletCryptoCheckOffchainAvailable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWalletCryptoCheckOffchainAvailable (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletCryptoCheckOffchainAvailable", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostWalletCryptoFeesEstimate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostWalletCryptoFeesEstimate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletCryptoFeesEstimate", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostWalletCryptoFeeEstimateBulk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostWalletCryptoFeeEstimateBulk (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletCryptoFeeEstimateBulk", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWalletAirdropsIdClaim (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWalletAirdropsIdClaim (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletAirdropsIdClaim", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubAccountFreeze (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSubAccountFreeze (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubAccountFreeze", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubAccountActivate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSubAccountActivate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubAccountActivate", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubAccountTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSubAccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubAccountTransfer", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubAccountTransferSubToSuper (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSubAccountTransferSubToSuper (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubAccountTransferSubToSuper", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubAccountTransferSubToSub (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSubAccountTransferSubToSub (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubAccountTransferSubToSub", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostSubAccountAcl (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostSubAccountAcl (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubAccountAcl", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePatchSpotOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePatchSpotOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privatePatchSpotOrderClientOrderId", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePatchMarginOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePatchMarginOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privatePatchMarginOrderClientOrderId", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePatchFuturesOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePatchFuturesOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privatePatchFuturesOrderClientOrderId", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteSpotOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteSpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteSpotOrder", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteSpotOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteSpotOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteSpotOrderClientOrderId", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteMarginPosition (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteMarginPosition (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteMarginPosition", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteMarginPositionIsolatedSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteMarginPositionIsolatedSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteMarginPositionIsolatedSymbol", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteMarginOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteMarginOrder", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteMarginOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteMarginOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteMarginOrderClientOrderId", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteFuturesPosition (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteFuturesPosition (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteFuturesPosition", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteFuturesPositionMarginModeSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteFuturesPositionMarginModeSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteFuturesPositionMarginModeSymbol", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteFuturesOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteFuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteFuturesOrder", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteFuturesOrderClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteFuturesOrderClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteFuturesOrderClientOrderId", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteWalletCryptoWithdrawId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteWalletCryptoWithdrawId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteWalletCryptoWithdrawId", optionalArgs);
     }
@@ -1290,7 +1293,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutMarginAccountIsolatedSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutMarginAccountIsolatedSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privatePutMarginAccountIsolatedSymbol", optionalArgs);
     }
@@ -1301,7 +1304,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutMarginSettingsAmm (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutMarginSettingsAmm (Object... optionalArgs)
     {
         return this.callAsync ("privatePutMarginSettingsAmm", optionalArgs);
     }
@@ -1312,7 +1315,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutMarginMarginSettingsAmr (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutMarginMarginSettingsAmr (Object... optionalArgs)
     {
         return this.callAsync ("privatePutMarginMarginSettingsAmr", optionalArgs);
     }
@@ -1323,7 +1326,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutFuturesAccountIsolatedSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutFuturesAccountIsolatedSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privatePutFuturesAccountIsolatedSymbol", optionalArgs);
     }
@@ -1334,7 +1337,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutFuturesMarginSettingsAmr (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutFuturesMarginSettingsAmr (Object... optionalArgs)
     {
         return this.callAsync ("privatePutFuturesMarginSettingsAmr", optionalArgs);
     }
@@ -1345,7 +1348,7 @@ public class BequantApi extends HitbtcCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutWalletCryptoWithdrawId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutWalletCryptoWithdrawId (Object... optionalArgs)
     {
         return this.callAsync ("privatePutWalletCryptoWithdrawId", optionalArgs);
     }

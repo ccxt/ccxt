@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class MercadoApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCoins (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCoins (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCoins", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetCoinOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetCoinOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCoinOrderbook", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetCoinTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetCoinTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCoinTicker", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCoinTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCoinTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCoinTrades", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCoinTradesFrom (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCoinTradesFrom (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCoinTradesFrom", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCoinTradesFromTo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCoinTradesFromTo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCoinTradesFromTo", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetCoinDaySummaryYearMonthDay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetCoinDaySummaryYearMonthDay (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCoinDaySummaryYearMonthDay", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrder", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetAccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetAccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetAccountInfo", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOrder", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetWithdrawal", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostListSystemMessages (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostListSystemMessages (Object... optionalArgs)
     {
         return this.callAsync ("privatePostListSystemMessages", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostListOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostListOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostListOrders", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostListOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostListOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("privatePostListOrderbook", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPlaceBuyOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPlaceBuyOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPlaceBuyOrder", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPlaceSellOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPlaceSellOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPlaceSellOrder", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPlaceMarketBuyOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPlaceMarketBuyOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPlaceMarketBuyOrder", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPlaceMarketSellOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPlaceMarketSellOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPlaceMarketSellOrder", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawCoin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawCoin", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetCoinCandle (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetCoinCandle (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetCoinCandle", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicNetGetCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicNetGetCandles (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicNetGetCandles", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostAccounts (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostAccounts", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostAccountsAccountIdSymbolTransfersInternal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostAccountsAccountIdSymbolTransfersInternal (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostAccountsAccountIdSymbolTransfersInternal", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOauth2Token (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOauth2Token (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOauth2Token", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class MercadoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId", optionalArgs);
     }

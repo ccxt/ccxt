@@ -920,13 +920,17 @@ function baseMethodReturnsString (printer, node, name) {
 // ===== awaited generated-api locals =====
 //
 // `await this.<endpoint>(...)` prints `(this.<endpoint>(...)).join()`. The generated
-// implicit-api wrappers declare one
-// `public java.util.concurrent.CompletableFuture<T> <name> (Object... optionalArgs)`
+// implicit-api wrappers declare one `public CompletableFuture<T> <name> (Object... optionalArgs)`
 // per endpoint, so `.join()` has the static type T exactly and the declaration needs no
 // cast. T is read from the ON-DISK Java file the compiler reads — a local declared T can
 // never disagree with its callee. Only concrete T is accepted (Map / List / String);
-// `CompletableFuture<Object>` endpoints stay Object.
-const JAVA_API_METHOD = /^\s*public java\.util\.concurrent\.CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
+// `CompletableFuture<Object>` endpoints stay Object. The on-disk file spells the java.util
+// names short (build/javaUtilImports.ts); the pipeline works in the qualified spelling.
+const JAVA_API_METHOD = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
+const JAVA_API_SHORT_NAMES = /\b(?<!\.)(Map|List)</g;
+function qualifyApiReturnType (t) {
+    return t.replace (JAVA_API_SHORT_NAMES, 'java.util.$1<');
+}
 const JAVA_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'api');
 const awaitedApiTables = new Map ();
 
@@ -951,7 +955,7 @@ function awaitedApiReturnTypes (exchange) {
         for (const line of content.split ('\n')) {
             const match = JAVA_API_METHOD.exec (line);
             if (match && match[1] !== 'Object') {
-                table.set (match[2], match[1]);
+                table.set (match[2], qualifyApiReturnType (match[1]));
             }
         }
         break;

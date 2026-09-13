@@ -6,9 +6,11 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.BybitCore;
+import io.github.ccxt.exchanges.Bybit;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
-public class BybiteuApi extends BybitCore
+public class BybiteuApi extends Bybit
 {
 
     public BybiteuApi () {
@@ -25,7 +27,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicSymbols (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicSymbols", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicQuoteDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicQuoteDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicQuoteDepth", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicQuoteDepthMerged (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicQuoteDepthMerged (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicQuoteDepthMerged", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicQuoteTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicQuoteTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicQuoteTrades", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicQuoteKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicQuoteKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicQuoteKline", optionalArgs);
     }
@@ -80,7 +82,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicQuoteTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicQuoteTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicQuoteTicker24hr", optionalArgs);
     }
@@ -91,7 +93,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicQuoteTickerPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicQuoteTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicQuoteTickerPrice", optionalArgs);
     }
@@ -102,7 +104,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicQuoteTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicQuoteTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicQuoteTickerBookTicker", optionalArgs);
     }
@@ -113,7 +115,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicServerTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicServerTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicServerTime", optionalArgs);
     }
@@ -124,7 +126,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicInfos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicInfos (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicInfos", optionalArgs);
     }
@@ -135,7 +137,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicMarginProductInfos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicMarginProductInfos (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicMarginProductInfos", optionalArgs);
     }
@@ -146,7 +148,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotV3PublicMarginEnsureTokens (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotV3PublicMarginEnsureTokens (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotV3PublicMarginEnsureTokens", optionalArgs);
     }
@@ -157,7 +159,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3PublicTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3PublicTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3PublicTime", optionalArgs);
     }
@@ -168,7 +170,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetContractV3PublicCopytradingSymbolList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetContractV3PublicCopytradingSymbolList (Object... optionalArgs)
     {
         return this.callAsync ("publicGetContractV3PublicCopytradingSymbolList", optionalArgs);
     }
@@ -179,7 +181,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicOrderBookL2 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicOrderBookL2 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicOrderBookL2", optionalArgs);
     }
@@ -190,7 +192,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicKline", optionalArgs);
     }
@@ -201,7 +203,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicTickers", optionalArgs);
     }
@@ -212,7 +214,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicInstrumentsInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicInstrumentsInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicInstrumentsInfo", optionalArgs);
     }
@@ -223,7 +225,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicMarkPriceKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicMarkPriceKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicMarkPriceKline", optionalArgs);
     }
@@ -234,7 +236,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicIndexPriceKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicIndexPriceKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicIndexPriceKline", optionalArgs);
     }
@@ -245,7 +247,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicFundingHistoryFundingRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicFundingHistoryFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicFundingHistoryFundingRate", optionalArgs);
     }
@@ -256,7 +258,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicRiskLimitList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicRiskLimitList (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicRiskLimitList", optionalArgs);
     }
@@ -267,7 +269,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicDeliveryPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicDeliveryPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicDeliveryPrice", optionalArgs);
     }
@@ -278,7 +280,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicRecentTrade (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicRecentTrade (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicRecentTrade", optionalArgs);
     }
@@ -289,7 +291,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicOpenInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicOpenInterest", optionalArgs);
     }
@@ -300,7 +302,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesV3PublicInsurance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesV3PublicInsurance (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesV3PublicInsurance", optionalArgs);
     }
@@ -311,7 +313,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5AnnouncementsIndex (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5AnnouncementsIndex (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5AnnouncementsIndex", optionalArgs);
     }
@@ -322,7 +324,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SystemStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SystemStatus (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SystemStatus", optionalArgs);
     }
@@ -333,7 +335,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketTime", optionalArgs);
     }
@@ -344,7 +346,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketKline", optionalArgs);
     }
@@ -355,7 +357,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketMarkPriceKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketMarkPriceKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketMarkPriceKline", optionalArgs);
     }
@@ -366,7 +368,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketIndexPriceKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketIndexPriceKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketIndexPriceKline", optionalArgs);
     }
@@ -377,7 +379,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketPremiumIndexPriceKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketPremiumIndexPriceKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketPremiumIndexPriceKline", optionalArgs);
     }
@@ -388,7 +390,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketInstrumentsInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketInstrumentsInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketInstrumentsInfo", optionalArgs);
     }
@@ -399,7 +401,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketOrderbook", optionalArgs);
     }
@@ -410,7 +412,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketRpiOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketRpiOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketRpiOrderbook", optionalArgs);
     }
@@ -421,7 +423,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketFullOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketFullOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketFullOrderbook", optionalArgs);
     }
@@ -432,7 +434,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketTickers", optionalArgs);
     }
@@ -443,7 +445,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketFundingHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketFundingHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketFundingHistory", optionalArgs);
     }
@@ -454,7 +456,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketRecentTrade (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketRecentTrade (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketRecentTrade", optionalArgs);
     }
@@ -465,7 +467,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketOpenInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketOpenInterest", optionalArgs);
     }
@@ -476,7 +478,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketHistoricalVolatility (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketHistoricalVolatility (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketHistoricalVolatility", optionalArgs);
     }
@@ -487,7 +489,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketInsurance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketInsurance (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketInsurance", optionalArgs);
     }
@@ -498,7 +500,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketRiskLimit", optionalArgs);
     }
@@ -509,7 +511,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketDeliveryPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketDeliveryPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketDeliveryPrice", optionalArgs);
     }
@@ -520,7 +522,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketNewDeliveryPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketNewDeliveryPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketNewDeliveryPrice", optionalArgs);
     }
@@ -531,7 +533,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketAccountRatio (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketAccountRatio (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketAccountRatio", optionalArgs);
     }
@@ -542,7 +544,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketIndexPriceComponents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketIndexPriceComponents (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketIndexPriceComponents", optionalArgs);
     }
@@ -553,7 +555,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketPriceLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketPriceLimit (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketPriceLimit", optionalArgs);
     }
@@ -564,7 +566,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketAdlAlert (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketAdlAlert (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketAdlAlert", optionalArgs);
     }
@@ -575,7 +577,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5MarketFeeGroupInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5MarketFeeGroupInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketFeeGroupInfo", optionalArgs);
     }
@@ -586,7 +588,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotLeverTokenInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotLeverTokenInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotLeverTokenInfo", optionalArgs);
     }
@@ -597,7 +599,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotLeverTokenReference (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotLeverTokenReference (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotLeverTokenReference", optionalArgs);
     }
@@ -608,7 +610,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotMarginTradeData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotMarginTradeData (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotMarginTradeData", optionalArgs);
     }
@@ -619,7 +621,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotMarginTradeCollateral (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotMarginTradeCollateral (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotMarginTradeCollateral", optionalArgs);
     }
@@ -630,7 +632,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotCrossMarginTradeData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotCrossMarginTradeData (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotCrossMarginTradeData", optionalArgs);
     }
@@ -641,7 +643,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotCrossMarginTradePledgeToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotCrossMarginTradePledgeToken (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotCrossMarginTradePledgeToken", optionalArgs);
     }
@@ -652,7 +654,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotCrossMarginTradeBorrowToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotCrossMarginTradeBorrowToken (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotCrossMarginTradeBorrowToken", optionalArgs);
     }
@@ -663,7 +665,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5CryptoLoanCollateralData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5CryptoLoanCollateralData (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5CryptoLoanCollateralData", optionalArgs);
     }
@@ -674,7 +676,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5CryptoLoanLoanableData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5CryptoLoanLoanableData (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5CryptoLoanLoanableData", optionalArgs);
     }
@@ -685,7 +687,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5CryptoLoanCommonLoanableData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5CryptoLoanCommonLoanableData (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5CryptoLoanCommonLoanableData", optionalArgs);
     }
@@ -696,7 +698,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5CryptoLoanCommonCollateralData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5CryptoLoanCommonCollateralData (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5CryptoLoanCommonCollateralData", optionalArgs);
     }
@@ -707,7 +709,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5CryptoLoanFixedSupplyOrderQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5CryptoLoanFixedSupplyOrderQuote (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5CryptoLoanFixedSupplyOrderQuote", optionalArgs);
     }
@@ -718,7 +720,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5CryptoLoanFixedBorrowOrderQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5CryptoLoanFixedBorrowOrderQuote (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5CryptoLoanFixedBorrowOrderQuote", optionalArgs);
     }
@@ -729,7 +731,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5InsLoanProductInfos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5InsLoanProductInfos (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5InsLoanProductInfos", optionalArgs);
     }
@@ -740,7 +742,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5InsLoanEnsureTokensConvert (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5InsLoanEnsureTokensConvert (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5InsLoanEnsureTokensConvert", optionalArgs);
     }
@@ -751,7 +753,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5EarnProduct (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5EarnProduct (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5EarnProduct", optionalArgs);
     }
@@ -762,7 +764,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotXLaunchpoolProjectList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotXLaunchpoolProjectList (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotXLaunchpoolProjectList", optionalArgs);
     }
@@ -773,7 +775,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotXPuzzleProjectList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotXPuzzleProjectList (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotXPuzzleProjectList", optionalArgs);
     }
@@ -784,7 +786,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotXTokenSplashProjectList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5SpotXTokenSplashProjectList (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5SpotXTokenSplashProjectList", optionalArgs);
     }
@@ -795,7 +797,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5EventInstrumentsInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5EventInstrumentsInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5EventInstrumentsInfo", optionalArgs);
     }
@@ -806,7 +808,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5EventOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV5EventOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5EventOrderbook", optionalArgs);
     }
@@ -817,7 +819,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5MarketInstrumentsInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5MarketInstrumentsInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5MarketInstrumentsInfo", optionalArgs);
     }
@@ -828,7 +830,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2PrivateWalletFundRecords (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2PrivateWalletFundRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2PrivateWalletFundRecords", optionalArgs);
     }
@@ -839,7 +841,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateOrder", optionalArgs);
     }
@@ -850,7 +852,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateOpenOrders", optionalArgs);
     }
@@ -861,7 +863,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateHistoryOrders", optionalArgs);
     }
@@ -872,7 +874,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateMyTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateMyTrades", optionalArgs);
     }
@@ -883,7 +885,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateAccount", optionalArgs);
     }
@@ -894,7 +896,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateReference (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateReference (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateReference", optionalArgs);
     }
@@ -905,7 +907,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateRecord", optionalArgs);
     }
@@ -916,7 +918,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateCrossMarginOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateCrossMarginOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateCrossMarginOrders", optionalArgs);
     }
@@ -927,7 +929,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateCrossMarginAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateCrossMarginAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateCrossMarginAccount", optionalArgs);
     }
@@ -938,7 +940,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateCrossMarginLoanInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateCrossMarginLoanInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateCrossMarginLoanInfo", optionalArgs);
     }
@@ -949,7 +951,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateCrossMarginRepayHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateCrossMarginRepayHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateCrossMarginRepayHistory", optionalArgs);
     }
@@ -960,7 +962,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateMarginLoanInfos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateMarginLoanInfos (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateMarginLoanInfos", optionalArgs);
     }
@@ -971,7 +973,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateMarginRepaidInfos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateMarginRepaidInfos (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateMarginRepaidInfos", optionalArgs);
     }
@@ -982,7 +984,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSpotV3PrivateMarginLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSpotV3PrivateMarginLtv (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotV3PrivateMarginLtv", optionalArgs);
     }
@@ -993,7 +995,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateTransferInterTransferListQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateTransferInterTransferListQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateTransferInterTransferListQuery", optionalArgs);
     }
@@ -1004,7 +1006,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateTransferSubMemberListQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateTransferSubMemberListQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateTransferSubMemberListQuery", optionalArgs);
     }
@@ -1015,7 +1017,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateTransferSubMemberTransferListQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateTransferSubMemberTransferListQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateTransferSubMemberTransferListQuery", optionalArgs);
     }
@@ -1026,7 +1028,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateTransferUniversalTransferListQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateTransferUniversalTransferListQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateTransferUniversalTransferListQuery", optionalArgs);
     }
@@ -1037,7 +1039,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateCoinInfoQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateCoinInfoQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateCoinInfoQuery", optionalArgs);
     }
@@ -1048,7 +1050,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateDepositAddressQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateDepositAddressQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateDepositAddressQuery", optionalArgs);
     }
@@ -1059,7 +1061,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateCopytradingOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateCopytradingOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateCopytradingOrderList", optionalArgs);
     }
@@ -1070,7 +1072,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateCopytradingPositionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateCopytradingPositionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateCopytradingPositionList", optionalArgs);
     }
@@ -1081,7 +1083,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateCopytradingWalletBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateCopytradingWalletBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateCopytradingWalletBalance", optionalArgs);
     }
@@ -1092,7 +1094,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivatePositionLimitInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivatePositionLimitInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivatePositionLimitInfo", optionalArgs);
     }
@@ -1103,7 +1105,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateOrderUnfilledOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateOrderUnfilledOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateOrderUnfilledOrders", optionalArgs);
     }
@@ -1114,7 +1116,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateOrderList", optionalArgs);
     }
@@ -1125,7 +1127,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivatePositionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivatePositionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivatePositionList", optionalArgs);
     }
@@ -1136,7 +1138,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateExecutionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateExecutionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateExecutionList", optionalArgs);
     }
@@ -1147,7 +1149,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivatePositionClosedPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivatePositionClosedPnl (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivatePositionClosedPnl", optionalArgs);
     }
@@ -1158,7 +1160,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateAccountWalletBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateAccountWalletBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateAccountWalletBalance", optionalArgs);
     }
@@ -1169,7 +1171,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateAccountFeeRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateAccountFeeRate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateAccountFeeRate", optionalArgs);
     }
@@ -1180,7 +1182,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContractV3PrivateAccountWalletFundRecords (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContractV3PrivateAccountWalletFundRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContractV3PrivateAccountWalletFundRecords", optionalArgs);
     }
@@ -1191,7 +1193,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateOrderUnfilledOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateOrderUnfilledOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateOrderUnfilledOrders", optionalArgs);
     }
@@ -1202,7 +1204,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateOrderList", optionalArgs);
     }
@@ -1213,7 +1215,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivatePositionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivatePositionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivatePositionList", optionalArgs);
     }
@@ -1224,7 +1226,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateExecutionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateExecutionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateExecutionList", optionalArgs);
     }
@@ -1235,7 +1237,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateDeliveryRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateDeliveryRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateDeliveryRecord", optionalArgs);
     }
@@ -1246,7 +1248,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateSettlementRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateSettlementRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateSettlementRecord", optionalArgs);
     }
@@ -1257,7 +1259,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateAccountWalletBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateAccountWalletBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateAccountWalletBalance", optionalArgs);
     }
@@ -1268,7 +1270,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateAccountTransactionLog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateAccountTransactionLog (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateAccountTransactionLog", optionalArgs);
     }
@@ -1279,7 +1281,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateAccountBorrowHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateAccountBorrowHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateAccountBorrowHistory", optionalArgs);
     }
@@ -1290,7 +1292,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateAccountBorrowRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateAccountBorrowRate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateAccountBorrowRate", optionalArgs);
     }
@@ -1301,7 +1303,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnifiedV3PrivateAccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUnifiedV3PrivateAccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUnifiedV3PrivateAccountInfo", optionalArgs);
     }
@@ -1312,7 +1314,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserV3PrivateFrozenSubMember (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUserV3PrivateFrozenSubMember (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserV3PrivateFrozenSubMember", optionalArgs);
     }
@@ -1323,7 +1325,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserV3PrivateQuerySubMembers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUserV3PrivateQuerySubMembers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserV3PrivateQuerySubMembers", optionalArgs);
     }
@@ -1334,7 +1336,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserV3PrivateQueryApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUserV3PrivateQueryApi (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserV3PrivateQueryApi", optionalArgs);
     }
@@ -1345,7 +1347,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserV3PrivateGetMemberType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUserV3PrivateGetMemberType (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserV3PrivateGetMemberType", optionalArgs);
     }
@@ -1356,7 +1358,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateTransferTransferCoinListQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateTransferTransferCoinListQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateTransferTransferCoinListQuery", optionalArgs);
     }
@@ -1367,7 +1369,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateTransferAccountCoinBalanceQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateTransferAccountCoinBalanceQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateTransferAccountCoinBalanceQuery", optionalArgs);
     }
@@ -1378,7 +1380,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery", optionalArgs);
     }
@@ -1389,7 +1391,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateTransferAssetInfoQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateTransferAssetInfoQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateTransferAssetInfoQuery", optionalArgs);
     }
@@ -1400,7 +1402,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PublicDepositAllowedDepositListQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PublicDepositAllowedDepositListQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PublicDepositAllowedDepositListQuery", optionalArgs);
     }
@@ -1411,7 +1413,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateDepositRecordQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateDepositRecordQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateDepositRecordQuery", optionalArgs);
     }
@@ -1422,7 +1424,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetV3PrivateWithdrawRecordQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetV3PrivateWithdrawRecordQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetV3PrivateWithdrawRecordQuery", optionalArgs);
     }
@@ -1433,7 +1435,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5OrderRealtime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5OrderRealtime (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5OrderRealtime", optionalArgs);
     }
@@ -1444,7 +1446,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5OrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5OrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5OrderHistory", optionalArgs);
     }
@@ -1455,7 +1457,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5OrderSpotBorrowCheck (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5OrderSpotBorrowCheck (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5OrderSpotBorrowCheck", optionalArgs);
     }
@@ -1466,7 +1468,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PositionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PositionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PositionList", optionalArgs);
     }
@@ -1477,7 +1479,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5ExecutionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5ExecutionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5ExecutionList", optionalArgs);
     }
@@ -1488,7 +1490,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PositionClosedPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PositionClosedPnl (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PositionClosedPnl", optionalArgs);
     }
@@ -1499,7 +1501,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PositionGetClosedPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PositionGetClosedPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PositionGetClosedPositions", optionalArgs);
     }
@@ -1510,7 +1512,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PositionMoveHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PositionMoveHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PositionMoveHistory", optionalArgs);
     }
@@ -1521,7 +1523,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PositionSymbolInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PositionSymbolInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PositionSymbolInfo", optionalArgs);
     }
@@ -1532,7 +1534,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PreUpgradeOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PreUpgradeOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PreUpgradeOrderHistory", optionalArgs);
     }
@@ -1543,7 +1545,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PreUpgradeExecutionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PreUpgradeExecutionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PreUpgradeExecutionList", optionalArgs);
     }
@@ -1554,7 +1556,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PreUpgradePositionClosedPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PreUpgradePositionClosedPnl (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PreUpgradePositionClosedPnl", optionalArgs);
     }
@@ -1565,7 +1567,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PreUpgradeAccountTransactionLog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PreUpgradeAccountTransactionLog (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PreUpgradeAccountTransactionLog", optionalArgs);
     }
@@ -1576,7 +1578,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PreUpgradeAssetDeliveryRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PreUpgradeAssetDeliveryRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PreUpgradeAssetDeliveryRecord", optionalArgs);
     }
@@ -1587,7 +1589,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5PreUpgradeAssetSettlementRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5PreUpgradeAssetSettlementRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PreUpgradeAssetSettlementRecord", optionalArgs);
     }
@@ -1598,7 +1600,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountWalletBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountWalletBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountWalletBalance", optionalArgs);
     }
@@ -1609,7 +1611,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountBorrowHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountBorrowHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountBorrowHistory", optionalArgs);
     }
@@ -1620,7 +1622,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountInstrumentsInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountInstrumentsInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountInstrumentsInfo", optionalArgs);
     }
@@ -1631,7 +1633,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountCollateralInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountCollateralInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountCollateralInfo", optionalArgs);
     }
@@ -1642,7 +1644,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountOptionAssetInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountOptionAssetInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountOptionAssetInfo", optionalArgs);
     }
@@ -1653,7 +1655,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetCoinGreeks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetCoinGreeks (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetCoinGreeks", optionalArgs);
     }
@@ -1664,7 +1666,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountFeeRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountFeeRate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountFeeRate", optionalArgs);
     }
@@ -1675,7 +1677,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountInfo", optionalArgs);
     }
@@ -1686,7 +1688,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountTransactionLog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountTransactionLog (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountTransactionLog", optionalArgs);
     }
@@ -1697,7 +1699,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountContractTransactionLog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountContractTransactionLog (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountContractTransactionLog", optionalArgs);
     }
@@ -1708,7 +1710,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountQueryDcpInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountQueryDcpInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountQueryDcpInfo", optionalArgs);
     }
@@ -1719,7 +1721,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountUserSettingConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountUserSettingConfig (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountUserSettingConfig", optionalArgs);
     }
@@ -1730,7 +1732,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountPayInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountPayInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountPayInfo", optionalArgs);
     }
@@ -1741,7 +1743,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountTradeInfoForAnalysis (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountTradeInfoForAnalysis (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountTradeInfoForAnalysis", optionalArgs);
     }
@@ -1752,7 +1754,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountSmpGroup (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountSmpGroup (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountSmpGroup", optionalArgs);
     }
@@ -1763,7 +1765,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountMmpState (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountMmpState (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountMmpState", optionalArgs);
     }
@@ -1774,7 +1776,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AccountWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AccountWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountWithdrawal", optionalArgs);
     }
@@ -1785,7 +1787,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetAssetOverview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetAssetOverview (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetAssetOverview", optionalArgs);
     }
@@ -1796,7 +1798,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetExchangeQueryCoinList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetExchangeQueryCoinList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetExchangeQueryCoinList", optionalArgs);
     }
@@ -1807,7 +1809,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetExchangeConvertResultQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetExchangeConvertResultQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetExchangeConvertResultQuery", optionalArgs);
     }
@@ -1818,7 +1820,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetExchangeQueryConvertHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetExchangeQueryConvertHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetExchangeQueryConvertHistory", optionalArgs);
     }
@@ -1829,7 +1831,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetExchangeOrderRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetExchangeOrderRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetExchangeOrderRecord", optionalArgs);
     }
@@ -1840,7 +1842,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetFundinghistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetFundinghistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetFundinghistory", optionalArgs);
     }
@@ -1851,7 +1853,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetPortfolioMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetPortfolioMargin (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetPortfolioMargin", optionalArgs);
     }
@@ -1862,7 +1864,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetTotalMembersAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetTotalMembersAssets (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetTotalMembersAssets", optionalArgs);
     }
@@ -1873,7 +1875,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetDeliveryRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetDeliveryRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetDeliveryRecord", optionalArgs);
     }
@@ -1884,7 +1886,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetSettlementRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetSettlementRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetSettlementRecord", optionalArgs);
     }
@@ -1895,7 +1897,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetTransferQueryAssetInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetTransferQueryAssetInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetTransferQueryAssetInfo", optionalArgs);
     }
@@ -1906,7 +1908,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetTransferQueryAccountCoinsBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetTransferQueryAccountCoinsBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetTransferQueryAccountCoinsBalance", optionalArgs);
     }
@@ -1917,7 +1919,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetTransferQueryAccountCoinBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetTransferQueryAccountCoinBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetTransferQueryAccountCoinBalance", optionalArgs);
     }
@@ -1928,7 +1930,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetTransferQueryTransferCoinList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetTransferQueryTransferCoinList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetTransferQueryTransferCoinList", optionalArgs);
     }
@@ -1939,7 +1941,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetTransferQueryInterTransferList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetTransferQueryInterTransferList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetTransferQueryInterTransferList", optionalArgs);
     }
@@ -1950,7 +1952,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetTransferQuerySubMemberList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetTransferQuerySubMemberList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetTransferQuerySubMemberList", optionalArgs);
     }
@@ -1961,7 +1963,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetTransferQueryUniversalTransferList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetTransferQueryUniversalTransferList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetTransferQueryUniversalTransferList", optionalArgs);
     }
@@ -1972,7 +1974,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetDepositQueryAllowedList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetDepositQueryAllowedList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetDepositQueryAllowedList", optionalArgs);
     }
@@ -1983,7 +1985,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetDepositQueryRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetDepositQueryRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetDepositQueryRecord", optionalArgs);
     }
@@ -1994,7 +1996,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetDepositQuerySubMemberRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetDepositQuerySubMemberRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetDepositQuerySubMemberRecord", optionalArgs);
     }
@@ -2005,7 +2007,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetDepositQueryInternalRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetDepositQueryInternalRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetDepositQueryInternalRecord", optionalArgs);
     }
@@ -2016,7 +2018,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetDepositQueryAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetDepositQueryAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetDepositQueryAddress", optionalArgs);
     }
@@ -2027,7 +2029,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetDepositQuerySubMemberAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetDepositQuerySubMemberAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetDepositQuerySubMemberAddress", optionalArgs);
     }
@@ -2038,7 +2040,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetCoinQueryInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetCoinQueryInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetCoinQueryInfo", optionalArgs);
     }
@@ -2049,7 +2051,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetWithdrawQueryAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetWithdrawQueryAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetWithdrawQueryAddress", optionalArgs);
     }
@@ -2060,7 +2062,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetWithdrawQueryRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetWithdrawQueryRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetWithdrawQueryRecord", optionalArgs);
     }
@@ -2071,7 +2073,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetWithdrawWithdrawableAmount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetWithdrawWithdrawableAmount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetWithdrawWithdrawableAmount", optionalArgs);
     }
@@ -2082,7 +2084,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetWithdrawVaspList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetWithdrawVaspList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetWithdrawVaspList", optionalArgs);
     }
@@ -2093,7 +2095,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetCovertSmallBalanceList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetCovertSmallBalanceList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetCovertSmallBalanceList", optionalArgs);
     }
@@ -2104,7 +2106,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetCovertSmallBalanceHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetCovertSmallBalanceHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetCovertSmallBalanceHistory", optionalArgs);
     }
@@ -2115,7 +2117,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetConvertSmallBalanceList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetConvertSmallBalanceList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetConvertSmallBalanceList", optionalArgs);
     }
@@ -2126,7 +2128,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AssetConvertSmallBalanceHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AssetConvertSmallBalanceHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetConvertSmallBalanceHistory", optionalArgs);
     }
@@ -2137,7 +2139,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5FiatQueryCoinList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5FiatQueryCoinList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5FiatQueryCoinList", optionalArgs);
     }
@@ -2148,7 +2150,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5FiatReferencePrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5FiatReferencePrice (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5FiatReferencePrice", optionalArgs);
     }
@@ -2159,7 +2161,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5FiatTradeQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5FiatTradeQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5FiatTradeQuery", optionalArgs);
     }
@@ -2170,7 +2172,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5FiatQueryTradeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5FiatQueryTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5FiatQueryTradeHistory", optionalArgs);
     }
@@ -2181,7 +2183,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5FiatBalanceQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5FiatBalanceQuery (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5FiatBalanceQuery", optionalArgs);
     }
@@ -2192,7 +2194,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserQuerySubMembers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserQuerySubMembers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserQuerySubMembers", optionalArgs);
     }
@@ -2203,7 +2205,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserQueryApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserQueryApi (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserQueryApi", optionalArgs);
     }
@@ -2214,7 +2216,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserSubApikeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserSubApikeys (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserSubApikeys", optionalArgs);
     }
@@ -2225,7 +2227,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserGetMemberType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserGetMemberType (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserGetMemberType", optionalArgs);
     }
@@ -2236,7 +2238,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserAffCustomerInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserAffCustomerInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserAffCustomerInfo", optionalArgs);
     }
@@ -2247,7 +2249,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserDelSubmember (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserDelSubmember (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserDelSubmember", optionalArgs);
     }
@@ -2258,7 +2260,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserSubmembers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserSubmembers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserSubmembers", optionalArgs);
     }
@@ -2269,7 +2271,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserEscrowSubMembers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserEscrowSubMembers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserEscrowSubMembers", optionalArgs);
     }
@@ -2280,7 +2282,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserInvitationReferrals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserInvitationReferrals (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserInvitationReferrals", optionalArgs);
     }
@@ -2291,7 +2293,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserInvitationCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5UserInvitationCode (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5UserInvitationCode", optionalArgs);
     }
@@ -2302,7 +2304,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AffiliateAffUserList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AffiliateAffUserList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AffiliateAffUserList", optionalArgs);
     }
@@ -2313,7 +2315,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AffiliateAffiliateSubList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AffiliateAffiliateSubList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AffiliateAffiliateSubList", optionalArgs);
     }
@@ -2324,7 +2326,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotLeverTokenOrderRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotLeverTokenOrderRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotLeverTokenOrderRecord", optionalArgs);
     }
@@ -2335,7 +2337,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeFlexibleAvailableInventory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeFlexibleAvailableInventory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeFlexibleAvailableInventory", optionalArgs);
     }
@@ -2346,7 +2348,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeFixedAvailableInventory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeFixedAvailableInventory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeFixedAvailableInventory", optionalArgs);
     }
@@ -2357,7 +2359,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeInterestRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeInterestRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeInterestRateHistory", optionalArgs);
     }
@@ -2368,7 +2370,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeState (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeState (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeState", optionalArgs);
     }
@@ -2379,7 +2381,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeMaxBorrowable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeMaxBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeMaxBorrowable", optionalArgs);
     }
@@ -2390,7 +2392,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradePositionTiers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradePositionTiers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradePositionTiers", optionalArgs);
     }
@@ -2401,7 +2403,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeCoinstate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeCoinstate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeCoinstate", optionalArgs);
     }
@@ -2412,7 +2414,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeCurrencyData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeCurrencyData (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeCurrencyData", optionalArgs);
     }
@@ -2423,7 +2425,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeFixedborrowContractInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeFixedborrowContractInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeFixedborrowContractInfo", optionalArgs);
     }
@@ -2434,7 +2436,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeFixedborrowOrderInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeFixedborrowOrderInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeFixedborrowOrderInfo", optionalArgs);
     }
@@ -2445,7 +2447,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeFixedborrowOrderQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeFixedborrowOrderQuote (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeFixedborrowOrderQuote", optionalArgs);
     }
@@ -2456,7 +2458,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeLiability (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeLiability (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeLiability", optionalArgs);
     }
@@ -2467,7 +2469,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeRepaymentAvailableAmount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeRepaymentAvailableAmount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeRepaymentAvailableAmount", optionalArgs);
     }
@@ -2478,7 +2480,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeGetAutoRepayMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotMarginTradeGetAutoRepayMode (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeGetAutoRepayMode", optionalArgs);
     }
@@ -2489,7 +2491,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotCrossMarginTradeLoanInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotCrossMarginTradeLoanInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotCrossMarginTradeLoanInfo", optionalArgs);
     }
@@ -2500,7 +2502,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotCrossMarginTradeAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotCrossMarginTradeAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotCrossMarginTradeAccount", optionalArgs);
     }
@@ -2511,7 +2513,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotCrossMarginTradeOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotCrossMarginTradeOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotCrossMarginTradeOrders", optionalArgs);
     }
@@ -2522,7 +2524,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotCrossMarginTradeRepayHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotCrossMarginTradeRepayHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotCrossMarginTradeRepayHistory", optionalArgs);
     }
@@ -2533,7 +2535,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanBorrowableCollateralisableNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanBorrowableCollateralisableNumber (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanBorrowableCollateralisableNumber", optionalArgs);
     }
@@ -2544,7 +2546,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanOngoingOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanOngoingOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanOngoingOrders", optionalArgs);
     }
@@ -2555,7 +2557,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanRepaymentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanRepaymentHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanRepaymentHistory", optionalArgs);
     }
@@ -2566,7 +2568,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanBorrowHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanBorrowHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanBorrowHistory", optionalArgs);
     }
@@ -2577,7 +2579,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanMaxCollateralAmount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanMaxCollateralAmount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanMaxCollateralAmount", optionalArgs);
     }
@@ -2588,7 +2590,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanAdjustmentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanAdjustmentHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanAdjustmentHistory", optionalArgs);
     }
@@ -2599,7 +2601,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanCommonMaxCollateralAmount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanCommonMaxCollateralAmount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanCommonMaxCollateralAmount", optionalArgs);
     }
@@ -2610,7 +2612,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanCommonAdjustmentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanCommonAdjustmentHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanCommonAdjustmentHistory", optionalArgs);
     }
@@ -2621,7 +2623,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanCommonPosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanCommonPosition (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanCommonPosition", optionalArgs);
     }
@@ -2632,7 +2634,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFlexibleOngoingCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFlexibleOngoingCoin (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFlexibleOngoingCoin", optionalArgs);
     }
@@ -2643,7 +2645,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFlexibleBorrowHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFlexibleBorrowHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFlexibleBorrowHistory", optionalArgs);
     }
@@ -2654,7 +2656,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFlexibleRepaymentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFlexibleRepaymentHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFlexibleRepaymentHistory", optionalArgs);
     }
@@ -2665,7 +2667,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFixedBorrowContractInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFixedBorrowContractInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFixedBorrowContractInfo", optionalArgs);
     }
@@ -2676,7 +2678,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFixedSupplyContractInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFixedSupplyContractInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFixedSupplyContractInfo", optionalArgs);
     }
@@ -2687,7 +2689,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFixedBorrowOrderInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFixedBorrowOrderInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFixedBorrowOrderInfo", optionalArgs);
     }
@@ -2698,7 +2700,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFixedRenewInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFixedRenewInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFixedRenewInfo", optionalArgs);
     }
@@ -2709,7 +2711,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFixedSupplyOrderInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFixedSupplyOrderInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFixedSupplyOrderInfo", optionalArgs);
     }
@@ -2720,7 +2722,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFixedRepaymentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFixedRepaymentHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFixedRepaymentHistory", optionalArgs);
     }
@@ -2731,7 +2733,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFixedAvailableInventory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFixedAvailableInventory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFixedAvailableInventory", optionalArgs);
     }
@@ -2742,7 +2744,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFlexibleAvailableInventory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5CryptoLoanFlexibleAvailableInventory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5CryptoLoanFlexibleAvailableInventory", optionalArgs);
     }
@@ -2753,7 +2755,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5InsLoanProductInfos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5InsLoanProductInfos (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanProductInfos", optionalArgs);
     }
@@ -2764,7 +2766,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5InsLoanEnsureTokens (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5InsLoanEnsureTokens (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanEnsureTokens", optionalArgs);
     }
@@ -2775,7 +2777,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5InsLoanEnsureTokensConvert (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5InsLoanEnsureTokensConvert (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanEnsureTokensConvert", optionalArgs);
     }
@@ -2786,7 +2788,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5InsLoanLoanOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5InsLoanLoanOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanLoanOrder", optionalArgs);
     }
@@ -2797,7 +2799,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5InsLoanRepaidHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5InsLoanRepaidHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanRepaidHistory", optionalArgs);
     }
@@ -2808,7 +2810,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5InsLoanLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5InsLoanLtv (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanLtv", optionalArgs);
     }
@@ -2819,7 +2821,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5InsLoanLtvConvert (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5InsLoanLtvConvert (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanLtvConvert", optionalArgs);
     }
@@ -2830,7 +2832,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5InsLoanCoinDeltaAmount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5InsLoanCoinDeltaAmount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanCoinDeltaAmount", optionalArgs);
     }
@@ -2841,7 +2843,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5LendingInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5LendingInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5LendingInfo", optionalArgs);
     }
@@ -2852,7 +2854,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5LendingHistoryOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5LendingHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5LendingHistoryOrder", optionalArgs);
     }
@@ -2863,7 +2865,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5LendingAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5LendingAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5LendingAccount", optionalArgs);
     }
@@ -2874,7 +2876,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5BrokerEarningRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5BrokerEarningRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5BrokerEarningRecord", optionalArgs);
     }
@@ -2885,7 +2887,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5BrokerEarningsInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5BrokerEarningsInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5BrokerEarningsInfo", optionalArgs);
     }
@@ -2896,7 +2898,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5BrokerAccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5BrokerAccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5BrokerAccountInfo", optionalArgs);
     }
@@ -2907,7 +2909,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5BrokerAssetQuerySubMemberDepositRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5BrokerAssetQuerySubMemberDepositRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5BrokerAssetQuerySubMemberDepositRecord", optionalArgs);
     }
@@ -2918,7 +2920,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EarnProduct (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EarnProduct (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EarnProduct", optionalArgs);
     }
@@ -2929,7 +2931,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EarnOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EarnOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EarnOrder", optionalArgs);
     }
@@ -2940,7 +2942,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EarnPosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EarnPosition (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EarnPosition", optionalArgs);
     }
@@ -2951,7 +2953,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EarnYield (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EarnYield (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EarnYield", optionalArgs);
     }
@@ -2962,7 +2964,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EarnHourlyYield (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EarnHourlyYield (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EarnHourlyYield", optionalArgs);
     }
@@ -2973,7 +2975,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventOrderRealtime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EventOrderRealtime (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EventOrderRealtime", optionalArgs);
     }
@@ -2984,7 +2986,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EventOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EventOrderList", optionalArgs);
     }
@@ -2995,7 +2997,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EventPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EventPositions", optionalArgs);
     }
@@ -3006,7 +3008,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EventTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EventTrades", optionalArgs);
     }
@@ -3017,7 +3019,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventSettlements (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5EventSettlements (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EventSettlements", optionalArgs);
     }
@@ -3028,7 +3030,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotXLaunchpoolUserCurrentStaking (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotXLaunchpoolUserCurrentStaking (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotXLaunchpoolUserCurrentStaking", optionalArgs);
     }
@@ -3039,7 +3041,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotXTokenSplashUserActivityParams (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5SpotXTokenSplashUserActivityParams (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotXTokenSplashUserActivityParams", optionalArgs);
     }
@@ -3050,7 +3052,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5RfqRfqDetailList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5RfqRfqDetailList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5RfqRfqDetailList", optionalArgs);
     }
@@ -3061,7 +3063,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AlphaPredictionEngineStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AlphaPredictionEngineStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AlphaPredictionEngineStatus", optionalArgs);
     }
@@ -3072,7 +3074,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AlphaPredictionPayTokenList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AlphaPredictionPayTokenList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AlphaPredictionPayTokenList", optionalArgs);
     }
@@ -3083,7 +3085,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AlphaPredictionSportsTimelineStages (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV5AlphaPredictionSportsTimelineStages (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AlphaPredictionSportsTimelineStages", optionalArgs);
     }
@@ -3094,7 +3096,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotV3PrivateOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotV3PrivateOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotV3PrivateOrder", optionalArgs);
     }
@@ -3105,7 +3107,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotV3PrivateCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotV3PrivateCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotV3PrivateCancelOrder", optionalArgs);
     }
@@ -3116,7 +3118,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotV3PrivateCancelOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotV3PrivateCancelOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotV3PrivateCancelOrders", optionalArgs);
     }
@@ -3127,7 +3129,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotV3PrivateCancelOrdersByIds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotV3PrivateCancelOrdersByIds (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotV3PrivateCancelOrdersByIds", optionalArgs);
     }
@@ -3138,7 +3140,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotV3PrivatePurchase (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotV3PrivatePurchase (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotV3PrivatePurchase", optionalArgs);
     }
@@ -3149,7 +3151,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotV3PrivateRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotV3PrivateRedeem (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotV3PrivateRedeem", optionalArgs);
     }
@@ -3160,7 +3162,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotV3PrivateCrossMarginLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotV3PrivateCrossMarginLoan (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotV3PrivateCrossMarginLoan", optionalArgs);
     }
@@ -3171,7 +3173,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSpotV3PrivateCrossMarginRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSpotV3PrivateCrossMarginRepay (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSpotV3PrivateCrossMarginRepay", optionalArgs);
     }
@@ -3182,7 +3184,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssetV3PrivateTransferInterTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAssetV3PrivateTransferInterTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetV3PrivateTransferInterTransfer", optionalArgs);
     }
@@ -3193,7 +3195,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssetV3PrivateWithdrawCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAssetV3PrivateWithdrawCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetV3PrivateWithdrawCreate", optionalArgs);
     }
@@ -3204,7 +3206,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssetV3PrivateWithdrawCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAssetV3PrivateWithdrawCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetV3PrivateWithdrawCancel", optionalArgs);
     }
@@ -3215,7 +3217,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssetV3PrivateTransferSubMemberTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAssetV3PrivateTransferSubMemberTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetV3PrivateTransferSubMemberTransfer", optionalArgs);
     }
@@ -3226,7 +3228,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssetV3PrivateTransferTransferSubMemberSave (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAssetV3PrivateTransferTransferSubMemberSave (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetV3PrivateTransferTransferSubMemberSave", optionalArgs);
     }
@@ -3237,7 +3239,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssetV3PrivateTransferUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAssetV3PrivateTransferUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetV3PrivateTransferUniversalTransfer", optionalArgs);
     }
@@ -3248,7 +3250,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserV3PrivateCreateSubMember (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserV3PrivateCreateSubMember (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserV3PrivateCreateSubMember", optionalArgs);
     }
@@ -3259,7 +3261,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserV3PrivateCreateSubApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserV3PrivateCreateSubApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserV3PrivateCreateSubApi", optionalArgs);
     }
@@ -3270,7 +3272,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserV3PrivateUpdateApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserV3PrivateUpdateApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserV3PrivateUpdateApi", optionalArgs);
     }
@@ -3281,7 +3283,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserV3PrivateDeleteApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserV3PrivateDeleteApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserV3PrivateDeleteApi", optionalArgs);
     }
@@ -3292,7 +3294,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserV3PrivateUpdateSubApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserV3PrivateUpdateSubApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserV3PrivateUpdateSubApi", optionalArgs);
     }
@@ -3303,7 +3305,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserV3PrivateDeleteSubApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserV3PrivateDeleteSubApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserV3PrivateDeleteSubApi", optionalArgs);
     }
@@ -3314,7 +3316,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateCopytradingOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateCopytradingOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateCopytradingOrderCreate", optionalArgs);
     }
@@ -3325,7 +3327,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateCopytradingOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateCopytradingOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateCopytradingOrderCancel", optionalArgs);
     }
@@ -3336,7 +3338,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateCopytradingOrderClose (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateCopytradingOrderClose (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateCopytradingOrderClose", optionalArgs);
     }
@@ -3347,7 +3349,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateCopytradingPositionClose (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateCopytradingPositionClose (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateCopytradingPositionClose", optionalArgs);
     }
@@ -3358,7 +3360,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateCopytradingPositionSetLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateCopytradingPositionSetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateCopytradingPositionSetLeverage", optionalArgs);
     }
@@ -3369,7 +3371,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateCopytradingWalletTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateCopytradingWalletTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateCopytradingWalletTransfer", optionalArgs);
     }
@@ -3380,7 +3382,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateCopytradingOrderTradingStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateCopytradingOrderTradingStop (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateCopytradingOrderTradingStop", optionalArgs);
     }
@@ -3391,7 +3393,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateOrderCreate", optionalArgs);
     }
@@ -3402,7 +3404,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateOrderCancel", optionalArgs);
     }
@@ -3413,7 +3415,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateOrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateOrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateOrderCancelAll", optionalArgs);
     }
@@ -3424,7 +3426,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateOrderReplace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateOrderReplace (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateOrderReplace", optionalArgs);
     }
@@ -3435,7 +3437,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivatePositionSetAutoAddMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivatePositionSetAutoAddMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivatePositionSetAutoAddMargin", optionalArgs);
     }
@@ -3446,7 +3448,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivatePositionSwitchIsolated (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivatePositionSwitchIsolated (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivatePositionSwitchIsolated", optionalArgs);
     }
@@ -3457,7 +3459,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivatePositionSwitchMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivatePositionSwitchMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivatePositionSwitchMode", optionalArgs);
     }
@@ -3468,7 +3470,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivatePositionSwitchTpslMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivatePositionSwitchTpslMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivatePositionSwitchTpslMode", optionalArgs);
     }
@@ -3479,7 +3481,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivatePositionSetLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivatePositionSetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivatePositionSetLeverage", optionalArgs);
     }
@@ -3490,7 +3492,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivatePositionTradingStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivatePositionTradingStop (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivatePositionTradingStop", optionalArgs);
     }
@@ -3501,7 +3503,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivatePositionSetRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivatePositionSetRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivatePositionSetRiskLimit", optionalArgs);
     }
@@ -3512,7 +3514,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostContractV3PrivateAccountSetMarginMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostContractV3PrivateAccountSetMarginMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostContractV3PrivateAccountSetMarginMode", optionalArgs);
     }
@@ -3523,7 +3525,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateOrderCreate", optionalArgs);
     }
@@ -3534,7 +3536,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateOrderReplace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateOrderReplace (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateOrderReplace", optionalArgs);
     }
@@ -3545,7 +3547,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateOrderCancel", optionalArgs);
     }
@@ -3556,7 +3558,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateOrderCreateBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateOrderCreateBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateOrderCreateBatch", optionalArgs);
     }
@@ -3567,7 +3569,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateOrderReplaceBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateOrderReplaceBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateOrderReplaceBatch", optionalArgs);
     }
@@ -3578,7 +3580,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateOrderCancelBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateOrderCancelBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateOrderCancelBatch", optionalArgs);
     }
@@ -3589,7 +3591,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateOrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateOrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateOrderCancelAll", optionalArgs);
     }
@@ -3600,7 +3602,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivatePositionSetLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivatePositionSetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivatePositionSetLeverage", optionalArgs);
     }
@@ -3611,7 +3613,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivatePositionTpslSwitchMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivatePositionTpslSwitchMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivatePositionTpslSwitchMode", optionalArgs);
     }
@@ -3622,7 +3624,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivatePositionSetRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivatePositionSetRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivatePositionSetRiskLimit", optionalArgs);
     }
@@ -3633,7 +3635,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivatePositionTradingStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivatePositionTradingStop (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivatePositionTradingStop", optionalArgs);
     }
@@ -3644,7 +3646,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount", optionalArgs);
     }
@@ -3655,7 +3657,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnifiedV3PrivateAccountSetMarginMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUnifiedV3PrivateAccountSetMarginMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnifiedV3PrivateAccountSetMarginMode", optionalArgs);
     }
@@ -3666,7 +3668,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFhtComplianceTaxV3PrivateRegistertime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFhtComplianceTaxV3PrivateRegistertime (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFhtComplianceTaxV3PrivateRegistertime", optionalArgs);
     }
@@ -3677,7 +3679,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFhtComplianceTaxV3PrivateCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFhtComplianceTaxV3PrivateCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFhtComplianceTaxV3PrivateCreate", optionalArgs);
     }
@@ -3688,7 +3690,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFhtComplianceTaxV3PrivateStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFhtComplianceTaxV3PrivateStatus (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFhtComplianceTaxV3PrivateStatus", optionalArgs);
     }
@@ -3699,7 +3701,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFhtComplianceTaxV3PrivateUrl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFhtComplianceTaxV3PrivateUrl (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFhtComplianceTaxV3PrivateUrl", optionalArgs);
     }
@@ -3710,7 +3712,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderCreate", optionalArgs);
     }
@@ -3721,7 +3723,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderAmend (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderAmend (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderAmend", optionalArgs);
     }
@@ -3732,7 +3734,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderCancel", optionalArgs);
     }
@@ -3743,7 +3745,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderCancelAll", optionalArgs);
     }
@@ -3754,7 +3756,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderCreateBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderCreateBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderCreateBatch", optionalArgs);
     }
@@ -3765,7 +3767,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderAmendBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderAmendBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderAmendBatch", optionalArgs);
     }
@@ -3776,7 +3778,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderCancelBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderCancelBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderCancelBatch", optionalArgs);
     }
@@ -3787,7 +3789,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderDisconnectedCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderDisconnectedCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderDisconnectedCancelAll", optionalArgs);
     }
@@ -3798,7 +3800,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5OrderPreCheck (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5OrderPreCheck (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5OrderPreCheck", optionalArgs);
     }
@@ -3809,7 +3811,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionSetLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionSetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionSetLeverage", optionalArgs);
     }
@@ -3820,7 +3822,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionSwitchIsolated (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionSwitchIsolated (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionSwitchIsolated", optionalArgs);
     }
@@ -3831,7 +3833,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionSetTpslMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionSetTpslMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionSetTpslMode", optionalArgs);
     }
@@ -3842,7 +3844,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionSwitchMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionSwitchMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionSwitchMode", optionalArgs);
     }
@@ -3853,7 +3855,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionSetRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionSetRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionSetRiskLimit", optionalArgs);
     }
@@ -3864,7 +3866,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionTradingStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionTradingStop (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionTradingStop", optionalArgs);
     }
@@ -3875,7 +3877,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionSetAutoAddMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionSetAutoAddMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionSetAutoAddMargin", optionalArgs);
     }
@@ -3886,7 +3888,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionAddMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionAddMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionAddMargin", optionalArgs);
     }
@@ -3897,7 +3899,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionMovePositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionMovePositions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionMovePositions", optionalArgs);
     }
@@ -3908,7 +3910,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5PositionConfirmPendingMmr (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5PositionConfirmPendingMmr (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionConfirmPendingMmr", optionalArgs);
     }
@@ -3919,7 +3921,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountUpgradeToUta (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountUpgradeToUta (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountUpgradeToUta", optionalArgs);
     }
@@ -3930,7 +3932,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountQuickRepayment (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountQuickRepayment (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountQuickRepayment", optionalArgs);
     }
@@ -3941,7 +3943,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountSetMarginMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountSetMarginMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountSetMarginMode", optionalArgs);
     }
@@ -3952,7 +3954,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountSetHedgingMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountSetHedgingMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountSetHedgingMode", optionalArgs);
     }
@@ -3963,7 +3965,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountMmpModify (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountMmpModify (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountMmpModify", optionalArgs);
     }
@@ -3974,7 +3976,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountMmpReset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountMmpReset (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountMmpReset", optionalArgs);
     }
@@ -3985,7 +3987,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountBorrow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountBorrow (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountBorrow", optionalArgs);
     }
@@ -3996,7 +3998,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountRepay (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountRepay", optionalArgs);
     }
@@ -4007,7 +4009,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountNoConvertRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountNoConvertRepay (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountNoConvertRepay", optionalArgs);
     }
@@ -4018,7 +4020,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountSetLimitPxAction (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountSetLimitPxAction (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountSetLimitPxAction", optionalArgs);
     }
@@ -4029,7 +4031,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountSetDeltaMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountSetDeltaMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountSetDeltaMode", optionalArgs);
     }
@@ -4040,7 +4042,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetExchangeQuoteApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetExchangeQuoteApply (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetExchangeQuoteApply", optionalArgs);
     }
@@ -4051,7 +4053,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetExchangeConvertExecute (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetExchangeConvertExecute (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetExchangeConvertExecute", optionalArgs);
     }
@@ -4062,7 +4064,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetTransferInterTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetTransferInterTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetTransferInterTransfer", optionalArgs);
     }
@@ -4073,7 +4075,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetTransferSaveTransferSubMember (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetTransferSaveTransferSubMember (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetTransferSaveTransferSubMember", optionalArgs);
     }
@@ -4084,7 +4086,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetTransferUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetTransferUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetTransferUniversalTransfer", optionalArgs);
     }
@@ -4095,7 +4097,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetDepositDepositToAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetDepositDepositToAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetDepositDepositToAccount", optionalArgs);
     }
@@ -4106,7 +4108,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetTravelRuleDepositSubmit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetTravelRuleDepositSubmit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetTravelRuleDepositSubmit", optionalArgs);
     }
@@ -4117,7 +4119,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetWithdrawCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetWithdrawCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetWithdrawCreate", optionalArgs);
     }
@@ -4128,7 +4130,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetWithdrawCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetWithdrawCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetWithdrawCancel", optionalArgs);
     }
@@ -4139,7 +4141,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetCovertGetQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetCovertGetQuote (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetCovertGetQuote", optionalArgs);
     }
@@ -4150,7 +4152,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AssetCovertSmallBalanceExecute (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AssetCovertSmallBalanceExecute (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetCovertSmallBalanceExecute", optionalArgs);
     }
@@ -4161,7 +4163,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5FiatQuoteApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5FiatQuoteApply (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5FiatQuoteApply", optionalArgs);
     }
@@ -4172,7 +4174,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5FiatTradeExecute (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5FiatTradeExecute (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5FiatTradeExecute", optionalArgs);
     }
@@ -4183,7 +4185,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserCreateSubMember (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserCreateSubMember (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserCreateSubMember", optionalArgs);
     }
@@ -4194,7 +4196,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserCreateSubApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserCreateSubApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserCreateSubApi", optionalArgs);
     }
@@ -4205,7 +4207,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserFrozenSubMember (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserFrozenSubMember (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserFrozenSubMember", optionalArgs);
     }
@@ -4216,7 +4218,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserUpdateApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserUpdateApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserUpdateApi", optionalArgs);
     }
@@ -4227,7 +4229,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserUpdateSubApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserUpdateSubApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserUpdateSubApi", optionalArgs);
     }
@@ -4238,7 +4240,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserDeleteApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserDeleteApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserDeleteApi", optionalArgs);
     }
@@ -4249,7 +4251,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserDeleteSubApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserDeleteSubApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserDeleteSubApi", optionalArgs);
     }
@@ -4260,7 +4262,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserAgreement (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserAgreement (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserAgreement", optionalArgs);
     }
@@ -4271,7 +4273,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5UserCreateDemoMember (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5UserCreateDemoMember (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5UserCreateDemoMember", optionalArgs);
     }
@@ -4282,7 +4284,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotLeverTokenPurchase (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotLeverTokenPurchase (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotLeverTokenPurchase", optionalArgs);
     }
@@ -4293,7 +4295,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotLeverTokenRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotLeverTokenRedeem (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotLeverTokenRedeem", optionalArgs);
     }
@@ -4304,7 +4306,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotMarginTradeSwitchMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotMarginTradeSwitchMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotMarginTradeSwitchMode", optionalArgs);
     }
@@ -4315,7 +4317,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotMarginTradeSetLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotMarginTradeSetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotMarginTradeSetLeverage", optionalArgs);
     }
@@ -4326,7 +4328,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotMarginTradeSetAutoRepayMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotMarginTradeSetAutoRepayMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotMarginTradeSetAutoRepayMode", optionalArgs);
     }
@@ -4337,7 +4339,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotMarginTradeFixedborrow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotMarginTradeFixedborrow (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotMarginTradeFixedborrow", optionalArgs);
     }
@@ -4348,7 +4350,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotMarginTradeFixedborrowRenew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotMarginTradeFixedborrowRenew (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotMarginTradeFixedborrowRenew", optionalArgs);
     }
@@ -4359,7 +4361,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotCrossMarginTradeLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotCrossMarginTradeLoan (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotCrossMarginTradeLoan", optionalArgs);
     }
@@ -4370,7 +4372,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotCrossMarginTradeRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotCrossMarginTradeRepay (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotCrossMarginTradeRepay", optionalArgs);
     }
@@ -4381,7 +4383,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotCrossMarginTradeSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotCrossMarginTradeSwitch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotCrossMarginTradeSwitch", optionalArgs);
     }
@@ -4392,7 +4394,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanBorrow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanBorrow (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanBorrow", optionalArgs);
     }
@@ -4403,7 +4405,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanRepay (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanRepay", optionalArgs);
     }
@@ -4414,7 +4416,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanAdjustLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanAdjustLtv (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanAdjustLtv", optionalArgs);
     }
@@ -4425,7 +4427,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanCommonAdjustLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanCommonAdjustLtv (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanCommonAdjustLtv", optionalArgs);
     }
@@ -4436,7 +4438,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanCommonMaxLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanCommonMaxLoan (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanCommonMaxLoan", optionalArgs);
     }
@@ -4447,7 +4449,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFlexibleBorrow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFlexibleBorrow (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFlexibleBorrow", optionalArgs);
     }
@@ -4458,7 +4460,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFlexibleRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFlexibleRepay (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFlexibleRepay", optionalArgs);
     }
@@ -4469,7 +4471,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFlexibleRepayCollateral (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFlexibleRepayCollateral (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFlexibleRepayCollateral", optionalArgs);
     }
@@ -4480,7 +4482,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFixedBorrow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFixedBorrow (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFixedBorrow", optionalArgs);
     }
@@ -4491,7 +4493,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFixedRenew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFixedRenew (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFixedRenew", optionalArgs);
     }
@@ -4502,7 +4504,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFixedSupply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFixedSupply (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFixedSupply", optionalArgs);
     }
@@ -4513,7 +4515,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFixedBorrowOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFixedBorrowOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFixedBorrowOrderCancel", optionalArgs);
     }
@@ -4524,7 +4526,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFixedSupplyOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFixedSupplyOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFixedSupplyOrderCancel", optionalArgs);
     }
@@ -4535,7 +4537,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFixedFullyRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFixedFullyRepay (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFixedFullyRepay", optionalArgs);
     }
@@ -4546,7 +4548,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5CryptoLoanFixedRepayCollateral (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5CryptoLoanFixedRepayCollateral (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5CryptoLoanFixedRepayCollateral", optionalArgs);
     }
@@ -4557,7 +4559,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5InsLoanAssociationUid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5InsLoanAssociationUid (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5InsLoanAssociationUid", optionalArgs);
     }
@@ -4568,7 +4570,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5InsLoanRepayLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5InsLoanRepayLoan (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5InsLoanRepayLoan", optionalArgs);
     }
@@ -4579,7 +4581,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5LendingPurchase (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5LendingPurchase (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5LendingPurchase", optionalArgs);
     }
@@ -4590,7 +4592,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5LendingRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5LendingRedeem (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5LendingRedeem", optionalArgs);
     }
@@ -4601,7 +4603,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5LendingRedeemCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5LendingRedeemCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5LendingRedeemCancel", optionalArgs);
     }
@@ -4612,7 +4614,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountSetCollateralSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountSetCollateralSwitch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountSetCollateralSwitch", optionalArgs);
     }
@@ -4623,7 +4625,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountSetCollateralSwitchBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountSetCollateralSwitchBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountSetCollateralSwitchBatch", optionalArgs);
     }
@@ -4634,7 +4636,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AccountDemoApplyMoney (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AccountDemoApplyMoney (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AccountDemoApplyMoney", optionalArgs);
     }
@@ -4645,7 +4647,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5BrokerAwardInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5BrokerAwardInfo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5BrokerAwardInfo", optionalArgs);
     }
@@ -4656,7 +4658,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5BrokerAwardDistributeAward (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5BrokerAwardDistributeAward (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5BrokerAwardDistributeAward", optionalArgs);
     }
@@ -4667,7 +4669,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5BrokerAwardDistributionRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5BrokerAwardDistributionRecord (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5BrokerAwardDistributionRecord", optionalArgs);
     }
@@ -4678,7 +4680,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5EarnPlaceOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5EarnPlaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5EarnPlaceOrder", optionalArgs);
     }
@@ -4689,7 +4691,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5EventQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5EventQuotes (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5EventQuotes", optionalArgs);
     }
@@ -4700,7 +4702,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5EventCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5EventCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5EventCancel", optionalArgs);
     }
@@ -4711,7 +4713,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotXLaunchpoolUserActivityLog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotXLaunchpoolUserActivityLog (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotXLaunchpoolUserActivityLog", optionalArgs);
     }
@@ -4722,7 +4724,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotXLaunchpoolUserHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5SpotXLaunchpoolUserHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotXLaunchpoolUserHistory", optionalArgs);
     }
@@ -4733,7 +4735,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionEventDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionEventDetail (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionEventDetail", optionalArgs);
     }
@@ -4744,7 +4746,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionOrderEstimate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionOrderEstimate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionOrderEstimate", optionalArgs);
     }
@@ -4755,7 +4757,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionBuy (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionBuy (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionBuy", optionalArgs);
     }
@@ -4766,7 +4768,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionSell (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionSell (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionSell", optionalArgs);
     }
@@ -4777,7 +4779,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionOrderList", optionalArgs);
     }
@@ -4788,7 +4790,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionOrderBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionOrderBook", optionalArgs);
     }
@@ -4799,7 +4801,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionTokenPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionTokenPrice (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionTokenPrice", optionalArgs);
     }
@@ -4810,7 +4812,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionPriceHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionPriceHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionPriceHistory", optionalArgs);
     }
@@ -4821,7 +4823,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionPositionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionPositionList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionPositionList", optionalArgs);
     }
@@ -4832,7 +4834,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionPositionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionPositionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionPositionHistory", optionalArgs);
     }
@@ -4843,7 +4845,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionPortfolioSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionPortfolioSummary (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionPortfolioSummary", optionalArgs);
     }
@@ -4854,7 +4856,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionSideMarketList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionSideMarketList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionSideMarketList", optionalArgs);
     }
@@ -4865,7 +4867,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionSportsMatchList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionSportsMatchList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionSportsMatchList", optionalArgs);
     }
@@ -4876,7 +4878,7 @@ public class BybiteuApi extends BybitCore
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionSportsGroupStageDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV5AlphaPredictionSportsGroupStageDetail (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AlphaPredictionSportsGroupStageDetail", optionalArgs);
     }

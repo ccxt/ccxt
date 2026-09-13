@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class BitstampApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOhlcPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOhlcPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOhlcPair", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrderBookPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrderBookPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderBookPair", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickerHourPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickerHourPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerHourPair", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickerPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickerPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerPair", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTransactionsPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTransactionsPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTransactionsPair", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTradingPairsInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTradingPairsInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradingPairsInfo", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarkets", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrencies", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetEurUsd (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetEurUsd (Object... optionalArgs)
     {
         return this.callAsync ("publicGetEurUsd", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTravelRuleVasps (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTravelRuleVasps (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTravelRuleVasps", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetFundingRateMarketSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetFundingRateMarketSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetFundingRateMarketSymbol", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetFundingRateHistoryPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetFundingRateHistoryPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetFundingRateHistoryPair", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetDerivativesMarketHours (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetDerivativesMarketHours (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesMarketHours", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesMarketHoursMarketSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDerivativesMarketHoursMarketSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDerivativesMarketHoursMarketSymbol", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTravelRuleContacts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetTravelRuleContacts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTravelRuleContacts", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContactsContactUuid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetContactsContactUuid (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContactsContactUuid", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTravelRuleUtxoXpubRegistrations (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetTravelRuleUtxoXpubRegistrations (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTravelRuleUtxoXpubRegistrations", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetTravelRuleUtxoXpubRegistrationsRegistrationId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetTravelRuleUtxoXpubRegistrationsRegistrationId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTravelRuleUtxoXpubRegistrationsRegistrationId", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetTravelRuleAddressVerification (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetTravelRuleAddressVerification (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTravelRuleAddressVerification", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetCryptoTransactionsDeposits (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetCryptoTransactionsDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privateGetCryptoTransactionsDeposits", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetEarnSubscriptions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetEarnSubscriptions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetEarnSubscriptions", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetEarnTransactions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetEarnTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetEarnTransactions", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTradeHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTradeHistory", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTradeHistoryPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetTradeHistoryPair (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTradeHistoryPair", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountBalances (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountBalances", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountBalancesCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountBalancesCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountBalancesCurrency", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBalance (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBalance", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBalancePair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBalancePair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBalancePair", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBchWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBchWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBchWithdrawal", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBchAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBchAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBchAddress", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostUserTransactions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostUserTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserTransactions", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostUserTransactionsPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostUserTransactionsPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserTransactionsPair", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCryptoTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCryptoTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCryptoTransactions", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCryptoTransactionsDepositsDepositIdReject (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCryptoTransactionsDepositsDepositIdReject (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCryptoTransactionsDepositsDepositIdReject", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenOrder", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostOpenOrdersAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostOpenOrdersAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenOrdersAll", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostOpenOrdersPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostOpenOrdersPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenOrdersPair", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReplaceOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostReplaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostReplaceOrder", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrderStatus (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderStatus", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrder", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelAllOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelAllOrders", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelAllOrdersPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelAllOrdersPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelAllOrdersPair", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBuyPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBuyPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBuyPair", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBuyMarketPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBuyMarketPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBuyMarketPair", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBuyInstantPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBuyInstantPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBuyInstantPair", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSellPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSellPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSellPair", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSellMarketPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSellMarketPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSellMarketPair", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSellInstantPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSellInstantPair (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSellInstantPair", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransferToMain (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransferToMain (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransferToMain", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransferFromMain (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransferFromMain (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransferFromMain", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostMyTradingPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostMyTradingPairs (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMyTradingPairs", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostFeesTrading (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostFeesTrading (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFeesTrading", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFeesTradingMarketSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFeesTradingMarketSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFeesTradingMarketSymbol", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostFeesWithdrawal (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostFeesWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFeesWithdrawal", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFeesWithdrawalCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFeesWithdrawalCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFeesWithdrawalCurrency", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostWithdrawalRequests (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostWithdrawalRequests (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawalRequests", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawalOpen (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawalOpen (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawalOpen", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawalStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawalStatus (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawalStatus", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawalCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawalCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawalCancel", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLiquidationAddressNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLiquidationAddressNew (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLiquidationAddressNew", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLiquidationAddressInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLiquidationAddressInfo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLiquidationAddressInfo", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBtcUnconfirmed (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBtcUnconfirmed (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBtcUnconfirmed", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWebsocketsToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWebsocketsToken (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWebsocketsToken", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRevokeAllApiKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRevokeAllApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRevokeAllApiKeys", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetMaxOrderAmount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetMaxOrderAmount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetMaxOrderAmount", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostOrderData (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostOrderData (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderData", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAccountOrderData (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostAccountOrderData (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountOrderData", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBtcWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBtcWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBtcWithdrawal", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBtcAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBtcAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBtcAddress", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRippleWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRippleWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRippleWithdrawal", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRippleAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRippleAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRippleAddress", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLtcWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLtcWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLtcWithdrawal", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLtcAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLtcAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLtcAddress", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEthWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEthWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEthWithdrawal", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEthAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEthAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEthAddress", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostXrpWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostXrpWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostXrpWithdrawal", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostXrpAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostXrpAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostXrpAddress", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostXlmWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostXlmWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostXlmWithdrawal", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostXlmAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostXlmAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostXlmAddress", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPaxWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPaxWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPaxWithdrawal", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPaxAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPaxAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPaxAddress", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLinkWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLinkWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLinkWithdrawal", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLinkAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLinkAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLinkAddress", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUsdcWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUsdcWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUsdcWithdrawal", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUsdcAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUsdcAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUsdcAddress", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOmgWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOmgWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOmgWithdrawal", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOmgAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOmgAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOmgAddress", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDaiWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDaiWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDaiWithdrawal", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDaiAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDaiAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDaiAddress", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostKncWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostKncWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostKncWithdrawal", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostKncAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostKncAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostKncAddress", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMkrWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMkrWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMkrWithdrawal", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMkrAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMkrAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMkrAddress", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostZrxWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostZrxWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostZrxWithdrawal", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostZrxAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostZrxAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostZrxAddress", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGusdWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGusdWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGusdWithdrawal", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGusdAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGusdAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGusdAddress", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAaveWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAaveWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAaveWithdrawal", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAaveAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAaveAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAaveAddress", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBatWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBatWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBatWithdrawal", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBatAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBatAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBatAddress", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUmaWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUmaWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUmaWithdrawal", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUmaAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUmaAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUmaAddress", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSnxWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSnxWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSnxWithdrawal", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSnxAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSnxAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSnxAddress", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUniWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUniWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUniWithdrawal", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUniAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUniAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUniAddress", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostYfiWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostYfiWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostYfiWithdrawal", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostYfiAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostYfiAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostYfiAddress", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAudioWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAudioWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAudioWithdrawal", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAudioAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAudioAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAudioAddress", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCrvWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCrvWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCrvWithdrawal", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCrvAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCrvAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCrvAddress", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAlgoWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAlgoWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAlgoWithdrawal", optionalArgs);
     }
@@ -1290,7 +1293,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAlgoAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAlgoAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAlgoAddress", optionalArgs);
     }
@@ -1301,7 +1304,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCompWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCompWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCompWithdrawal", optionalArgs);
     }
@@ -1312,7 +1315,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCompAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCompAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCompAddress", optionalArgs);
     }
@@ -1323,7 +1326,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGrtWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGrtWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGrtWithdrawal", optionalArgs);
     }
@@ -1334,7 +1337,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGrtAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGrtAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGrtAddress", optionalArgs);
     }
@@ -1345,7 +1348,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUsdtWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUsdtWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUsdtWithdrawal", optionalArgs);
     }
@@ -1356,7 +1359,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUsdtAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUsdtAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUsdtAddress", optionalArgs);
     }
@@ -1367,7 +1370,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEurtWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEurtWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEurtWithdrawal", optionalArgs);
     }
@@ -1378,7 +1381,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEurtAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEurtAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEurtAddress", optionalArgs);
     }
@@ -1389,7 +1392,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMaticWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMaticWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMaticWithdrawal", optionalArgs);
     }
@@ -1400,7 +1403,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMaticAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMaticAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMaticAddress", optionalArgs);
     }
@@ -1411,7 +1414,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSushiWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSushiWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSushiWithdrawal", optionalArgs);
     }
@@ -1422,7 +1425,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSushiAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSushiAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSushiAddress", optionalArgs);
     }
@@ -1433,7 +1436,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostChzWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostChzWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostChzWithdrawal", optionalArgs);
     }
@@ -1444,7 +1447,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostChzAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostChzAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostChzAddress", optionalArgs);
     }
@@ -1455,7 +1458,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEnjWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEnjWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEnjWithdrawal", optionalArgs);
     }
@@ -1466,7 +1469,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEnjAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEnjAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEnjAddress", optionalArgs);
     }
@@ -1477,7 +1480,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAlphaWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAlphaWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAlphaWithdrawal", optionalArgs);
     }
@@ -1488,7 +1491,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAlphaAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAlphaAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAlphaAddress", optionalArgs);
     }
@@ -1499,7 +1502,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFttWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFttWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFttWithdrawal", optionalArgs);
     }
@@ -1510,7 +1513,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFttAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFttAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFttAddress", optionalArgs);
     }
@@ -1521,7 +1524,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostStorjWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostStorjWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostStorjWithdrawal", optionalArgs);
     }
@@ -1532,7 +1535,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostStorjAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostStorjAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostStorjAddress", optionalArgs);
     }
@@ -1543,7 +1546,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAxsWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAxsWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAxsWithdrawal", optionalArgs);
     }
@@ -1554,7 +1557,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAxsAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAxsAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAxsAddress", optionalArgs);
     }
@@ -1565,7 +1568,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSandWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSandWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSandWithdrawal", optionalArgs);
     }
@@ -1576,7 +1579,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSandAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSandAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSandAddress", optionalArgs);
     }
@@ -1587,7 +1590,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostHbarWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostHbarWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostHbarWithdrawal", optionalArgs);
     }
@@ -1598,7 +1601,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostHbarAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostHbarAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostHbarAddress", optionalArgs);
     }
@@ -1609,7 +1612,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRgtWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRgtWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRgtWithdrawal", optionalArgs);
     }
@@ -1620,7 +1623,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRgtAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRgtAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRgtAddress", optionalArgs);
     }
@@ -1631,7 +1634,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFetWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFetWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFetWithdrawal", optionalArgs);
     }
@@ -1642,7 +1645,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFetAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFetAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFetAddress", optionalArgs);
     }
@@ -1653,7 +1656,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSklWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSklWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSklWithdrawal", optionalArgs);
     }
@@ -1664,7 +1667,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSklAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSklAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSklAddress", optionalArgs);
     }
@@ -1675,7 +1678,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCelWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCelWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCelWithdrawal", optionalArgs);
     }
@@ -1686,7 +1689,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCelAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCelAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCelAddress", optionalArgs);
     }
@@ -1697,7 +1700,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSxpWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSxpWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSxpWithdrawal", optionalArgs);
     }
@@ -1708,7 +1711,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSxpAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSxpAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSxpAddress", optionalArgs);
     }
@@ -1719,7 +1722,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAdaWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAdaWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAdaWithdrawal", optionalArgs);
     }
@@ -1730,7 +1733,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAdaAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAdaAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAdaAddress", optionalArgs);
     }
@@ -1741,7 +1744,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSlpWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSlpWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSlpWithdrawal", optionalArgs);
     }
@@ -1752,7 +1755,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSlpAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSlpAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSlpAddress", optionalArgs);
     }
@@ -1763,7 +1766,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFtmWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFtmWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFtmWithdrawal", optionalArgs);
     }
@@ -1774,7 +1777,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFtmAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFtmAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFtmAddress", optionalArgs);
     }
@@ -1785,7 +1788,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPerpWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPerpWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPerpWithdrawal", optionalArgs);
     }
@@ -1796,7 +1799,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPerpAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPerpAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPerpAddress", optionalArgs);
     }
@@ -1807,7 +1810,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDydxWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDydxWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDydxWithdrawal", optionalArgs);
     }
@@ -1818,7 +1821,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDydxAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDydxAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDydxAddress", optionalArgs);
     }
@@ -1829,7 +1832,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGalaWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGalaWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGalaWithdrawal", optionalArgs);
     }
@@ -1840,7 +1843,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGalaAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGalaAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGalaAddress", optionalArgs);
     }
@@ -1851,7 +1854,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostShibWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostShibWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostShibWithdrawal", optionalArgs);
     }
@@ -1862,7 +1865,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostShibAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostShibAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostShibAddress", optionalArgs);
     }
@@ -1873,7 +1876,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAmpWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAmpWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAmpWithdrawal", optionalArgs);
     }
@@ -1884,7 +1887,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAmpAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAmpAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAmpAddress", optionalArgs);
     }
@@ -1895,7 +1898,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSgbWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSgbWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSgbWithdrawal", optionalArgs);
     }
@@ -1906,7 +1909,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSgbAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSgbAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSgbAddress", optionalArgs);
     }
@@ -1917,7 +1920,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAvaxWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAvaxWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAvaxWithdrawal", optionalArgs);
     }
@@ -1928,7 +1931,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAvaxAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAvaxAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAvaxAddress", optionalArgs);
     }
@@ -1939,7 +1942,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWbtcWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWbtcWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWbtcWithdrawal", optionalArgs);
     }
@@ -1950,7 +1953,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWbtcAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWbtcAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWbtcAddress", optionalArgs);
     }
@@ -1961,7 +1964,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCtsiWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCtsiWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCtsiWithdrawal", optionalArgs);
     }
@@ -1972,7 +1975,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCtsiAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCtsiAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCtsiAddress", optionalArgs);
     }
@@ -1983,7 +1986,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCvxWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCvxWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCvxWithdrawal", optionalArgs);
     }
@@ -1994,7 +1997,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCvxAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCvxAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCvxAddress", optionalArgs);
     }
@@ -2005,7 +2008,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostImxWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostImxWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostImxWithdrawal", optionalArgs);
     }
@@ -2016,7 +2019,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostImxAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostImxAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostImxAddress", optionalArgs);
     }
@@ -2027,7 +2030,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostNexoWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostNexoWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostNexoWithdrawal", optionalArgs);
     }
@@ -2038,7 +2041,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostNexoAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostNexoAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostNexoAddress", optionalArgs);
     }
@@ -2049,7 +2052,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUstWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUstWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUstWithdrawal", optionalArgs);
     }
@@ -2060,7 +2063,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUstAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUstAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUstAddress", optionalArgs);
     }
@@ -2071,7 +2074,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAntWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAntWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAntWithdrawal", optionalArgs);
     }
@@ -2082,7 +2085,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAntAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAntAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAntAddress", optionalArgs);
     }
@@ -2093,7 +2096,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGodsWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGodsWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGodsWithdrawal", optionalArgs);
     }
@@ -2104,7 +2107,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGodsAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGodsAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGodsAddress", optionalArgs);
     }
@@ -2115,7 +2118,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRadWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRadWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRadWithdrawal", optionalArgs);
     }
@@ -2126,7 +2129,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRadAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRadAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRadAddress", optionalArgs);
     }
@@ -2137,7 +2140,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBandWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBandWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBandWithdrawal", optionalArgs);
     }
@@ -2148,7 +2151,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBandAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBandAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBandAddress", optionalArgs);
     }
@@ -2159,7 +2162,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInjWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInjWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInjWithdrawal", optionalArgs);
     }
@@ -2170,7 +2173,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInjAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInjAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInjAddress", optionalArgs);
     }
@@ -2181,7 +2184,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRlyWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRlyWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRlyWithdrawal", optionalArgs);
     }
@@ -2192,7 +2195,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRlyAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRlyAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRlyAddress", optionalArgs);
     }
@@ -2203,7 +2206,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRndrWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRndrWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRndrWithdrawal", optionalArgs);
     }
@@ -2214,7 +2217,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRndrAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRndrAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRndrAddress", optionalArgs);
     }
@@ -2225,7 +2228,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVegaWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostVegaWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVegaWithdrawal", optionalArgs);
     }
@@ -2236,7 +2239,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVegaAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostVegaAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVegaAddress", optionalArgs);
     }
@@ -2247,7 +2250,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePost1inchWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePost1inchWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePost1inchWithdrawal", optionalArgs);
     }
@@ -2258,7 +2261,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePost1inchAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePost1inchAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePost1inchAddress", optionalArgs);
     }
@@ -2269,7 +2272,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEnsWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEnsWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEnsWithdrawal", optionalArgs);
     }
@@ -2280,7 +2283,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEnsAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEnsAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEnsAddress", optionalArgs);
     }
@@ -2291,7 +2294,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostManaWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostManaWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostManaWithdrawal", optionalArgs);
     }
@@ -2302,7 +2305,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostManaAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostManaAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostManaAddress", optionalArgs);
     }
@@ -2313,7 +2316,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLrcWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLrcWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLrcWithdrawal", optionalArgs);
     }
@@ -2324,7 +2327,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLrcAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLrcAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLrcAddress", optionalArgs);
     }
@@ -2335,7 +2338,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApeWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApeWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApeWithdrawal", optionalArgs);
     }
@@ -2346,7 +2349,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApeAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApeAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApeAddress", optionalArgs);
     }
@@ -2357,7 +2360,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMplWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMplWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMplWithdrawal", optionalArgs);
     }
@@ -2368,7 +2371,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMplAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMplAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMplAddress", optionalArgs);
     }
@@ -2379,7 +2382,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEurocWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEurocWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEurocWithdrawal", optionalArgs);
     }
@@ -2390,7 +2393,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEurocAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEurocAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEurocAddress", optionalArgs);
     }
@@ -2401,7 +2404,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSolWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSolWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSolWithdrawal", optionalArgs);
     }
@@ -2412,7 +2415,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSolAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSolAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSolAddress", optionalArgs);
     }
@@ -2423,7 +2426,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDotWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDotWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDotWithdrawal", optionalArgs);
     }
@@ -2434,7 +2437,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDotAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDotAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDotAddress", optionalArgs);
     }
@@ -2445,7 +2448,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostNearWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostNearWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostNearWithdrawal", optionalArgs);
     }
@@ -2456,7 +2459,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostNearAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostNearAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostNearAddress", optionalArgs);
     }
@@ -2467,7 +2470,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDogeWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDogeWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDogeWithdrawal", optionalArgs);
     }
@@ -2478,7 +2481,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDogeAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDogeAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDogeAddress", optionalArgs);
     }
@@ -2489,7 +2492,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFlrWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFlrWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFlrWithdrawal", optionalArgs);
     }
@@ -2500,7 +2503,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFlrAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFlrAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFlrAddress", optionalArgs);
     }
@@ -2511,7 +2514,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDgldWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDgldWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDgldWithdrawal", optionalArgs);
     }
@@ -2522,7 +2525,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDgldAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDgldAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDgldAddress", optionalArgs);
     }
@@ -2533,7 +2536,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLdoWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLdoWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLdoWithdrawal", optionalArgs);
     }
@@ -2544,7 +2547,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLdoAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLdoAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLdoAddress", optionalArgs);
     }
@@ -2555,7 +2558,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleContacts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTravelRuleContacts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTravelRuleContacts", optionalArgs);
     }
@@ -2566,7 +2569,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleUtxoXpubRegistrations (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTravelRuleUtxoXpubRegistrations (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTravelRuleUtxoXpubRegistrations", optionalArgs);
     }
@@ -2577,7 +2580,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke", optionalArgs);
     }
@@ -2588,7 +2591,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEarnSubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEarnSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEarnSubscribe", optionalArgs);
     }
@@ -2599,7 +2602,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEarnSubscriptionsSetting (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEarnSubscriptionsSetting (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEarnSubscriptionsSetting", optionalArgs);
     }
@@ -2610,7 +2613,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEarnUnsubscribe (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEarnUnsubscribe (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEarnUnsubscribe", optionalArgs);
     }
@@ -2621,7 +2624,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWecanWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWecanWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWecanWithdrawal", optionalArgs);
     }
@@ -2632,7 +2635,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWecanAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWecanAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWecanAddress", optionalArgs);
     }
@@ -2643,7 +2646,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTracWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTracWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTracWithdrawal", optionalArgs);
     }
@@ -2654,7 +2657,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTracAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTracAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTracAddress", optionalArgs);
     }
@@ -2665,7 +2668,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEurcvWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEurcvWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEurcvWithdrawal", optionalArgs);
     }
@@ -2676,7 +2679,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEurcvAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEurcvAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEurcvAddress", optionalArgs);
     }
@@ -2687,7 +2690,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPyusdWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPyusdWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPyusdWithdrawal", optionalArgs);
     }
@@ -2698,7 +2701,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPyusdAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPyusdAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPyusdAddress", optionalArgs);
     }
@@ -2709,7 +2712,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLmwrWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLmwrWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLmwrWithdrawal", optionalArgs);
     }
@@ -2720,7 +2723,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLmwrAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLmwrAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLmwrAddress", optionalArgs);
     }
@@ -2731,7 +2734,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPepeWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPepeWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPepeWithdrawal", optionalArgs);
     }
@@ -2742,7 +2745,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPepeAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPepeAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPepeAddress", optionalArgs);
     }
@@ -2753,7 +2756,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBlurWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBlurWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBlurWithdrawal", optionalArgs);
     }
@@ -2764,7 +2767,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBlurAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBlurAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBlurAddress", optionalArgs);
     }
@@ -2775,7 +2778,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVextWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostVextWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVextWithdrawal", optionalArgs);
     }
@@ -2786,7 +2789,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVextAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostVextAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVextAddress", optionalArgs);
     }
@@ -2797,7 +2800,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCsprWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCsprWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCsprWithdrawal", optionalArgs);
     }
@@ -2808,7 +2811,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCsprAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCsprAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCsprAddress", optionalArgs);
     }
@@ -2819,7 +2822,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVchfWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostVchfWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVchfWithdrawal", optionalArgs);
     }
@@ -2830,7 +2833,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVchfAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostVchfAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVchfAddress", optionalArgs);
     }
@@ -2841,7 +2844,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVeurWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostVeurWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVeurWithdrawal", optionalArgs);
     }
@@ -2852,7 +2855,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVeurAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostVeurAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVeurAddress", optionalArgs);
     }
@@ -2863,7 +2866,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTrufWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTrufWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTrufWithdrawal", optionalArgs);
     }
@@ -2874,7 +2877,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTrufAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTrufAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTrufAddress", optionalArgs);
     }
@@ -2885,7 +2888,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWifWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWifWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWifWithdrawal", optionalArgs);
     }
@@ -2896,7 +2899,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWifAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWifAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWifAddress", optionalArgs);
     }
@@ -2907,7 +2910,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSmtWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSmtWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSmtWithdrawal", optionalArgs);
     }
@@ -2918,7 +2921,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSmtAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSmtAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSmtAddress", optionalArgs);
     }
@@ -2929,7 +2932,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSuiWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSuiWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSuiWithdrawal", optionalArgs);
     }
@@ -2940,7 +2943,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSuiAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSuiAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSuiAddress", optionalArgs);
     }
@@ -2951,7 +2954,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostJupWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostJupWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostJupWithdrawal", optionalArgs);
     }
@@ -2962,7 +2965,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostJupAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostJupAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostJupAddress", optionalArgs);
     }
@@ -2973,7 +2976,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOndoWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOndoWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOndoWithdrawal", optionalArgs);
     }
@@ -2984,7 +2987,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOndoAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOndoAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOndoAddress", optionalArgs);
     }
@@ -2995,7 +2998,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBobaWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBobaWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBobaWithdrawal", optionalArgs);
     }
@@ -3006,7 +3009,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBobaAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBobaAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBobaAddress", optionalArgs);
     }
@@ -3017,7 +3020,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPythWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPythWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPythWithdrawal", optionalArgs);
     }
@@ -3028,7 +3031,7 @@ public class BitstampApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPythAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPythAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPythAddress", optionalArgs);
     }

@@ -9,7 +9,7 @@ import java.util.Map;
 // fields (flat typed access) and adds the prediction identity
 // and settlement fields. Mirrors the standalone `PredictionPosition`
 // interface in ts/src/base/types.ts.
-public final class PredictionPosition {
+public final class PredictionPosition extends TypedMap {
     public String id;
     public Long timestamp;
     public String datetime;
@@ -38,6 +38,7 @@ public final class PredictionPosition {
 
     @SuppressWarnings("unchecked")
     public PredictionPosition(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

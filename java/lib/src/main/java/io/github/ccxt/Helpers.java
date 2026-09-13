@@ -23,6 +23,15 @@ public class Helpers {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
+     * Converts a raw List<Object> into a typed List<T>; used by the generated
+     * TypedSurface / PredictionTypedSurface default methods.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
+        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
      * Block on a CompletableFuture and rethrow any wrapped ccxt error directly.
      *
      * <p>{@code CompletableFuture.join()} always wraps thrown exceptions in
@@ -47,7 +56,7 @@ public class Helpers {
      * the original typed exception (preserving class, message, stack trace,
      * and any subclass-specific fields).
      */
-    public static Object joinUnwrapped(CompletableFuture<Object> future) {
+    public static <T> T joinUnwrapped(CompletableFuture<T> future) {
         try {
             return future.join();
         } catch (CompletionException ce) {

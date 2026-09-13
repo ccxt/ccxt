@@ -28,8 +28,10 @@
 //     value type, which is the one decision TS actually makes for them
 //
 // Files with no plain map constructor to generate (OrderBook, Balances), and the Java-only
-// helper POJOs that have no TS declaration at all (Network, NetworkLimits), are left
-// alone - see SKIPPED below.
+// helper POJOs that have no TS declaration at all (Network, NetworkLimits), keep their
+// bodies - see SKIPPED below. Every dict-shaped class, generated or not, `extends TypedMap`
+// and calls `super(raw)` first: the typed value is a view over the payload map the core
+// returned, not a copy (see types/TypedMap.java).
 //
 // Brand-new files: the set of type names the Java port must declare is not "every TS export"
 // (index-signature bags such as NestedDictionary / fetchEventsParams / ConstructorArgs are
@@ -81,6 +83,12 @@ const FIELD_RENAMES: Record<string, string> = {
     'event': 'eventId',
 };
 
+/** Hand-written view bases every generated type extends (see viewOverRaw); never regenerated or deleted. */
+const VIEW_BASES: Record<string, boolean> = {
+    'TypedMap': true,
+    'TypedList': true,
+};
+
 /**
  * Types that are deliberately NOT generated, with the reason. Reported by the driver so the
  * skip list stays visible instead of silently shrinking coverage.
@@ -122,10 +130,10 @@ function readExisting (absolutePath: string, className: string): ExistingFile | 
     }
     const text = fs.readFileSync (absolutePath, 'utf8');
     const lines = text.split ('\n');
-    const classAnchor = 'public final class ' + className + ' {';
+    const classAnchors = [ 'public final class ' + className + ' extends TypedMap {', 'public final class ' + className + ' extends TypedList {', 'public final class ' + className + ' {' ];
     let classLine = -1;
     for (let i = 0; i < lines.length; i++) {
-        if (lines[i] === classAnchor) {
+        if (classAnchors.indexOf (lines[i]) >= 0) {
             classLine = i;
             break;
         }
@@ -190,7 +198,8 @@ function readExisting (absolutePath: string, className: string): ExistingFile | 
         }
     }
     const containsKeyStyle: Record<string, boolean> = {};
-    const mapCtor = lines[ctorLine + 1] === BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);';
+    const ctorBodyStart = lines[ctorLine + 1] === BODY + 'super(raw);' ? ctorLine + 2 : ctorLine + 1;
+    const mapCtor = lines[ctorBodyStart] === BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);';
     for (let i = ctorLine + 1; i < ctorEnd; i++) {
         const assign = lines[i].match (/^ {8}this\.([A-Za-z0-9_]+) = data\.containsKey\(/);
         if (assign !== null) {
@@ -533,11 +542,12 @@ function renderTuple (type: IRType, existing: ExistingFile | undefined): string 
     if (existing !== undefined && existing.classLeading.length > 0) {
         out.push (...existing.classLeading);
     }
-    out.push ('public final class ' + type.name + ' {');
+    out.push ('public final class ' + type.name + ' extends TypedList {');
     out.push (...fieldLines);
     out.push ('');
     // index-based constructors perform no unchecked cast, so they carry no @SuppressWarnings
     out.push (INDENT + 'public ' + type.name + '(Object raw) {');
+    out.push (BODY + 'super(raw);');
     out.push (...bodyLines);
     out.push (INDENT + '}');
     out.push ('}');
@@ -591,13 +601,14 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
     if (existing !== undefined && existing.classLeading.length > 0) {
         out.push (...existing.classLeading);
     }
-    out.push ('public final class ' + className + ' {');
+    out.push ('public final class ' + className + ' extends TypedMap {');
     out.push (...fieldLines);
     out.push ('');
     if (existing === undefined || existing.ctorAnnotated) {
         out.push (INDENT + '@SuppressWarnings("unchecked")');
     }
     out.push (INDENT + 'public ' + className + '(Object raw) {');
+    out.push (BODY + 'super(raw);');
     out.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
     out.push (...bodyLines);
     out.push (INDENT + '}');
@@ -694,10 +705,29 @@ function renderDictionary (ir: TypesIR, className: string, valueType: string, ex
     if (nestedToday !== elementIsList) {
         return undefined;
     }
+    const text = viewOverRaw (existing.text, className);
     if (current === elementClass) {
-        return existing.text;
+        return text;
     }
-    return existing.text.replace (new RegExp ('\\b' + current + '\\b', 'g'), elementClass);
+    return text.replace (new RegExp ('\\b' + current + '\\b', 'g'), elementClass);
+}
+
+/**
+ * Every dict-shaped type is a VIEW over the raw payload (`extends TypedMap`, ctor `super(raw)`),
+ * so a typed core result is still the Map the transpiled internals read. Applied to preserved
+ * hand-written bodies as well, so no file can be left as a plain POJO.
+ */
+function viewOverRaw (text: string, className: string): string {
+    const plainClass = 'public final class ' + className + ' {';
+    const ctorOpen = INDENT + 'public ' + className + '(Object raw) {\n';
+    let out = text;
+    if (out.indexOf (plainClass) >= 0) {
+        out = out.replace (plainClass, 'public final class ' + className + ' extends TypedMap {');
+    }
+    if (out.indexOf (ctorOpen + BODY + 'super(raw);\n') < 0) {
+        out = out.replace (ctorOpen, ctorOpen + BODY + 'super(raw);\n');
+    }
+    return out;
 }
 
 function renderNewDictionary (className: string, elementClass: string, elementIsList: boolean): string | undefined {
@@ -721,7 +751,7 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
         out.push ('import java.util.stream.Collectors;');
     }
     out.push ('');
-    out.push ('public final class ' + className + ' {');
+    out.push ('public final class ' + className + ' extends TypedMap {');
     out.push (INDENT + 'public Map<String, ' + mapValue + '> ' + fieldName + ';');
     if (hasInfo) {
         out.push (INDENT + 'public Map<String, Object> info;');
@@ -729,6 +759,7 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
     out.push ('');
     out.push (INDENT + '@SuppressWarnings("unchecked")');
     out.push (INDENT + 'public ' + className + '(Object raw) {');
+    out.push (BODY + 'super(raw);');
     out.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
     if (hasInfo) {
         out.push (BODY + 'this.info = TypeHelper.getInfo(data);');
@@ -824,7 +855,20 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
     const emitted: Record<string, boolean> = {};
     for (let i = 0; i < classNames.length; i++) {
         const className = classNames[i];
-        if (className === 'TypeHelper' || SKIPPED[className] !== undefined) {
+        if (className === 'TypeHelper' || VIEW_BASES[className] === true) {
+            continue;
+        }
+        if (SKIPPED[className] !== undefined) {
+            // body is hand-written, but the view-over-raw class shape is still the generator's rule
+            const skippedPath = path.join (TYPES_DIR, className + '.java');
+            const skippedAbsolute = path.join (repoRoot, skippedPath);
+            if (fs.existsSync (skippedAbsolute)) {
+                const before = fs.readFileSync (skippedAbsolute, 'utf8');
+                const after = viewOverRaw (before, className);
+                if (after !== before) {
+                    outputs.push ({ 'path': skippedPath, 'contents': after, 'changed': [ className + ' (view base)' ] });
+                }
+            }
             continue;
         }
         const relative = path.join (TYPES_DIR, className + '.java');
@@ -878,6 +922,9 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
     // keep list). Banner is not required — a stale file without a banner is still deleted
     // if it has no TS counterpart. TypeHelper + SKIPPED (OrderBook, Balances, Network*) stay.
     const allowed: Record<string, boolean> = { 'TypeHelper': true };
+    for (let i = 0; i < Object.keys (VIEW_BASES).length; i++) {
+        allowed[Object.keys (VIEW_BASES)[i]] = true;
+    }
     for (let i = 0; i < Object.keys (SKIPPED).length; i++) {
         allowed[Object.keys (SKIPPED)[i]] = true;
     }

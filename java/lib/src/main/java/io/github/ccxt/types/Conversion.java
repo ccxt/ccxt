@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Conversion {
+public final class Conversion extends TypedMap {
     public String id;
     public Long timestamp;
     public String datetime;
@@ -19,6 +19,7 @@ public final class Conversion {
 
     @SuppressWarnings("unchecked")
     public Conversion(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
