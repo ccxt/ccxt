@@ -408,6 +408,51 @@
                 "output": null
             }
         ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch all funding rates through public UTA v2 without filters",
+                "method": "fetchFundingRates",
+                "url": "https://api.kucoin.com/api/ua/v2/market/funding-rate",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch funding rates filters unified symbols locally",
+                "method": "fetchFundingRates",
+                "url": "https://api.kucoin.com/api/ua/v2/market/funding-rate",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "BTC/USD:BTC"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch funding rates forwards product type",
+                "method": "fetchFundingRates",
+                "url": "https://api.kucoin.com/api/ua/v2/market/funding-rate?productType=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "productType": "COIN-FUTURES"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch funding rates forwards an exchange symbol filter",
+                "method": "fetchFundingRates",
+                "url": "https://api.kucoin.com/api/ua/v2/market/funding-rate?symbol=XBTUSDTM",
+                "input": [
+                    null,
+                    {
+                        "symbol": "XBTUSDTM"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate from uta",
