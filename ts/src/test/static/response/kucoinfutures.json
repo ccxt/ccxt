@@ -7,6 +7,32 @@
     "methods": {
         "fetchFundingRates": [
             {
+                "description": "fetch funding rates returns an empty dictionary when no contract IDs resolve",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": ".ETHUSDTMFPI8H",
+                            "nextFundingRate": "0.0001",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 28800000
+                        },
+                        {
+                            "symbol": "UNKNOWNUSDTM",
+                            "nextFundingRate": "-0.0002",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 14400000
+                        },
+                        {
+                            "nextFundingRate": "0.0001"
+                        }
+                    ]
+                },
+                "parsedResponse": {}
+            },
+            {
                 "description": "fetch funding rates inherited by kucoinfutures parses multiple rates",
                 "method": "fetchFundingRates",
                 "input": [],

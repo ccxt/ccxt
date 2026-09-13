@@ -10104,6 +10104,7 @@ export default class kucoin extends Exchange {
      * @param {string[]} [symbols] unified market symbols, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+     * @param {string} [params.symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
      */
     override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
@@ -10130,7 +10131,15 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols);
+        const rates: List = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            if ((marketId !== undefined) && (this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                rates.push (entry);
+            }
+        }
+        return this.parseFundingRates (rates, symbols);
     }
 
     override parseFundingRate (data: any, market: Market = undefined): FundingRate {
