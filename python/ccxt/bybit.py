@@ -9519,10 +9519,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     url += '?' + self.rawencode(sortedQuery, True)
                     url += '&sign=' + signature
         if method == 'POST':
-            brokerId = self.safe_string(self.options, 'brokerId')
-            if brokerId is not None:
-                headers = {} if (headers is None) else headers
-                headers['Referer'] = brokerId
+            brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+            headers = {} if (headers is None) else headers
+            headers['Referer'] = brokerId
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
