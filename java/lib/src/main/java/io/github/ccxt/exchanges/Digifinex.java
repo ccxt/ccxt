@@ -1574,7 +1574,14 @@ public class Digifinex extends DigifinexApi
             timestamp = this.safeInteger(ticker, "timestamp");
         }
         String last = this.safeString(ticker, "last");
+        String percentage = this.safeString2(ticker, "change", "price_change_percent");
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+        {
+            // swap endpoints return a raw ratio, spot already returns a percent
+            percentage = Precise.stringMul(percentage, "100");
+        }
         final Object finalTimestamp = timestamp;
+        final Object finalPercentage = percentage;
         final Object finalIndexPrice = indexPrice;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1592,7 +1599,7 @@ public class Digifinex extends DigifinexApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", Digifinex.this.safeString2(ticker, "change", "price_change_percent") );
+            put( "percentage", finalPercentage );
             put( "average", null );
             put( "baseVolume", Digifinex.this.safeString2(ticker, "vol", "volume_24h") );
             put( "quoteVolume", Digifinex.this.safeString(ticker, "base_vol") );
