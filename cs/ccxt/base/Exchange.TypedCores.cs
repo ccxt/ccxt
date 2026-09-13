@@ -1664,6 +1664,10 @@ public partial class BaseExchange
         {
             result["debt"] = typed.debt;
         }
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
         return result;
     }
 
