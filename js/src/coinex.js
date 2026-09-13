@@ -328,6 +328,7 @@ export default class coinex extends Exchange {
                             'futures/basis-history': { 'cost': 1 },
                             'assets/deposit-withdraw-config': { 'cost': 1 },
                             'assets/all-deposit-withdraw-config': { 'cost': 1 },
+                            'assets/info': { 'cost': 1 },
                         },
                     },
                     'private': {
@@ -439,6 +440,8 @@ export default class coinex extends Exchange {
                             'futures/adjust-position-leverage': { 'cost': 20 },
                             'futures/set-position-stop-loss': { 'cost': 20 },
                             'futures/set-position-take-profit': { 'cost': 20 },
+                            'futures/modify-position-stop-loss': { 'cost': 20 },
+                            'futures/modify-position-take-profit': { 'cost': 20 },
                         },
                     },
                 },
@@ -1049,7 +1052,7 @@ export default class coinex extends Exchange {
         const symbol = market['symbol'];
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        const quoteVolume = market['inverse'] ? undefined : this.safeString(ticker, 'value');
+        const quoteVolume = (market['inverse'] === true) ? undefined : this.safeString(ticker, 'value');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1094,7 +1097,7 @@ export default class coinex extends Exchange {
             'market': market['id'],
         };
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.v2PublicGetFuturesTicker(this.extend(request, params));
         }
         else {
@@ -1276,7 +1279,7 @@ export default class coinex extends Exchange {
             'interval': '0',
         };
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.v2PublicGetFuturesDepth(this.extend(request, params));
             //
             //     {
@@ -1435,7 +1438,7 @@ export default class coinex extends Exchange {
             request['limit'] = Math.min(limit, 1000);
         }
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.v2PublicGetFuturesDeals(this.extend(request, params));
         }
         else {
@@ -1479,7 +1482,7 @@ export default class coinex extends Exchange {
             'market': market['id'],
         };
         let response;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.v2PublicGetSpotMarket(this.extend(request, params));
             //
             //     {
@@ -1664,7 +1667,7 @@ export default class coinex extends Exchange {
             request['limit'] = limit;
         }
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.v2PublicGetFuturesKline(this.extend(request, params));
         }
         else {
@@ -2179,7 +2182,7 @@ export default class coinex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2203,8 +2206,8 @@ export default class coinex extends Exchange {
         const postOnly = this.isPostOnly(isMarketOrder, option === 'maker_only', params);
         const timeInForceRaw = this.safeStringUpper(params, 'timeInForce');
         const reduceOnly = this.safeBool(params, 'reduceOnly');
-        if (reduceOnly) {
-            if (!market['swap']) {
+        if (reduceOnly === true) {
+            if (market['swap'] !== true) {
                 throw new InvalidOrder(this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
             }
         }
@@ -2220,7 +2223,7 @@ export default class coinex extends Exchange {
             request['client_id'] = clientOrderId;
         }
         if ((stopLossPrice === undefined) && (takeProfitPrice === undefined)) {
-            if (!reduceOnly) {
+            if (reduceOnly !== true) {
                 request['side'] = side;
             }
             let requestType = type;
@@ -2240,14 +2243,14 @@ export default class coinex extends Exchange {
             }
             request['type'] = requestType;
         }
-        if (swap) {
+        if (swap === true) {
             request['market_type'] = 'FUTURES';
-            if (stopLossPrice || takeProfitPrice) {
-                if (stopLossPrice) {
+            if ((stopLossPrice !== undefined && stopLossPrice !== '') || (takeProfitPrice !== undefined && takeProfitPrice !== '')) {
+                if (stopLossPrice !== undefined && stopLossPrice !== '') {
                     request['stop_loss_price'] = this.priceToPrecision(symbol, stopLossPrice);
                     request['stop_loss_type'] = this.safeString(params, 'stop_type', 'latest_price');
                 }
-                else if (takeProfitPrice) {
+                else if (takeProfitPrice !== undefined && takeProfitPrice !== '') {
                     request['take_profit_price'] = this.priceToPrecision(symbol, takeProfitPrice);
                     request['take_profit_type'] = this.safeString(params, 'stop_type', 'latest_price');
                 }
@@ -2340,7 +2343,7 @@ export default class coinex extends Exchange {
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (isTriggerOrder) {
                 response = await this.v2PrivatePostSpotStopOrder(request);
                 //
@@ -2484,7 +2487,7 @@ export default class coinex extends Exchange {
                 }
             }
             else {
-                if (reduceOnly) {
+                if (reduceOnly === true) {
                     response = await this.v2PrivatePostFuturesClosePosition(request);
                     //
                     //     {
@@ -2608,7 +2611,7 @@ export default class coinex extends Exchange {
             'orders': ordersRequests,
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (isTriggerOrder) {
                 response = await this.v2PrivatePostSpotBatchStopOrder(request);
                 //
@@ -2748,7 +2751,7 @@ export default class coinex extends Exchange {
             }
             const innerData = this.safeDict(entry, 'data', {});
             let order;
-            if (market['spot'] && !isTriggerOrder) {
+            if ((market['spot'] === true) && !isTriggerOrder) {
                 entry['status'] = status;
                 order = this.parseOrder(entry, market);
             }
@@ -2792,14 +2795,14 @@ export default class coinex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             requestIds.push(parseInt(ids[i]));
         }
-        if (trigger) {
+        if (trigger === true) {
             request['stop_ids'] = requestIds;
         }
         else {
             request['order_ids'] = requestIds;
         }
-        if (market['spot']) {
-            if (trigger) {
+        if (market['spot'] === true) {
+            if (trigger === true) {
                 response = await this.v2PrivatePostSpotCancelBatchStopOrder(this.extend(request, params));
                 //
                 //     {
@@ -2871,7 +2874,7 @@ export default class coinex extends Exchange {
         }
         else {
             request['market_type'] = 'FUTURES';
-            if (trigger) {
+            if (trigger === true) {
                 response = await this.v2PrivatePostFuturesCancelBatchStopOrder(this.extend(request, params));
                 //
                 //     {
@@ -2997,7 +3000,7 @@ export default class coinex extends Exchange {
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('editOrder', params);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
             }
@@ -3129,7 +3132,7 @@ export default class coinex extends Exchange {
             let marginMode = undefined;
             [marginMode, orderParams] = this.handleMarginModeAndParams('editOrders', orderParams);
             let market_type = 'SPOT';
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 market_type = 'FUTURES';
             }
             else if (marginMode !== undefined) {
@@ -3155,7 +3158,7 @@ export default class coinex extends Exchange {
             'orders': ordersRequests,
         };
         let response = undefined;
-        if (firstMarket['spot']) {
+        if (firstMarket['spot'] === true) {
             response = await this.v2PrivatePostSpotBatchModifyOrder(this.extend(request, params));
         }
         else {
@@ -3167,7 +3170,7 @@ export default class coinex extends Exchange {
             const entry = data[i];
             const code = this.safeString(entry, 'code');
             const message = this.safeString(entry, 'message', '');
-            if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && !data)) {
+            if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && (data === undefined))) {
                 const feedback = this.id + ' ' + message;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
                 this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
@@ -3213,7 +3216,7 @@ export default class coinex extends Exchange {
         };
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
-        if (swap) {
+        if (swap === true) {
             request['market_type'] = 'FUTURES';
         }
         else {
@@ -3229,8 +3232,8 @@ export default class coinex extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
-            if (isTriggerOrder) {
-                if (swap) {
+            if (isTriggerOrder === true) {
+                if (swap === true) {
                     response = await this.v2PrivatePostFuturesCancelStopOrderByClientId(this.extend(request, params));
                     //     {
                     //         "code": 0,
@@ -3289,7 +3292,7 @@ export default class coinex extends Exchange {
                 }
             }
             else {
-                if (swap) {
+                if (swap === true) {
                     response = await this.v2PrivatePostFuturesCancelOrderByClientId(this.extend(request, params));
                     //     {
                     //         "code": 0,
@@ -3363,9 +3366,9 @@ export default class coinex extends Exchange {
             }
         }
         else {
-            if (isTriggerOrder) {
+            if (isTriggerOrder === true) {
                 request['stop_id'] = this.parseToNumeric(id);
-                if (swap) {
+                if (swap === true) {
                     response = await this.v2PrivatePostFuturesCancelStopOrder(this.extend(request, params));
                     //     {
                     //         "code": 0,
@@ -3414,7 +3417,7 @@ export default class coinex extends Exchange {
             }
             else {
                 request['order_id'] = this.parseToNumeric(id);
-                if (swap) {
+                if (swap === true) {
                     response = await this.v2PrivatePostFuturesCancelOrder(this.extend(request, params));
                     //     {
                     //         "code": 0,
@@ -3508,7 +3511,7 @@ export default class coinex extends Exchange {
             'market': market['id'],
         };
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             request['market_type'] = 'FUTURES';
             response = await this.v2PrivatePostFuturesCancelAllOrder(this.extend(request, params));
             //
@@ -3559,7 +3562,7 @@ export default class coinex extends Exchange {
             'order_id': this.parseToNumeric(id),
         };
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.v2PrivateGetFuturesOrderStatus(this.extend(request, params));
             //
             //     {
@@ -3667,7 +3670,7 @@ export default class coinex extends Exchange {
         if (marketType === 'swap') {
             request['market_type'] = 'FUTURES';
             if (isClosed) {
-                if (trigger) {
+                if (trigger === true) {
                     response = await this.v2PrivateGetFuturesFinishedStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3731,7 +3734,7 @@ export default class coinex extends Exchange {
                 }
             }
             else if (isOpen) {
-                if (trigger) {
+                if (trigger === true) {
                     response = await this.v2PrivateGetFuturesPendingStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3810,7 +3813,7 @@ export default class coinex extends Exchange {
                 request['market_type'] = 'SPOT';
             }
             if (isClosed) {
-                if (trigger) {
+                if (trigger === true) {
                     response = await this.v2PrivateGetSpotFinishedStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3877,7 +3880,7 @@ export default class coinex extends Exchange {
                 }
             }
             else if (status === 'pending') {
-                if (trigger) {
+                if (trigger === true) {
                     response = await this.v2PrivateGetSpotPendingStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -4129,7 +4132,7 @@ export default class coinex extends Exchange {
         }
         [request, params] = this.handleUntilOption('end_time', request, params);
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             request['market_type'] = 'FUTURES';
             response = await this.v2PrivateGetFuturesUserDeals(this.extend(request, params));
             //
@@ -4487,7 +4490,7 @@ export default class coinex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
         let marginMode = undefined;
@@ -4571,7 +4574,7 @@ export default class coinex extends Exchange {
             const marketId = this.safeString(info, 'market');
             market = this.safeMarket(marketId, market, undefined, 'swap');
             const maxNotional = this.safeNumber(tier, 'amount');
-            const curr = market['linear'] ? market['base'] : market['quote'];
+            const curr = (market['linear'] === true) ? market['base'] : market['quote'];
             const notional = minNotional;
             tiers.push({
                 'tier': this.sum(i, 1),
@@ -4831,7 +4834,7 @@ export default class coinex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -4943,7 +4946,7 @@ export default class coinex extends Exchange {
         if (symbols !== undefined) {
             const symbol = this.safeValue(symbols, 0);
             market = this.market(symbol);
-            if (!market['swap']) {
+            if (market['swap'] !== true) {
                 throw new BadSymbol(this.id + ' fetchFundingRates() supports swap contracts only');
             }
             const marketIds = this.marketIds(symbols);
@@ -5931,11 +5934,11 @@ export default class coinex extends Exchange {
         for (let i = 0; i < chains.length; i++) {
             const entry = chains[i];
             const isWithdrawEnabled = this.safeBool(entry, 'withdraw_enabled');
-            if (isWithdrawEnabled) {
+            if (isWithdrawEnabled === true) {
                 result['withdraw']['fee'] = this.safeNumber(entry, 'withdrawal_fee');
                 result['withdraw']['percentage'] = false;
                 const networkId = this.safeString(entry, 'chain');
-                if (networkId) {
+                if ((networkId !== undefined) && (networkId !== '')) {
                     const currencyId = this.safeString(asset, 'ccy');
                     const feeCode = this.safeCurrencyCode(currencyId, currency);
                     const networkCode = this.networkIdToCode(networkId, feeCode);
@@ -6235,7 +6238,7 @@ export default class coinex extends Exchange {
             }
         }
         else if (requestUrl === 'public' || requestUrl === 'perpetualPublic') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -6269,7 +6272,7 @@ export default class coinex extends Exchange {
                     body = this.json(query);
                     preparedString += body;
                 }
-                else if (urlencoded) {
+                else if (urlencoded !== '') {
                     preparedString += '?' + urlencoded;
                 }
                 preparedString += nonce + this.secret;
@@ -6282,7 +6285,7 @@ export default class coinex extends Exchange {
                     'X-COINEX-TIMESTAMP': nonce,
                 };
                 if (method !== 'POST') {
-                    if (urlencoded) {
+                    if (urlencoded !== '') {
                         url += '?' + urlencoded;
                     }
                 }
@@ -6297,7 +6300,7 @@ export default class coinex extends Exchange {
         const code = this.safeString(response, 'code');
         const data = this.safeValue(response, 'data');
         const message = this.safeString(response, 'message', '');
-        if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && !data)) {
+        if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && (data === undefined))) {
             const feedback = this.id + ' ' + message;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);

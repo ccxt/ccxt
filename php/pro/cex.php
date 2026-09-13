@@ -113,7 +113,7 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
-        $freeBalance = $this->safe_value($data, 'balance', array());
+        $freeBalance = $this->safe_dict($data, 'balance', array());
         $usedBalance = $this->safe_value($data, 'obalance', array());
         $result = array(
             'info' => $data,
@@ -815,7 +815,7 @@ class cex extends \ccxt\async\cex {
         }
         $order['remaining'] = $remains;
         $canceled = $this->safe_bool($data, 'cancel', false);
-        if ($canceled) {
+        if ($canceled === true) {
             $order['status'] = 'canceled';
         }
         if ($isTransaction) {
@@ -912,7 +912,7 @@ class cex extends \ccxt\async\cex {
         }
         $canceled = $this->safe_bool($order, 'cancel', false);
         $status = 'open';
-        if ($canceled) {
+        if ($canceled === true) {
             $status = 'canceled';
         } elseif ($isTransaction) {
             $status = 'closed';
@@ -982,8 +982,8 @@ class cex extends \ccxt\async\cex {
         //         "ok" => "ok"
         //     }
         //
-        $symbol = $this->safe_string($message, 'oid'); // $symbol is set in watchOrders
-        $rawOrders = $this->safe_value($message, 'data', array());
+        $symbol = $this->safe_string($message, 'oid'); // $symbol is set as requestId in watchOrders
+        $rawOrders = $this->safe_list($message, 'data', array());
         $myOrders = $this->orders;
         if ($myOrders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -1158,7 +1158,7 @@ class cex extends \ccxt\async\cex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1279,7 +1279,7 @@ class cex extends \ccxt\async\cex {
         //         "pair" => "BTC:USD"
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $pair = $this->safe_string($message, 'pair');
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'ohlcv:' . $symbol;

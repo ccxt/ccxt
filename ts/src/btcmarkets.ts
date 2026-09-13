@@ -300,7 +300,7 @@ export default class btcmarkets extends Exchange {
         });
     }
 
-    async fetchTransactionsWithMethod (method: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsWithMethod (method: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -463,7 +463,7 @@ export default class btcmarkets extends Exchange {
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
         let amount = this.safeString (transaction, 'amount');
-        if (fee) {
+        if ((fee !== undefined) && (fee !== '')) {
             amount = Precise.stringSub (amount, fee);
         }
         return {
@@ -832,7 +832,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTicker2 (symbol: string, params = {}) {
+    async fetchTicker2 (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1440,7 +1440,7 @@ export default class btcmarkets extends Exchange {
             const secret = this.base64ToBinary (this.secret);
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     request += '?' + this.urlencode (query);
                 }
             } else {
@@ -1457,7 +1457,7 @@ export default class btcmarkets extends Exchange {
                 'BM-AUTH-SIGNATURE': signature,
             };
         } else if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 request += '?' + this.urlencode (query);
             }
         }

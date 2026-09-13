@@ -794,7 +794,7 @@ class extended extends \ccxt\async\extended {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->candleType] candle type => 'trades' (default), 'mark-prices', or 'index-prices'
          * @param {string} [$params->price] *ignored if $params->candleType is set* 'mark' or 'index' for mark $price and index $price candles
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -909,7 +909,7 @@ class extended extends \ccxt\async\extended {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $type = $this->safe_string($message, 'type');

@@ -134,6 +134,7 @@ export default class bit2c extends Exchange {
                     'get': {
                         'Exchanges/{pair}/Ticker': { 'cost': 1 },
                         'Exchanges/{pair}/orderbook': { 'cost': 1 },
+                        'Exchanges/{pair}/orderbook-top': { 'cost': 1 },
                         'Exchanges/{pair}/trades': { 'cost': 1 },
                         'Exchanges/{pair}/lasttrades': { 'cost': 1 },
                     },
@@ -142,6 +143,7 @@ export default class bit2c extends Exchange {
                     'post': {
                         'Merchant/CreateCheckout': { 'cost': 1 },
                         'Funds/AddCoinFundsRequest': { 'cost': 1 },
+                        'Funds/WithdrawCoin': { 'cost': 1 },
                         'Order/AddFund': { 'cost': 1 },
                         'Order/AddOrder': { 'cost': 1 },
                         'Order/GetById': { 'cost': 1 },
@@ -161,6 +163,7 @@ export default class bit2c extends Exchange {
                         'Order/GetById': { 'cost': 1 },
                         'Order/AccountHistory': { 'cost': 1 },
                         'Order/OrderHistory': { 'cost': 1 },
+                        'Order/HistoryByOrderId': { 'cost': 1 },
                     },
                 },
             },
@@ -540,7 +543,7 @@ export default class bit2c extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue(response, 'Fees', {});
+        const fees = this.safeDict(response, 'Fees', {});
         const keys = Object.keys(fees);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
@@ -938,8 +941,8 @@ export default class bit2c extends Exchange {
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(reference_parts[0], market);
             const isMaker = this.safeValue(trade, 'isMaker');
-            makerOrTaker = isMaker ? 'maker' : 'taker';
-            orderId = isMaker ? reference_parts[2] : reference_parts[1];
+            makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
+            orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
             const action = this.safeInteger(trade, 'action');
             if (action === 0) {
                 side = 'buy';
@@ -962,7 +965,7 @@ export default class bit2c extends Exchange {
             amount = this.safeString(trade, 'amount');
             side = this.safeValue(trade, 'isBid');
             if (side !== undefined) {
-                if (side) {
+                if ((side !== undefined) && (side !== '')) {
                     side = 'buy';
                 }
                 else {
@@ -1053,7 +1056,7 @@ export default class bit2c extends Exchange {
             }, params);
             const auth = this.urlencode(query);
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + auth;
                 }
             }

@@ -289,7 +289,7 @@ class bitopro(ccxt.async_support.bitopro):
         isMaker = self.safe_value(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
-            if isMaker:
+            if isMaker is True:
                 takerOrMaker = 'maker'
             else:
                 takerOrMaker = 'taker'
@@ -357,7 +357,7 @@ class bitopro(ccxt.async_support.bitopro):
         result['symbol'] = self.safe_string(market, 'symbol')  # symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         timestamp = self.safe_integer(message, 'timestamp')
         result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
+        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 

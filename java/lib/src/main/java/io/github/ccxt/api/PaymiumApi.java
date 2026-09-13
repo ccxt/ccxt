@@ -163,6 +163,17 @@ public class PaymiumApi extends Exchange
     }
 
     /**
+     * Calls the privateGetUserWithdrawals endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserWithdrawals (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUserWithdrawals", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetMerchantGetPaymentUuid endpoint.
      *
      * @param optionalArgs the request parameters

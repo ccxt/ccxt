@@ -182,6 +182,9 @@ class onetrading(Exchange, ImplicitAPI):
                         'market-ticker': {'cost': 1},
                         'market-ticker/{instrument_code}': {'cost': 1},
                         'time': {'cost': 1},
+                        'funding-rate': {'cost': 1},
+                        'funding-rate/history': {'cost': 1},
+                        'funding-rate/settings': {'cost': 1},
                     },
                 },
                 'private': {
@@ -194,9 +197,16 @@ class onetrading(Exchange, ImplicitAPI):
                         'account/orders/{order_id}/trades': {'cost': 1},
                         'account/trades': {'cost': 1},
                         'account/trade/{trade_id}': {'cost': 1},
+                        'account/futures/summary': {'cost': 1},
+                        'account/futures/positions': {'cost': 1},
+                        'account/futures/positions-history': {'cost': 1},
+                        'account/futures/positions/{position_id}/trades': {'cost': 1},
+                        'account/futures/positions/{position_id}/funding-payments': {'cost': 1},
+                        'account/futures/funding-payments': {'cost': 1},
                     },
                     'post': {
                         'account/orders': {'cost': 1},
+                        'subaccounts/transfers': {'cost': 1},
                     },
                     'delete': {
                         'account/orders': {'cost': 1},
@@ -366,7 +376,7 @@ class onetrading(Exchange, ImplicitAPI):
                         'marginMode': False,
                         'limit': 100,
                         'daysBack': 100000,  # todo
-                        'untilDays': 100000,  # todo
+                        'untilDays': 30,  # days between start-end
                         'symbolRequired': False,
                     },
                     'fetchOrder': {
@@ -378,6 +388,7 @@ class onetrading(Exchange, ImplicitAPI):
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
+                        'untilDays': 30,  # days between start-end
                         'trigger': False,
                         'trailing': False,
                         'symbolRequired': False,
@@ -388,7 +399,7 @@ class onetrading(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,  # todo
                         'daysBackCanceled': 1 / 12,  # todo
-                        'untilDays': 100000,  # todo
+                        'untilDays': 30,  # days between start-end
                         'trigger': False,
                         'trailing': False,
                         'symbolRequired': False,
@@ -679,7 +690,7 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            tierObject = firstSpotTier if (market['spot']) else firstFuturesTier
+            tierObject = firstSpotTier if (market['spot'] is True) else firstFuturesTier
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -744,8 +755,8 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            makerFee = spotMakerFee if (market['spot']) else futuresMakerFee
-            takerFee = spotTakerFee if (market['spot']) else futuresTakerFee
+            makerFee = spotMakerFee if (market['spot'] is True) else futuresMakerFee
+            takerFee = spotTakerFee if (market['spot'] is True) else futuresTakerFee
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1047,7 +1058,7 @@ class onetrading(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1165,7 +1176,7 @@ class onetrading(Exchange, ImplicitAPI):
         }, market)
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response, 'balances', [])
+        balances = self.safe_list(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -1210,16 +1221,17 @@ class onetrading(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         statuses = {
-            'FILLED': 'open',
+            'OPEN': 'open',
+            'BOOKED': 'open',
+            'FILL': 'open',
+            'MOVED': 'open',
             'FILLED_FULLY': 'closed',
             'FILLED_CLOSED': 'canceled',
             'FILLED_REJECTED': 'rejected',
-            'OPEN': 'open',
-            'REJECTED': 'rejected',
-            'CLOSED': 'canceled',
-            'FAILED': 'failed',
-            'STOP_TRIGGERED': 'triggered',
-            'DONE': 'closed',
+            'CANCELLED': 'canceled',
+            'INSUFFICIENT_FUNDS': 'rejected',
+            'INSUFFICIENT_LIQUIDITY': 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1294,8 +1306,7 @@ class onetrading(Exchange, ImplicitAPI):
         id = self.safe_string(rawOrder, 'order_id')
         clientOrderId = self.safe_string(rawOrder, 'client_id')
         timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))
-        rawStatus = self.parse_order_status(self.safe_string(rawOrder, 'status'))
-        status = self.parse_order_status(rawStatus)
+        status = self.parse_order_status(self.safe_string(rawOrder, 'status'))
         marketId = self.safe_string(rawOrder, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_string(rawOrder, 'price')
@@ -1314,7 +1325,7 @@ class onetrading(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': self.parse_order_type(type),
+            'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1330,18 +1341,13 @@ class onetrading(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def parse_order_type(self, type: Str):
-        types = {
-            'booked': 'limit',
-        }
-        return self.safe_string(types, type, type)
-
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
             'IMMEDIATE_OR_CANCELLED': 'IOC',
             'FILL_OR_KILL': 'FOK',
+            'POST_ONLY': 'PO',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
@@ -1566,18 +1572,19 @@ class onetrading(Exchange, ImplicitAPI):
         https://docs.onetrading.com/rest/trading/get-orders
 
         :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [since]: the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest entry to fetch
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         request = {
             # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
+            # 'to': self.iso8601(self.milliseconds()),  # max range is 30 days
             # 'instrument_code': market['id'],
-            # 'with_cancelled_and_rejected': False,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            # 'with_cancelled_and_rejected': False,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             # 'with_just_filled_inactive': False,  # orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
             # 'with_just_orders': False,  # do not return any trades corresponding to the orders, it may be significantly faster and should be used if user is not interesting in trade information
             # 'max_page_size': 100,
@@ -1588,10 +1595,11 @@ class onetrading(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['instrument_code'] = market['id']
         if since is not None:
-            to = self.safe_string(params, 'to')
-            if to is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['to'] = self.iso8601(until)
         if limit is not None:
             request['max_page_size'] = limit
         response = await self.privateGetAccountOrders(self.extend(request, params))
@@ -1684,13 +1692,14 @@ class onetrading(Exchange, ImplicitAPI):
         https://docs.onetrading.com/rest/trading/get-orders
 
         :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [since]: the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest entry to fetch
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
-            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         }
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1760,16 +1769,17 @@ class onetrading(Exchange, ImplicitAPI):
         https://docs.onetrading.com/rest/trading/get-trades
 
         :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [since]: the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest entry to fetch
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         request = {
             # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
+            # 'to': self.iso8601(self.milliseconds()),  # max range is 30 days
             # 'instrument_code': market['id'],
             # 'max_page_size': 100,
             # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
@@ -1779,10 +1789,11 @@ class onetrading(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['instrument_code'] = market['id']
         if since is not None:
-            to = self.safe_string(params, 'to')
-            if to is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['to'] = self.iso8601(until)
         if limit is not None:
             request['max_page_size'] = limit
         response = await self.privateGetAccountTrades(self.extend(request, params))
@@ -1823,7 +1834,7 @@ class onetrading(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -1835,7 +1846,7 @@ class onetrading(Exchange, ImplicitAPI):
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
             else:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

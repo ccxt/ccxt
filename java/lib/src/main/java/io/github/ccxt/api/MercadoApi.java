@@ -250,4 +250,48 @@ public class MercadoApi extends Exchange
         return this.callAsync ("v4PublicNetGetCandles", optionalArgs);
     }
 
+    /**
+     * Calls the v4PrivatePostAccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostAccounts (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostAccounts", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostAccountsAccountIdSymbolTransfersInternal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostAccountsAccountIdSymbolTransfersInternal (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostAccountsAccountIdSymbolTransfersInternal", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostOauth2Token endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOauth2Token (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostOauth2Token", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId", optionalArgs);
+    }
+
 }

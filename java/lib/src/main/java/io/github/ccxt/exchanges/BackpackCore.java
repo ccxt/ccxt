@@ -172,6 +172,9 @@ public class BackpackCore extends BackpackApi
                         put( "api/v1/borrowLend/markets/history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "api/v1/borrowLend/apy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "api/v1/markets", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -185,6 +188,21 @@ public class BackpackCore extends BackpackApi
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/depth", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/prediction", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/prediction/tags", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/market-sessions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/market-holidays", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/securities", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/klines", new java.util.HashMap<String, Object>() {{
@@ -236,6 +254,9 @@ public class BackpackCore extends BackpackApi
                         put( "api/v1/borrowLend/positions", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "api/v1/borrowLend/position/liquidationPrice", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "api/v1/capital", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -272,7 +293,13 @@ public class BackpackCore extends BackpackApi
                         put( "wapi/v1/history/funding", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "wapi/v1/history/position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "wapi/v1/history/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/rfqs", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "wapi/v1/history/rfq", new java.util.HashMap<String, Object>() {{
@@ -281,10 +308,22 @@ public class BackpackCore extends BackpackApi
                         put( "wapi/v1/history/quote", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "wapi/v1/history/rfq/fill", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wapi/v1/history/quote/fill", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "wapi/v1/history/settlement", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "wapi/v1/history/strategies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/strategy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/strategies", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/order", new java.util.HashMap<String, Object>() {{
@@ -325,12 +364,21 @@ public class BackpackCore extends BackpackApi
                         put( "api/v1/rfq/quote", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "api/v1/strategy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
                         put( "api/v1/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/strategy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/strategies", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -625,7 +673,7 @@ public class BackpackCore extends BackpackApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1Assets(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiV1Assets(parameters)).join();
             //
             //     [
             //         {
@@ -656,15 +704,15 @@ public class BackpackCore extends BackpackApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object currencyId = this.safeString(rawCurrency, "symbol");
-        Object code = this.safeCurrencyCode(currencyId);
+        String currencyId = this.safeString(rawCurrency, "symbol");
+        String code = this.safeCurrencyCode(currencyId);
         Object networks = this.safeList(rawCurrency, "tokens", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object parsedNetworks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
             Object network = Helpers.GetValue(networks, j);
-            Object networkId = this.safeString(network, "blockchain");
-            Object networkIdLowerCase = this.safeStringLower(network, "blockchain");
+            String networkId = this.safeString(network, "blockchain");
+            String networkIdLowerCase = this.safeStringLower(network, "blockchain");
             Object networkCode = this.networkIdToCode(networkIdLowerCase, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -742,11 +790,11 @@ public class BackpackCore extends BackpackApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
-            Object response = (this.publicGetApiV1Markets(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiV1Markets(parameters)).join();
             return this.parseMarkets(response);
         });
 
@@ -842,27 +890,27 @@ public class BackpackCore extends BackpackApi
         //         }
         //     ]
         //
-        Object id = this.safeString(market, "symbol");
-        Object baseId = this.safeString(market, "baseSymbol");
-        Object quoteId = this.safeString(market, "quoteSymbol");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String id = this.safeString(market, "symbol");
+        String baseId = this.safeString(market, "baseSymbol");
+        String quoteId = this.safeString(market, "quoteSymbol");
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object filters = this.safeDict(market, "filters", new java.util.HashMap<String, Object>() {{}});
         Object priceFilter = this.safeDict(filters, "price", new java.util.HashMap<String, Object>() {{}});
-        Object maxPrice = this.safeNumber(priceFilter, "maxPrice");
-        Object minPrice = this.safeNumber(priceFilter, "minPrice");
-        Object pricePrecision = this.safeNumber(priceFilter, "tickSize");
+        Double maxPrice = this.safeNumber(priceFilter, "maxPrice");
+        Double minPrice = this.safeNumber(priceFilter, "minPrice");
+        Double pricePrecision = this.safeNumber(priceFilter, "tickSize");
         Object quantityFilter = this.safeDict(filters, "quantity", new java.util.HashMap<String, Object>() {{}});
-        Object maxQuantity = this.safeNumber(quantityFilter, "maxQuantity");
-        Object minQuantity = this.safeNumber(quantityFilter, "minQuantity");
-        Object amountPrecision = this.safeNumber(quantityFilter, "stepSize");
-        Object type = null;
-        Object typeOfMarket = this.parseMarketType(this.safeString(market, "marketType"));
+        Double maxQuantity = this.safeNumber(quantityFilter, "maxQuantity");
+        Double minQuantity = this.safeNumber(quantityFilter, "minQuantity");
+        Double amountPrecision = this.safeNumber(quantityFilter, "stepSize");
+        String type = null;
+        String typeOfMarket = this.parseMarketType(this.safeString(market, "marketType"));
         Object linear = null;
         Object inverse = null;
         Object settle = null;
-        Object settleId = null;
+        String settleId = null;
         Object contractSize = null;
         if (Helpers.isTrue(Helpers.isEqual(typeOfMarket, "spot")))
         {
@@ -877,7 +925,7 @@ public class BackpackCore extends BackpackApi
             symbol = Helpers.add(symbol, Helpers.add(":", settle));
             contractSize = 1;
         }
-        Object orderBookState = this.safeString(market, "orderBookState");
+        String orderBookState = this.safeString(market, "orderBookState");
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -940,9 +988,9 @@ public class BackpackCore extends BackpackApi
         }});
     }
 
-    public Object parseMarketType(Object type)
+    public String parseMarketType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "SPOT", "spot" );
             put( "PERP", "swap" );
         }};
@@ -969,8 +1017,8 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.publicGetApiV1Tickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            java.util.List<Object> response = (this.publicGetApiV1Tickers(this.extend(request, parameters))).join();
             Object tickers = this.parseTickers(response);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
         });
@@ -986,7 +1034,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -996,11 +1044,11 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiV1Ticker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1Ticker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
         });
 
@@ -1025,23 +1073,23 @@ public class BackpackCore extends BackpackApi
         //     }, ...
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "symbol");
+        String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeSymbol(marketId, market);
-        Object open = this.safeString(ticker, "firstPrice");
-        Object last = this.safeString(ticker, "lastPrice");
-        Object high = this.safeString(ticker, "high");
-        Object low = this.safeString(ticker, "low");
-        Object baseVolume = this.safeString(ticker, "volume");
-        Object quoteVolume = this.safeString(ticker, "quoteVolume");
-        Object percentage = null;
-        Object percentageNumber = this.safeFloat(ticker, "priceChangePercent");
+        String symbol = this.safeSymbol(marketId, market);
+        String open = this.safeString(ticker, "firstPrice");
+        String last = this.safeString(ticker, "lastPrice");
+        String high = this.safeString(ticker, "high");
+        String low = this.safeString(ticker, "low");
+        String baseVolume = this.safeString(ticker, "volume");
+        String quoteVolume = this.safeString(ticker, "quoteVolume");
+        String percentage = null;
+        Double percentageNumber = this.safeFloat(ticker, "priceChangePercent");
         // in some cases priceChangePercent is a non-numeric string like "N/A"
         if (Helpers.isTrue(!Helpers.isEqual(percentageNumber, null)))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         }
-        Object change = this.safeString(ticker, "priceChange");
+        String change = this.safeString(ticker, "priceChange");
         final Object finalPercentage = percentage;
         Object parsedTicker = this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1091,11 +1139,11 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiV1Depth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1Depth(this.extend(request, parameters))).join();
             //
             //     {
             //         "asks": [
@@ -1110,12 +1158,12 @@ public class BackpackCore extends BackpackApi
             //         "timestamp":1753102447307501
             //     }
             //
-            Object microseconds = this.safeInteger(response, "timestamp");
+            Long microseconds = this.safeInteger(response, "timestamp");
             if (Helpers.isTrue(Helpers.isEqual(microseconds, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() missing microseconds")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOrderBook() missing microseconds")) ;
             }
-            Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+            Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
@@ -1148,43 +1196,43 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", interval );
             }};
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", this.parseToInt(Helpers.divide(until, 1000))); // convert milliseconds to seconds
             }
-            Object defaultLimit = 100;
+            Integer defaultLimit = 100;
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(limit, null)))
                 {
                     limit = defaultLimit;
                 }
-                Object duration = this.parseTimeframe(timeframe);
-                Object endTime = ((Helpers.isTrue(until))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
+                int duration = this.parseTimeframe(timeframe);
+                Object endTime = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(until, null)) && Helpers.isTrue(!Helpers.isEqual(until, null))) && Helpers.isTrue(!Helpers.isEqual(until, 0)))))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
                 Object startTime = Helpers.subtract(endTime, (Helpers.multiply(limit, duration)));
                 Helpers.addElementToObject(request, "startTime", startTime);
             } else
             {
                 Helpers.addElementToObject(request, "startTime", this.parseToInt(Helpers.divide(since, 1000))); // convert milliseconds to seconds
             }
-            Object price = this.safeString(parameters, "price");
+            String price = this.safeString(parameters, "price");
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
                 Helpers.addElementToObject(request, "priceType", this.capitalize(price));
                 parameters = this.omit(parameters, "price");
             }
-            Object response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
-            Object ohlcvs = this.toArray(response);
+            java.util.List<Object> response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
+            java.util.List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -1221,7 +1269,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1231,15 +1279,15 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchFundingRate() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchFundingRate() symbol does not support market "), symbol)) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
         });
@@ -1258,10 +1306,10 @@ public class BackpackCore extends BackpackApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "symbol");
+        String marketId = this.safeString(contract, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeSymbol(marketId, market);
-        Object nextFundingTimestamp = this.safeInteger(contract, "nextFundingTimestamp");
+        String symbol = this.safeSymbol(marketId, market);
+        Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTimestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -1293,7 +1341,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1303,15 +1351,15 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
             Object interest = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         });
@@ -1330,8 +1378,8 @@ public class BackpackCore extends BackpackApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(interest, "timestamp");
-        Object openInterest = this.safeNumber(interest, "openInterest");
+        Long timestamp = this.safeInteger(interest, "timestamp");
+        Double openInterest = this.safeNumber(interest, "openInterest");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", BackpackCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", null );
@@ -1364,21 +1412,21 @@ public class BackpackCore extends BackpackApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
-            Object response = (this.publicGetApiV1FundingRates(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1FundingRates(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1388,13 +1436,13 @@ public class BackpackCore extends BackpackApi
             //         }
             //     ]
             //
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawRates = this.toArray(response);
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawRates = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawRates)); i++)
             {
                 Object rate = Helpers.GetValue(rawRates, i);
-                Object datetime = this.safeString(rate, "intervalEndTimestamp");
-                Object timestamp = this.parse8601(datetime);
+                String datetime = this.safeString(rate, "intervalEndTimestamp");
+                Long timestamp = this.parse8601(datetime);
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", rate );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -1403,7 +1451,7 @@ public class BackpackCore extends BackpackApi
                     put( "datetime", datetime );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -1422,7 +1470,7 @@ public class BackpackCore extends BackpackApi
      * @param {int} [params.offset] the number of trades to skip, default is 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1434,8 +1482,8 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1443,7 +1491,7 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
             Object response = null;
-            Object offset = this.safeInteger(parameters, "offset");
+            Long offset = this.safeInteger(parameters, "offset");
             if (Helpers.isTrue(!Helpers.isEqual(offset, null)))
             {
                 response = (this.publicGetApiV1TradesHistory(this.extend(request, parameters))).join();
@@ -1451,7 +1499,7 @@ public class BackpackCore extends BackpackApi
             {
                 response = (this.publicGetApiV1Trades(this.extend(request, parameters))).join();
             }
-            Object responseList = this.toArray(response);
+            java.util.List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
 
@@ -1483,7 +1531,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1498,19 +1546,19 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                 Helpers.addElementToObject(request, "to", until);
             }
-            Object fillType = this.safeString(parameters, "fillType");
+            String fillType = this.safeString(parameters, "fillType");
             if (Helpers.isTrue(Helpers.isEqual(fillType, null)))
             {
                 Helpers.addElementToObject(request, "fillType", "User"); // default
             }
-            Object response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
-            Object responseList = this.toArray(response);
+            java.util.List<Object> response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
+            java.util.List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
 
@@ -1546,15 +1594,15 @@ public class BackpackCore extends BackpackApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString2(trade, "id", "tradeId");
-        Object marketId = this.safeString(trade, "symbol");
+        String id = this.safeString2(trade, "id", "tradeId");
+        String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString(trade, "quantity");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString(trade, "quantity");
         Object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
-        Object side = this.parseOrderSide(this.safeString(trade, "side"));
+        String side = this.parseOrderSide(this.safeString(trade, "side"));
         Object isMaker = this.safeBool(trade, "isMaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
@@ -1563,17 +1611,17 @@ public class BackpackCore extends BackpackApi
             takerOrMaker = "taker";
             side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
         }
-        Object orderId = this.safeString(trade, "orderId");
+        String orderId = this.safeString(trade, "orderId");
         Object fee = null;
-        Object feeAmount = this.safeString(trade, "fee");
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        String feeAmount = this.safeString(trade, "fee");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             // if fetchMyTrades
-            Object datetime = this.safeString(trade, "timestamp");
+            String datetime = this.safeString(trade, "timestamp");
             timestamp = this.parse8601(datetime);
         }
-        Object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
+        String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             final Object finalFeeAmount = feeAmount;
@@ -1619,17 +1667,17 @@ public class BackpackCore extends BackpackApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1Status(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1Status(parameters)).join();
             //
             //     {
             //         "message":null,
             //         "status":"Ok"
             //     }
             //
-            Object status = this.safeString(response, "status");
+            String status = this.safeString(response, "status");
             if (Helpers.isTrue(Helpers.isEqual(status, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchStatus() missing status")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchStatus() missing status")) ;
             }
             final Object finalStatus = status;
             return new java.util.HashMap<String, Object>() {{
@@ -1657,7 +1705,7 @@ public class BackpackCore extends BackpackApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1Time(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiV1Time(parameters)).join();
             //
             //     1753131712992
             //
@@ -1684,7 +1732,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetApiV1Capital(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetApiV1Capital(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -1702,16 +1750,16 @@ public class BackpackCore extends BackpackApi
         //     }
         //
         Object balanceKeys = Helpers.objectKeys(response);
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {
             Object id = Helpers.GetValue(balanceKeys, i);
-            Object code = this.safeCurrencyCode(id);
+            String code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
             Object account = this.account();
-            Object locked = this.safeString(balance, "locked");
-            Object staked = this.safeString(balance, "staked");
-            Object used = Precise.stringAdd(locked, staked);
+            String locked = this.safeString(balance, "locked");
+            String staked = this.safeString(balance, "staked");
+            String used = Precise.stringAdd(locked, staked);
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", used);
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -1747,7 +1795,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -1762,14 +1810,14 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 1000
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.privateGetWapiV1CapitalDeposits(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1CapitalDeposits(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
         });
 
@@ -1800,7 +1848,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -1815,14 +1863,14 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "to", until);
             }
-            Object response = (this.privateGetWapiV1CapitalWithdrawals(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1CapitalWithdrawals(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
         });
 
@@ -1841,7 +1889,7 @@ public class BackpackCore extends BackpackApi
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1852,8 +1900,8 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "quantity", BackpackCore.this.numberToString(amount) );
                 put( "address", address );
@@ -1862,16 +1910,16 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "clientId", tag); // memo or tag
             }
-            var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
-            var networkCode = ((java.util.List<Object>) networkCodequeryVariable).get(0);
+            java.util.List<Object> networkCodequeryVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            String networkCode = (String) ((java.util.List<Object>) networkCodequeryVariable).get(0);
             var query = ((java.util.List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "blockchain", networkId);
-            Object response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
             return this.parseTransaction(response, currency);
         });
 
@@ -1952,19 +2000,19 @@ public class BackpackCore extends BackpackApi
         //     ]
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object id = this.safeString(transaction, "id");
-        Object txid = this.safeString(transaction, "transactionHash");
-        Object coin = this.safeString(transaction, "symbol");
-        Object code = this.safeCurrencyCode(coin, currency);
-        Object timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
-        Object amount = this.safeNumber(transaction, "quantity");
-        Object networkId = this.safeStringLower2(transaction, "source", "blockchain");
+        String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+        String id = this.safeString(transaction, "id");
+        String txid = this.safeString(transaction, "transactionHash");
+        String coin = this.safeString(transaction, "symbol");
+        String code = this.safeCurrencyCode(coin, currency);
+        Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
+        Double amount = this.safeNumber(transaction, "quantity");
+        String networkId = this.safeStringLower2(transaction, "source", "blockchain");
         Object network = this.networkIdToCode(networkId, code);
-        Object addressTo = this.safeString(transaction, "toAddress");
-        Object addressFrom = this.safeString(transaction, "fromAddress");
-        Object tag = this.safeString(transaction, "platformMemo");
-        Object feeCost = this.safeNumber(transaction, "fee");
+        String addressTo = this.safeString(transaction, "toAddress");
+        String addressFrom = this.safeString(transaction, "fromAddress");
+        String tag = this.safeString(transaction, "platformMemo");
+        Double feeCost = this.safeNumber(transaction, "fee");
         Object intern = this.safeBool(transaction, "isInternal", false);
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -2000,9 +2048,9 @@ public class BackpackCore extends BackpackApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "cancelled", "cancelled" );
             put( "confirmed", "ok" );
             put( "declined", "declined" );
@@ -2025,7 +2073,7 @@ public class BackpackCore extends BackpackApi
      * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2035,20 +2083,20 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalNetworkCode = networkCode;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "blockchain", BackpackCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
-            Object response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters))).join();
             return this.parseDepositAddress(response, currency);
         });
 
@@ -2062,8 +2110,8 @@ public class BackpackCore extends BackpackApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
-        Object currencyId = this.safeString(depositAddress, "currency");
+        String address = this.safeString(depositAddress, "address");
+        String currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
         final Object finalCurrency = currency;
         return new java.util.HashMap<String, Object>() {{
@@ -2116,9 +2164,9 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostApiV1Order(orderRequest)).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
             return this.parseOrder(response, market);
         });
 
@@ -2143,21 +2191,21 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
-                Object marketId = this.safeString(rawOrder, "symbol");
-                Object type = this.safeString(rawOrder, "type");
-                Object side = this.safeString(rawOrder, "side");
-                Object amount = this.safeNumber(rawOrder, "amount");
-                Object price = this.safeNumber(rawOrder, "price");
+                String marketId = this.safeString(rawOrder, "symbol");
+                String type = this.safeString(rawOrder, "type");
+                String side = this.safeString(rawOrder, "side");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+                java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
-            Object response = (this.privatePostApiV1Orders(ordersRequests)).join();
+            java.util.List<Object> response = (this.privatePostApiV1Orders(ordersRequests)).join();
             return this.parseOrders(response);
         });
 
@@ -2169,23 +2217,23 @@ public class BackpackCore extends BackpackApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
         final Object finalType = type;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", BackpackCore.this.encodeOrderSide(finalSide) );
             put( "orderType", BackpackCore.this.capitalize(finalType) );
         }};
-        Object triggerPrice = this.safeString(parameters, "triggerPrice");
-        Object isTriggerOrder = !Helpers.isEqual(triggerPrice, null);
-        Object quantityKey = ((Helpers.isTrue(isTriggerOrder))) ? "triggerQuantity" : "quantity";
+        String triggerPrice = this.safeString(parameters, "triggerPrice");
+        Boolean isTriggerOrder = !Helpers.isEqual(triggerPrice, null);
+        String quantityKey = ((Helpers.isTrue(isTriggerOrder))) ? "triggerQuantity" : "quantity";
         // handle basic limit/market order types
         if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
         {
@@ -2193,7 +2241,7 @@ public class BackpackCore extends BackpackApi
             Helpers.addElementToObject(request, quantityKey, this.amountToPrecision(symbol, amount));
         } else if (Helpers.isTrue(Helpers.isEqual(type, "market")))
         {
-            Object cost = this.safeString2(parameters, "cost", "quoteQuantity");
+            String cost = this.safeString2(parameters, "cost", "quoteQuantity");
             if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
             {
                 Helpers.addElementToObject(request, "quoteQuantity", this.costToPrecision(symbol, cost));
@@ -2209,15 +2257,15 @@ public class BackpackCore extends BackpackApi
             Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             parameters = this.omit(parameters, "triggerPrice");
         }
-        Object clientOrderId = this.safeInteger(parameters, "clientOrderId"); // the exchange requires uint
+        Long clientOrderId = this.safeInteger(parameters, "clientOrderId"); // the exchange requires uint
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             Helpers.addElementToObject(request, "clientId", clientOrderId);
             parameters = this.omit(parameters, "clientOrderId");
         }
-        Object postOnly = false;
-        var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = false;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(postOnly))
         {
@@ -2226,12 +2274,12 @@ public class BackpackCore extends BackpackApi
         Object takeProfit = this.safeDict(parameters, "takeProfit");
         if (Helpers.isTrue(!Helpers.isEqual(takeProfit, null)))
         {
-            Object takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
+            String takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
             if (Helpers.isTrue(!Helpers.isEqual(takeProfitTriggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "takeProfitTriggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
             }
-            Object takeProfitPrice = this.safeString(takeProfit, "price");
+            String takeProfitPrice = this.safeString(takeProfit, "price");
             if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
             {
                 Helpers.addElementToObject(request, "takeProfitLimitPrice", this.priceToPrecision(symbol, takeProfitPrice));
@@ -2241,12 +2289,12 @@ public class BackpackCore extends BackpackApi
         Object stopLoss = this.safeDict(parameters, "stopLoss");
         if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
         {
-            Object stopLossTriggerPrice = this.safeString(stopLoss, "triggerPrice");
+            String stopLossTriggerPrice = this.safeString(stopLoss, "triggerPrice");
             if (Helpers.isTrue(!Helpers.isEqual(stopLossTriggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "stopLossTriggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
             }
-            Object stopLossPrice = this.safeString(stopLoss, "price");
+            String stopLossPrice = this.safeString(stopLoss, "price");
             if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
             {
                 Helpers.addElementToObject(request, "stopLossLimitPrice", this.priceToPrecision(symbol, stopLossPrice));
@@ -2254,7 +2302,7 @@ public class BackpackCore extends BackpackApi
             parameters = this.omit(parameters, "stopLoss");
         }
         Object selfTradePrevention = null;
-        var selfTradePreventionparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        java.util.List<Object> selfTradePreventionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
         selfTradePrevention = ((java.util.List<Object>) selfTradePreventionparametersVariable).get(0);
         parameters = ((java.util.List<Object>) selfTradePreventionparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(selfTradePrevention, null)))
@@ -2273,9 +2321,9 @@ public class BackpackCore extends BackpackApi
         return this.extend(request, parameters);
     }
 
-    public Object encodeOrderSide(Object side)
+    public String encodeOrderSide(Object side)
     {
-        Object sides = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
             put( "buy", "Bid" );
             put( "sell", "Ask" );
         }};
@@ -2306,14 +2354,14 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -2329,7 +2377,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2342,14 +2390,14 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
             }};
-            Object response = (this.privateGetApiV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetApiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -2378,14 +2426,14 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateDeleteApiV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteApiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -2413,13 +2461,13 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateDeleteApiV1Orders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market);
         });
 
@@ -2449,7 +2497,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2460,7 +2508,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -2562,27 +2610,27 @@ public class BackpackCore extends BackpackApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(order, "createdAt");
-        Object timestamp2 = this.parse8601(this.safeString(order, "createdAt"));
+        Long timestamp2 = this.parse8601(this.safeString(order, "createdAt"));
         if (Helpers.isTrue(!Helpers.isEqual(timestamp2, null)))
         {
             timestamp = timestamp2;
         }
-        Object id = this.safeString(order, "id");
-        Object clientOrderId = this.safeString(order, "clientId");
-        Object symbol = this.safeSymbol(this.safeString(order, "symbol"), market);
-        Object type = this.safeStringLower(order, "orderType");
-        Object timeInForce = this.safeString(order, "timeInForce");
-        Object side = this.parseOrderSide(this.safeString(order, "side"));
-        Object amount = this.safeString2(order, "quantity", "triggerQuantity");
-        Object price = this.safeString(order, "price");
-        Object cost = this.safeString(order, "executedQuoteQuantity");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object triggerPrice = this.safeString(order, "triggerPrice");
-        Object filled = this.safeString(order, "executedQuantity");
+        String id = this.safeString(order, "id");
+        String clientOrderId = this.safeString(order, "clientId");
+        String symbol = this.safeSymbol(this.safeString(order, "symbol"), market);
+        String type = this.safeStringLower(order, "orderType");
+        String timeInForce = this.safeString(order, "timeInForce");
+        String side = this.parseOrderSide(this.safeString(order, "side"));
+        String amount = this.safeString2(order, "quantity", "triggerQuantity");
+        String price = this.safeString(order, "price");
+        String cost = this.safeString(order, "executedQuoteQuantity");
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
+        String triggerPrice = this.safeString(order, "triggerPrice");
+        String filled = this.safeString(order, "executedQuantity");
         Object reduceOnly = this.safeBool(order, "reduceOnly");
         Object postOnly = this.safeBool(order, "postOnly");
-        Object stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
-        Object takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
+        String stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
+        String takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
         final Object finalTimestamp = timestamp;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
@@ -2612,9 +2660,9 @@ public class BackpackCore extends BackpackApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "New", "open" );
             put( "Filled", "closed" );
             put( "Cancelled", "canceled" );
@@ -2626,9 +2674,9 @@ public class BackpackCore extends BackpackApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderSide(Object side)
+    public String parseOrderSide(Object side)
     {
-        Object sides = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
             put( "Bid", "buy" );
             put( "Ask", "sell" );
         }};
@@ -2655,7 +2703,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetApiV1Position(parameters)).join();
+            java.util.List<Object> response = (this.privateGetApiV1Position(parameters)).join();
             Object positions = this.parsePositions(response);
             if (Helpers.isTrue(this.isEmpty(symbols)))
             {
@@ -2704,15 +2752,15 @@ public class BackpackCore extends BackpackApi
         //
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(position, "positionId");
-        Object marketId = this.safeString(position, "symbol");
+        String id = this.safeString(position, "positionId");
+        String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object entryPrice = this.safeString(position, "entryPrice");
-        Object markPrice = this.safeString(position, "markPrice");
-        Object netCost = this.safeString(position, "netCost");
-        Object hedged = false;
-        Object side = "long";
+        String entryPrice = this.safeString(position, "entryPrice");
+        String markPrice = this.safeString(position, "markPrice");
+        String netCost = this.safeString(position, "netCost");
+        Boolean hedged = false;
+        String side = "long";
         if (Helpers.isTrue(Precise.stringLt(netCost, "0")))
         {
             side = "short";
@@ -2722,9 +2770,9 @@ public class BackpackCore extends BackpackApi
             hedged = null;
             side = null;
         }
-        Object unrealizedPnl = this.safeString(position, "pnlUnrealized");
-        Object realizedPnl = this.safeString(position, "pnlRealized");
-        Object liquidationPrice = this.safeString(position, "estLiquidationPrice");
+        String unrealizedPnl = this.safeString(position, "pnlUnrealized");
+        String realizedPnl = this.safeString(position, "pnlRealized");
+        String liquidationPrice = this.safeString(position, "estLiquidationPrice");
         final Object finalHedged = hedged;
         final Object finalSide = side;
         final Object finalNetCost = netCost;
@@ -2785,7 +2833,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2796,7 +2844,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetWapiV1HistoryFunding(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1HistoryFunding(this.extend(request, parameters))).join();
             return this.parseIncomes(response, market, since, limit);
         });
 
@@ -2815,12 +2863,12 @@ public class BackpackCore extends BackpackApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(income, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
-        Object amount = this.safeNumber(income, "quantity");
-        Object id = this.safeString(income, "userId");
-        Object timestamp = this.parse8601(this.safeString(income, "intervalEndTimestamp"));
-        Object rate = this.safeNumber(income, "fundingRate");
+        String marketId = this.safeString(income, "symbol");
+        String symbol = this.safeSymbol(marketId, market);
+        Double amount = this.safeNumber(income, "quantity");
+        String id = this.safeString(income, "userId");
+        Long timestamp = this.parse8601(this.safeString(income, "intervalEndTimestamp"));
+        Double rate = this.safeNumber(income, "fundingRate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", symbol );
@@ -2852,10 +2900,10 @@ public class BackpackCore extends BackpackApi
         {
             this.checkRequiredCredentials();
             Object ts = String.valueOf(this.nonce());
-            Object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
+            String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             Object optionInstructions = this.safeDict(this.options, "instructions", new java.util.HashMap<String, Object>() {{}});
             Object optionPathInstructions = this.safeDict(optionInstructions, path, new java.util.HashMap<String, Object>() {{}});
-            Object instruction = this.safeString(optionPathInstructions, method, "");
+            String instruction = this.safeString(optionPathInstructions, method, "");
             Object payload = "";
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "api/v1/orders"))) && Helpers.isTrue((Helpers.isEqual(method, "POST")))))
             {
@@ -2863,7 +2911,7 @@ public class BackpackCore extends BackpackApi
             } else
             {
                 Object queryString = this.urlencode(sortedParams);
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(queryString), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(((String)queryString).length(), 0)))
                 {
                     queryString = Helpers.add(queryString, "&");
                 }
@@ -2888,7 +2936,7 @@ public class BackpackCore extends BackpackApi
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object query = this.urlencode(sortedParams);
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 endpoint = Helpers.add(endpoint, Helpers.add("?", query));
             }
@@ -2912,7 +2960,7 @@ public class BackpackCore extends BackpackApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
             Object order = this.safeDict(parameters, i, new java.util.HashMap<String, Object>() {{}});
-            Object sortedOrder = this.keysort(order);
+            java.util.Map<String, Object> sortedOrder = this.keysort(order);
             Object orderQuery = this.urlencode(sortedOrder);
             payload = Helpers.add(payload, Helpers.add(Helpers.add(Helpers.add(Helpers.add("instruction=", instruction), "&"), orderQuery), "&"));
             if (Helpers.isTrue(Helpers.isEqual(i, (Helpers.subtract(Helpers.getArrayLength(parameters), 1)))))
@@ -2933,8 +2981,8 @@ public class BackpackCore extends BackpackApi
         // {"code":"INVALID_ORDER","message":"Invalid order"}
         // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
         //
-        Object errorCode = this.safeString(response, "code");
-        Object message = this.safeString(response, "message");
+        String errorCode = this.safeString(response, "code");
+        String message = this.safeString(response, "message");
         if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

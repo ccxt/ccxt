@@ -300,6 +300,8 @@ class woo extends woo$1["default"] {
                             'asset/wallet/withdraw': { 'cost': 60 }, // 10/60s
                             'spotMargin/leverage': { 'cost': 120 }, // 5/60s
                             'spotMargin/interestRepay': { 'cost': 60 }, // 10/60s
+                            'futures/defaultMarginMode/reset': { 'cost': 60 },
+                            'isolatedMargin/margin': { 'cost': 60 },
                             'algo/order': { 'cost': 5 },
                             'convert/rft': { 'cost': 60 },
                         },
@@ -308,6 +310,8 @@ class woo extends woo$1["default"] {
                             'trade/algoOrder': { 'cost': 2 }, // 5/1s
                             'futures/leverage': { 'cost': 60 }, // 10/60s
                             'futures/positionMode': { 'cost': 120 }, // 5/60s
+                            'futures/defaultMarginMode': { 'cost': 60 },
+                            'futures/defaultMarginMode/{symbol}': { 'cost': 60 },
                             'order/{oid}': { 'cost': 2 },
                             'order/client/{client_order_id}': { 'cost': 2 },
                             'algo/order/{oid}': { 'cost': 2 },
@@ -323,6 +327,7 @@ class woo extends woo$1["default"] {
                             'algo/orders/pending': { 'cost': 1 },
                             'algo/orders/pending/{symbol}': { 'cost': 1 },
                             'orders/pending': { 'cost': 1 },
+                            'asset/wallet/withdraw/{withdrawId}': { 'cost': 60 },
                         },
                     },
                 },
@@ -711,7 +716,7 @@ class woo extends woo$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.v3PublicGetInstruments(params);
@@ -1265,7 +1270,7 @@ class woo extends woo$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
@@ -1285,7 +1290,7 @@ class woo extends woo$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
@@ -1415,7 +1420,7 @@ class woo extends woo$1["default"] {
                 request['type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduceOnly'] = reduceOnly;
         }
         if (!isMarket && price !== undefined) {
@@ -1426,7 +1431,7 @@ class woo extends woo$1["default"] {
             const cost = this.safeStringN(params, ['cost', 'order_amount', 'orderAmount']);
             params = this.omit(params, ['cost', 'order_amount', 'orderAmount']);
             const isPriceProvided = price !== undefined;
-            if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
+            if ((market['spot'] === true) && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount = undefined;
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
@@ -1620,7 +1625,7 @@ class woo extends woo$1["default"] {
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop']);
-        const isConditional = isTrigger || isTrailing || (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = (isTrigger === true) || isTrailing || (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             if (isByClientOrder) {
@@ -1674,7 +1679,7 @@ class woo extends woo$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
-        if (!isTrigger && (symbol === undefined)) {
+        if ((isTrigger !== true) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1690,7 +1695,7 @@ class woo extends woo$1["default"] {
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (isTrigger) {
+        if (isTrigger === true) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
             }
@@ -1751,7 +1756,7 @@ class woo extends woo$1["default"] {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v3PrivateDeleteTradeAlgoOrders(params);
         }
         else {
@@ -1823,7 +1828,7 @@ class woo extends woo$1["default"] {
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             if (clientOrderId !== undefined) {
                 request['clientAlgoOrderId'] = id;
             }
@@ -1956,7 +1961,7 @@ class woo extends woo$1["default"] {
             request['size'] = Math.min(limit, 500);
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v3PrivateGetTradeAlgoOrders(this.extend(request, params));
             //
             //     {
@@ -2280,7 +2285,7 @@ class woo extends woo$1["default"] {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     /**
      * @method
@@ -3051,7 +3056,7 @@ class woo extends woo$1["default"] {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -3302,13 +3307,13 @@ class woo extends woo$1["default"] {
         params = this.keysort(params);
         if (access === 'public') {
             url += access + '/' + pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
         else if (access === 'pub') {
             url += pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -3316,7 +3321,7 @@ class woo extends woo$1["default"] {
             this.checkRequiredCredentials();
             if (method === 'POST' && (path === 'trade/algoOrder' || path === 'trade/order')) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (!isSandboxMode) {
+                if (isSandboxMode !== true) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString(this.options, 'brokerId', applicationId);
                     const isTrigger = path.indexOf('algo') > -1;
@@ -3344,7 +3349,7 @@ class woo extends woo$1["default"] {
                     headers['content-type'] = 'application/json';
                 }
                 else {
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         const query = this.urlencode(params);
                         url += '?' + query;
                         auth += '?' + query;
@@ -3357,7 +3362,7 @@ class woo extends woo$1["default"] {
                     body = auth;
                 }
                 else {
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         url += '?' + auth;
                     }
                 }
@@ -3369,7 +3374,7 @@ class woo extends woo$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3378,7 +3383,7 @@ class woo extends woo$1["default"] {
         //
         const success = this.safeBool(response, 'success');
         const errorCode = this.safeString(response, 'code');
-        if (!success) {
+        if (success !== true) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -3759,7 +3764,7 @@ class woo extends woo$1["default"] {
         }
         const market = this.market(symbol);
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.v3PrivateGetAccountInfo(params);
             //
             //     {
@@ -3791,7 +3796,7 @@ class woo extends woo$1["default"] {
             //     }
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             const request = {
                 'symbol': market['id'],
             };
@@ -3904,10 +3909,10 @@ class woo extends woo$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if ((symbol === undefined) || this.safeBool(market, 'spot')) {
+        if ((symbol === undefined) || (this.safeBool(market, 'spot') === true)) {
             return await this.v3PrivatePostSpotMarginLeverage(this.extend(request, params));
         }
-        else if (this.safeBool(market, 'swap')) {
+        else if (this.safeBool(market, 'swap') === true) {
             request['symbol'] = this.safeString(market, 'id');
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params, 'cross');

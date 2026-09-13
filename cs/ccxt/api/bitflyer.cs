@@ -81,6 +81,13 @@ public partial class bitflyer : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetGetfundingrate",parameters);
     }
 
+    /// <summary>Calls the publicGetGetfundingratehistory endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetGetfundingratehistory (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetGetfundingratehistory",parameters);
+    }
+
     /// <summary>Calls the privateGetGetpermissions endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetGetpermissions (object parameters = null)

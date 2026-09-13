@@ -50,6 +50,7 @@ interface Exchange {
     v4PrivatePostCollateralAccountPositionsHistory (params?: {}): Promise<List>;
     v4PrivatePostCollateralAccountLeverage (params?: {}): Promise<Dict>;
     v4PrivatePostCollateralAccountPositionsOpen (params?: {}): Promise<List>;
+    v4PrivatePostCollateralAccountPositionsClosedPnl (params?: {}): Promise<List>;
     v4PrivatePostCollateralAccountSummary (params?: {}): Promise<Dict>;
     v4PrivatePostCollateralAccountFundingHistory (params?: {}): Promise<Dict>;
     v4PrivatePostMainAccountAddress (params?: {}): Promise<Dict>;
@@ -63,6 +64,7 @@ interface Exchange {
     v4PrivatePostMainAccountHistory (params?: {}): Promise<Dict>;
     v4PrivatePostMainAccountWithdraw (params?: {}): Promise<Dict>;
     v4PrivatePostMainAccountWithdrawPay (params?: {}): Promise<List>;
+    v4PrivatePostMainAccountExpressWithdrawToken (params?: {}): Promise<Dict>;
     v4PrivatePostMainAccountTransfer (params?: {}): Promise<List>;
     v4PrivatePostMainAccountSmartPlans (params?: {}): Promise<List>;
     v4PrivatePostMainAccountSmartInvestment (params?: {}): Promise<Dict>;
@@ -70,9 +72,18 @@ interface Exchange {
     v4PrivatePostMainAccountSmartInvestments (params?: {}): Promise<Dict>;
     v4PrivatePostMainAccountFee (params?: {}): Promise<List>;
     v4PrivatePostMainAccountSmartInterestPaymentHistory (params?: {}): Promise<Dict>;
+    v4PrivatePostMainAccountSmartFlexPlans (params?: {}): Promise<List>;
+    v4PrivatePostMainAccountSmartFlexInvestments (params?: {}): Promise<Dict>;
+    v4PrivatePostMainAccountSmartFlexInvestmentsHistory (params?: {}): Promise<Dict>;
+    v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory (params?: {}): Promise<Dict>;
+    v4PrivatePostMainAccountSmartFlexInvestmentsInvest (params?: {}): Promise<Dict>;
+    v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw (params?: {}): Promise<Dict>;
+    v4PrivatePostMainAccountSmartFlexInvestmentsClose (params?: {}): Promise<Dict>;
+    v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest (params?: {}): Promise<Dict>;
     v4PrivatePostTradeAccountBalance (params?: {}): Promise<Dict>;
     v4PrivatePostTradeAccountExecutedHistory (params?: {}): Promise<Dict | List>;
     v4PrivatePostTradeAccountOrderHistory (params?: {}): Promise<Dict>;
+    v4PrivatePostTradeAccountOrderHistoryQuery (params?: {}): Promise<List>;
     v4PrivatePostTradeAccountOrder (params?: {}): Promise<Dict>;
     v4PrivatePostOrderCollateralLimit (params?: {}): Promise<Dict>;
     v4PrivatePostOrderCollateralMarket (params?: {}): Promise<Dict>;
@@ -86,6 +97,7 @@ interface Exchange {
     v4PrivatePostOrderStopMarket (params?: {}): Promise<Dict>;
     v4PrivatePostOrderCancel (params?: {}): Promise<Dict>;
     v4PrivatePostOrderCancelAll (params?: {}): Promise<List>;
+    v4PrivatePostOrderCancelBulk (params?: {}): Promise<List>;
     v4PrivatePostOrderKillSwitch (params?: {}): Promise<Dict>;
     v4PrivatePostOrderKillSwitchStatus (params?: {}): Promise<List>;
     v4PrivatePostOrderBulk (params?: {}): Promise<List>;
@@ -118,8 +130,22 @@ interface Exchange {
     v4PrivatePostSubAccountApiKeyIpAddressCreate (params?: {}): Promise<Dict>;
     v4PrivatePostSubAccountApiKeyIpAddressDelete (params?: {}): Promise<Dict>;
     v4PrivatePostMiningRewards (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningHashrate (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningPayoutDestination (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningPayoutDestinationEdit (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningMinersInfo (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningWorkersNames (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningWorkersHashrate (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningWatcherLinksCreate (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningWatcherLinksList (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningAccountsCreate (params?: {}): Promise<Dict>;
+    v4PrivatePostMiningAccounts (params?: {}): Promise<Dict>;
     v4PrivatePostMarketFee (params?: {}): Promise<Dict>;
+    v4PrivatePostMarketFeeSingle (params?: {}): Promise<Dict>;
     v4PrivatePostConditionalOrders (params?: {}): Promise<Dict>;
+    v4PrivatePostTravelRuleVasps (params?: {}): Promise<Dict>;
+    v4PrivatePostTravelRuleDepositVerification (params?: {}): Promise<Dict>;
+    v4PrivatePostJwt (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

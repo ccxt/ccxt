@@ -45,7 +45,7 @@ public class BinancecoinmCore extends BinancecoinmApi
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferIn(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -57,7 +57,7 @@ public class BinancecoinmCore extends BinancecoinmApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferOut(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

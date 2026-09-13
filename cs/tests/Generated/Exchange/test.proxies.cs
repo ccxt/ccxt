@@ -17,18 +17,18 @@ public partial class testMainClass : BaseTest
     }
     async static public Task<object> testProxyUrl(BaseExchange exchange, object skippedProperties)
     {
-        object method = "proxyUrl";
-        object proxyServerIp = "5.75.153.75";
+        string method = "proxyUrl";
+        string proxyServerIp = "5.75.153.75";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = testSharedMethods.removeProxyOptions(exchange, skippedProperties);
         var proxyUrl = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[0];
         var httpProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[1];
         var httpsProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[2];
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
         exchange.proxyUrl = add(add("http://", proxyServerIp), ":8090/proxy_url.php?caller=https://ccxt.com&url=");
-        object encodedColon = "%3A";
-        object encodedSlash = "%2F";
-        object ipCheckUrl = add(add(add(add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
-        object response = await ((dynamic)exchange).fetch(ipCheckUrl);
+        string encodedColon = "%3A";
+        string encodedSlash = "%2F";
+        string ipCheckUrl = add(add(add(add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
+        object response = await invokeExchangeDynamically(exchange, "fetch", ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
@@ -36,16 +36,16 @@ public partial class testMainClass : BaseTest
     }
     async static public Task<object> testHttpProxy(BaseExchange exchange, object skippedProperties)
     {
-        object method = "httpProxy";
-        object proxyServerIp = "5.75.153.75";
+        string method = "httpProxy";
+        string proxyServerIp = "5.75.153.75";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = testSharedMethods.removeProxyOptions(exchange, skippedProperties);
         var proxyUrl = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[0];
         var httpProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[1];
         var httpsProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[2];
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
         exchange.httpProxy = add(add("http://", proxyServerIp), ":8911");
-        object ipCheckUrl = "https://api.ipify.org/";
-        object response = await ((dynamic)exchange).fetch(ipCheckUrl);
+        string ipCheckUrl = "https://api.ipify.org/";
+        object response = await invokeExchangeDynamically(exchange, "fetch", ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
@@ -54,27 +54,27 @@ public partial class testMainClass : BaseTest
     // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw exception
     async static public Task<object> testProxyForExceptions(BaseExchange exchange, object skippedProperties)
     {
-        object method = "testProxyForExceptions";
+        string method = "testProxyForExceptions";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = testSharedMethods.removeProxyOptions(exchange, skippedProperties);
         var proxyUrl = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[0];
         var httpProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[1];
         var httpsProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[2];
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
-        object possibleOptionsArray = new List<object>() {"proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"};
-        for (object i = 0; isLessThan(i, getArrayLength(possibleOptionsArray)); postFixIncrement(ref i))
+        List<object> possibleOptionsArray = new List<object>() {"proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"};
+        for (int i = 0; isLessThan(i, getArrayLength(possibleOptionsArray)); postFixIncrement(ref i))
         {
-            for (object j = 0; isLessThan(j, getArrayLength(possibleOptionsArray)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(possibleOptionsArray)); postFixIncrement(ref j))
             {
                 if (isTrue(!isEqual(j, i)))
                 {
-                    object proxyFirst = getValue(possibleOptionsArray, i);
-                    object proxySecond = getValue(possibleOptionsArray, j);
+                    string? proxyFirst = ((string)getValue(possibleOptionsArray, i));
+                    string? proxySecond = ((string)getValue(possibleOptionsArray, j));
                     exchange.setProperty(exchange, proxyFirst, "0.0.0.0"); // actual value does not matter
                     exchange.setProperty(exchange, proxySecond, "0.0.0.0"); // actual value does not matter
-                    object exceptionCaught = false;
+                    bool exceptionCaught = false;
                     try
                     {
-                        await ((dynamic)exchange).fetch("http://example.com"); // url does not matter, it will not be called
+                        await invokeExchangeDynamically(exchange, "fetch", "http://example.com"); // url does not matter, it will not be called
                     } catch(Exception e)
                     {
                         exceptionCaught = true;

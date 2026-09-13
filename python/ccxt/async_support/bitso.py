@@ -221,6 +221,10 @@ class bitso(Exchange, ImplicitAPI):
                         'orders/{oid}': {'cost': 1},
                         'orders/all': {'cost': 1},
                     },
+                    'patch': {
+                        'orders': {'cost': 1},
+                        'orders/{oid}': {'cost': 1},
+                    },
                 },
             },
             'features': {
@@ -484,7 +488,7 @@ class bitso(Exchange, ImplicitAPI):
         #             },
         #         ]
         #     }
-        markets = self.safe_value(response, 'payload', [])
+        markets = self.safe_list(response, 'payload', [])
         currencies = self.safe_dict(self.options, 'cachedCurrencies')
         result = []
         for i in range(0, len(markets)):
@@ -501,7 +505,7 @@ class bitso(Exchange, ImplicitAPI):
             makerString = self.safe_string(flatRate, 'maker')
             taker = self.parse_number(Precise.string_div(takerString, '100'))
             maker = self.parse_number(Precise.string_div(makerString, '100'))
-            feeTiers = self.safe_value(fees, 'structure', [])
+            feeTiers = self.safe_list(fees, 'structure', [])
             fee = {
                 'taker': taker,
                 'maker': maker,
@@ -650,7 +654,7 @@ class bitso(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         payload = self.safe_value(response, 'payload', {})
-        balances = self.safe_value(payload, 'balances', [])
+        balances = self.safe_list(payload, 'balances', [])
         result = {
             'info': response,
             'timestamp': None,
@@ -818,7 +822,7 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1060,7 +1064,7 @@ class bitso(Exchange, ImplicitAPI):
         #    }
         #
         payload = self.safe_value(response, 'payload', {})
-        fees = self.safe_value(payload, 'fees', [])
+        fees = self.safe_list(payload, 'fees', [])
         result = {}
         for i in range(0, len(fees)):
             fee = fees[i]
@@ -1205,7 +1209,7 @@ class bitso(Exchange, ImplicitAPI):
         #         "payload": ["yWTQGxDMZ0VimZgZ"]
         #     }
         #
-        payload = self.safe_value(response, 'payload', [])
+        payload = self.safe_list(response, 'payload', [])
         orders = []
         for i in range(0, len(payload)):
             id = payload[i]
@@ -1231,7 +1235,7 @@ class bitso(Exchange, ImplicitAPI):
         #         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         #     }
         #
-        payload = self.safe_value(response, 'payload', [])
+        payload = self.safe_list(response, 'payload', [])
         canceledOrders = []
         for i in range(0, len(payload)):
             order = self.parse_order(payload[i])
@@ -1378,7 +1382,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         return self.parse_trades(payload, market)
 
-    async def fetch_deposit(self, id: str, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -1555,7 +1559,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         result = {}
         payload = self.safe_value(response, 'payload', {})
-        depositFees = self.safe_value(payload, 'deposit_fees', [])
+        depositFees = self.safe_list(payload, 'deposit_fees', [])
         for i in range(0, len(depositFees)):
             depositFee = depositFees[i]
             currencyId = self.safe_string(depositFee, 'currency')
@@ -1690,7 +1694,7 @@ class bitso(Exchange, ImplicitAPI):
         #    }
         #
         result = {}
-        depositResponse = self.safe_value(response, 'deposit_fees', [])
+        depositResponse = self.safe_list(response, 'deposit_fees', [])
         withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
         for i in range(0, len(depositResponse)):
             entry = depositResponse[i]
@@ -1701,7 +1705,7 @@ class bitso(Exchange, ImplicitAPI):
                     result[code] = {
                         'deposit': {
                             'fee': self.safe_number(entry, 'fee'),
-                            'percentage': not self.safe_value(entry, 'is_fixed'),
+                            'percentage': (self.safe_value(entry, 'is_fixed') is not True),
                         },
                         'withdraw': {
                             'fee': None,
@@ -1865,7 +1869,7 @@ class bitso(Exchange, ImplicitAPI):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' or method == 'DELETE':
-            if query:
+            if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + endpoint
         if api == 'private':
@@ -1875,7 +1879,7 @@ class bitso(Exchange, ImplicitAPI):
             content = [nonce, method, endpoint]
             request = ''.join(content)
             if method != 'GET' and method != 'DELETE':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     request += body
             signature = self.hmac(self.encode(request), self.encode(self.secret), hashlib.sha256)
@@ -1899,7 +1903,7 @@ class bitso(Exchange, ImplicitAPI):
                     success = True
                 else:
                     success = False
-            if not success:
+            if success is not True:
                 feedback = self.id + ' ' + self.json(response)
                 error = self.safe_value(response, 'error')
                 if error is None:

@@ -354,7 +354,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         // }
         //
         $channel = $this->safe_string($message, 'channel');
-        $order = $this->safe_value($message, 'data', array());
+        $order = $this->safe_dict($message, 'data', array());
         $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
         if ($this->orders === null) {
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -554,7 +554,7 @@ class bitstamp extends \ccxt\async\bitstamp {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         //

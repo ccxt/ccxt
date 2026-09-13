@@ -16,26 +16,26 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
-        Object method = "watchOHLCVForSymbols";
+        String method = "watchOHLCVForSymbols";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
-        Assert(Helpers.getArrayLength(timeframeKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
+        Assert(Helpers.isGreaterThan(Helpers.getArrayLength(timeframeKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
             chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
         }
-        Object limit = 10;
+        Integer limit = 10;
         Object duration = exchange.parseTimeframe(chosenTimeframeKey);
         Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
-        Object maxIdleTime = 5000;
-        Object idle = false;
+        Integer maxIdleTime = 5000;
+        Boolean idle = false;
         while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;
-            Object success = true;
+            Boolean success = true;
             Object startTime = exchange.milliseconds();
             try
             {

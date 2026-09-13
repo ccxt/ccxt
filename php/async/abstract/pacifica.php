@@ -154,6 +154,24 @@ abstract class pacifica extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_orders_twap($params = array()) {
+        return $this->request('orders/twap', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_orders_twap_history($params = array()) {
+        return $this->request('orders/twap/history', 'public', 'GET', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_orders_twap_history_by_id($params = array()) {
+        return $this->request('orders/twap/history_by_id', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_spot_assets($params = array()) {
         return $this->request('spot_assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -180,6 +198,24 @@ abstract class pacifica extends \ccxt\async\Exchange {
      */
     public function public_get_account_builder_codes_approvals($params = array()) {
         return $this->request('account/builder_codes/approvals', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_builder_overview($params = array()) {
+        return $this->request('builder/overview', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_builder_trades($params = array()) {
+        return $this->request('builder/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_leaderboard_builder_code($params = array()) {
+        return $this->request('leaderboard/builder_code', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -304,6 +340,18 @@ abstract class pacifica extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_orders_twap_create($params = array()) {
+        return $this->request('orders/twap/create', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_orders_twap_cancel($params = array()) {
+        return $this->request('orders/twap/cancel', 'private', 'POST', $params, null, null, array("cost" => 0.5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_account_builder_codes_approve($params = array()) {
         return $this->request('account/builder_codes/approve', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -316,8 +364,62 @@ abstract class pacifica extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_builder_update_fee_rate($params = array()) {
+        return $this->request('builder/update_fee_rate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_referral_user_code_claim($params = array()) {
+        return $this->request('referral/user/code/claim', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_agent_bind($params = array()) {
         return $this->request('agent/bind', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_agent_list($params = array()) {
+        return $this->request('agent/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_agent_revoke($params = array()) {
+        return $this->request('agent/revoke', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_agent_revoke_all($params = array()) {
+        return $this->request('agent/revoke_all', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_agent_ip_whitelist_list($params = array()) {
+        return $this->request('agent/ip_whitelist/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_agent_ip_whitelist_add($params = array()) {
+        return $this->request('agent/ip_whitelist/add', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_agent_ip_whitelist_remove($params = array()) {
+        return $this->request('agent/ip_whitelist/remove', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_agent_ip_whitelist_toggle($params = array()) {
+        return $this->request('agent/ip_whitelist/toggle', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -556,6 +658,24 @@ abstract class pacifica extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicGetOrdersTwap($params = array()) {
+        return $this->request('orders/twap', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetOrdersTwapHistory($params = array()) {
+        return $this->request('orders/twap/history', 'public', 'GET', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetOrdersTwapHistoryById($params = array()) {
+        return $this->request('orders/twap/history_by_id', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetSpotAssets($params = array()) {
         return $this->request('spot_assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -582,6 +702,24 @@ abstract class pacifica extends \ccxt\async\Exchange {
      */
     public function publicGetAccountBuilderCodesApprovals($params = array()) {
         return $this->request('account/builder_codes/approvals', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetBuilderOverview($params = array()) {
+        return $this->request('builder/overview', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetBuilderTrades($params = array()) {
+        return $this->request('builder/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetLeaderboardBuilderCode($params = array()) {
+        return $this->request('leaderboard/builder_code', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -706,6 +844,18 @@ abstract class pacifica extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostOrdersTwapCreate($params = array()) {
+        return $this->request('orders/twap/create', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostOrdersTwapCancel($params = array()) {
+        return $this->request('orders/twap/cancel', 'private', 'POST', $params, null, null, array("cost" => 0.5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostAccountBuilderCodesApprove($params = array()) {
         return $this->request('account/builder_codes/approve', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -718,8 +868,62 @@ abstract class pacifica extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostBuilderUpdateFeeRate($params = array()) {
+        return $this->request('builder/update_fee_rate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostReferralUserCodeClaim($params = array()) {
+        return $this->request('referral/user/code/claim', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostAgentBind($params = array()) {
         return $this->request('agent/bind', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAgentList($params = array()) {
+        return $this->request('agent/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAgentRevoke($params = array()) {
+        return $this->request('agent/revoke', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAgentRevokeAll($params = array()) {
+        return $this->request('agent/revoke_all', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAgentIpWhitelistList($params = array()) {
+        return $this->request('agent/ip_whitelist/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAgentIpWhitelistAdd($params = array()) {
+        return $this->request('agent/ip_whitelist/add', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAgentIpWhitelistRemove($params = array()) {
+        return $this->request('agent/ip_whitelist/remove', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAgentIpWhitelistToggle($params = array()) {
+        return $this->request('agent/ip_whitelist/toggle', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

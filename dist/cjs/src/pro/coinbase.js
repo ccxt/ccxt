@@ -965,7 +965,7 @@ class coinbase extends coinbase$1["default"] {
         //      }
         //
         const events = this.safeList(message, 'events', []);
-        const firstEvent = this.safeValue(events, 0, {});
+        const firstEvent = this.safeDict(events, 0, {});
         const isUnsub = ('subscriptions' in firstEvent);
         const subKeys = Object.keys(firstEvent['subscriptions']);
         const subKeysLength = subKeys.length;
@@ -1020,7 +1020,7 @@ class coinbase extends coinbase$1["default"] {
             throw new errors.ExchangeError(errorMessageValue);
         }
         const method = this.safeValue(methods, channel);
-        if (method) {
+        if (method !== undefined) {
             method.call(this, client, message);
         }
     }

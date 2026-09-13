@@ -144,6 +144,8 @@ class independentreserve extends Exchange {
                         'GetRecentTrades' => array( 'cost' => 1 ),
                         'GetFxRates' => array( 'cost' => 1 ),
                         'GetOrderMinimumVolumes' => array( 'cost' => 1 ),
+                        'GetDepositFees' => array( 'cost' => 1 ),
+                        'GetFiatWithdrawalFees' => array( 'cost' => 1 ),
                         'GetCryptoWithdrawalFees' => array( 'cost' => 1 ),
                         'GetCryptoWithdrawalFees2' => array( 'cost' => 1 ),
                         'GetNetworks' => array( 'cost' => 1 ),
@@ -164,11 +166,16 @@ class independentreserve extends Exchange {
                         'GetDigitalCurrencyDepositAddresses' => array( 'cost' => 1 ),
                         'GetDigitalCurrencyDepositAddresses2' => array( 'cost' => 1 ),
                         'GetTrades' => array( 'cost' => 1 ),
+                        'GetTradesByOrder' => array( 'cost' => 1 ),
                         'GetBrokerageFees' => array( 'cost' => 1 ),
                         'GetDigitalCurrencyWithdrawal' => array( 'cost' => 1 ),
+                        'GetFiatWithdrawal' => array( 'cost' => 1 ),
+                        'GetDepositLimits' => array( 'cost' => 1 ),
+                        'GetWithdrawalLimits' => array( 'cost' => 1 ),
                         'PlaceLimitOrder' => array( 'cost' => 1 ),
                         'PlaceMarketOrder' => array( 'cost' => 1 ),
                         'CancelOrder' => array( 'cost' => 1 ),
+                        'CancelOrders' => array( 'cost' => 1 ),
                         'SynchDigitalCurrencyDepositAddressWithBlockchain' => array( 'cost' => 1 ),
                         'RequestFiatWithdrawal' => array( 'cost' => 1 ),
                         'WithdrawFiatCurrency' => array( 'cost' => 1 ),
@@ -1178,7 +1185,7 @@ class independentreserve extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {

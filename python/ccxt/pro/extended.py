@@ -679,7 +679,7 @@ class extended(ccxt.async_support.extended):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.candleType]: candle type: 'trades'(default), 'mark-prices', or 'index-prices'
         :param str [params.price]: *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -779,7 +779,7 @@ class extended(ccxt.async_support.extended):
         raise ExchangeError(feedback)
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'type')
         data = self.safe_value(message, 'data')

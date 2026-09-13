@@ -201,6 +201,7 @@ export default class lighter extends Exchange {
                         'currentHeight': { 'cost': 1 },
                         // candlestick
                         'candles': { 'cost': 1 },
+                        'markPriceCandles': { 'cost': 1 },
                         'fundings': { 'cost': 1 },
                         // bridge
                         'fastbridge/info': { 'cost': 1 },
@@ -208,6 +209,9 @@ export default class lighter extends Exchange {
                         'funding-rates': { 'cost': 1 },
                         // info
                         'withdrawalDelay': { 'cost': 1 },
+                        'partnerStats': { 'cost': 1 },
+                        'syntheticSpotInfo': { 'cost': 1 },
+                        'tokenlist': { 'cost': 1 },
                     },
                     'post': {
                         // transaction
@@ -225,10 +229,13 @@ export default class lighter extends Exchange {
                         'liquidations': { 'cost': 1 },
                         'positionFunding': { 'cost': 1 },
                         'publicPoolsMetadata': { 'cost': 1 },
+                        'getMakerOnlyApiKeys': { 'cost': 1 },
                         // order
                         'accountActiveOrders': { 'cost': 1 },
                         'accountInactiveOrders': { 'cost': 1 },
+                        'accountOrders': { 'cost': 1 },
                         'export': { 'cost': 1 },
+                        'export/historicalTrades': { 'cost': 1 },
                         'trades': { 'cost': 1 },
                         // transaction
                         'accountTxs': { 'cost': 1 },
@@ -239,12 +246,20 @@ export default class lighter extends Exchange {
                         'referral/points': { 'cost': 1 },
                         // info
                         'transferFeeInfo': { 'cost': 1 },
+                        // rfq
+                        'rfq/get': { 'cost': 1 },
+                        'rfq/list': { 'cost': 1 },
                     },
                     'post': {
                         // account
                         'changeAccountTier': { 'cost': 1 },
+                        'setMakerOnlyApiKeys': { 'cost': 1 },
                         // notification
                         'notification/ack': { 'cost': 1 },
+                        // rfq
+                        'rfq/create': { 'cost': 1 },
+                        'rfq/respond': { 'cost': 1 },
+                        'rfq/update': { 'cost': 1 },
                     },
                 },
             },
@@ -622,11 +637,11 @@ export default class lighter extends Exchange {
     }
     async handleBuilderFeeApproval(accountIndex, apiKeyIndex) {
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (!buildFee) {
+        if (buildFee !== true) {
             return false;
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true;
         }
         try {
@@ -754,7 +769,7 @@ export default class lighter extends Exchange {
         const takeProfit = this.safeValue(params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
-        const isConditional = (stopLossPrice || takeProfitPrice);
+        const isConditional = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined));
         const isMarketOrder = (orderType === 'MARKET');
         const timeInForce = this.safeStringLower(params, 'timeInForce', 'gtt');
         const postOnly = this.isPostOnly(isMarketOrder, undefined, params);
@@ -826,7 +841,7 @@ export default class lighter extends Exchange {
         request['order_expiry'] = orderExpiry;
         request['order_type'] = orderTypeNum;
         request['time_in_force'] = timeInForceNum;
-        request['reduce_only'] = (reduceOnly) ? 1 : 0;
+        request['reduce_only'] = (reduceOnly === true) ? 1 : 0;
         request['client_order_index'] = clientOrderId;
         request['base_amount'] = this.parseToInt(Precise.stringMul(amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt(Precise.stringMul(priceStr, priceScale));
@@ -3338,7 +3353,7 @@ export default class lighter extends Exchange {
                 'Authorization': this.createAuth(params),
             };
         }
-        if (Object.keys(params).length) {
+        if (Object.keys(params).length > 0) {
             if (method === 'POST') {
                 headers = {
                     'Content-Type': 'multipart/form-data',
@@ -3352,7 +3367,7 @@ export default class lighter extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //

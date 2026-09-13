@@ -293,7 +293,7 @@ export default class pacifica extends pacificaRest {
             const orderId = this.safeString (order, 'i');
             const clientOrderId = this.safeString (order, 'I');
             let status: Str = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'closed';
             } else {
                 status = 'canceled';
@@ -523,7 +523,7 @@ export default class pacifica extends pacificaRest {
         const timestamp = this.safeInteger (entry, 't');
         const snapshot = this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         const nonce = this.safeInteger (entry, 'li');
-        if (nonce) {
+        if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
         if (!(symbol in this.orderbooks)) {
@@ -685,7 +685,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message: any) {
+    handleWsTickers (client: Client, message: any): boolean {
         //
         // {
         //     "channel": "prices",
@@ -1364,7 +1364,7 @@ export default class pacifica extends pacificaRest {
         //     }
         // }
         //
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const postType = this.safeString (message, 'type');

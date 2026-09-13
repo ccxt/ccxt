@@ -130,6 +130,9 @@ class modetrade extends Exchange {
                     'private' => 'https://testnet-api-evm.orderly.org',
                 ),
                 'www' => 'https://trade.mode.network',
+                'doc' => array(
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
+                ),
                 'referral' => array(
                     'url' => 'https://trade.mode.network?ref=MODETRADE',
                     'discount' => 0.2,
@@ -176,6 +179,7 @@ class modetrade extends Exchange {
                             'tv/config' => array( 'cost' => 1 ),
                             'tv/history' => array( 'cost' => 1 ),
                             'tv/symbol_info' => array( 'cost' => 1 ),
+                            'tv/kline_history' => array( 'cost' => 20 ),
                             'public/funding_rate_history' => array( 'cost' => 1 ),
                             'public/funding_rate/{symbol}' => array( 'cost' => 0.33 ),
                             'public/funding_rates' => array( 'cost' => 1 ),
@@ -188,6 +192,7 @@ class modetrade extends Exchange {
                         ),
                         'post' => array(
                             'register_account' => array( 'cost' => 1 ),
+                            'public/query' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -210,6 +215,7 @@ class modetrade extends Exchange {
                             'withdraw_nonce' => array( 'cost' => 1 ),
                             'settle_nonce' => array( 'cost' => 1 ),
                             'pnl_settlement/history' => array( 'cost' => 1 ),
+                            'internal_transfer_history' => array( 'cost' => 1 ),
                             'volume/user/daily' => array( 'cost' => 60 ),
                             'volume/user/stats' => array( 'cost' => 60 ),
                             'client/statistics' => array( 'cost' => 60 ),
@@ -223,8 +229,20 @@ class modetrade extends Exchange {
                             'volume/broker/daily' => array( 'cost' => 60 ),
                             'broker/fee_rate/default' => array( 'cost' => 10 ),
                             'broker/user_info' => array( 'cost' => 10 ),
+                            'broker/daily_fee_revenue' => array( 'cost' => 1 ),
                             'orderbook/{symbol}' => array( 'cost' => 1 ),
                             'kline' => array( 'cost' => 1 ),
+                            'client/leverages' => array( 'cost' => 1 ),
+                            'client/margin_modes' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/info' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/referee_list' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/summary' => array( 'cost' => 1 ),
+                            'referral/multi_level/max_rebate_rate' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_info' => array( 'cost' => 10 ),
+                            'referral/multi_level/referee_list' => array( 'cost' => 1 ),
+                            'referral/multi_level/statistics' => array( 'cost' => 1 ),
+                            'referral/multi_level/volume_prerequisite' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'orderly_key' => array( 'cost' => 1 ),
@@ -237,9 +255,13 @@ class modetrade extends Exchange {
                             'claim_insurance_fund' => array( 'cost' => 1 ),
                             'withdraw_request' => array( 'cost' => 1 ),
                             'settle_pnl' => array( 'cost' => 1 ),
+                            'internal_transfer' => array( 'cost' => 1 ),
                             'notification/inbox/mark_read' => array( 'cost' => 60 ),
                             'notification/inbox/mark_read_all' => array( 'cost' => 60 ),
                             'client/leverage' => array( 'cost' => 120 ),
+                            'client/leverages' => array( 'cost' => 120 ),
+                            'client/margin_mode' => array( 'cost' => 1 ),
+                            'position_margin' => array( 'cost' => 1 ),
                             'client/maintenance_config' => array( 'cost' => 60 ),
                             'delegate_signer' => array( 'cost' => 10 ),
                             'delegate_orderly_key' => array( 'cost' => 10 ),
@@ -252,6 +274,15 @@ class modetrade extends Exchange {
                             'referral/update' => array( 'cost' => 10 ),
                             'referral/bind' => array( 'cost' => 10 ),
                             'referral/edit_split' => array( 'cost' => 10 ),
+                            'referral/edit_referee_description' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/update' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/create/affiliate' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/reset/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/update/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/claim_code' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_rate/set_default' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_rate/update' => array( 'cost' => 10 ),
                         ),
                         'put' => array(
                             'order' => array( 'cost' => 1 ),
@@ -307,12 +338,12 @@ class modetrade extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
-                        'trailing' => true,
-                        'leverage' => true, // todo implement
+                        'trailing' => false,
+                        'leverage' => false,
                         'marketBuyByCost' => false,
                         'marketBuyRequiresPrice' => false,
                         'selfTradePrevention' => false,
-                        'iceberg' => true, // todo implement
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -337,7 +368,15 @@ class modetrade extends Exchange {
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
-                    'fetchOrders' => null,
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
@@ -352,9 +391,7 @@ class modetrade extends Exchange {
                         'limit' => 1000,
                     ),
                 ),
-                'spot' => array(
-                    'extends' => 'default',
-                ),
+                'spot' => null,
                 'forDerivatives' => array(
                     'extends' => 'default',
                     'createOrder' => array(
@@ -422,7 +459,7 @@ class modetrade extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-$status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
@@ -460,7 +497,7 @@ class modetrade extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -572,7 +609,7 @@ class modetrade extends Exchange {
         /**
          * retrieves $data on all markets for modetrade
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -622,7 +659,7 @@ class modetrade extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -798,7 +835,7 @@ class modetrade extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-$market-trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -895,7 +932,7 @@ class modetrade extends Exchange {
         /**
          * fetch the current funding rate interval
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -908,7 +945,7 @@ class modetrade extends Exchange {
         /**
          * fetch the current funding rate
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-$market
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -945,7 +982,7 @@ class modetrade extends Exchange {
         /**
          * fetch the current funding rate for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
          *
          * @param {string[]} $symbols unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -982,7 +1019,7 @@ class modetrade extends Exchange {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-$market
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -1086,7 +1123,7 @@ class modetrade extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
@@ -1153,7 +1190,7 @@ class modetrade extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
@@ -1214,7 +1251,7 @@ class modetrade extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1269,7 +1306,7 @@ class modetrade extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
          *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1277,7 +1314,7 @@ class modetrade extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1390,7 +1427,7 @@ class modetrade extends Exchange {
         $childOrders = $this->safe_value($order, 'childOrders');
         if ($childOrders !== null) {
             $first = $this->safe_value($childOrders, 0);
-            $innerChildOrders = $this->safe_value($first, 'childOrders', array());
+            $innerChildOrders = $this->safe_list($first, 'childOrders', array());
             $innerChildOrdersLength = count($innerChildOrders);
             if ($innerChildOrdersLength > 0) {
                 $takeProfitOrder = $this->safe_value($innerChildOrders, 0);
@@ -1462,7 +1499,7 @@ class modetrade extends Exchange {
             }
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order_type(?string $type) {
@@ -1529,7 +1566,7 @@ class modetrade extends Exchange {
                 $request['order_type'] = 'IOC';
             }
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduce_only'] = $reduceOnly;
         }
         if ($price !== null) {
@@ -1589,8 +1626,8 @@ class modetrade extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-$order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-$order
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1603,8 +1640,11 @@ class modetrade extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {float} [$params->algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+         * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
+         * @param {bool} [$params->postOnly] true or false whether the $order is post-only
+         * @param {string} [$params->timeInForce] 'IOC', 'FOK' or 'PO'
+         * @param {array[]} [$params->childOrders] *algo $order only* a list of child orders passed through to the exchange
          * @param {string} [$params->clientOrderId] a unique id for the $order
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
@@ -1661,7 +1701,7 @@ class modetrade extends Exchange {
         /**
          * *contract only* create a list of trade $orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1722,8 +1762,8 @@ class modetrade extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1805,10 +1845,10 @@ class modetrade extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
          *
          * cancels an open order
          * @param {string} $id order $id
@@ -1820,7 +1860,7 @@ class modetrade extends Exchange {
          */
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if (!$trigger && ($symbol === null)) {
+        if (($trigger !== true) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         if ($this->markets === null) {
@@ -1836,7 +1876,7 @@ class modetrade extends Exchange {
         $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-        if ($trigger) {
+        if ($trigger === true) {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
@@ -1876,7 +1916,7 @@ class modetrade extends Exchange {
         } else {
             $extendParams['id'] = $id;
         }
-        if ($trigger) {
+        if ($trigger === true) {
             return $this->extend($this->parse_order($response), $extendParams);
         }
         $data = $this->safe_dict($response, 'data', array());
@@ -1887,8 +1927,8 @@ class modetrade extends Exchange {
         /**
          * cancel multiple orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
          *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified market $symbol
@@ -1903,7 +1943,7 @@ class modetrade extends Exchange {
         $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $request = array();
         $response = null;
-        if ($clientOrderIds) {
+        if ($clientOrderIds !== null) {
             $request['client_order_ids'] = implode(',', $clientOrderIds);
             $response = $this->v1PrivateDeleteClientBatchOrder($this->extend($request, $params));
         } else {
@@ -1927,8 +1967,8 @@ class modetrade extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
          *
          * cancel all open orders in a $market
          * @param {string} [$symbol] unified $market $symbol
@@ -1947,7 +1987,7 @@ class modetrade extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             $response = $this->v1PrivateDeleteAlgoOrders($this->extend($request, $params));
         } else {
             $response = $this->v1PrivateDeleteOrders($this->extend($request, $params));
@@ -1977,10 +2017,10 @@ class modetrade extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
          *
          * fetches information on an order made by the user
          * @param {string} $id the order $id
@@ -2002,8 +2042,8 @@ class modetrade extends Exchange {
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $params = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $response = null;
-        if ($trigger) {
-            if ($clientOrderId) {
+        if ($trigger === true) {
+            if ($clientOrderId !== null && $clientOrderId !== '') {
                 $request['client_order_id'] = $clientOrderId;
                 $response = $this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $params));
             } else {
@@ -2011,7 +2051,7 @@ class modetrade extends Exchange {
                 $response = $this->v1PrivateGetAlgoOrderOid($this->extend($request, $params));
             }
         } else {
-            if ($clientOrderId) {
+            if (($clientOrderId !== null) && ($clientOrderId !== '')) {
                 $request['client_order_id'] = $clientOrderId;
                 $response = $this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $params));
             } else {
@@ -2054,12 +2094,12 @@ class modetrade extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-$orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2073,7 +2113,7 @@ class modetrade extends Exchange {
         }
         $paginate = false;
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $maxLimit = ($isTrigger) ? 100 : 500;
+        $maxLimit = ($isTrigger === true) ? 100 : 500;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', $maxLimit);
@@ -2089,16 +2129,16 @@ class modetrade extends Exchange {
             $request['start_t'] = $since;
         }
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['size'] = min($limit, $maxLimit);
         } else {
             $request['size'] = $maxLimit;
         }
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $request['algo_type'] = 'STOP';
         }
         list($request, $params) = $this->handle_until_option('end_t', $request, $params);
         $response = null;
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->v1PrivateGetAlgoOrders($this->extend($request, $params));
         } else {
             $response = $this->v1PrivateGetOrders($this->extend($request, $params));
@@ -2146,12 +2186,12 @@ class modetrade extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2171,12 +2211,12 @@ class modetrade extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2196,7 +2236,7 @@ class modetrade extends Exchange {
         /**
          * fetch all the $trades made from a single order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-$trades-of-specific-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$trades-of-specific-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
@@ -2245,7 +2285,7 @@ class modetrade extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-$trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$trades
          *
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -2333,7 +2373,7 @@ class modetrade extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -2452,7 +2492,7 @@ class modetrade extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
@@ -2519,7 +2559,7 @@ class modetrade extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2537,7 +2577,7 @@ class modetrade extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2555,7 +2595,7 @@ class modetrade extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
@@ -2616,7 +2656,7 @@ class modetrade extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-$request
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-$request
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -2710,7 +2750,7 @@ class modetrade extends Exchange {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2756,7 +2796,7 @@ class modetrade extends Exchange {
         /**
          * set the level of $leverage for a market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-$leverage-setting
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-$leverage-setting
          *
          * @param {int} [$leverage] the rate of $leverage
          * @param {string} [$symbol] unified market $symbol
@@ -2851,7 +2891,7 @@ class modetrade extends Exchange {
     public function fetch_position(string $symbol, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
          *
          * fetch $data on an open position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
@@ -2903,7 +2943,7 @@ class modetrade extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-$positions-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$positions-info
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2969,7 +3009,7 @@ class modetrade extends Exchange {
         $params = $this->keysort($params);
         if ($access === 'public') {
             $url .= $pathWithParams;
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -2978,7 +3018,7 @@ class modetrade extends Exchange {
             $isOrder = $path === 'algo/order' || $path === 'order' || $path === 'batch-order';
             if ($isPostOrPut && $isOrder) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if (!$isSandboxMode) {
+                if ($isSandboxMode !== true) {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTMODE');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($params, 'orders', array());
@@ -3009,7 +3049,7 @@ class modetrade extends Exchange {
                 $auth .= $body;
                 $headers['content-type'] = 'application/json';
             } else {
-                if ($params) {
+                if (count($params) > 0) {
                     $url .= '?' . $this->urlencode($params);
                     $auth .= '?' . $this->rawencode($params);
                 }
@@ -3030,7 +3070,7 @@ class modetrade extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }
         //
@@ -3039,7 +3079,7 @@ class modetrade extends Exchange {
         //
         $success = $this->safe_bool($response, 'success');
         $errorCode = $this->safe_string($response, 'code');
-        if (!$success) {
+        if ($success !== true) {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

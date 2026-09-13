@@ -16,7 +16,7 @@ public class TestFetchTradingFee extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchTradingFee";
+        String method = "fetchTradingFee";
         Object fee = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFee", new Object[]{symbol})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, fee, symbol);
         TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, fee);

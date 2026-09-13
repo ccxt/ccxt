@@ -238,7 +238,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            if (market['active']) {
+            if (market['active'] === true) {
                 output.push(symbol);
             }
         }
@@ -790,7 +790,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return true;
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const channel = this.safeString(message, 'channel', '');

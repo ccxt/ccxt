@@ -237,7 +237,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            if (market['active']) {
+            if (market['active'] === true) {
                 output.push(symbol);
             }
         }
@@ -789,7 +789,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         return true;
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const channel = this.safeString(message, 'channel', '');

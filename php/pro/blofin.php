@@ -142,7 +142,7 @@ class blofin extends \ccxt\async\blofin {
         //         instId => "DOGE-USDT",
         //       ),
         //       $data : array(
-        //         <same object in REST example>,
+        //         <same object as shown in REST example>,
         //         ...
         //       )
         //     }
@@ -326,7 +326,7 @@ class blofin extends \ccxt\async\blofin {
         //             instId => "DOGE-USDT",
         //         ),
         //         $data => array(
-        //             <same object in REST example>
+        //             <same object as shown in REST example>
         //         ),
         //     }
         //
@@ -431,7 +431,7 @@ class blofin extends \ccxt\async\blofin {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
@@ -452,7 +452,7 @@ class blofin extends \ccxt\async\blofin {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
@@ -479,7 +479,7 @@ class blofin extends \ccxt\async\blofin {
         //             instId => "DOGE-USDT",
         //         ),
         //         $data => array(
-        //             array( same object in REST example )
+        //             array( same object as shown in REST example )
         //         ),
         //     }
         //
@@ -545,7 +545,7 @@ class blofin extends \ccxt\async\blofin {
         //         arg => array(
         //           channel => "account",
         //         ),
-        //         data => <same object in REST example>,
+        //         data => <same object as shown in REST example>,
         //     }
         //
         $marketType = 'swap'; // for now
@@ -608,7 +608,7 @@ class blofin extends \ccxt\async\blofin {
         }
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        $channel = $trigger ? 'orders-algo' : 'orders';
+        $channel = ($trigger === true) ? 'orders-algo' : 'orders';
         $orders = Async\await($this->watch_multiple_wrapper(false, $channel, 'watchOrdersForSymbols', $symbols, $params));
         if ($this->newUpdates) {
             $first = $this->safe_value($orders, 0);
@@ -624,7 +624,7 @@ class blofin extends \ccxt\async\blofin {
         //         action => 'update',
         //         $arg => array( channel => 'orders' ),
         //         $data => array(
-        //           <same object in REST example>
+        //           <same object as shown in REST example>
         //         )
         //     }
         //
@@ -682,7 +682,7 @@ class blofin extends \ccxt\async\blofin {
         //     {
         //         $arg => array( channel => 'positions' ),
         //         $data => array(
-        //           <same object in REST example>
+        //           <same object as shown in REST example>
         //         )
         //     }
         //
@@ -879,11 +879,11 @@ class blofin extends \ccxt\async\blofin {
             $arg = $this->safe_dict($message, 'arg');
             $channelName = $this->safe_string($arg, 'channel');
             $method = $this->safe_value($methods, $channelName);
-            if (!$method && mb_strpos($channelName, 'candle') !== false) {
+            if (($method === null) && (mb_strpos($channelName, 'candle') !== false)) {
                 $method = $methods['candle'];
             }
         }
-        if ($method) {
+        if ($method !== null) {
             $method($client, $message);
         }
     }

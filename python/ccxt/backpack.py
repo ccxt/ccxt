@@ -171,11 +171,17 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/collateral': {'cost': 1},  # not used
                         'api/v1/borrowLend/markets': {'cost': 1},
                         'api/v1/borrowLend/markets/history': {'cost': 1},
+                        'api/v1/borrowLend/apy': {'cost': 1},
                         'api/v1/markets': {'cost': 1},  # done
                         'api/v1/market': {'cost': 1},  # not used
                         'api/v1/ticker': {'cost': 1},  # done
                         'api/v1/tickers': {'cost': 1},  # done
                         'api/v1/depth': {'cost': 1},  # done
+                        'api/v1/prediction': {'cost': 1},
+                        'api/v1/prediction/tags': {'cost': 1},
+                        'api/v1/market-sessions': {'cost': 1},
+                        'api/v1/market-holidays': {'cost': 1},
+                        'api/v1/securities': {'cost': 1},
                         'api/v1/klines': {'cost': 1},  # done
                         'api/v1/markPrices': {'cost': 1},  # done
                         'api/v1/openInterest': {'cost': 1},  # done
@@ -195,6 +201,7 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/account/limits/order': {'cost': 1},  # not used
                         'api/v1/account/limits/withdrawal': {'cost': 1},  # not used
                         'api/v1/borrowLend/positions': {'cost': 1},  # todo fetchBorrowInterest
+                        'api/v1/borrowLend/position/liquidationPrice': {'cost': 1},
                         'api/v1/capital': {'cost': 1},  # done
                         'api/v1/capital/collateral': {'cost': 1},  # not used
                         'wapi/v1/capital/deposits': {'cost': 1},  # done
@@ -207,11 +214,17 @@ class backpack(Exchange, ImplicitAPI):
                         'wapi/v1/history/dust': {'cost': 1},  # not used
                         'wapi/v1/history/fills': {'cost': 1},  # done
                         'wapi/v1/history/funding': {'cost': 1},  # done
+                        'wapi/v1/history/position': {'cost': 1},
                         'wapi/v1/history/orders': {'cost': 1},  # done
+                        'api/v1/rfqs': {'cost': 1},
                         'wapi/v1/history/rfq': {'cost': 1},
                         'wapi/v1/history/quote': {'cost': 1},
+                        'wapi/v1/history/rfq/fill': {'cost': 1},
+                        'wapi/v1/history/quote/fill': {'cost': 1},
                         'wapi/v1/history/settlement': {'cost': 1},
                         'wapi/v1/history/strategies': {'cost': 1},
+                        'api/v1/strategy': {'cost': 1},
+                        'api/v1/strategies': {'cost': 1},
                         'api/v1/order': {'cost': 1},  # done
                         'api/v1/orders': {'cost': 1},  # done
                     },
@@ -226,10 +239,13 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/rfq/refresh': {'cost': 1},
                         'api/v1/rfq/cancel': {'cost': 1},
                         'api/v1/rfq/quote': {'cost': 1},
+                        'api/v1/strategy': {'cost': 1},
                     },
                     'delete': {
                         'api/v1/order': {'cost': 1},  # done
                         'api/v1/orders': {'cost': 1},  # done
+                        'api/v1/strategy': {'cost': 1},
+                        'api/v1/strategies': {'cost': 1},
                     },
                     'patch': {
                         'api/v1/account': {'cost': 1},
@@ -613,7 +629,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         response = self.publicGetApiV1Markets(params)
         return self.parse_markets(response)
@@ -949,7 +965,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [since]: timestamp in seconds of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(default 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -968,7 +984,7 @@ class backpack(Exchange, ImplicitAPI):
             if limit is None:
                 limit = defaultLimit
             duration = self.parse_timeframe(timeframe)
-            endTime = self.parse_to_int(until / 1000) if until else self.seconds()
+            endTime = self.parse_to_int(until / 1000) if (until is not None and until is not None and until != 0) else self.seconds()
             startTime = endTime - (limit * duration)
             request['startTime'] = startTime
         else:
@@ -1020,7 +1036,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],
@@ -1077,7 +1093,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],

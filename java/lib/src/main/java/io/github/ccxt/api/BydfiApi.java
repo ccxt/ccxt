@@ -262,6 +262,72 @@ public class BydfiApi extends Exchange
     }
 
     /**
+     * Calls the privateGetV2FapiTradeOpenOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradeOpenOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2FapiTradeOpenOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2FapiTradePlanOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradePlanOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2FapiTradePlanOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2FapiTradeHistoryOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradeHistoryOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2FapiTradeHistoryOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2FapiTradeHistoryTrade endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradeHistoryTrade (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2FapiTradeHistoryTrade", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2FapiTradePositionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradePositionHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2FapiTradePositionHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2FapiTradePositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradePositions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2FapiTradePositions", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetV1FapiAccountBalance endpoint.
      *
      * @param optionalArgs the request parameters
@@ -479,6 +545,83 @@ public class BydfiApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiTradeBatchLeverageMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiTradeBatchLeverageMargin", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2FapiTradePlaceOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradePlaceOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2FapiTradePlaceOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2FapiTradeBatchPlaceOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeBatchPlaceOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2FapiTradeBatchPlaceOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2FapiTradeEditOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeEditOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2FapiTradeEditOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2FapiTradeBatchEditOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeBatchEditOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2FapiTradeBatchEditOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2FapiTradeCancelOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeCancelOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2FapiTradeCancelOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2FapiTradeBatchCancelOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeBatchCancelOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2FapiTradeBatchCancelOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2FapiTradeCancelAllOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeCancelAllOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2FapiTradeCancelAllOrder", optionalArgs);
     }
 
     /**

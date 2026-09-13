@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinbase API documentation:** [docs.cdp.coinbase.com](https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome) · [docs.cdp.coinbase.com](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/api-reference)
 
-> 91 implicit endpoints across 2 access groups.
+> 97 implicit endpoints across 2 access groups.
 
 ## v2
 
@@ -88,6 +88,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v2PrivateGetPaymentMethodsPaymentMethodId` | GET | `payment-methods/{payment_method_id}` | 10.6 |
 | `v2PrivateGetUser` | GET | `user` | 10.6 |
 | `v2PrivateGetUserAuth` | GET | `user/auth` | 10.6 |
+| `v2PrivateGetSubscriptionsCoinbaseOne` | GET | `subscriptions/coinbase-one` | 10.6 |
 | `v2PrivatePostAccounts` | POST | `accounts` | 10.6 |
 | `v2PrivatePostAccountsAccountIdPrimary` | POST | `accounts/{account_id}/primary` | 10.6 |
 | `v2PrivatePostAccountsAccountIdAddresses` | POST | `accounts/{account_id}/addresses` | 10.6 |
@@ -136,6 +137,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v3PrivateGetBrokerageCfmPositions` | GET | `brokerage/cfm/positions` | 1 |
 | `v3PrivateGetBrokerageCfmPositionsProductId` | GET | `brokerage/cfm/positions/{product_id}` | 1 |
 | `v3PrivateGetBrokerageCfmSweeps` | GET | `brokerage/cfm/sweeps` | 1 |
+| `v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow` | GET | `brokerage/cfm/intraday/current_margin_window` | 1 |
+| `v3PrivateGetBrokerageCfmIntradayMarginSetting` | GET | `brokerage/cfm/intraday/margin_setting` | 1 |
+| `v3PrivateGetBrokerageIntxBalancesPortfolioUuid` | GET | `brokerage/intx/balances/{portfolio_uuid}` | 1 |
 | `v3PrivateGetBrokerageIntxPortfolioPortfolioUuid` | GET | `brokerage/intx/portfolio/{portfolio_uuid}` | 1 |
 | `v3PrivateGetBrokerageIntxPositionsPortfolioUuid` | GET | `brokerage/intx/positions/{portfolio_uuid}` | 1 |
 | `v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol` | GET | `brokerage/intx/positions/{portfolio_uuid}/{symbol}` | 1 |
@@ -152,7 +156,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v3PrivatePostBrokerageConvertQuote` | POST | `brokerage/convert/quote` | 1 |
 | `v3PrivatePostBrokerageConvertTradeTradeId` | POST | `brokerage/convert/trade/{trade_id}` | 1 |
 | `v3PrivatePostBrokerageCfmSweepsSchedule` | POST | `brokerage/cfm/sweeps/schedule` | 1 |
+| `v3PrivatePostBrokerageCfmIntradayMarginSetting` | POST | `brokerage/cfm/intraday/margin_setting` | 1 |
 | `v3PrivatePostBrokerageIntxAllocate` | POST | `brokerage/intx/allocate` | 1 |
+| `v3PrivatePostBrokerageIntxMultiAssetCollateral` | POST | `brokerage/intx/multi_asset_collateral` | 1 |
 | `v3PrivatePostBrokerageOrdersClosePosition` | POST | `brokerage/orders/close_position` | 1 |
 | `v3PrivatePutBrokeragePortfoliosPortfolioUuid` | PUT | `brokerage/portfolios/{portfolio_uuid}` | 1 |
 | `v3PrivateDeleteBrokeragePortfoliosPortfolioUuid` | DELETE | `brokerage/portfolios/{portfolio_uuid}` | 1 |

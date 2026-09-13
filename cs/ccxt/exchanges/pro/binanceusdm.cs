@@ -7,13 +7,13 @@ namespace ccxt.pro;
 public partial class binanceusdm { public binanceusdm(object args = null) : base(args) { } }
 public partial class binanceusdm : binance
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.binanceusdm();
-        object restDescribe = restInstance.describe();
+        Dictionary<string, object> restDescribe = restInstance.describe();
         object parentWsDescribe = base.describeData();
-        object extended = this.deepExtend(restDescribe, parentWsDescribe);
+        Dictionary<string, object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "binanceusdm" },
             { "name", "Binance USDⓈ-M" },

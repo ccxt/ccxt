@@ -22,7 +22,26 @@ interface Exchange {
     publicGetV2DerivativesCandlesSymbolTimeFrame(params?: {}): Promise<List>;
     publicGetV2FxrateSymbolTimestamp(params?: {}): Promise<Dict>;
     publicGetV1RiskstatsSymbol(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsEvents(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsEventsEventTicker(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsEventsEventTickerStrike(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsEventsNewlyListed(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsEventsRecentlySettled(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsEventsUpcoming(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsCategories(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsVolumeDate(params?: {}): Promise<List>;
+    publicGetV1PredictionMarketsVolumeDateHourly(params?: {}): Promise<List>;
+    publicGetV1PredictionMarketsTerms(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsMakerRebateRates(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsLiquidityRewardsConfig(params?: {}): Promise<Dict>;
+    publicGetV1PredictionMarketsLiquidityRewardsEvents(params?: {}): Promise<Dict>;
     privateGetV1PerpetualsFundingpaymentreportRecordsXlsx(params?: {}): Promise<string>;
+    privateGetV1PredictionMarketsTermsStatus(params?: {}): Promise<Dict>;
+    privateGetV1PredictionMarketsMakerRebateSummaryTotal(params?: {}): Promise<Dict>;
+    privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily(params?: {}): Promise<Dict>;
+    privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal(params?: {}): Promise<Dict>;
+    privateGetV2NetworkToken(params?: {}): Promise<Dict>;
+    privateGetV2NetworksNetworkAssets(params?: {}): Promise<Dict>;
     privatePostV1StakingUnstake(params?: {}): Promise<Dict>;
     privatePostV1StakingStake(params?: {}): Promise<Dict>;
     privatePostV1StakingRewards(params?: {}): Promise<Dict>;
@@ -83,6 +102,20 @@ interface Exchange {
     privatePostV1PerpetualsFundingPayment(params?: {}): Promise<List>;
     privatePostV1PerpetualsFundingpaymentreportRecordsJson(params?: {}): Promise<List>;
     privatePostV1Positions(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsOrder(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsOrderBatch(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsOrderCancel(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsOrderBatchCancel(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsOrdersActive(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsOrdersHistory(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsPositions(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsPositionsSettled(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsMetricsVolume(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsTermsAccept(params?: {}): Promise<Dict>;
+    privatePostV1PredictionMarketsMakerRebatePayouts(params?: {}): Promise<Dict>;
+    privatePostV2Transfers(params?: {}): Promise<List>;
+    privatePostV2WithdrawNetworkTicker(params?: {}): Promise<Dict>;
+    privatePostV2WithdrawNetworkTickerFeeEstimate(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

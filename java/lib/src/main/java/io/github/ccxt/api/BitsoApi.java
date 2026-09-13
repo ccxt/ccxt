@@ -459,4 +459,26 @@ public class BitsoApi extends Exchange
         return this.callAsync ("privateDeleteOrdersAll", optionalArgs);
     }
 
+    /**
+     * Calls the privatePatchOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePatchOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePatchOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePatchOrdersOid endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePatchOrdersOid (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePatchOrdersOid", optionalArgs);
+    }
+
 }

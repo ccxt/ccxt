@@ -904,7 +904,7 @@ export default class hibachi extends Exchange {
             sideInternal = 'BID';
         }
         let priceInternal: Str = '';
-        if (price) {
+        if ((price !== undefined) && (price !== 0)) {
             priceInternal = this.priceToPrecision (symbol, price);
         }
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
@@ -927,7 +927,7 @@ export default class hibachi extends Exchange {
             request['orderFlags'] = 'POST_ONLY';
         } else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
-        } else if (reduceOnly) {
+        } else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {
@@ -1496,7 +1496,7 @@ export default class hibachi extends Exchange {
      * @description fetches all current open orders
      * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
      * @param {string} [symbol] unified market symbol to filter by
-     * @param {int} [since] milisecond timestamp of the earliest order
+     * @param {int} [since] millisecond timestamp of the earliest order
      * @param {int} [limit] the maximum number of open orders to return
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2229,7 +2229,7 @@ export default class hibachi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
         const request: Dict = {

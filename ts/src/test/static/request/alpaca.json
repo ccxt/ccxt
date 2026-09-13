@@ -97,6 +97,60 @@
                     "BTC/USD",
                     "1m"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with an intraday since keeps full timestamp precision in start",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&start=2024-01-15T10%3A30%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1705314600000,
+                    5
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until, until maps to end and stays out of the query",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&start=2024-01-15T10%3A30%3A00.000Z&end=2024-01-16T10%3A30%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1705314600000,
+                    5,
+                    {
+                        "until": 1705401000000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until alone, end is sent without start and until stays out of the query",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&end=2026-08-29T08%3A00%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "until": 1787990400000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with paginate, the pagination controls stay out of the query and the first request carries no page_token",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 2
+                    }
+                ]
             }
         ],
         "fetchTicker": [
@@ -120,6 +174,12 @@
                         "LTC/USD"
                     ]
                 ]
+            },
+            {
+                "description": "fetchTickers without a symbols argument defaults to all loaded markets",
+                "method": "fetchTickers",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD%2CBTC%2FUSDT%2CETH%2FUSD%2CLTC%2FUSD%2CLTC%2FUSDT",
+                "input": []
             }
         ],
         "createOrder": [

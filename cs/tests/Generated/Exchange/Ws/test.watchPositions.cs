@@ -10,16 +10,16 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchPositions";
-        object now = exchange.milliseconds();
+        string method = "watchPositions";
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
             object response = null;
-            object success = true;
+            bool success = true;
             try
             {
-                response = await exchange.watchPositions(new List<object>() {symbol});
+                response = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
                 if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
@@ -42,7 +42,7 @@ public partial class testMainClass : BaseTest
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testPosition(exchange, skippedProperties, method, getValue(response, i), null, now);
                 }
@@ -52,10 +52,10 @@ public partial class testMainClass : BaseTest
             // Test with specific symbol
             //
             object positionsForSymbols = null;
-            object success2 = true;
+            bool success2 = true;
             try
             {
-                positionsForSymbols = await exchange.watchPositions(new List<object>() {symbol});
+                positionsForSymbols = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -72,7 +72,7 @@ public partial class testMainClass : BaseTest
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode
                 assert(isLessThanOrEqual(getArrayLength(positionsForSymbols), 4), add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbols)));
                 now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(positionsForSymbols)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(positionsForSymbols)); postFixIncrement(ref i))
                 {
                     testPosition(exchange, skippedProperties, method, getValue(positionsForSymbols, i), symbol, now);
                 }

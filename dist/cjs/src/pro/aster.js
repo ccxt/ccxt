@@ -301,7 +301,7 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const suffix = (use1sFreq) ? '@1s' : '';
+            const suffix = (use1sFreq === true) ? '@1s' : '';
             subscriptionArgs.push(this.safeStringLower(market, 'id') + '@markPrice' + suffix);
             messageHashes.push('ticker:' + market['symbol']);
         }
@@ -352,7 +352,7 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const suffix = (use1sFreq) ? '@1s' : '';
+            const suffix = (use1sFreq === true) ? '@1s' : '';
             subscriptionArgs.push(this.safeStringLower(market, 'id') + '@markPrice' + suffix);
             messageHashes.push('unsubscribe:ticker:' + market['symbol']);
         }
@@ -839,9 +839,9 @@ class aster extends aster$1["default"] {
         const orderId = this.safeString(trade, 'i');
         if ('m' in trade) {
             if (side === undefined) {
-                side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+                side = (trade['m'] === true) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = trade['m'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['m'] === true) ? 'maker' : 'taker';
         }
         let fee = undefined;
         const feeCost = this.safeString(trade, 'n');
@@ -1358,7 +1358,7 @@ class aster extends aster$1["default"] {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
@@ -1371,7 +1371,7 @@ class aster extends aster$1["default"] {
         }
         const options = this.safeValue(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1511,7 +1511,7 @@ class aster extends aster$1["default"] {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions;
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -1526,7 +1526,7 @@ class aster extends aster$1["default"] {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);

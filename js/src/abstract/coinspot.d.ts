@@ -48,7 +48,9 @@ interface Exchange {
     v2PrivatePostMySell(params?: {}): Promise<Dict>;
     v2PrivatePostMySellEdit(params?: {}): Promise<Dict>;
     v2PrivatePostMyBuyNow(params?: {}): Promise<Dict>;
+    v2PrivatePostMyBuyNowCoinlist(params?: {}): Promise<Dict>;
     v2PrivatePostMySellNow(params?: {}): Promise<Dict>;
+    v2PrivatePostMySellNowCoinlist(params?: {}): Promise<Dict>;
     v2PrivatePostMySwapNow(params?: {}): Promise<Dict>;
     v2PrivatePostMyBuyCancel(params?: {}): Promise<Dict>;
     v2PrivatePostMyBuyCancelAll(params?: {}): Promise<Dict>;
@@ -56,6 +58,8 @@ interface Exchange {
     v2PrivatePostMySellCancelAll(params?: {}): Promise<Dict>;
     v2PrivatePostMyCoinWithdrawSenddetails(params?: {}): Promise<Dict>;
     v2PrivatePostMyCoinWithdrawSend(params?: {}): Promise<Dict>;
+    v2PrivatePostMyCoinWithdrawSendAsync(params?: {}): Promise<Dict>;
+    v2PrivatePostMyCoinWithdrawSendStatus(params?: {}): Promise<Dict>;
     v2PrivatePostRoStatus(params?: {}): Promise<Dict>;
     v2PrivatePostRoOrdersMarketOpen(params?: {}): Promise<Dict>;
     v2PrivatePostRoOrdersMarketCompleted(params?: {}): Promise<Dict>;

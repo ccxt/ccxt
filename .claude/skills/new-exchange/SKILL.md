@@ -210,21 +210,35 @@ For every fetch method, write a matching parser. The parser is what makes output
 
 Capture a request/response fixture as soon as a method works once. Re-run on every change.
 
+> 🚨 **Never hand-write or invent a static fixture — always capture it with the CLI.**
+> `--static` performs a **real** call and records the actual URL, body and HTTP response. A fabricated fixture
+> asserts what you *assumed* the exchange does, so the test goes green while the integration is broken — and it
+> then becomes the reference every language is verified against. If you cannot reach the endpoint (no
+> credentials, geo-block, venue down), ship no fixture and say so explicitly; do not guess one.
+
 ```bash
-# request fixture (URL/body assertion) — NO HTTP
-node cli.js <id> fetchTicker BTC/USDT --report
-# response fixture (parser assertion) — NO HTTP
-node cli.js <id> fetchTicker BTC/USDT --response
+# capture BOTH the request and the response entry from one live call, and save them
+npm run cli.ts -- <id> fetchTicker BTC/USDT --static --name "spot ticker"
 ```
 
-Paste each `methods.<methodName>` entry into `ts/src/test/static/request/<id>.json` or `ts/src/test/static/response/<id>.json`. Then run:
+`--static` writes a `methods.fetchTicker` entry into both `ts/src/test/static/request/<id>.json` and
+`ts/src/test/static/response/<id>.json`. Details:
+
+- **`--name "…"` auto-saves.** Without it the two entries are only printed, so you can review before saving.
+- `--request` / `--response` capture just one side; `--static` is both.
+- **`watch*` methods:** `--static` records ws frames until you press ctrl+c and writes a
+  `ts/src/test/static/ws/<id>.json` entry. `--recordLimit <n>` keeps only the first n resolutions.
+- Prediction exchanges land in the `static/{request,response}/prediction/` subfolder automatically.
+
+Then run:
 
 ```bash
 npm run request-tests
 npm run response-tests
 ```
 
-These tests run in all five languages and are your primary regression net.
+The *capture* hits the network; the *tests* replay the recording with no HTTP, in every language, and are your
+primary regression net.
 
 ## Step 7 — Verify in all languages
 

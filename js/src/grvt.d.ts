@@ -155,7 +155,7 @@ export default class grvt extends Exchange {
     parseFundingRateHistory(rawItem: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: Num;
+        fundingRate: number;
         timestamp: Int;
         datetime: string | undefined;
     };

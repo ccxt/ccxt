@@ -997,7 +997,7 @@ class coincheck extends Exchange {
         $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1005,11 +1005,11 @@ class coincheck extends Exchange {
             $nonce = (string) $this->nonce();
             $queryString = '';
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($this->keysort($query));
                 }
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->urlencode($this->keysort($query));
                     $queryString = $body;
                 }
@@ -1034,7 +1034,7 @@ class coincheck extends Exchange {
         //     array("success":false,"error":"invalid authentication")
         //
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             $error = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);

@@ -893,7 +893,7 @@ export default class coinex extends coinexRest {
         const timestamp = this.safeInteger (depth, 'updated_at');
         const currentOrderBook = this.safeValue (this.orderbooks, symbol);
         const fullOrderBook = this.safeBool (data, 'is_full', false);
-        if (fullOrderBook) {
+        if (fullOrderBook === true) {
             const snapshot = this.parseOrderBook (depth, symbol, timestamp);
             if (currentOrderBook === undefined) {
                 this.orderbooks[symbol] = this.orderBook (snapshot);
@@ -956,7 +956,7 @@ export default class coinex extends coinexRest {
             }
         }
         let method: Str = undefined;
-        if (trigger) {
+        if (trigger === true) {
             method = 'stop.subscribe';
         } else {
             method = 'order.subscribe';

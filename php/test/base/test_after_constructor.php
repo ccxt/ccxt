@@ -34,11 +34,11 @@ function helper_test_sandbox_state($exchange, $expect_enabled = true) {
     assert(is_array($exchange->urls) && array_key_exists('test', $exchange->urls));
     $is_sandbox_mode_enabled = exchange_prop($exchange, 'isSandboxModeEnabled');
     if ($expect_enabled) {
-        assert($is_sandbox_mode_enabled);
+        assert($is_sandbox_mode_enabled === true);
         assert($exchange->urls['api']['public'] === 'https://testnet.org');
         assert($exchange->urls['apiBackup']['public'] === 'https://example.com');
     } else {
-        assert(!$is_sandbox_mode_enabled);
+        assert($is_sandbox_mode_enabled !== true);
         assert($exchange->urls['api']['public'] === 'https://example.com');
         assert($exchange->urls['test']['public'] === 'https://testnet.org');
     }
@@ -278,7 +278,7 @@ function helper_test_properties() {
     assert($exchange->timeout === 10000, 'timeout should be 10000');
     assert($exchange->verbose === false, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    assert(!exchange_prop($exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
+    assert(exchange_prop($exchange, 'reloadingMarkets') !== true, 'reloadingMarkets should be false');
     assert(exchange_prop($exchange, 'marketsLoading') === null, 'marketsLoading should be undefined');
     // undefined or false
     assert($exchange->version === null, 'version should be undefined');

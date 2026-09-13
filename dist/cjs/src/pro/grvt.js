@@ -81,7 +81,7 @@ class grvt extends grvt$1["default"] {
         //     prev_sequence_number: "0",
         //  }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const methods = {

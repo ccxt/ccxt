@@ -8,556 +8,636 @@
 package ccxt
 
 // PublicGetBboMarket returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetBboMarket(args ...any) <-chan any {
+func (this *Paradex) PublicGetBboMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBboMarket", args...)
 }
 
 // PublicGetBboMarketInteractive returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetBboMarketInteractive(args ...any) <-chan any {
+func (this *Paradex) PublicGetBboMarketInteractive(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBboMarketInteractive", args...)
 }
 
 // PublicGetFundingData returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetFundingData(args ...any) <-chan any {
+func (this *Paradex) PublicGetFundingData(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFundingData", args...)
 }
 
 // PublicGetMarkets returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetMarkets(args ...any) <-chan any {
+func (this *Paradex) PublicGetMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
 // PublicGetMarketsHistory returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetMarketsHistory(args ...any) <-chan any {
+func (this *Paradex) PublicGetMarketsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsHistory", args...)
 }
 
 // PublicGetMarketsKlines returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetMarketsKlines(args ...any) <-chan any {
+func (this *Paradex) PublicGetMarketsKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsKlines", args...)
 }
 
 // PublicGetMarketsSettlementPrice returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetMarketsSettlementPrice(args ...any) <-chan any {
+func (this *Paradex) PublicGetMarketsSettlementPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsSettlementPrice", args...)
 }
 
 // PublicGetMarketsSummary returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetMarketsSummary(args ...any) <-chan any {
+func (this *Paradex) PublicGetMarketsSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsSummary", args...)
 }
 
 // PublicGetOrderbookMarket returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetOrderbookMarket(args ...any) <-chan any {
+func (this *Paradex) PublicGetOrderbookMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbookMarket", args...)
 }
 
 // PublicGetOrderbookMarketImpactPrice returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetOrderbookMarketImpactPrice(args ...any) <-chan any {
+func (this *Paradex) PublicGetOrderbookMarketImpactPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbookMarketImpactPrice", args...)
 }
 
 // PublicGetOrderbookMarketInteractive returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetOrderbookMarketInteractive(args ...any) <-chan any {
+func (this *Paradex) PublicGetOrderbookMarketInteractive(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbookMarketInteractive", args...)
 }
 
 // PublicGetInsurance returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetInsurance(args ...any) <-chan any {
+func (this *Paradex) PublicGetInsurance(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInsurance", args...)
 }
 
 // PublicGetJwksJson returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetJwksJson(args ...any) <-chan any {
+func (this *Paradex) PublicGetJwksJson(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetJwksJson", args...)
 }
 
 // PublicGetOnboarding returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetOnboarding(args ...any) <-chan any {
+func (this *Paradex) PublicGetOnboarding(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOnboarding", args...)
 }
 
 // PublicGetReferralsConfig returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetReferralsConfig(args ...any) <-chan any {
+func (this *Paradex) PublicGetReferralsConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetReferralsConfig", args...)
 }
 
+// PublicGetStakingBalanceHistoryGlobal returns a channel that yields a JSON object.
+func (this *Paradex) PublicGetStakingBalanceHistoryGlobal(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStakingBalanceHistoryGlobal", args...)
+}
+
 // PublicGetStakingConfig returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetStakingConfig(args ...any) <-chan any {
+func (this *Paradex) PublicGetStakingConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStakingConfig", args...)
 }
 
 // PublicGetSystemAnnouncements returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetSystemAnnouncements(args ...any) <-chan any {
+func (this *Paradex) PublicGetSystemAnnouncements(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemAnnouncements", args...)
 }
 
 // PublicGetSystemConfig returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetSystemConfig(args ...any) <-chan any {
+func (this *Paradex) PublicGetSystemConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemConfig", args...)
 }
 
 // PublicGetSystemPortfolioMarginConfig returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetSystemPortfolioMarginConfig(args ...any) <-chan any {
+func (this *Paradex) PublicGetSystemPortfolioMarginConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemPortfolioMarginConfig", args...)
 }
 
 // PublicGetSystemState returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetSystemState(args ...any) <-chan any {
+func (this *Paradex) PublicGetSystemState(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemState", args...)
 }
 
 // PublicGetSystemTime returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetSystemTime(args ...any) <-chan any {
+func (this *Paradex) PublicGetSystemTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemTime", args...)
 }
 
 // PublicGetSystemVolumeTiers returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetSystemVolumeTiers(args ...any) <-chan any {
+func (this *Paradex) PublicGetSystemVolumeTiers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemVolumeTiers", args...)
 }
 
 // PublicGetTrades returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetTrades(args ...any) <-chan any {
+func (this *Paradex) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
 // PublicGetVaults returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetVaults(args ...any) <-chan any {
+func (this *Paradex) PublicGetVaults(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetVaults", args...)
 }
 
+// PublicGetVaultsAnalytics returns a channel that yields a JSON object.
+func (this *Paradex) PublicGetVaultsAnalytics(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaultsAnalytics", args...)
+}
+
 // PublicGetVaultsBalance returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetVaultsBalance(args ...any) <-chan any {
+func (this *Paradex) PublicGetVaultsBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetVaultsBalance", args...)
 }
 
 // PublicGetVaultsConfig returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetVaultsConfig(args ...any) <-chan any {
+func (this *Paradex) PublicGetVaultsConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetVaultsConfig", args...)
 }
 
 // PublicGetVaultsHistory returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetVaultsHistory(args ...any) <-chan any {
+func (this *Paradex) PublicGetVaultsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetVaultsHistory", args...)
 }
 
 // PublicGetVaultsPositions returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetVaultsPositions(args ...any) <-chan any {
+func (this *Paradex) PublicGetVaultsPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetVaultsPositions", args...)
 }
 
 // PublicGetVaultsSummary returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetVaultsSummary(args ...any) <-chan any {
+func (this *Paradex) PublicGetVaultsSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetVaultsSummary", args...)
 }
 
 // PublicGetVaultsTransfers returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetVaultsTransfers(args ...any) <-chan any {
+func (this *Paradex) PublicGetVaultsTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetVaultsTransfers", args...)
 }
 
 // PublicGetXpFeeConfig returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetXpFeeConfig(args ...any) <-chan any {
+func (this *Paradex) PublicGetXpFeeConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetXpFeeConfig", args...)
 }
 
 // PublicGetXpPublicTransfers returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetXpPublicTransfers(args ...any) <-chan any {
+func (this *Paradex) PublicGetXpPublicTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetXpPublicTransfers", args...)
 }
 
 // PublicGetXpTransferTransferId returns a channel that yields a JSON object.
-func (this *ParadexCore) PublicGetXpTransferTransferId(args ...any) <-chan any {
+func (this *Paradex) PublicGetXpTransferTransferId(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetXpTransferTransferId", args...)
 }
 
 // PrivateGetAccount returns a channel that yields a JSON array.
-func (this *ParadexCore) PrivateGetAccount(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
 // PrivateGetAccountCompliance returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountCompliance(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountCompliance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountCompliance", args...)
 }
 
 // PrivateGetAccountHistory returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountHistory(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountHistory", args...)
 }
 
 // PrivateGetAccountInfo returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountInfo(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountInfo", args...)
 }
 
 // PrivateGetAccountMargin returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountMargin(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountMargin", args...)
 }
 
 // PrivateGetAccountProfile returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountProfile(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountProfile(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountProfile", args...)
 }
 
 // PrivateGetAccountSettings returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountSettings(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountSettings", args...)
 }
 
 // PrivateGetAccountSubaccounts returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountSubaccounts(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountSubaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountSubaccounts", args...)
 }
 
 // PrivateGetAccountSummary returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountSummary(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountSummary", args...)
 }
 
 // PrivateGetBalance returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetBalance(args ...any) <-chan any {
+func (this *Paradex) PrivateGetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
 // PrivateGetFills returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetFills(args ...any) <-chan any {
+func (this *Paradex) PrivateGetFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFills", args...)
 }
 
 // PrivateGetFundingPayments returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetFundingPayments(args ...any) <-chan any {
+func (this *Paradex) PrivateGetFundingPayments(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFundingPayments", args...)
 }
 
 // PrivateGetPositions returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetPositions(args ...any) <-chan any {
+func (this *Paradex) PrivateGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPositions", args...)
 }
 
 // PrivateGetTradebusts returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetTradebusts(args ...any) <-chan any {
+func (this *Paradex) PrivateGetTradebusts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradebusts", args...)
 }
 
 // PrivateGetTransactions returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetTransactions(args ...any) <-chan any {
+func (this *Paradex) PrivateGetTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransactions", args...)
 }
 
 // PrivateGetAccountKeysSubkeys returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountKeysSubkeys(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountKeysSubkeys(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountKeysSubkeys", args...)
 }
 
 // PrivateGetAccountKeysSubkeysPublicKey returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountKeysSubkeysPublicKey(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountKeysSubkeysPublicKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountKeysSubkeysPublicKey", args...)
 }
 
 // PrivateGetAccountTokens returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAccountTokens(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAccountTokens(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountTokens", args...)
 }
 
 // PrivateGetAlgoOrders returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAlgoOrders(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAlgoOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAlgoOrders", args...)
 }
 
 // PrivateGetAlgoOrdersHistory returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAlgoOrdersHistory(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAlgoOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAlgoOrdersHistory", args...)
 }
 
 // PrivateGetAlgoOrdersAlgoId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetAlgoOrdersAlgoId(args ...any) <-chan any {
+func (this *Paradex) PrivateGetAlgoOrdersAlgoId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAlgoOrdersAlgoId", args...)
 }
 
 // PrivateGetBlockTrades returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetBlockTrades(args ...any) <-chan any {
+func (this *Paradex) PrivateGetBlockTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBlockTrades", args...)
 }
 
 // PrivateGetBlockTradesBlockTradeId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetBlockTradesBlockTradeId(args ...any) <-chan any {
+func (this *Paradex) PrivateGetBlockTradesBlockTradeId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBlockTradesBlockTradeId", args...)
 }
 
 // PrivateGetBlockTradesBlockTradeIdOffers returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetBlockTradesBlockTradeIdOffers(args ...any) <-chan any {
+func (this *Paradex) PrivateGetBlockTradesBlockTradeIdOffers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBlockTradesBlockTradeIdOffers", args...)
 }
 
 // PrivateGetBlockTradesBlockTradeIdOffersOfferId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetBlockTradesBlockTradeIdOffersOfferId(args ...any) <-chan any {
+func (this *Paradex) PrivateGetBlockTradesBlockTradeIdOffersOfferId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBlockTradesBlockTradeIdOffersOfferId", args...)
 }
 
 // PrivateGetLiquidations returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetLiquidations(args ...any) <-chan any {
+func (this *Paradex) PrivateGetLiquidations(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLiquidations", args...)
 }
 
 // PrivateGetOrders returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetOrders(args ...any) <-chan any {
+func (this *Paradex) PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
 // PrivateGetOrdersHistory returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetOrdersHistory(args ...any) <-chan any {
+func (this *Paradex) PrivateGetOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
 // PrivateGetOrdersByClientIdClientId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetOrdersByClientIdClientId(args ...any) <-chan any {
+func (this *Paradex) PrivateGetOrdersByClientIdClientId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersByClientIdClientId", args...)
 }
 
 // PrivateGetOrdersOrderId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetOrdersOrderId(args ...any) <-chan any {
+func (this *Paradex) PrivateGetOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
 // PrivateGetReferralsQrCode returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetReferralsQrCode(args ...any) <-chan any {
+func (this *Paradex) PrivateGetReferralsQrCode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetReferralsQrCode", args...)
 }
 
 // PrivateGetReferralsSummary returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetReferralsSummary(args ...any) <-chan any {
+func (this *Paradex) PrivateGetReferralsSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetReferralsSummary", args...)
 }
 
+// PrivateGetRfqs returns a channel that yields a JSON object.
+func (this *Paradex) PrivateGetRfqs(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqs", args...)
+}
+
+// PrivateGetRfqsDrafts returns a channel that yields a JSON object.
+func (this *Paradex) PrivateGetRfqsDrafts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqsDrafts", args...)
+}
+
+// PrivateGetRfqsMarkets returns a channel that yields a JSON object.
+func (this *Paradex) PrivateGetRfqsMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqsMarkets", args...)
+}
+
+// PrivateGetRfqsRfqIdBbo returns a channel that yields a JSON object.
+func (this *Paradex) PrivateGetRfqsRfqIdBbo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqsRfqIdBbo", args...)
+}
+
+// PrivateGetStakingBalanceHistory returns a channel that yields a JSON object.
+func (this *Paradex) PrivateGetStakingBalanceHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetStakingBalanceHistory", args...)
+}
+
 // PrivateGetStakingHistory returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetStakingHistory(args ...any) <-chan any {
+func (this *Paradex) PrivateGetStakingHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetStakingHistory", args...)
 }
 
 // PrivateGetStakingSummary returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetStakingSummary(args ...any) <-chan any {
+func (this *Paradex) PrivateGetStakingSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetStakingSummary", args...)
 }
 
 // PrivateGetTransfers returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetTransfers(args ...any) <-chan any {
+func (this *Paradex) PrivateGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
 // PrivateGetVaultsAccountSummary returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetVaultsAccountSummary(args ...any) <-chan any {
+func (this *Paradex) PrivateGetVaultsAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetVaultsAccountSummary", args...)
 }
 
 // PrivateGetVaultsMine returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetVaultsMine(args ...any) <-chan any {
+func (this *Paradex) PrivateGetVaultsMine(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetVaultsMine", args...)
 }
 
 // PrivateGetXpAccountBalance returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetXpAccountBalance(args ...any) <-chan any {
+func (this *Paradex) PrivateGetXpAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetXpAccountBalance", args...)
 }
 
 // PrivateGetXpTransfers returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateGetXpTransfers(args ...any) <-chan any {
+func (this *Paradex) PrivateGetXpTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetXpTransfers", args...)
 }
 
 // PrivatePostAccountCompliance returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountCompliance(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountCompliance(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountCompliance", args...)
 }
 
 // PrivatePostAccountMarginMarket returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountMarginMarket(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountMarginMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountMarginMarket", args...)
 }
 
 // PrivatePostAccountProfileMarketMaxSlippageMarket returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountProfileMarketMaxSlippageMarket(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountProfileMarketMaxSlippageMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileMarketMaxSlippageMarket", args...)
 }
 
 // PrivatePostAccountProfileNotifications returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountProfileNotifications(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountProfileNotifications(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileNotifications", args...)
 }
 
 // PrivatePostAccountProfileNotificationsLastSeen returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountProfileNotificationsLastSeen(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountProfileNotificationsLastSeen(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileNotificationsLastSeen", args...)
 }
 
 // PrivatePostAccountProfileReferralCode returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountProfileReferralCode(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountProfileReferralCode(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileReferralCode", args...)
 }
 
 // PrivatePostAccountProfileRefreshInventory returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountProfileRefreshInventory(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountProfileRefreshInventory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileRefreshInventory", args...)
 }
 
 // PrivatePostAccountProfileSizeCurrencyDisplay returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountProfileSizeCurrencyDisplay(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountProfileSizeCurrencyDisplay(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileSizeCurrencyDisplay", args...)
 }
 
 // PrivatePostAccountProfileUsername returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountProfileUsername(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountProfileUsername(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileUsername", args...)
 }
 
 // PrivatePostAccountReferrer returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountReferrer(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountReferrer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountReferrer", args...)
 }
 
 // PrivatePostAccountSettingsTradingValueDisplay returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountSettingsTradingValueDisplay(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountSettingsTradingValueDisplay(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountSettingsTradingValueDisplay", args...)
 }
 
+// PrivatePostAccountParadigmEnable returns a channel that yields a JSON object.
+func (this *Paradex) PrivatePostAccountParadigmEnable(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountParadigmEnable", args...)
+}
+
+// PrivatePostAccountTerminalToken returns a channel that yields a JSON object.
+func (this *Paradex) PrivatePostAccountTerminalToken(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountTerminalToken", args...)
+}
+
 // PrivatePostAccountKeysSubkeysActivate returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountKeysSubkeysActivate(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountKeysSubkeysActivate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountKeysSubkeysActivate", args...)
 }
 
 // PrivatePostAccountKeysSubkeys returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountKeysSubkeys(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountKeysSubkeys(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountKeysSubkeys", args...)
 }
 
 // PrivatePostAccountTokens returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAccountTokens(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAccountTokens(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountTokens", args...)
 }
 
 // PrivatePostAlgoOrders returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAlgoOrders(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAlgoOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAlgoOrders", args...)
 }
 
 // PrivatePostAuth returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostAuth(args ...any) <-chan any {
+func (this *Paradex) PrivatePostAuth(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuth", args...)
 }
 
 // PrivatePostBlockTrades returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostBlockTrades(args ...any) <-chan any {
+func (this *Paradex) PrivatePostBlockTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBlockTrades", args...)
 }
 
 // PrivatePostBlockTradesBlockTradeIdExecute returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostBlockTradesBlockTradeIdExecute(args ...any) <-chan any {
+func (this *Paradex) PrivatePostBlockTradesBlockTradeIdExecute(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBlockTradesBlockTradeIdExecute", args...)
 }
 
 // PrivatePostBlockTradesBlockTradeIdOffers returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostBlockTradesBlockTradeIdOffers(args ...any) <-chan any {
+func (this *Paradex) PrivatePostBlockTradesBlockTradeIdOffers(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBlockTradesBlockTradeIdOffers", args...)
 }
 
 // PrivatePostBlockTradesBlockTradeIdOffersOfferIdExecute returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostBlockTradesBlockTradeIdOffersOfferIdExecute(args ...any) <-chan any {
+func (this *Paradex) PrivatePostBlockTradesBlockTradeIdOffersOfferIdExecute(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBlockTradesBlockTradeIdOffersOfferIdExecute", args...)
 }
 
 // PrivatePostOnboarding returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostOnboarding(args ...any) <-chan any {
+func (this *Paradex) PrivatePostOnboarding(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOnboarding", args...)
 }
 
 // PrivatePostOrders returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostOrders(args ...any) <-chan any {
+func (this *Paradex) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
 // PrivatePostOrdersBatch returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostOrdersBatch(args ...any) <-chan any {
+func (this *Paradex) PrivatePostOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
+// PrivatePostRfqs returns a channel that yields a JSON object.
+func (this *Paradex) PrivatePostRfqs(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqs", args...)
+}
+
+// PrivatePostRfqsDrafts returns a channel that yields a JSON object.
+func (this *Paradex) PrivatePostRfqsDrafts(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqsDrafts", args...)
+}
+
+// PrivatePostRfqsRfqIdExecute returns a channel that yields a JSON object.
+func (this *Paradex) PrivatePostRfqsRfqIdExecute(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqsRfqIdExecute", args...)
+}
+
 // PrivatePostV2Auth returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostV2Auth(args ...any) <-chan any {
+func (this *Paradex) PrivatePostV2Auth(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2Auth", args...)
 }
 
 // PrivatePostV2Onboarding returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostV2Onboarding(args ...any) <-chan any {
+func (this *Paradex) PrivatePostV2Onboarding(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2Onboarding", args...)
 }
 
 // PrivatePostVaults returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostVaults(args ...any) <-chan any {
+func (this *Paradex) PrivatePostVaults(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVaults", args...)
 }
 
 // PrivatePostXpTransfer returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePostXpTransfer(args ...any) <-chan any {
+func (this *Paradex) PrivatePostXpTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostXpTransfer", args...)
 }
 
 // PrivatePutAccountProfile returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePutAccountProfile(args ...any) <-chan any {
+func (this *Paradex) PrivatePutAccountProfile(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutAccountProfile", args...)
 }
 
 // PrivatePutAccountKeysSubkeysPublicKey returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePutAccountKeysSubkeysPublicKey(args ...any) <-chan any {
+func (this *Paradex) PrivatePutAccountKeysSubkeysPublicKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutAccountKeysSubkeysPublicKey", args...)
 }
 
+// PrivatePutAccountKeysSubkeysPublicKeyAllowedCidrs returns a channel that yields a JSON object.
+func (this *Paradex) PrivatePutAccountKeysSubkeysPublicKeyAllowedCidrs(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutAccountKeysSubkeysPublicKeyAllowedCidrs", args...)
+}
+
+// PrivatePutAccountTokensLookupIdAllowedCidrs returns a channel that yields a JSON object.
+func (this *Paradex) PrivatePutAccountTokensLookupIdAllowedCidrs(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutAccountTokensLookupIdAllowedCidrs", args...)
+}
+
 // PrivatePutOrdersOrderId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivatePutOrdersOrderId(args ...any) <-chan any {
+func (this *Paradex) PrivatePutOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrdersOrderId", args...)
 }
 
 // PrivateDeleteAccountKeysSubkeysPublicKey returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteAccountKeysSubkeysPublicKey(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteAccountKeysSubkeysPublicKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteAccountKeysSubkeysPublicKey", args...)
 }
 
 // PrivateDeleteAccountTokensLookupId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteAccountTokensLookupId(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteAccountTokensLookupId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteAccountTokensLookupId", args...)
 }
 
 // PrivateDeleteAlgoOrdersAlgoId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteAlgoOrdersAlgoId(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteAlgoOrdersAlgoId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteAlgoOrdersAlgoId", args...)
 }
 
 // PrivateDeleteBlockTradesBlockTradeId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteBlockTradesBlockTradeId(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteBlockTradesBlockTradeId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteBlockTradesBlockTradeId", args...)
 }
 
 // PrivateDeleteBlockTradesBlockTradeIdOffersOfferId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteBlockTradesBlockTradeIdOffersOfferId(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteBlockTradesBlockTradeIdOffersOfferId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteBlockTradesBlockTradeIdOffersOfferId", args...)
 }
 
 // PrivateDeleteOrders returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteOrders(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
 // PrivateDeleteOrdersBatch returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteOrdersBatch(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
 }
 
 // PrivateDeleteOrdersByClientIdClientId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteOrdersByClientIdClientId(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteOrdersByClientIdClientId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersByClientIdClientId", args...)
 }
 
 // PrivateDeleteOrdersOrderId returns a channel that yields a JSON object.
-func (this *ParadexCore) PrivateDeleteOrdersOrderId(args ...any) <-chan any {
+func (this *Paradex) PrivateDeleteOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
+}
+
+// PrivateDeleteRfqsDraftsDraftId returns a channel that yields a JSON object.
+func (this *Paradex) PrivateDeleteRfqsDraftsDraftId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteRfqsDraftsDraftId", args...)
+}
+
+// PrivateDeleteRfqsRfqId returns a channel that yields a JSON object.
+func (this *Paradex) PrivateDeleteRfqsRfqId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteRfqsRfqId", args...)
 }

@@ -178,7 +178,9 @@ class coinspot extends Exchange {
                             'my/sell' => array( 'cost' => 1 ),
                             'my/sell/edit' => array( 'cost' => 1 ),
                             'my/buy/now' => array( 'cost' => 1 ),
+                            'my/buy/now/coinlist' => array( 'cost' => 1 ),
                             'my/sell/now' => array( 'cost' => 1 ),
+                            'my/sell/now/coinlist' => array( 'cost' => 1 ),
                             'my/swap/now' => array( 'cost' => 1 ),
                             'my/buy/cancel' => array( 'cost' => 1 ),
                             'my/buy/cancel/all' => array( 'cost' => 1 ),
@@ -186,6 +188,8 @@ class coinspot extends Exchange {
                             'my/sell/cancel/all' => array( 'cost' => 1 ),
                             'my/coin/withdraw/senddetails' => array( 'cost' => 1 ),
                             'my/coin/withdraw/send' => array( 'cost' => 1 ),
+                            'my/coin/withdraw/send/async' => array( 'cost' => 1 ),
+                            'my/coin/withdraw/send/status' => array( 'cost' => 1 ),
                             'ro/status' => array( 'cost' => 1 ),
                             'ro/orders/market/open' => array( 'cost' => 1 ),
                             'ro/orders/market/completed' => array( 'cost' => 1 ),
@@ -481,7 +485,7 @@ class coinspot extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $market = $this->safe_market($id);
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $symbol = $market['symbol'];
                 $ticker = $prices[$id];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -733,7 +737,7 @@ class coinspot extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default error handler
         }
         $status = $this->safe_string($response, 'status');

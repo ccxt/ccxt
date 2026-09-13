@@ -8,101 +8,101 @@
 package ccxtprediction
 
 // SapiPrivateGetCategoryList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetCategoryList(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetCategoryList(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetCategoryList", args...)
 }
 
 // SapiPrivateGetMarketList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetMarketList(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetMarketList(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetMarketList", args...)
 }
 
 // SapiPrivateGetMarketSearch returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiPrivateGetMarketSearch(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetMarketSearch(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetMarketSearch", args...)
 }
 
 // SapiPrivateGetMarketDetail returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetMarketDetail(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetMarketDetail(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetMarketDetail", args...)
 }
 
 // SapiPrivateGetOrderBook returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetOrderBook(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetOrderBook(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetOrderBook", args...)
 }
 
 // SapiPrivateGetOrderBookLastTradePrice returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetOrderBookLastTradePrice(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetOrderBookLastTradePrice(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetOrderBookLastTradePrice", args...)
 }
 
 // SapiPrivateGetWalletList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetWalletList(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetWalletList(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetWalletList", args...)
 }
 
 // SapiPrivateGetBalancePaymentOptions returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetBalancePaymentOptions(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetBalancePaymentOptions(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetBalancePaymentOptions", args...)
 }
 
 // SapiPrivateGetQuotaLimitStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetQuotaLimitStatus(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetQuotaLimitStatus(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetQuotaLimitStatus", args...)
 }
 
 // SapiPrivateGetPnlPortfolio returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetPnlPortfolio(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetPnlPortfolio(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetPnlPortfolio", args...)
 }
 
 // SapiPrivateGetPnlQuery returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetPnlQuery(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetPnlQuery(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetPnlQuery", args...)
 }
 
 // SapiPrivateGetPositionList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetPositionList(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetPositionList(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetPositionList", args...)
 }
 
 // SapiPrivateGetPositionFilter returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetPositionFilter(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetPositionFilter(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetPositionFilter", args...)
 }
 
 // SapiPrivateGetPositionToken returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetPositionToken(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetPositionToken(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetPositionToken", args...)
 }
 
 // SapiPrivateGetPositionSettledHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetPositionSettledHistory(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetPositionSettledHistory(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetPositionSettledHistory", args...)
 }
 
 // SapiPrivateGetOrderList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetOrderList(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetOrderList(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetOrderList", args...)
 }
 
 // SapiPrivateGetOrderHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivateGetOrderHistory(args ...any) <-chan any {
+func (this *Binance) SapiPrivateGetOrderHistory(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivateGetOrderHistory", args...)
 }
 
 // SapiPrivatePostTradeGetQuote returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivatePostTradeGetQuote(args ...any) <-chan any {
+func (this *Binance) SapiPrivatePostTradeGetQuote(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivatePostTradeGetQuote", args...)
 }
 
 // SapiPrivatePostTradePlaceOrderBundle returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivatePostTradePlaceOrderBundle(args ...any) <-chan any {
+func (this *Binance) SapiPrivatePostTradePlaceOrderBundle(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivatePostTradePlaceOrderBundle", args...)
 }
 
 // SapiPrivatePostTradeBatchCancel returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPrivatePostTradeBatchCancel(args ...any) <-chan any {
+func (this *Binance) SapiPrivatePostTradeBatchCancel(args ...any) <-chan any {
 	return this.CallEndpointAsync("sapiPrivatePostTradeBatchCancel", args...)
 }

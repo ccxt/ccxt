@@ -111,7 +111,7 @@ class bitget(ccxt.async_support.bitget):
         instType = None
         if market is None:
             instType, params = self.handleProductTypeAndParams(None, params)
-        elif (market['swap']) or (market['future']):
+        elif (market['swap'] is True) or (market['future'] is True):
             instType, params = self.handleProductTypeAndParams(market, params)
         else:
             instType = 'SPOT'
@@ -492,7 +492,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -648,7 +648,7 @@ class bitget(ccxt.async_support.bitget):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
             stored.append(parsed)
@@ -685,7 +685,7 @@ class bitget(ccxt.async_support.bitget):
         #     }
         #
         volumeIndex = 5
-        if (market is not None) and market['inverse']:
+        if (market is not None) and (market['inverse'] is True):
             volumeIndex = 6
         return [
             self.safe_integer_2(ohlcv, 'start', 0),
@@ -884,7 +884,7 @@ class bitget(ccxt.async_support.bitget):
             # UTA order books do not provide a crc32 checksum(they rely on seq/pseq for integrity),
             # so only validate the checksum when the exchange actually sends one
             responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
-            if not isSnapshot and checksum and (responseChecksum is not None):
+            if not isSnapshot and (checksum is True) and (responseChecksum is not None):
                 storedAsks = storedOrderBook['asks']
                 storedBids = storedOrderBook['bids']
                 asksLength = len(storedAsks)
@@ -926,7 +926,7 @@ class bitget(ccxt.async_support.bitget):
     def handle_delta(self, bookside: object, delta: object):
         bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         # we store the string representations in the orderbook for checksum calculation
-        # self simplifies the code for generating checksums do not need to do any complex number transformations
+        # self simplifies the code for generating checksums as we do not need to do any complex number transformations
         bidAsk.append(delta)
         bookside.storeArray(bidAsk)
 
@@ -998,7 +998,7 @@ class bitget(ccxt.async_support.bitget):
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
-        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True) is True:
             filtered = self.remove_repeated_trades_from_array(result)
             filtered = self.sort_by(filtered, 'timestamp')
             return filtered
@@ -1485,7 +1485,7 @@ class bitget(ccxt.async_support.bitget):
         marketId = None
         isTrigger = None
         isTrigger, params = self.is_trigger_order(params)
-        messageHash = 'triggerOrder' if (isTrigger) else 'order'
+        messageHash = 'triggerOrder' if (isTrigger is True) else 'order'
         subscriptionHash = 'order:trades'
         if symbol is not None:
             market = self.market(symbol)
@@ -1516,10 +1516,10 @@ class bitget(ccxt.async_support.bitget):
             instType, params = self.get_inst_type('watchOrders', market, uta, params)
         if type == 'spot' and (symbol is not None):
             subscriptionHash = subscriptionHash + ':' + symbol
-        if isTrigger:
+        if isTrigger is True:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
         instId = marketId if (type == 'spot' or type == 'margin') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        channel = 'orders-algo' if isTrigger else 'orders'
+        channel = 'orders-algo' if (isTrigger is True) else 'orders'
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
         if marginMode is not None:
@@ -1714,7 +1714,7 @@ class bitget(ccxt.async_support.bitget):
         #         enterPointSource: 'API'
         #                   #### trigger order has these additional fields:  ####
         #         "triggerPrice": "35100",
-        #         "price": "35100",  # self is same price
+        #         "price": "35100",  # self is same as trigger price
         #         "executePrice": "35123",  # self is limit price
         #         "triggerType": "fill_price",
         #         "planType": "amount",
@@ -1770,7 +1770,7 @@ class bitget(ccxt.async_support.bitget):
         #         tradeScope: 'T',
         #                   #### trigger order has these additional fields:
         #         "triggerPrice": "0.800000000",
-        #         "price": "0.800000000",  # <-- self is same price, actual limit-price is not present in initial response
+        #         "price": "0.800000000",  # <-- self is same as trigger price, actual limit-price is not present in initial response
         #         "triggerType": "mark_price",
         #         "triggerTime": "1715082796679",
         #         "planType": "pl",
@@ -2279,7 +2279,7 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             rawBalance = data[i]
             if instType == 'uta':
@@ -2324,12 +2324,12 @@ class bitget(ccxt.async_support.bitget):
         client.resolve(self.balance, messageHash)
 
     async def watch_public(self, uta: object, messageHash: object, args: object, params={}):
-        url = self.urls['api']['ws']['utaPublic'] if uta else self.urls['api']['ws']['public']
+        url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode:
+        if sandboxMode is True:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                if uta:
+                if uta is True:
                     url = self.urls['api']['demo']['utaPublic']
                 else:
                     url = self.urls['api']['demo']['public']
@@ -2341,12 +2341,12 @@ class bitget(ccxt.async_support.bitget):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def un_watch_public(self, uta: object, messageHash: object, args: object, params={}):
-        url = self.urls['api']['ws']['utaPublic'] if uta else self.urls['api']['ws']['public']
+        url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode:
+        if sandboxMode is True:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                if uta:
+                if uta is True:
                     url = self.urls['api']['demo']['utaPublic']
                 else:
                     url = self.urls['api']['demo']['public']
@@ -2358,13 +2358,13 @@ class bitget(ccxt.async_support.bitget):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_public_multiple(self, uta: object, messageHashes: object, argsArray: object, params={}):
-        url = self.urls['api']['ws']['utaPublic'] if uta else self.urls['api']['ws']['public']
+        url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode:
+        if sandboxMode is True:
             argsArrayFirst = self.safe_dict(argsArray, 0, {})
             instType = self.safe_string(argsArrayFirst, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                url = self.urls['api']['demo']['utaPublic'] if uta else self.urls['api']['demo']['public']
+                url = self.urls['api']['demo']['utaPublic'] if (uta is True) else self.urls['api']['demo']['public']
         request = {
             'op': 'subscribe',
             'args': argsArray,
@@ -2400,12 +2400,12 @@ class bitget(ccxt.async_support.bitget):
         return await future
 
     async def watch_private(self, uta: object, messageHash: object, subscriptionHash: object, args: object, params={}):
-        url = self.urls['api']['ws']['utaPrivate'] if uta else self.urls['api']['ws']['private']
+        url = self.urls['api']['ws']['utaPrivate'] if (uta is True) else self.urls['api']['ws']['private']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode:
+        if sandboxMode is True:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                if uta:
+                if uta is True:
                     url = self.urls['api']['demo']['utaPrivate']
                 else:
                     url = self.urls['api']['demo']['private']
@@ -2531,7 +2531,7 @@ class bitget(ccxt.async_support.bitget):
         #         }
         #     }
         #
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         content = self.safe_string(message, 'message')
         if content == 'pong':

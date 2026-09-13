@@ -219,6 +219,10 @@ class bitso extends Exchange {
                         'orders/{oid}' => array( 'cost' => 1 ),
                         'orders/all' => array( 'cost' => 1 ),
                     ),
+                    'patch' => array(
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{oid}' => array( 'cost' => 1 ),
+                    ),
                 ),
             ),
             'features' => array(
@@ -497,7 +501,7 @@ class bitso extends Exchange {
         //             ),
         //         )
         //     }
-        $markets = $this->safe_value($response, 'payload', array());
+        $markets = $this->safe_list($response, 'payload', array());
         $currencies = $this->safe_dict($this->options, 'cachedCurrencies');
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -514,7 +518,7 @@ class bitso extends Exchange {
             $makerString = $this->safe_string($flatRate, 'maker');
             $taker = $this->parse_number(Precise::string_div($takerString, '100'));
             $maker = $this->parse_number(Precise::string_div($makerString, '100'));
-            $feeTiers = $this->safe_value($fees, 'structure', array());
+            $feeTiers = $this->safe_list($fees, 'structure', array());
             $fee = array(
                 'taker' => $taker,
                 'maker' => $maker,
@@ -673,7 +677,7 @@ class bitso extends Exchange {
 
     public function parse_balance(mixed $response): array {
         $payload = $this->safe_value($response, 'payload', array());
-        $balances = $this->safe_value($payload, 'balances', array());
+        $balances = $this->safe_list($payload, 'balances', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -867,7 +871,7 @@ class bitso extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1132,7 +1136,7 @@ class bitso extends Exchange {
         //    }
         //
         $payload = $this->safe_value($response, 'payload', array());
-        $fees = $this->safe_value($payload, 'fees', array());
+        $fees = $this->safe_list($payload, 'fees', array());
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
@@ -1306,7 +1310,7 @@ class bitso extends Exchange {
         //         "payload" => ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_list($response, 'payload', array());
         $orders = array();
         for ($i = 0; $i < count($payload); $i++) {
             $id = $payload[$i];
@@ -1339,7 +1343,7 @@ class bitso extends Exchange {
         //         "payload" => ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         //     }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_list($response, 'payload', array());
         $canceledOrders = array();
         for ($i = 0; $i < count($payload); $i++) {
             $order = $this->parse_order($payload[$i]);
@@ -1513,7 +1517,7 @@ class bitso extends Exchange {
         return $this->parse_trades($payload, $market);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit(...))($id, $code, $params);
     }
 
@@ -1715,7 +1719,7 @@ class bitso extends Exchange {
         //
         $result = array();
         $payload = $this->safe_value($response, 'payload', array());
-        $depositFees = $this->safe_value($payload, 'deposit_fees', array());
+        $depositFees = $this->safe_list($payload, 'deposit_fees', array());
         for ($i = 0; $i < count($depositFees); $i++) {
             $depositFee = $depositFees[$i];
             $currencyId = $this->safe_string($depositFee, 'currency');
@@ -1863,7 +1867,7 @@ class bitso extends Exchange {
         //    }
         //
         $result = array();
-        $depositResponse = $this->safe_value($response, 'deposit_fees', array());
+        $depositResponse = $this->safe_list($response, 'deposit_fees', array());
         $withdrawalResponse = $this->safe_value($response, 'withdrawal_fees', array());
         for ($i = 0; $i < count($depositResponse); $i++) {
             $entry = $depositResponse[$i];
@@ -1874,7 +1878,7 @@ class bitso extends Exchange {
                     $result[$code] = array(
                         'deposit' => array(
                             'fee' => $this->safe_number($entry, 'fee'),
-                            'percentage' => !$this->safe_value($entry, 'is_fixed'),
+                            'percentage' => ($this->safe_value($entry, 'is_fixed') !== true),
                         ),
                         'withdraw' => array(
                             'fee' => null,
@@ -2055,7 +2059,7 @@ class bitso extends Exchange {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' || $method === 'DELETE') {
-            if ($query) {
+            if (count($query) > 0) {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
@@ -2067,7 +2071,7 @@ class bitso extends Exchange {
             $content = array( $nonce, $method, $endpoint );
             $request = implode('', $content);
             if ($method !== 'GET' && $method !== 'DELETE') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $request .= $body;
                 }
@@ -2098,7 +2102,7 @@ class bitso extends Exchange {
                     $success = false;
                 }
             }
-            if (!$success) {
+            if ($success !== true) {
                 $feedback = $this->id . ' ' . $this->json($response);
                 $error = $this->safe_value($response, 'error');
                 if ($error === null) {

@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestBorrowInterest extends BaseTest {
     public static void testBorrowInterest(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode, Object requestedSymbol)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "account", "BTC/USDT" );
             put( "currency", "USDT" );
@@ -23,7 +23,7 @@ public class TestBorrowInterest extends BaseTest {
             put( "timestamp", 1638230400000L );
             put( "datetime", "2021-11-30T00:00:00.000Z" );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("account"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("account"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);

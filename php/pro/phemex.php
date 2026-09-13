@@ -295,7 +295,7 @@ class phemex extends \ccxt\async\phemex {
             $ticker = $this->safe_value($message, 'spot_market24h');
             $tickers[] = $this->parse_ticker($ticker);
         } elseif (is_array($message) && array_key_exists('data' ?? '', $message)) {
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $tickers[] = $this->parse_perpetual_ticker($data[$i]);
             }
@@ -543,7 +543,7 @@ class phemex extends \ccxt\async\phemex {
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
         $name = 'spot_market24h';
-        if ($isSwap) {
+        if ($isSwap === true) {
             $name = $settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         $url = $this->urls['api']['ws'];
@@ -585,7 +585,7 @@ class phemex extends \ccxt\async\phemex {
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
         $name = 'spot_market24h';
-        if ($isSwap) {
+        if ($isSwap === true) {
             $name = $settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         $url = $this->urls['api']['ws'];
@@ -637,7 +637,8 @@ class phemex extends \ccxt\async\phemex {
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
-        $name = ($isSwap && $settleIsUSDT) ? 'trade_p' : 'trade';
+        $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
+        $name = $isUsdtSwap ? 'trade_p' : 'trade';
         $messageHash = 'trade:' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(
@@ -682,7 +683,8 @@ class phemex extends \ccxt\async\phemex {
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
-        $name = ($isSwap && $settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+        $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
+        $name = $isUsdtSwap ? 'orderbook_p' : 'orderbook';
         $messageHash = 'orderbook:' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(
@@ -714,7 +716,7 @@ class phemex extends \ccxt\async\phemex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -725,7 +727,8 @@ class phemex extends \ccxt\async\phemex {
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
-        $name = ($isSwap && $settleIsUSDT) ? 'kline_p' : 'kline';
+        $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
+        $name = $isUsdtSwap ? 'kline_p' : 'kline';
         $messageHash = 'kline:' . $timeframe . ':' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(
@@ -1212,7 +1215,7 @@ class phemex extends \ccxt\async\phemex {
             if ($ordersLength === 0) {
                 return;
             }
-            $trades = $this->safe_value($message, 'fills', array());
+            $trades = $this->safe_list($message, 'fills', array());
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
                 $parsedOrder = $this->parse_order($rawOrder);

@@ -12,7 +12,11 @@ interface Exchange {
     publicGetTime(params?: {}): Promise<Dict>;
     publicGetProductsSparkLines(params?: {}): Promise<Dict>;
     publicGetProductsVolumeSummary(params?: {}): Promise<List>;
+    publicGetWrappedAssets(params?: {}): Promise<Dict>;
+    publicGetWrappedAssetsWrappedAssetId(params?: {}): Promise<Dict>;
+    publicGetWrappedAssetsWrappedAssetIdConversionRate(params?: {}): Promise<Dict>;
     privateGetAddressBook(params?: {}): Promise<List>;
+    privateGetAddressBookCounterparty(params?: {}): Promise<List>;
     privateGetAccounts(params?: {}): Promise<Dict>;
     privateGetAccountsId(params?: {}): Promise<Dict>;
     privateGetAccountsIdHolds(params?: {}): Promise<List>;
@@ -42,9 +46,11 @@ interface Exchange {
     privateGetReportsReportId(params?: {}): Promise<Dict>;
     privateGetTransfers(params?: {}): Promise<List>;
     privateGetTransfersTransferId(params?: {}): Promise<Dict>;
+    privateGetTravelRules(params?: {}): Promise<List>;
     privateGetUsersSelfExchangeLimits(params?: {}): Promise<Dict>;
     privateGetUsersSelfHoldBalances(params?: {}): Promise<Dict>;
     privateGetUsersSelfTrailingVolume(params?: {}): Promise<Dict>;
+    privateGetUsersUserIdTradingVolumes(params?: {}): Promise<Dict>;
     privateGetWithdrawalsFeeEstimate(params?: {}): Promise<Dict>;
     privateGetConversionsConversionId(params?: {}): Promise<Dict>;
     privateGetConversions(params?: {}): Promise<List>;
@@ -60,10 +66,16 @@ interface Exchange {
     privateGetLoansInterest(params?: {}): Promise<List>;
     privateGetLoansAssets(params?: {}): Promise<Dict>;
     privateGetLoans(params?: {}): Promise<List>;
+    privateGetLoansOptions(params?: {}): Promise<List>;
+    privateGetWrappedAssetsRedeem(params?: {}): Promise<List>;
+    privateGetWrappedAssetsRedeemRedeemId(params?: {}): Promise<Dict>;
+    privateGetWrappedAssetsStakeWrap(params?: {}): Promise<List>;
+    privateGetWrappedAssetsStakeWrapStakeWrapId(params?: {}): Promise<Dict>;
     privatePostConversions(params?: {}): Promise<Dict>;
     privatePostDepositsCoinbaseAccount(params?: {}): Promise<Dict>;
     privatePostDepositsPaymentMethod(params?: {}): Promise<Dict>;
     privatePostCoinbaseAccountsIdAddresses(params?: {}): Promise<Dict>;
+    privatePostAddressBook(params?: {}): Promise<Dict>;
     privatePostFundingRepay(params?: {}): Promise<Dict>;
     privatePostOrders(params?: {}): Promise<Dict>;
     privatePostPositionClose(params?: {}): Promise<Dict>;
@@ -73,16 +85,25 @@ interface Exchange {
     privatePostReports(params?: {}): Promise<Dict>;
     privatePostWithdrawalsCoinbase(params?: {}): Promise<Dict>;
     privatePostWithdrawalsCoinbaseAccount(params?: {}): Promise<Dict>;
+    privatePostWithdrawalsCounterparty(params?: {}): Promise<Dict>;
     privatePostWithdrawalsCrypto(params?: {}): Promise<Dict>;
     privatePostWithdrawalsPaymentMethod(params?: {}): Promise<Dict>;
+    privatePostTransfersTransferIdTravelRules(params?: {}): Promise<Dict>;
+    privatePostTravelRules(params?: {}): Promise<Dict>;
+    privatePostUsersUserIdSettlementPreferences(params?: {}): Promise<Dict>;
+    privatePostWrappedAssetsRedeem(params?: {}): Promise<Dict>;
+    privatePostWrappedAssetsStakeWrap(params?: {}): Promise<Dict>;
     privatePostLoansOpen(params?: {}): Promise<Dict>;
     privatePostLoansRepayInterest(params?: {}): Promise<Dict>;
     privatePostLoansRepayPrincipal(params?: {}): Promise<Dict>;
     privateDeleteOrders(params?: {}): Promise<List>;
     privateDeleteOrdersClientClientOid(params?: {}): Promise<string>;
     privateDeleteOrdersId(params?: {}): Promise<Dict>;
+    privateDeleteAddressBookId(params?: {}): Promise<Dict>;
+    privateDeleteTravelRulesId(params?: {}): Promise<Dict>;
     privatePutProfilesIdDeactivate(params?: {}): Promise<Dict>;
     privatePutProfilesId(params?: {}): Promise<Dict>;
+    privatePutAddressBookId(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

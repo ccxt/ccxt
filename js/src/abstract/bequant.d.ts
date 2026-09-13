@@ -49,6 +49,7 @@ interface hitbtc {
     privateGetMarginHistoryTrade(params?: {}): Promise<List>;
     privateGetMarginHistoryPositions(params?: {}): Promise<List>;
     privateGetMarginHistoryClearing(params?: {}): Promise<List>;
+    privateGetMarginSettings(params?: {}): Promise<Dict>;
     privateGetFuturesBalance(params?: {}): Promise<Dict>;
     privateGetFuturesBalanceCurrency(params?: {}): Promise<Dict>;
     privateGetFuturesAccount(params?: {}): Promise<List>;
@@ -62,8 +63,10 @@ interface hitbtc {
     privateGetFuturesHistoryTrade(params?: {}): Promise<List>;
     privateGetFuturesHistoryPositions(params?: {}): Promise<List>;
     privateGetFuturesHistoryClearing(params?: {}): Promise<List>;
+    privateGetUserApiKeys(params?: {}): Promise<List>;
     privateGetWalletBalance(params?: {}): Promise<Dict>;
     privateGetWalletBalanceCurrency(params?: {}): Promise<Dict>;
+    privateGetWalletCryptoAddressWhiteList(params?: {}): Promise<Dict>;
     privateGetWalletCryptoAddress(params?: {}): Promise<List>;
     privateGetWalletCryptoAddressRecentDeposit(params?: {}): Promise<List>;
     privateGetWalletCryptoAddressRecentWithdraw(params?: {}): Promise<List>;
@@ -71,6 +74,7 @@ interface hitbtc {
     privateGetWalletTransactions(params?: {}): Promise<List>;
     privateGetWalletTransactionsTxId(params?: {}): Promise<Dict>;
     privateGetWalletCryptoFeeEstimate(params?: {}): Promise<Dict>;
+    privateGetWalletCryptoFeeWithdrawHash(params?: {}): Promise<Dict>;
     privateGetWalletAirdrops(params?: {}): Promise<List>;
     privateGetWalletAmountLocks(params?: {}): Promise<List>;
     privateGetSubAccount(params?: {}): Promise<List>;
@@ -90,10 +94,13 @@ interface hitbtc {
     privatePostWalletInternalWithdraw(params?: {}): Promise<Dict>;
     privatePostWalletCryptoCheckOffchainAvailable(params?: {}): Promise<Dict>;
     privatePostWalletCryptoFeesEstimate(params?: {}): Promise<List>;
+    privatePostWalletCryptoFeeEstimateBulk(params?: {}): Promise<List>;
     privatePostWalletAirdropsIdClaim(params?: {}): Promise<Dict>;
     privatePostSubAccountFreeze(params?: {}): Promise<Dict>;
     privatePostSubAccountActivate(params?: {}): Promise<Dict>;
     privatePostSubAccountTransfer(params?: {}): Promise<Dict>;
+    privatePostSubAccountTransferSubToSuper(params?: {}): Promise<Dict>;
+    privatePostSubAccountTransferSubToSub(params?: {}): Promise<Dict>;
     privatePostSubAccountAcl(params?: {}): Promise<List>;
     privatePatchSpotOrderClientOrderId(params?: {}): Promise<Dict>;
     privatePatchMarginOrderClientOrderId(params?: {}): Promise<Dict>;
@@ -110,7 +117,10 @@ interface hitbtc {
     privateDeleteFuturesOrderClientOrderId(params?: {}): Promise<Dict>;
     privateDeleteWalletCryptoWithdrawId(params?: {}): Promise<Dict>;
     privatePutMarginAccountIsolatedSymbol(params?: {}): Promise<Dict>;
+    privatePutMarginSettingsAmm(params?: {}): Promise<Dict>;
+    privatePutMarginMarginSettingsAmr(params?: {}): Promise<Dict>;
     privatePutFuturesAccountIsolatedSymbol(params?: {}): Promise<Dict>;
+    privatePutFuturesMarginSettingsAmr(params?: {}): Promise<Dict>;
     privatePutWalletCryptoWithdrawId(params?: {}): Promise<Dict>;
 }
 declare abstract class hitbtc extends _hitbtc {

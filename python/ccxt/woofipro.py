@@ -206,6 +206,8 @@ class woofipro(Exchange, ImplicitAPI):
                             'client/points': {'cost': 1},
                             'public/points/epoch': {'cost': 1},
                             'public/points/epoch_dates': {'cost': 1},
+                            'public/points/rankings': {'cost': 1},
+                            'public/points/stages': {'cost': 1},
                             'public/referral/check_ref_code': {'cost': 1},
                             'public/referral/verify_ref_code': {'cost': 1},
                             'referral/admin_info': {'cost': 1},
@@ -219,6 +221,7 @@ class woofipro(Exchange, ImplicitAPI):
                             'tv/config': {'cost': 1},
                             'tv/history': {'cost': 1},
                             'tv/symbol_info': {'cost': 1},
+                            'tv/kline_history': {'cost': 1},
                             'public/funding_rate_history': {'cost': 1},
                             'public/funding_rate/{symbol}': {'cost': 0.33},
                             'public/funding_rates': {'cost': 1},
@@ -228,6 +231,9 @@ class woofipro(Exchange, ImplicitAPI):
                             'public/token': {'cost': 1},
                             'public/futures': {'cost': 1},
                             'public/futures/{symbol}': {'cost': 1},
+                            'staking/valor2/batch_info': {'cost': 1},
+                            'staking/valor2/pool_info': {'cost': 1},
+                            'staking/valor2/revenue_buyback': {'cost': 1},
                         },
                         'post': {
                             'register_account': {'cost': 1},
@@ -252,6 +258,7 @@ class woofipro(Exchange, ImplicitAPI):
                             'client/holding': {'cost': 1},
                             'withdraw_nonce': {'cost': 1},
                             'settle_nonce': {'cost': 1},
+                            'transfer_nonce': {'cost': 1},
                             'pnl_settlement/history': {'cost': 1},
                             'volume/user/daily': {'cost': 60},
                             'volume/user/stats': {'cost': 60},
@@ -266,9 +273,22 @@ class woofipro(Exchange, ImplicitAPI):
                             'volume/broker/daily': {'cost': 60},
                             'broker/fee_rate/default': {'cost': 10},
                             'broker/user_info': {'cost': 10},
+                            'broker/daily_fee_revenue': {'cost': 10},
                             'orderbook/{symbol}': {'cost': 1},
                             'kline': {'cost': 1},
                             'client/margin_modes': {'cost': 1},
+                            'client/leverages': {'cost': 1},
+                            'client/points/user_statistics': {'cost': 1},
+                            'staking/valor2/redeem': {'cost': 1},
+                            'referral/multi_level/admin': {'cost': 1},
+                            'referral/multi_level/admin/info': {'cost': 1},
+                            'referral/multi_level/admin/referee_list': {'cost': 1},
+                            'referral/multi_level/admin/summary': {'cost': 1},
+                            'referral/multi_level/max_rebate_rate': {'cost': 1},
+                            'referral/multi_level/rebate_info': {'cost': 1},
+                            'referral/multi_level/referee_list': {'cost': 1},
+                            'referral/multi_level/statistics': {'cost': 1},
+                            'referral/multi_level/volume_prerequisite': {'cost': 1},
                         },
                         'post': {
                             'orderly_key': {'cost': 1},
@@ -284,6 +304,7 @@ class woofipro(Exchange, ImplicitAPI):
                             'notification/inbox/mark_read': {'cost': 60},
                             'notification/inbox/mark_read_all': {'cost': 60},
                             'client/leverage': {'cost': 120},
+                            'client/leverages': {'cost': 120},
                             'client/margin_mode': {'cost': 1},
                             'position_margin': {'cost': 1},
                             'client/maintenance_config': {'cost': 60},
@@ -298,6 +319,15 @@ class woofipro(Exchange, ImplicitAPI):
                             'referral/update': {'cost': 10},
                             'referral/bind': {'cost': 10},
                             'referral/edit_split': {'cost': 10},
+                            'referral/edit_referee_description': {'cost': 10},
+                            'referral/multi_level/admin': {'cost': 10},
+                            'referral/multi_level/admin/create/affiliate': {'cost': 10},
+                            'referral/multi_level/admin/reset/affiliate': {'cost': 10},
+                            'referral/multi_level/admin/update': {'cost': 10},
+                            'referral/multi_level/admin/update/affiliate': {'cost': 10},
+                            'referral/multi_level/claim_code': {'cost': 10},
+                            'referral/multi_level/rebate_rate/set_default': {'cost': 10},
+                            'referral/multi_level/rebate_rate/update': {'cost': 10},
                         },
                         'put': {
                             'order': {'cost': 1},
@@ -312,6 +342,13 @@ class woofipro(Exchange, ImplicitAPI):
                             'orders': {'cost': 1},
                             'batch-order': {'cost': 1},
                             'client/batch-order': {'cost': 1},
+                        },
+                    },
+                },
+                'v2': {
+                    'private': {
+                        'post': {
+                            'internal_transfer': {'cost': 1},
                         },
                     },
                 },
@@ -1536,7 +1573,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: max=1000, max=100 when since is defined and is less than(now - (999 * (timeframe in ms)))
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1645,7 +1682,7 @@ class woofipro(Exchange, ImplicitAPI):
         childOrders = self.safe_value(order, 'childOrders')
         if childOrders is not None:
             first = self.safe_value(childOrders, 0)
-            innerChildOrders = self.safe_value(first, 'childOrders', [])
+            innerChildOrders = self.safe_list(first, 'childOrders', [])
             innerChildOrdersLength = len(innerChildOrders)
             if innerChildOrdersLength > 0:
                 takeProfitOrder = self.safe_value(innerChildOrders, 0)
@@ -1706,7 +1743,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'COMPLETED': 'closed',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order_type(self, type: Str):
         types = {
@@ -1763,7 +1800,7 @@ class woofipro(Exchange, ImplicitAPI):
                 request['order_type'] = 'FOK'
             elif timeInForce == 'ioc':
                 request['order_type'] = 'IOC'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = reduceOnly
         if price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
@@ -1830,7 +1867,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.algoType]: 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2028,7 +2065,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        if not trigger and (symbol is None):
+        if (trigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
@@ -2042,7 +2079,7 @@ class woofipro(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response = None
-        if trigger:
+        if trigger is True:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
                 params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -2078,7 +2115,7 @@ class woofipro(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         else:
             extendParams['id'] = id
-        if trigger:
+        if trigger is True:
             parsedResponse = {} if (response is None) else response
             return self.extend(self.parse_order(parsedResponse), extendParams)
         data = self.safe_dict(response, 'data', {})
@@ -2103,7 +2140,7 @@ class woofipro(Exchange, ImplicitAPI):
         params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         request = {}
         response = None
-        if clientOrderIds:
+        if clientOrderIds is not None:
             request['client_order_ids'] = ','.join(clientOrderIds)
             response = self.v1PrivateDeleteClientBatchOrder(self.extend(request, params))
         else:
@@ -2143,7 +2180,7 @@ class woofipro(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        if trigger:
+        if trigger is True:
             response = self.v1PrivateDeleteAlgoOrders(self.extend(request, params))
         else:
             response = self.v1PrivateDeleteOrders(self.extend(request, params))
@@ -2194,15 +2231,15 @@ class woofipro(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response = None
-        if trigger:
-            if clientOrderId:
+        if trigger is True:
+            if clientOrderId is not None and clientOrderId != '':
                 request['client_order_id'] = clientOrderId
                 response = self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, params))
             else:
                 request['oid'] = id
                 response = self.v1PrivateGetAlgoOrderOid(self.extend(request, params))
         else:
-            if clientOrderId:
+            if (clientOrderId is not None) and (clientOrderId != ''):
                 request['client_order_id'] = clientOrderId
                 response = self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
             else:
@@ -2261,7 +2298,7 @@ class woofipro(Exchange, ImplicitAPI):
             self.load_markets()
         paginate = False
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        maxLimit = 100 if (isTrigger) else 500
+        maxLimit = 100 if (isTrigger is True) else 500
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit)
@@ -2277,11 +2314,11 @@ class woofipro(Exchange, ImplicitAPI):
             request['size'] = limit
         else:
             request['size'] = maxLimit
-        if isTrigger:
+        if isTrigger is True:
             request['algo_type'] = 'STOP'
         request, params = self.handle_until_option('end_t', request, params)
         response = None
-        if isTrigger:
+        if isTrigger is True:
             response = self.v1PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = self.v1PrivateGetOrders(self.extend(request, params))
@@ -2946,7 +2983,7 @@ class woofipro(Exchange, ImplicitAPI):
             'amount': None,
             'total': None,
             'code': self.safe_string(market, 'settle'),
-            'status': 'ok' if (success) else 'failed',
+            'status': 'ok' if (success is True) else 'failed',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
@@ -3266,13 +3303,13 @@ class woofipro(Exchange, ImplicitAPI):
         params = self.keysort(params)
         if access == 'public':
             url += pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
             if (method == 'POST' or method == 'PUT') and (path == 'algo/order' or path == 'order' or path == 'batch-order'):
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if not isSandboxMode:
+                if isSandboxMode is not True:
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
                     if path == 'batch-order':
                         ordersList = self.safe_list(params, 'orders', [])
@@ -3298,7 +3335,7 @@ class woofipro(Exchange, ImplicitAPI):
                 auth += body
                 headers['content-type'] = 'application/json'
             else:
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
                     auth += '?' + self.rawencode(params)
                 headers['content-type'] = 'application/x-www-form-urlencoded'
@@ -3313,7 +3350,7 @@ class woofipro(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -3321,7 +3358,7 @@ class woofipro(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success')
         errorCode = self.safe_string(response, 'code')
-        if not success:
+        if success is not True:
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

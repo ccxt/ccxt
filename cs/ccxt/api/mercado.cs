@@ -158,4 +158,32 @@ public partial class mercado : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v4PublicNetGetCandles",parameters);
     }
 
+    /// <summary>Calls the v4PrivatePostAccounts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostAccounts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostAccounts",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostAccountsAccountIdSymbolTransfersInternal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostAccountsAccountIdSymbolTransfersInternal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostAccountsAccountIdSymbolTransfersInternal",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostOauth2Token endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostOauth2Token (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostOauth2Token",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId",parameters);
+    }
+
 }

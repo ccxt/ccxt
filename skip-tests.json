@@ -223,6 +223,9 @@
             },
             "watchOrderBookForSymbols": {
                 "timestamp": "same"
+            },
+            "watchTickers": {
+                "compareQuoteVolumeBaseVolume": "coin-m ids (BTCUSD_PERP, ETHUSD_PERP, XRPUSD_260925, ...) leak into the usdm !miniTicker@arr stream; binanceusdm loads only linear markets, so they resolve to no loaded market and the inverse-contract exemption (safeBool(market,'inverse')) cannot fire, https://github.com/ccxt/ccxt/actions/runs/32295515130/job/96206607580?pr=29952#step:11:295"
             }
         }
     },
@@ -1330,6 +1333,7 @@
                 "maker": "undef",
                 "active": "undef",
                 "contractSize": "undef",
+                "marginModes": "parseMarket does not emit marginModes.cross/isolated",
                 "precisionAmountAbnormal": "abnormal precision"
             },
             "fetchCurrencies": {
@@ -1879,7 +1883,7 @@
         }
     },
     "nado": {
-        "skipWs": "timeouts",
+        "skipWs": "live ws blocked per transport: the /v1/subscribe gateway rejects handshakes without a permessage-deflate offer pre-upgrade with HTTP 403 - php (ratchet/pawl sends no Sec-WebSocket-Extensions offer and builds MessageBuffer with deflate disabled), c# (netstandard2.x ClientWebSocket lacks DangerousDeflateOptions) and rust (tungstenite 0.24 rejects RSV1 frames) cannot offer it, go dials with EnableCompression:false in go/v4/exchange_wsclient.go; js/python/java offer deflate and connect fine (book/bbo watch methods verified live 2026-09-10) but trade-driven streams hang on spot - busiest spot market WSPYX/USDT0 turned over ~94k USDT0/24h measured 2026-09-10, too thin for the 120s harness window; message handling is covered offline by static/ws/nado.json; recheck 2026-12-10",
         "skipMethods": {
             "loadMarkets": {
                 "precisionAmountAbnormal": "some markets report integer amount tick sizes such as 5"
@@ -1968,24 +1972,11 @@
     "okx": {
         "skipCSharp": true,
         "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "messed",
-                "contractSize": "broken for some markets"
-            },
-            "fetchCurrencies": {
-                "precision": "undefined",
-                "currencyIdAndCode": "temp skip"
-            },
-            "ticker": {
-                "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132"
-            },
             "fetchTickers": {
-                "checkActiveSymbols": "todo"
+                "checkActiveSymbols": "bare fetchTickers() covers only a fraction of active markets, measured 2026-09-03: 468/4564 (swap default) and 1388/4564 (spot default); recheck 2026-12-01"
             },
-            "fetchBorrowRate": "some fields that we can't skip missing",
-            "fetchBorrowRates": "same",
             "watchOrderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6721"
+                "nonce": "root cause: handleOrderBookMessage (pro/okx.ts:~1436) is missing a return after client.reject on InvalidNonce, so it falls through and both callers then client.resolve the same rejected messageHash; live-verified 3/3 clean runs on 2026-09-03 so the failure is rare/timing-dependent, keep skipped until the missing-return fix (planned separately) lands; recheck 2026-12-01"
             }
         }
     },
@@ -2136,6 +2127,21 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "revolutx": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "RevX API does not support withdrawals",
+                "deposit": "RevX API does not support deposits",
+                "activeMajorCurrencies": "RevX API does not provide deposit/withdrawal flags"
+            },
+            "ticker": {
+                "compareOHLC": "open is derived from last - priceChange, can fall outside 24h low/high range"
+            },
+            "fetchTickers": {
+                "compareOHLC": "open is derived from last - priceChange, can fall outside 24h low/high range"
             }
         }
     },
@@ -2471,7 +2477,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
-                "contractSize": "not provided"
+                "contractSize": "not provided",
+                "marginModes": "parseMarket does not emit marginModes.cross/isolated"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided",
@@ -2504,26 +2511,17 @@
                 "precision": "not provided if currency has no networks"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo",
-                "maxIncrease": "change should be above -price is failing"
+                "checkActiveSymbols": "exchangeInfo enableTrade marks 2370 spot markets active but fetchTickers returns 1821 symbols, 549 active markets have no ticker (measured 2026-08-23)",
+                "maxIncrease": "openPrice equals lastPrice on illiquid markets while priceChange is non-zero, so change can exceed the price"
             },
             "ticker": {
                 "compareOHLC": "open could be lower than low",
-                "spread": "messed bid-ask",
-                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+                "spread": "messed bid-ask"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
             },
-            "fetchTrades": {
-                "side": "not provided"
-            },
-            "watchTrades": {
-                "side": "not provided"
-            },
-            "watchTradesForSymbols": {
-                "side": "not provided"
-            }
+            "watchBidsAsks.go": "Go test harness repanics the NotSupported thrown for swap symbols (spot-only channel) instead of skipping it like the other languages, recheck 2026-10-01"
         }
     },
     "btse": {

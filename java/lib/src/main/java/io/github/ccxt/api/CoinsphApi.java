@@ -724,6 +724,28 @@ public class CoinsphApi extends Exchange
     }
 
     /**
+     * Calls the privatePostOpenapiFiatV2History endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenapiFiatV2History (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiFiatV2History", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostOpenapiFiatV1CancelQrCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenapiFiatV1CancelQrCode (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiFiatV1CancelQrCode", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostOpenapiMigrationV4Sellorder endpoint.
      *
      * @param optionalArgs the request parameters

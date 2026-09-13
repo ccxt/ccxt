@@ -9,14 +9,9 @@ public partial class BaseExchange
         return Guid.NewGuid().ToString().Replace("-", "");
     }
 
-    public string uuid2()
-    {
-        return Guid.NewGuid().ToString();
-    }
-
     public string uuid()
     {
-        return uuid2();
+        return Guid.NewGuid().ToString();
     }
 
     public string uuid16()

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitso API documentation:** [bitso.com](https://bitso.com/api_info)
 
-> 40 implicit endpoints across 2 access groups.
+> 42 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -106,4 +106,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateDeleteOrders` | DELETE | `orders` | 1 |
 | `privateDeleteOrdersOid` | DELETE | `orders/{oid}` | 1 |
 | `privateDeleteOrdersAll` | DELETE | `orders/all` | 1 |
+| `privatePatchOrders` | PATCH | `orders` | 1 |
+| `privatePatchOrdersOid` | PATCH | `orders/{oid}` | 1 |
 

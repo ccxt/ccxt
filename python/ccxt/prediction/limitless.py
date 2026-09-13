@@ -206,7 +206,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         maxMarkets = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'fetchMarketsLimit', 1000))
         allRaw = []
         queriesLength = len(queries)
-        if queries and queriesLength > 0:
+        if queriesLength > 0:
             requestedLimit = self.safe_integer(params, 'limit', 50)
             # the search endpoint rejects limit > 50 - cap the per-query request and             # maxMarkets bound the overall collection
             limit = min(requestedLimit, 50)
@@ -219,7 +219,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 for j in range(0, len(found)):
                     raw = found[j]
                     slug = self.safe_string(raw, 'slug')
-                    if slug and not (slug in seen):
+                    if (slug is not None and slug != '') and not (slug in seen):
                         seen[slug] = True
                         allRaw.append(raw)
         else:
@@ -263,7 +263,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     rawPageMarkets = self.safe_list(response, 'data', responseRows)
                     page_markets = rawPageMarkets if (rawPageMarkets is not None) else []
                     pageMarketsLength = len(page_markets)
-                    if not page_markets or pageMarketsLength == 0:
+                    if pageMarketsLength == 0:
                         break
                     for i in range(0, len(page_markets)):
                         raw = page_markets[i]
@@ -279,10 +279,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(expandedRaw)):
             raw = expandedRaw[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = self.shorten_slug(groupId) if groupId else None
+            eventKey = self.shorten_slug(groupId) if (groupId is not None and groupId != '') else None
             m = self.parse_market(raw)
             markets.append(m)
-            if eventKey:
+            if (eventKey is not None) and (eventKey != ''):
                 if not (eventKey in eventGroups):
                     eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
                 eventGroup = eventGroups[eventKey]
@@ -388,12 +388,12 @@ class limitless(PredictionExchange, ImplicitAPI):
         groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], slug)
         # CTF condition id — needed to redeem a resolved winning position
         conditionId = self.safe_string(raw, 'conditionId')
-        tokens = self.safe_value(raw, 'tokens', {})
+        tokens = self.safe_dict(raw, 'tokens', {})
         # the listing exposes `expired` + `status`(FUNDED/RESOLVED/…), not an `active` flag; a
         # market is tradeable only while it is FUNDED and not yet expired
         isExpired = self.safe_bool(raw, 'expired', False)
         marketStatus = self.safe_string(raw, 'status')
-        active = not isExpired and (marketStatus == 'FUNDED')
+        active = (isExpired is not True) and (marketStatus == 'FUNDED')
         # expiry is a ms timestamp string(`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         expiryTimestamp = self.safe_integer(raw, 'expirationTimestamp')
         # limitless reports lifetime volume(human-readable in `volumeFormatted`), not a 24h figure
@@ -525,7 +525,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         response = await self.limitlessPublicGetMarketsAddressOrSlug(self.extend(request, params))
         # a group response carries its tradeable children in `markets`(each a full market row
         # with tokens) — expandGroupRows unwraps them; a single market has no nested markets
-        # and wraps own one-market event, which parseEvent's loop then parses
+        # and wraps as its own one-market event, which parseEvent's loop then parses
         rows = self.expand_group_rows([response])
         wrapped = self.extend(response, {'markets': rows})
         event = self.parse_event(wrapped)
@@ -787,6 +787,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         groupId = self.safe_string(event, 'address', self.safe_string(event, 'groupId', self.safe_string(event, 'slug')))
         endDate = self.safe_string(event, 'deadline', self.safe_string(event, 'expiresAt'))
         title = self.safe_string(event, 'title', groupId)
+        hasGroupId = (groupId is not None) and (groupId != '')
+        eventSlug = self.shorten_slug(groupId) if hasGroupId else None
+        hasEndDate = (endDate is not None) and (endDate != '')
+        endTimestamp = self.parse8601(endDate) if hasEndDate else None
         markets = []
         rawMarkets = self.safe_list(event, 'markets', [])
         # aggregate 24h volume across the markets so sort by volume works
@@ -794,7 +798,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(rawMarkets)):
             rawMarket = rawMarkets[i]
             # an already-parsed ccxt market row carries the unified 'market' handle + outcomes
-            # with 'symbol' kept legacy fallback — don't run it through parseMarket again
+            # with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             marketSymbol = self.safe_string_2(rawMarket, 'market', 'symbol')
             marketOutcomes = self.safe_list(rawMarket, 'outcomes')
             if marketSymbol is not None and marketOutcomes is not None:
@@ -808,7 +812,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         return self.extend({
             'id': groupId,
             'slug': groupId,
-            'event': self.shorten_slug(groupId) if groupId else None,
+            'event': eventSlug,
             'title': title,
             'description': self.safe_string(event, 'description'),
             'markets': markets,
@@ -822,7 +826,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'tags': self.safe_list(event, 'tags'),
             'created': self.parse8601(self.safe_string(event, 'createdAt')),
             'createdDatetime': self.safe_string(event, 'createdAt'),
-            'end': self.parse8601(endDate) if endDate else None,
+            'end': endTimestamp,
             'endDatetime': endDate,
             'lastUpdatedAt': self.parse8601(self.safe_string(event, 'updatedAt')),
             'resolutionSource': self.safe_string(event, 'resolutionSource'),
@@ -1149,7 +1153,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'slug': slug,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)
         response = await self.limitlessPublicGetMarketsSlugEvents(self.extend(request, params))
         #
         #     {
@@ -1271,7 +1275,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1344,7 +1348,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             pointTs = self.safe_integer(point, 'timestamp')
             if pointTs is None:
                 tsString = self.safe_string(point, 'timestamp')
-                pointTs = self.parse8601(tsString) if tsString else None
+                pointTs = self.parse8601(tsString) if (tsString is not None and tsString != '') else None
             elif pointTs < 1000000000000:
                 # old responses may return unix seconds
                 pointTs = pointTs * 1000
@@ -1426,7 +1430,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        # pass None: parsePredictionOrder sets outcome to the market outcome while the outcome
+        # pass None as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         # lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         # endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return self.parse_prediction_orders(self.to_array(response), None, since, limit)
@@ -1910,7 +1914,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         tradeWalletOption = self.safe_string(accountInfo, 'tradeWalletOption')
         usesSmartWallet = (tradeWalletOption == 'smartWallet')
         walletFromAccount = self.safe_string(accountInfo, 'smartWallet') if (usesSmartWallet) else self.safe_string(accountInfo, 'account')
-        maker = self.walletAddress if self.walletAddress else walletFromAccount
+        maker = self.walletAddress if (self.walletAddress != '') else walletFromAccount
         maker, params = self.handle_option_and_params(params, 'createOrder', 'maker', maker)
         try:
             self.check_address(maker)
@@ -1958,7 +1962,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'side': sideValue,
             'signatureType': signatureType,
         }
-        # the contract expects expiration uint256; non-zero values are rejected by the API(GTC orders use 0)
+        # the contract expects expiration as a uint256; non-zero values are rejected by the API(GTC orders use 0)
         expirationInt = self.safe_integer(params, 'expiration')
         if expirationInt is not None:
             params = self.omit(params, 'expiration')
@@ -2449,8 +2453,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         if rawSide.find('limit') >= 0:
             type = 'limit'
             takerOrMaker = 'maker'
-        if rawSide is None:
-            raise ExchangeError(self.id + ' method() missing rawSide')
+            if rawSide is None:
+                raise ExchangeError(self.id + ' method() missing rawSide')
         elif rawSide.find('market') >= 0:
             type = 'market'
             takerOrMaker = 'taker'
@@ -2716,7 +2720,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 for j in range(0, len(found)):
                     raw = found[j]
                     rawSlug = self.safe_string(raw, 'slug')
-                    if rawSlug and not (rawSlug in seen):
+                    if (rawSlug is not None and rawSlug != '') and not (rawSlug in seen):
                         seen[rawSlug] = True
                         rawMarkets.append(raw)
         elif eventId is not None:
@@ -2730,9 +2734,9 @@ class limitless(PredictionExchange, ImplicitAPI):
             listRawLength = len(listRaw)
             for i in range(0, listRawLength):
                 rawMarkets.append(listRaw[i])
-        if not self.events:
+        if self.events is None:
             self.events = {}
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         eventGroups = {}
         # group rows carry their tradeable children in a nested `markets` list — expand them
@@ -2742,12 +2746,12 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, rawMarketsLength):
             raw = expandedMarkets[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = self.shorten_slug(groupId) if groupId else None
+            eventKey = self.shorten_slug(groupId) if (groupId is not None and groupId != '') else None
             m = self.parse_market(raw)
             if m is None:
                 raise ExchangeError(self.id + ' fetchEvents() missing m')
             self.markets[m['market']] = m
-            if eventKey:
+            if (eventKey is not None) and (eventKey != ''):
                 if not (eventKey in eventGroups):
                     eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
                 eventGroup = eventGroups[eventKey]
@@ -2860,32 +2864,32 @@ class limitless(PredictionExchange, ImplicitAPI):
                     allRaw.append(raw)
         return allRaw
 
-    def sign(self, path: object, section: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: object, api: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the lmts authentication headers for private endpoints
         :param str path: the endpoint path
-        :param string|str[] [section]: the api group and access level
+        :param string|str[] [api]: the api group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
         :param dict [headers]: request headers
         :param dict [body]: request body
         :returns dict: a dictionary with url, method, body and headers
         """
-        apiGroup = section if isinstance(section, str) else section[0]
-        access = 'public' if isinstance(section, str) else section[1]
+        apiGroup = api if isinstance(api, str) else api[0]
+        access = 'public' if isinstance(api, str) else api[1]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['limitless'])
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         querystring = self.urlencode_with_array_repeat(query)
-        if method == 'GET' and querystring:
+        if method == 'GET' and (querystring != ''):
             url += '?' + querystring
         if access == 'private':
             bodyString = ''
             if headers is None:
                 headers = {}
-            if method == 'POST' and querystring:
+            if method == 'POST' and (querystring != ''):
                 bodyString = self.json(query)
                 body = bodyString
                 headerDefaults = headers if (headers is not None) else {}
@@ -2899,10 +2903,13 @@ class limitless(PredictionExchange, ImplicitAPI):
             payload = timestamp + newline + method + newline + url + newline + bodyString
             signature = self.hmac(self.encode(payload), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
             headers = self.extend(headers, {
-                'lmts-api-key': self.apiKey,
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             })
+            headerKey = 'lmts-api' + '-key'  # concatenating because of the php version
+            headersKey = {}
+            headersKey[headerKey] = self.apiKey
+            headers = self.extend(headers, headersKey)
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

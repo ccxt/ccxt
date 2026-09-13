@@ -172,7 +172,9 @@ class indodax extends indodax$1["default"] {
                         'openOrders': { 'cost': 4 },
                         'orderHistory': { 'cost': 4 },
                         'getOrder': { 'cost': 4 },
+                        'getOrderByClientOrderId': { 'cost': 4 },
                         'cancelOrder': { 'cost': 4 },
+                        'cancelByClientOrderId': { 'cost': 4 },
                         'withdrawFee': { 'cost': 4 },
                         'withdrawCoin': { 'cost': 4 },
                         'listDownline': { 'cost': 4 },
@@ -376,6 +378,7 @@ class indodax extends indodax$1["default"] {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const isMaintenance = this.safeInteger(market, 'is_maintenance');
+            const inMaintenance = (isMaintenance !== undefined) && (isMaintenance !== 0);
             result.push({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -391,7 +394,7 @@ class indodax extends indodax$1["default"] {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isMaintenance ? false : true,
+                'active': inMaintenance ? false : true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -433,7 +436,7 @@ class indodax extends indodax$1["default"] {
     }
     parseBalance(response) {
         const balances = this.safeValue(response, 'return', {});
-        const free = this.safeValue(balances, 'balance', {});
+        const free = this.safeDict(balances, 'balance', {});
         const used = this.safeValue(balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp(balances, 'server_time');
         const result = {
@@ -910,7 +913,7 @@ class indodax extends indodax$1["default"] {
         const openOrdersResult = this.safeDict(response, 'return', {});
         const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if (!rawOrders) {
+        if ((rawOrders === undefined) || (rawOrders === null)) {
             return [];
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
@@ -1229,8 +1232,8 @@ class indodax extends indodax$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'return', {});
-        const withdraw = this.safeValue(data, 'withdraw', {});
-        const deposit = this.safeValue(data, 'deposit', {});
+        const withdraw = this.safeDict(data, 'withdraw', {});
+        const deposit = this.safeDict(data, 'deposit', {});
         let transactions = [];
         let currency = undefined;
         if (code === undefined) {
@@ -1285,7 +1288,7 @@ class indodax extends indodax$1["default"] {
             'withdraw_address': address,
             'request_id': requestId.toString(),
         };
-        if (tag) {
+        if ((tag !== undefined) && (tag !== '')) {
             request['withdraw_memo'] = tag;
         }
         const response = await this.privatePostWithdrawCoin(this.extend(request, params));
@@ -1497,7 +1500,7 @@ class indodax extends indodax$1["default"] {
             const query = this.omit(params, this.extractParams(path));
             const requestPath = '/' + this.implodeParams(path, params);
             url = url + requestPath;
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }

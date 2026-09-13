@@ -102,7 +102,7 @@ class weex extends \ccxt\async\weex {
         $id = $this->request_id();
         $method = 'SUBSCRIBE';
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($unsubscribe) {
+        if ($unsubscribe === true) {
             $method = 'UNSUBSCRIBE';
         }
         $message = array(
@@ -126,7 +126,7 @@ class weex extends \ccxt\async\weex {
         $this->authenticate($url);
         $method = 'SUBSCRIBE';
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($unsubscribe) {
+        if ($unsubscribe === true) {
             $method = 'UNSUBSCRIBE';
         }
         $id = $this->request_id();
@@ -565,6 +565,13 @@ class weex extends \ccxt\async\weex {
         //
         $timestamp = $this->safe_integer($trade, 'T');
         $symbol = ($market === null) ? null : $market['symbol'];
+        $isBuyerMaker = $this->safe_bool($trade, 'm'); // m is the $isBuyerMaker flag of the REST trades, true means the taker sold
+        $side = null;
+        $takerOrMaker = null;
+        if ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+            $takerOrMaker = 'taker'; // a public $trade is reported from the aggressor's $side, same as parseTrade
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 't'),
@@ -573,8 +580,8 @@ class weex extends \ccxt\async\weex {
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_string($trade, 'p'),
             'amount' => $this->safe_string($trade, 'q'),
             'cost' => $this->safe_string($trade, 'v'),
@@ -598,7 +605,7 @@ class weex extends \ccxt\async\weex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $extendedParams = $this->extend($params, array(
             'callerMethodName' => 'watchOHLCV',
@@ -622,7 +629,7 @@ class weex extends \ccxt\async\weex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -636,7 +643,7 @@ class weex extends \ccxt\async\weex {
         $firstMarket = $this->market($firstSymbol);
         $isContract = $firstMarket['contract'];
         $priceType = 'LAST_PRICE';
-        if ($isContract) {
+        if ($isContract === true) {
             list($priceType, $params) = $this->handle_option_and_params_2($params, $callerMethodName, 'price', 'priceType', $priceType);
         }
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -676,7 +683,7 @@ class weex extends \ccxt\async\weex {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'unWatchOHLCV';
         return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
@@ -695,7 +702,7 @@ class weex extends \ccxt\async\weex {
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -710,7 +717,7 @@ class weex extends \ccxt\async\weex {
         $firstMarket = $this->market($firstSymbol);
         $isContract = $firstMarket['contract'];
         $priceType = 'LAST_PRICE';
-        if ($isContract) {
+        if ($isContract === true) {
             list($priceType, $params) = $this->handle_option_and_params_2($params, $callerMethodName, 'price', 'priceType', $priceType);
         }
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -1031,7 +1038,7 @@ class weex extends \ccxt\async\weex {
         }
         $symbols = $this->market_symbols($symbols, null, false, true);
         $firstMarket = $this->get_market_from_symbols($symbols);
-        if ($firstMarket['contract']) {
+        if ($firstMarket['contract'] === true) {
             throw new NotSupported($this->id . ' watchBidsAsks is supported for spot markets only');
         }
         $messageHashes = array();
@@ -1072,7 +1079,7 @@ class weex extends \ccxt\async\weex {
         }
         $symbols = $this->market_symbols($symbols, null, false, true);
         $firstMarket = $this->get_market_from_symbols($symbols);
-        if ($firstMarket['contract']) {
+        if ($firstMarket['contract'] === true) {
             throw new NotSupported($this->id . ' unWatchBidsAsks is supported for spot markets only');
         }
         $subHashes = array();
@@ -1282,7 +1289,7 @@ class weex extends \ccxt\async\weex {
         $messageHash = 'myTrades';
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         $market = $this->get_market_from_symbols($symbolKeys);
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             $messageHash = 'myContractTrades';
         }
         for ($j = 0; $j < count($symbolKeys); $j++) {
@@ -1498,7 +1505,7 @@ class weex extends \ccxt\async\weex {
         $messageHash = 'orders';
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         $market = $this->get_market_from_symbols($symbolKeys);
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             $messageHash = 'contractOrders';
         }
         for ($i = 0; $i < count($symbolKeys); $i++) {
@@ -1690,7 +1697,7 @@ class weex extends \ccxt\async\weex {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
         $messageHash = $type . ':' . 'balance';
@@ -1703,7 +1710,7 @@ class weex extends \ccxt\async\weex {
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot) {
+        if ($fetchBalanceSnapshot === true) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1853,7 +1860,7 @@ class weex extends \ccxt\async\weex {
         $this->set_positions_cache($client, $params);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -1866,7 +1873,7 @@ class weex extends \ccxt\async\weex {
 
     public function set_positions_cache(Client $client, $params = array()) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -2035,7 +2042,7 @@ class weex extends \ccxt\async\weex {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($unsubscribe) {
+        if ($unsubscribe === true) {
             $subHashIsPrefix = $this->safe_bool($subscription, 'subHashIsPrefix', false);
             $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
             $subHashes = $this->safe_list($subscription, 'subMessageHashes', array());
@@ -2049,7 +2056,7 @@ class weex extends \ccxt\async\weex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         //     {
         //         "result" => false,
@@ -2058,7 +2065,7 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $result = $this->safe_bool($message, 'result', true);
-        if (!$result) {
+        if ($result !== true) {
             $msg = $this->safe_string($message, 'msg', '');
             $feedback = $this->id . ' ' . $this->json($message);
             try {

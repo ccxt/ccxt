@@ -13,8 +13,8 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
-            object id1 = exchange.uuid(); // need type for .length understanding
-            object id2 = exchange.uuid();
+            string id1 = exchange.uuid(); // need type for .length understanding
+            string id2 = exchange.uuid();
             Assert(!isEqual(id1, null), "uuid 1 must return a value");
             Assert(!isEqual(id2, null), "uuid 2 must return a value");
             Assert(!isEqual(id1, id2), "uuid() must return unique values on each call");
@@ -24,8 +24,8 @@ public partial class BaseTest
             Assert(isEqual(((string)id2).Length, 36), add("uuid() must return a 36-character string, returned id2: ", id2));
             Assert(isEqual(getIndexOf(id1, "-"), 8), add("uuid() must have dash, returned id1: ", id1));
             // uuid16() - 16-char hex string
-            object id16a = exchange.uuid16();
-            object id16b = exchange.uuid16();
+            string id16a = exchange.uuid16();
+            string id16b = exchange.uuid16();
             Assert(!isEqual(id16a, null), "uuid16 1 must return a value");
             Assert(!isEqual(id16b, null), "uuid16 2 must return a value");
             Assert(!isEqual(id16a, id16b), add(add(add("uuid16() must return unique values on each call, returned id16a: ", id16a), ", id16b: "), id16b));
@@ -34,8 +34,8 @@ public partial class BaseTest
             Assert(isEqual(((string)id16a).Length, 16), add("uuid16() must return a 16-character string, returned id16a: ", id16a));
             Assert(isEqual(((string)id16b).Length, 16), add("uuid16() must return a 16-character string, returned id16b: ", id16b));
             // uuid22() - 22-char hex string
-            object id22a = exchange.uuid22();
-            object id22b = exchange.uuid22();
+            string id22a = exchange.uuid22();
+            string id22b = exchange.uuid22();
             Assert(!isEqual(id22a, null), "uuid22 1 must return a value");
             Assert(!isEqual(id22b, null), "uuid22 2 must return a value");
             Assert(!isEqual(id22a, id22b), "uuid22() must return unique values on each call");

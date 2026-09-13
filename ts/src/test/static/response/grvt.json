@@ -1,6 +1,7 @@
 {
     "exchange": "grvt",
     "outputType": "json",
+    "disabledRS": true,
     "options": {
         "AuthAccountId": "kbAc342752835723",
         "AuthCookieValue": "sample123",
@@ -1226,7 +1227,7 @@
                             "funding_interval_hours": 8
                         },
                         "symbol": "BTC/USDT:USDT",
-                        "fundingRate": -0.002,
+                        "fundingRate": -0.00002,
                         "timestamp": 1770710400000,
                         "datetime": "2026-02-10T08:00:00.000Z"
                     },
@@ -1240,7 +1241,7 @@
                             "funding_interval_hours": 8
                         },
                         "symbol": "BTC/USDT:USDT",
-                        "fundingRate": -0.008,
+                        "fundingRate": -0.00008,
                         "timestamp": 1770739200000,
                         "datetime": "2026-02-10T16:00:00.000Z"
                     }

@@ -183,12 +183,18 @@ class bitstamp(Exchange, ImplicitAPI):
                         'travel_rule/vasps/': {'cost': 1},
                         'funding_rate/{market_symbol}/': {'cost': 1},
                         'funding_rate_history/{pair}/': {'cost': 1},
+                        'derivatives/market_hours/': {'cost': 1},
+                        'derivatives/market_hours/{market_symbol}/': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         'travel_rule/contacts/': {'cost': 1},
                         'contacts/{contact_uuid}/': {'cost': 1},
+                        'travel_rule/utxo/xpub_registrations/': {'cost': 1},
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/': {'cost': 1},
+                        'travel_rule/address_verification/': {'cost': 1},
+                        'crypto-transactions/deposits/': {'cost': 1},
                         'earn/subscriptions/': {'cost': 1},
                         'earn/transactions/': {'cost': 1},
                         'trade_history/': {'cost': 1},
@@ -204,6 +210,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'user_transactions/': {'cost': 1},
                         'user_transactions/{pair}/': {'cost': 1},
                         'crypto-transactions/': {'cost': 1},
+                        'crypto-transactions/deposits/{deposit_id}/reject/': {'cost': 1},
                         'open_order': {'cost': 1},
                         'open_orders/all/': {'cost': 1},
                         'open_orders/{pair}/': {'cost': 1},
@@ -235,6 +242,8 @@ class bitstamp(Exchange, ImplicitAPI):
                         'websockets_token/': {'cost': 1},
                         'revoke_all_api_keys/': {'cost': 1},
                         'get_max_order_amount/': {'cost': 1},
+                        'order_data/': {'cost': 1},
+                        'account_order_data/': {'cost': 1},
                         # individual coins
                         'btc_withdrawal/': {'cost': 1},
                         'btc_address/': {'cost': 1},
@@ -399,6 +408,8 @@ class bitstamp(Exchange, ImplicitAPI):
                         'ldo_withdrawal/': {'cost': 1},
                         'ldo_address/': {'cost': 1},
                         'travel_rule/contacts/': {'cost': 1},
+                        'travel_rule/utxo/xpub_registrations/': {'cost': 1},
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/revoke/': {'cost': 1},
                         'earn/subscribe/': {'cost': 1},
                         'earn/subscriptions/setting/': {'cost': 1},
                         'earn/unsubscribe': {'cost': 1},
@@ -691,7 +702,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 elif payoffType == 'Inverse':
                     subType = 'inverse'
             isSpot = (type == 'spot')
-            settle = self.safe_currency_code(settleId) if settleId else None
+            settle = self.safe_currency_code(settleId) if (settleId is not None and settleId != '') else None
             result.append({
                 'id': self.safe_string(market, 'market_symbol'),
                 'symbol': symbol,
@@ -782,7 +793,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def fetch_markets_from_cache(self, params={}):
+    def fetch_markets_from_cache(self, params={}) -> list[dict]:
         # self method is now redundant
         # currencies are now fetched before markets
         options = self.safe_value(self.options, 'fetchMarkets', {})
@@ -1279,7 +1290,7 @@ class bitstamp(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -2413,7 +2424,7 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         return code.lower()
 
-    def is_fiat(self, code: object):
+    def is_fiat(self, code: object) -> bool:
         return code == 'USD' or code == 'EUR' or code == 'GBP'
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2562,7 +2573,7 @@ class bitstamp(Exchange, ImplicitAPI):
         url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -2578,7 +2589,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'X-Auth-Version': xAuthVersion,
             }
             if method == 'POST':
-                if query:
+                if len(query) > 0:
                     body = self.urlencode(query)
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType
@@ -2590,7 +2601,7 @@ class bitstamp(Exchange, ImplicitAPI):
                     body = self.urlencode({'foo': 'bar'})
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType
-            authBody = body if body else ''
+            authBody = body if (body is not None and body != '') else ''
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['X-Auth-Signature'] = signature
@@ -2623,7 +2634,7 @@ class bitstamp(Exchange, ImplicitAPI):
             if isinstance(reasonInner, str):
                 errors.append(reasonInner)
             else:
-                all = self.safe_value(reasonInner, '__all__', [])
+                all = self.safe_list(reasonInner, '__all__', [])
                 for i in range(0, len(all)):
                     errors.append(all[i])
             code = self.safe_string(response, 'code')
