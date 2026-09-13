@@ -5,6 +5,173 @@
         "uta": false
     },
     "methods": {
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates inherited by kucoinfutures parses multiple rates",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.000004,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.000092,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            },
+            {
+                "description": "fetch funding rates inherited by kucoinfutures filters one symbol",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": "ETHUSDTM",
+                            "nextFundingRate": "0.0001",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00375",
+                            "fundingRateFloor": "-0.00375",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.000092,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate",
