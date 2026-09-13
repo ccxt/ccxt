@@ -5839,11 +5839,11 @@ export default class bingx extends Exchange {
         }
         const market = this.market (symbol);
         const positionSide = this.safeString (params, 'positionSide');
-        if (market['inverse'] && (positionSide === undefined)) {
+        if ((market['inverse'] === true) && (positionSide === undefined)) {
             throw new ArgumentsRequired (this.id + ' setMargin() requires a positionSide parameter for Coin-M markets');
         }
         let amountString: Str = undefined;
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             amountString = this.currencyToPrecision (market['settle'], amount);
         } else {
             amountString = this.amountToPrecision (market['symbol'], amount);
@@ -5854,7 +5854,7 @@ export default class bingx extends Exchange {
             'type': type,
         };
         let response: Dict;
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             response = await this.cswapV1PrivatePostTradePositionMargin (this.extend (request, params));
         } else {
             response = await this.swapV2PrivatePostTradePositionMargin (this.extend (request, params));
@@ -5868,7 +5868,7 @@ export default class bingx extends Exchange {
         //    }
         //
         let responseData = response;
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             responseData = this.extend ({
                 'amount': amountString,
                 'type': type,
