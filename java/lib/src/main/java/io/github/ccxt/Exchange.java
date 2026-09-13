@@ -90,7 +90,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)
+public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -98,33 +98,33 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object side = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " closePosition() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> closeAllPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> closeAllPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " closeAllPositions() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> editOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " editOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledAndClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -134,11 +134,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchCanceledAndClosedOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionHistory(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionHistory(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -164,11 +164,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchPositionHistory () is not supported yet")) ;
             }
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -178,11 +178,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsHistory () is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsRisk(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsRisk(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -190,33 +190,33 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsRisk() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsForSymbol(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsForSymbol(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsForSymbolWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsForSymbolWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPosition(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> watchPosition(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -224,11 +224,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchPosition() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Position::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMyTradesForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTradesForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -237,11 +237,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -250,11 +250,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTradesForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -262,11 +262,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBidsAsks() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchMarkPrice(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -290,11 +290,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -302,11 +302,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -314,22 +314,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchBidsAsks() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchMarkPrice(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMarkPrice () is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -337,11 +337,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMarkPrices () is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchL3OrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchL3OrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -349,11 +349,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new BadRequest(Helpers.add(this.id, " fetchL3OrderBook() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -361,11 +361,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrdersForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrdersForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -374,11 +374,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -386,11 +386,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelOrderWs(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -398,11 +398,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrderWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelOrdersWs(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -410,55 +410,55 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrdersWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitBuyOrderWs(String symbol, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createLimitBuyOrderWs(String symbol, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitOrderWs(String symbol, Object side, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createLimitOrderWs(String symbol, Object side, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitSellOrderWs(String symbol, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createLimitSellOrderWs(String symbol, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWs(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWs(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCostWs(String symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketOrderWithCostWs(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -479,11 +479,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWs(String symbol, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketOrderWs(String symbol, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -491,22 +491,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWs(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketSellOrderWs(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createOrderWithTakeProfitAndStopLossWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrderWithTakeProfitAndStopLossWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -543,11 +543,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -555,22 +555,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrderWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createOrdersWs(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrdersWs(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrdersWs () is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createPostOnlyOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createPostOnlyOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -585,11 +585,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "postOnly", true );
             }});
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createReduceOnlyOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createReduceOnlyOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -604,11 +604,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "reduceOnly", true );
             }});
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopLimitOrderWs(String symbol, Object side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createStopLimitOrderWs(String symbol, Object side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -622,11 +622,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "stopPrice", triggerPrice );
             }});
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopLossOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createStopLossOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -660,11 +660,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createStopLossOrderWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopMarketOrderWs(String symbol, Object side, Object amount, Object triggerPrice, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createStopMarketOrderWs(String symbol, Object side, Object amount, Object triggerPrice, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -678,11 +678,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "stopPrice", triggerPrice );
             }});
             return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(null), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createStopOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -703,11 +703,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "stopPrice", finalTriggerPrice );
             }});
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTakeProfitOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTakeProfitOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -741,11 +741,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTrailingAmountOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTrailingAmountOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -782,11 +782,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTrailingPercentOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTrailingPercentOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -823,11 +823,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTriggerOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTriggerOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -861,11 +861,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTriggerOrderWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -875,11 +875,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.cancelOrderWs(id, (Object)(symbol))).join();
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -894,11 +894,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return this.filterBy(orders, "status", "closed");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTradesWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTradesWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -908,11 +908,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMyTradesWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -927,11 +927,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return this.filterBy(orders, "status", "open");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBookWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBookWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -939,11 +939,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderBookWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderWs(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -951,11 +951,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -965,22 +965,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrdersWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -988,11 +988,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTickerWs(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTickerWs(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1016,11 +1016,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchTickerWs() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTickersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1028,11 +1028,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTickersWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTradesWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTradesWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1041,12 +1041,12 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradesWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1055,11 +1055,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1068,11 +1068,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTrades() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1080,7 +1080,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1111,7 +1111,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1119,11 +1119,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1137,11 +1137,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.OpenInterest::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchL2OrderBook(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchL2OrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1153,11 +1153,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "asks", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "asks")), 0) );
                 put( "bids", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "bids")), 0, true) );
             }});
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editLimitBuyOrder(String id, String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editLimitBuyOrder(String id, String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1165,11 +1165,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.editLimitOrder(id, symbol, (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editLimitSellOrder(String id, String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editLimitSellOrder(String id, String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1177,11 +1177,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.editLimitOrder(id, symbol, (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editLimitOrder(String id, String symbol, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editLimitOrder(String id, String symbol, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1189,11 +1189,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.editOrder(id, symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1203,11 +1203,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.cancelOrder((Object)(id), (Object)(symbol))).join();
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrderWithClientOrderId(Object clientOrderId, String symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1219,22 +1219,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "clientOrderId", clientOrderId );
             }});
             return (this.editOrder("", symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(extendedParams))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Position::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1244,11 +1244,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchPositions() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPositionForSymbols(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositionForSymbols(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1258,11 +1258,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.watchPositions((Object)(symbols), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1270,11 +1270,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1298,22 +1298,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTicker() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1321,11 +1321,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1333,11 +1333,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTickers() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1345,7 +1345,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1358,7 +1358,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1369,11 +1369,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "clientOrderId", clientOrderId );
             }});
             return (this.fetchOrder((Object)(""), (Object)(symbol), (Object)(extendedParams))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<String> fetchOrderStatus(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1384,22 +1384,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object order = (this.fetchOrder((Object)(id), (Object)(symbol), (Object)(parameters))).join();
             return Helpers.GetValue(order, "status");
-        });
+        }).thenApply(res -> (String) res);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchUnifiedOrder(Object order, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchUnifiedOrder(Object order, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrder((Object)(this.safeString(order, "id")), (Object)(this.safeString(order, "symbol")), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1407,11 +1407,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTrailingAmountOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTrailingAmountOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1448,11 +1448,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTrailingPercentOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTrailingPercentOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1489,11 +1489,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1514,11 +1514,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1538,11 +1538,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1562,11 +1562,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTriggerOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTriggerOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1600,11 +1600,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTriggerOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopLossOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createStopLossOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1638,11 +1638,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createStopLossOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTakeProfitOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTakeProfitOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1676,11 +1676,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createOrderWithTakeProfitAndStopLoss(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrderWithTakeProfitAndStopLoss(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1717,22 +1717,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1740,7 +1740,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1753,7 +1753,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1764,11 +1764,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "clientOrderId", clientOrderId );
             }});
             return (this.cancelOrder((Object)(""), (Object)(symbol), (Object)(extendedParams))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1776,7 +1776,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1789,7 +1789,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrdersWithClientOrderIds(Object clientOrderIds, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrdersWithClientOrderIds(Object clientOrderIds, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1800,11 +1800,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "clientOrderIds", clientOrderIds );
             }});
             return (this.cancelOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList())), (Object)(symbol), (Object)(extendedParams))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1812,22 +1812,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelUnifiedOrder(Object order, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelUnifiedOrder(Object order, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1841,11 +1841,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
             }
             throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1855,11 +1855,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1869,11 +1869,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1888,11 +1888,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return this.filterBy(orders, "status", "open");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1907,11 +1907,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return this.filterBy(orders, "status", "closed");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1921,11 +1921,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1935,11 +1935,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1949,22 +1949,22 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitOrder(String symbol, Object side, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createLimitOrder(String symbol, Object side, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrder(String symbol, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketOrder(String symbol, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1972,55 +1972,55 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitBuyOrder(String symbol, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createLimitBuyOrder(String symbol, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitSellOrder(String symbol, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createLimitSellOrder(String symbol, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrder(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrder(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrder(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketSellOrder(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createPostOnlyOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createPostOnlyOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2035,11 +2035,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "postOnly", true );
             }});
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createReduceOnlyOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createReduceOnlyOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2054,11 +2054,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "reduceOnly", true );
             }});
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createStopOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2079,11 +2079,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "stopPrice", finalTriggerPrice );
             }});
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopLimitOrder(String symbol, Object side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createStopLimitOrder(String symbol, Object side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2097,11 +2097,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "stopPrice", triggerPrice );
             }});
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopMarketOrder(String symbol, Object side, Object amount, Object triggerPrice, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createStopMarketOrder(String symbol, Object side, Object amount, Object triggerPrice, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2115,11 +2115,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 put( "stopPrice", triggerPrice );
             }});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(null), (Object)(query))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2131,7 +2131,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }
             Object fees = (this.fetchTradingFees((Object)(parameters))).join();
             return this.safeDict(fees, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.TradingFeeInterface::new);
 
     }
 }

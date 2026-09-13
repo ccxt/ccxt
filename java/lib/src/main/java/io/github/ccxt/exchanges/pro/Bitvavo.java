@@ -149,14 +149,14 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.watchPublic("ticker24h", symbol, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -169,7 +169,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -184,7 +184,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object channel = "ticker24h";
             Object tickers = (this.watchPublicMultiple(channel, channel, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -239,7 +239,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -254,7 +254,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object channel = "ticker24h";
             Object tickers = (this.watchPublicMultiple("bidask", channel, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -305,7 +305,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -324,7 +324,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -369,7 +369,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -409,7 +409,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -487,7 +487,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -522,7 +522,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -752,7 +752,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -789,7 +789,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -803,7 +803,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -845,7 +845,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1201,7 +1201,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1238,7 +1238,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1252,7 +1252,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1289,7 +1289,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1317,7 +1317,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1331,7 +1331,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             return (this.watchRequest("privateCreateOrder", request)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1349,7 +1349,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1364,7 +1364,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
             return (this.watchRequest("privateUpdateOrder", request)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1378,7 +1378,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrderWs(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1392,7 +1392,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             return (this.watchRequest("privateCancelOrder", request)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1405,7 +1405,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1436,7 +1436,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
             return (this.watchRequest("privateCancelOrders", this.extend(request, parameters))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1472,7 +1472,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderWs(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1494,7 +1494,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             return (this.watchRequest("privateGetOrder", this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1509,7 +1509,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1530,7 +1530,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
             Object orders = (this.watchRequest("privateGetOrders", request)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1567,7 +1567,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1590,7 +1590,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             Object orders = (this.watchRequest("privateGetOrdersOpen", this.extend(request, parameters))).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1605,7 +1605,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTradesWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTradesWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1626,7 +1626,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
             Object myTrades = (this.watchRequest("privateGetTrades", request)).join();
             return this.filterBySymbolSinceLimit(myTrades, symbol, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1673,7 +1673,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdrawWs(String code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdrawWs(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1691,7 +1691,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = this.withdrawRequest(code, amount, address, tag, parameters);
             return (this.watchRequest("privateWithdrawAssets", request)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Transaction::new);
 
     }
 
@@ -1726,7 +1726,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawalsWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawalsWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1743,7 +1743,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
             Object withdraws = (this.watchRequest("privateGetWithdrawalHistory", request)).join();
             return this.filterByCurrencySinceLimit(withdraws, code, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -1786,7 +1786,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCVWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCVWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1803,7 +1803,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object action = "getCandles";
             Object ohlcv = (this.watchRequest(action, request)).join();
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -1818,7 +1818,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositsWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDepositsWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1835,7 +1835,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object request = this.fetchDepositsRequest(code, since, limit, parameters);
             Object deposits = (this.watchRequest("privateGetDepositHistory", request)).join();
             return this.filterByCurrencySinceLimit(deposits, code, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -1872,7 +1872,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFeesWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFeesWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1884,7 +1884,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             return (this.watchRequest("privateGetAccount", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.TradingFees::new);
 
     }
 
@@ -1986,7 +1986,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalanceWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalanceWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1998,7 +1998,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             return (this.watchRequest("privateGetBalance", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 

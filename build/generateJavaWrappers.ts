@@ -3,11 +3,11 @@
  * Java Typed Surface Generator for CCXT
  *
  * Emits ONE interface per tier (TypedSurface for Exchange, PredictionTypedSurface
- * for PredictionExchange) holding every typed sync/async overload as a `default`
- * method. Each default dispatches to the abstract `CompletableFuture<Object>
- * m(Object..., Object... optionalArgs)` signature with explicit (Object) casts,
- * so the call always reaches the transpiled per-exchange override virtually.
- * Exchanges keep their clean names (Binance, pro.Binance, prediction.Polymarket).
+ * for PredictionExchange). The abstract `CompletableFuture<T> m(Object..., Object...
+ * optionalArgs)` signatures mirror the transpiled cores, which build/javaTypedCore.ts
+ * types in place; the `default` methods are the typed-parameter sync (blocking) and
+ * async overloads, dispatching with explicit (Object) casts so the call always
+ * reaches the transpiled per-exchange override virtually.
  *
  * Usage: tsx build/generateJavaWrappers.ts
  */
@@ -17,6 +17,8 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
 import { JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
+import { typedReturnTable } from './javaTypedCore.js';
+import type { JavaTier } from './javaTypedCore.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const BASE_PKG = './java/lib/src/main/java/io/github/ccxt/';
@@ -144,14 +146,14 @@ function shouldCreateWrapper(name: string): boolean {
     return ALLOWED_PREFIXES.some(p => name.startsWith(p));
 }
 
-interface ParamInfo {
+export interface ParamInfo {
     name: string;
     javaType: string;
     isOptional: boolean;
     defaultValue: string | null;
 }
 
-interface MethodInfo {
+export interface MethodInfo {
     name: string;
     javaReturnType: string;
     isArray: boolean;
@@ -200,7 +202,7 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchPositions',
 ]);
 
-function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
+export function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
     const strippedBaseFile = writeOverloadStrippedFile (sourceFile);
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
@@ -268,6 +270,14 @@ function capitalize(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+// Core return type of a unified method: the typed family javaTypedCore.ts emits on the
+// transpiled tier, or `Object` for the hand-written base bodies (fetchMarkets, ...).
+function coreReturnType(m: MethodInfo, table: Map<string, MethodInfo>): string {
+    const typed = table.get(m.name);
+    return typed ? typed.javaReturnType : 'Object';
+}
+
+// Conversion of an untyped core result; only the SURFACE_ONLY names still need one.
 function genReturnExpr(m: MethodInfo): string {
     if (m.isArray && m.elementType) return `Helpers.toTypedList(res, ${m.elementType}::new)`;
     if (m.javaReturnType === 'Object') return 'res';
@@ -319,8 +329,9 @@ function genDelegateCall(methodName: string, allParams: ParamInfo[], castToObjec
     return `this.${methodName}(${args})`;
 }
 
-function genMethod(m: MethodInfo, castToObject = false): string {
+function genMethod(m: MethodInfo, coreType: string, castToObject = false): string {
     const methodName = camelCase(m.name);
+    const typedCore = coreType === m.javaReturnType;
     const allParams = [...m.requiredParams, ...m.optionalParams];
     const fullParamDecl = allParams.map(p => `${p.javaType} ${p.name}`).join(', ');
     const delegateCall = genDelegateCall(methodName, allParams, castToObject);
@@ -340,11 +351,15 @@ function genMethod(m: MethodInfo, castToObject = false): string {
     //     catch (NetworkError e) { ... }
     //
     // — same shape as JDK exceptions, no .getCause() unwrap needed.
-    lines.push(`    @SuppressWarnings("unchecked")`);
-    lines.push(`    default ${m.javaReturnType} ${methodName}(${fullParamDecl}) {`);
-    lines.push(`        Object res = Helpers.joinUnwrapped(${delegateCall});`);
-    lines.push(`        return ${genReturnExpr(m)};`);
-    lines.push(`    }`);
+    if (typedCore) {
+        lines.push(`    default ${m.javaReturnType} ${methodName}(${fullParamDecl}) { return Helpers.joinUnwrapped(${delegateCall}); }`);
+    } else {
+        lines.push(`    @SuppressWarnings("unchecked")`);
+        lines.push(`    default ${m.javaReturnType} ${methodName}(${fullParamDecl}) {`);
+        lines.push(`        Object res = Helpers.joinUnwrapped(${delegateCall});`);
+        lines.push(`        return ${genReturnExpr(m)};`);
+        lines.push(`    }`);
+    }
 
     // Truncation overloads: required + first k optionals, for k = 0 .. N-1.
     // Each truncation has a unique arity, so Java's overload resolution is
@@ -377,13 +392,16 @@ function genMethod(m: MethodInfo, castToObject = false): string {
         }
     }
 
-    // Async method (full params). Emitted for both fetch* (REST) and watch*
-    // (WS) — symmetric typed-async surface. The sync default joins the core
-    // Future; the async default hands the typed Future back to the caller.
-    lines.push(`    @SuppressWarnings("unchecked")`);
-    lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
-    lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
-    lines.push(`    }`);
+    // Async method (full params), for fetch* (REST) and watch* (WS) alike. The core
+    // future is already typed, so this is the typed-parameter spelling of the same call.
+    if (typedCore) {
+        lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) { return ${delegateCall}; }`);
+    } else {
+        lines.push(`    @SuppressWarnings("unchecked")`);
+        lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
+        lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
+        lines.push(`    }`);
+    }
 
     // Async truncation overloads — symmetric with the sync truncations above.
     // Without these, `binance.fetchOrdersAsync()` would fall through to the
@@ -435,48 +453,55 @@ function genMethod(m: MethodInfo, castToObject = false): string {
 }
 
 // --- Hoisted typed surface ---
-// Every typed method is a `default` method on ONE generated interface per tier that the
-// tier base class implements. The default dispatches to the abstract `Object...` core
-// signature with explicit (Object) casts, so it always reaches the transpiled override.
-// The abstract core signature must match the transpiled override exactly, including
-// the SS-05 `String` positions (JAVA_STRING_PARAM_POSITIONS); Java overrides are invariant.
-function genAbstractDecl(m: MethodInfo): string {
+// Every typed overload is a `default` method on ONE generated interface per tier that the
+// tier base class implements. The default dispatches to the abstract core signature with
+// explicit (Object) casts, so it always reaches the transpiled override. The abstract
+// signature must match the transpiled override exactly: return family (javaTypedCore.ts)
+// and the SS-05 `String` positions (JAVA_STRING_PARAM_POSITIONS); Java overrides are invariant.
+function genAbstractDecl(m: MethodInfo, coreType: string): string {
     const name = camelCase(m.name);
     const retyped = JAVA_STRING_PARAM_POSITIONS[m.name] ?? [];
     for (const k of retyped) {
         if (k >= m.requiredParams.length) throw new Error(`${m.name}: String position ${k} falls into the Object... tail`);
     }
     const req = m.requiredParams.map((p, k) => `${retyped.includes(k) ? 'String' : 'Object'} ${p.name}`).join(', ');
-    return `    CompletableFuture<Object> ${name}(${req ? req + ', ' : ''}Object... optionalArgs);`;
+    return `    CompletableFuture<${coreType}> ${name}(${req ? req + ', ' : ''}Object... optionalArgs);`;
 }
 // Erased parameter list (types only, `Object...` == `Object[]`) of a core declaration.
 function eraseParams(paramList: string): string {
     return paramList.split(',').map(p => p.trim().replace(/\.\.\./, '[]').replace(/\s+\w+$/, '')).filter(Boolean).join(', ');
 }
-// A per-tier override whose erasure differs from the abstract decl becomes a silent OVERLOAD and
-// the base tier's body runs instead. Returns `file:line: m expected (...) actual (...)` mismatches.
+// Cores spell the return type fully qualified (`java.util.List<io.github.ccxt.types.Trade>`).
+function eraseReturn(t: string): string {
+    return t.replace(/\bjava\.util\./g, '').replace(/\bio\.github\.ccxt\.types\./g, '');
+}
+// A per-tier override whose signature differs from the abstract decl is a silent OVERLOAD (the
+// base tier's body runs) or a compile error. Returns `file:line: m expected ... actual ...`.
 let erasureChecked = 0;
-function assertErasureMatches(methods: MethodInfo[], files: string[]): string[] {
+function assertErasureMatches(methods: MethodInfo[], table: Map<string, MethodInfo>, files: string[]): string[] {
     const expected = new Map<string, string>();
     for (const m of methods) {
-        const d = genAbstractDecl(m).match(/CompletableFuture<Object> (\w+)\((.*)\);$/)!;
-        expected.set(d[1], eraseParams(d[2]));
+        const d = genAbstractDecl(m, coreReturnType(m, table)).match(/CompletableFuture<(.+)> (\w+)\((.*)\);$/)!;
+        expected.set(d[2], `<${d[1]}> (${eraseParams(d[3])})`);
     }
-    const declRe = /^\s*public java\.util\.concurrent\.CompletableFuture<Object> (\w+)\((.*)\)\s*\{?\s*$/;
+    const declRe = /^\s*public java\.util\.concurrent\.CompletableFuture<(.+)> (\w+)\((.*)\)\s*\{?\s*$/;
     const out: string[] = [];
     for (const file of files) {
         const lines = fs.readFileSync(file, 'utf-8').split('\n');
         for (let i = 0; i < lines.length; i++) {
             const d = lines[i].match(declRe);
-            if (!d || !expected.has(d[1])) continue;
+            if (!d || !expected.has(d[2])) continue;
             erasureChecked++;
-            const actual = eraseParams(d[2]);
-            if (actual !== expected.get(d[1])) out.push(`${file}:${i + 1}: ${d[1]} expected (${expected.get(d[1])}) actual (${actual})`);
+            const actual = `<${eraseReturn(d[1])}> (${eraseParams(d[3])})`;
+            if (actual !== expected.get(d[2])) out.push(`${file}:${i + 1}: ${d[2]} expected ${expected.get(d[2])} actual ${actual}`);
         }
     }
     return out;
 }
-export function generateTypedSurfaceInterface(ifaceName: string, methods: MethodInfo[]): string {
+export function generateTypedSurfaceInterface(ifaceName: string, methods: MethodInfo[], tier: JavaTier): string {
+    const table = typedReturnTable(tier);
+    // one name, one return family on every tier: the surface spells what the core declares
+    methods = methods.map(m => table.get(m.name) ?? m);
     const lines: string[] = [];
     lines.push(`// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:`);
     lines.push(`// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code`);
@@ -490,15 +515,15 @@ export function generateTypedSurfaceInterface(ifaceName: string, methods: Method
     lines.push(``);
     lines.push(`/**`);
     lines.push(` * Typed sync + async surface shared by every exchange. Declared ONCE; each default`);
-    lines.push(` * method dispatches to the untyped \`Object...\` core method (overridden per exchange).`);
+    lines.push(` * method dispatches to the typed \`Object...\` core method (overridden per exchange).`);
     lines.push(` */`);
     lines.push(`public interface ${ifaceName} {`);
     lines.push(``);
-    lines.push(`    // --- abstract untyped core signatures (implemented by the transpiled tiers) ---`);
+    lines.push(`    // --- abstract core signatures (implemented by the transpiled tiers) ---`);
     lines.push(`    CompletableFuture<Object> loadMarkets(Object... optionalArgs);`);
     const seen = new Set<string>();
     for (const m of methods) {
-        const d = genAbstractDecl(m);
+        const d = genAbstractDecl(m, coreReturnType(m, table));
         if (!seen.has(d)) { seen.add(d); lines.push(d); }
     }
     lines.push(``);
@@ -524,7 +549,7 @@ export function generateTypedSurfaceInterface(ifaceName: string, methods: Method
     lines.push(`    }`);
     lines.push(``);
     for (const m of methods) {
-        lines.push(genMethod(m, true));
+        lines.push(genMethod(m, coreReturnType(m, table), true));
         lines.push('');
     }
     lines.push(`}`);
@@ -533,7 +558,7 @@ export function generateTypedSurfaceInterface(ifaceName: string, methods: Method
 
 // *Ws (WS-API variants) are grouped with watch* methods on the same interface; on a
 // REST-only instance they fall through to the base NotSupported thrower at runtime.
-const isWsApi = (m: MethodInfo) => m.name.endsWith('Ws');
+export const isWsApi = (m: MethodInfo) => m.name.endsWith('Ws');
 
 // Prediction exchanges return the native dedicated Prediction* types. The shared
 // restMethods list is parsed from base Exchange.ts (base return types), so remap the
@@ -548,7 +573,7 @@ const PREDICTION_TYPE_MAP: Record<string, string> = {
     'TradingFeeInterface': 'PredictionTradingFee',
     'OpenInterest': 'PredictionOpenInterest',
 };
-function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
+export function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
     return rest.map((m) => {
         if (m.isArray && m.elementType && PREDICTION_TYPE_MAP[m.elementType]) {
             const elem = PREDICTION_TYPE_MAP[m.elementType];
@@ -564,10 +589,10 @@ function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
 // Exchange.ts, so the shared restMethods list (parsed from Exchange.ts) misses them. Parse the
 // prediction base and add the methods NOT already present. Every prediction exchange extends
 // PredictionExchange, so the abstract core signature resolves on all of them.
-const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
+export const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
 // Prediction methods implemented by some venue but absent from PredictionExchange.ts (its base
 // stub throws NotSupported). `redeem` returns `Promise<any>`, so it cannot be parsed from TS.
-const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
+export const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
     'limitless': [{
         name: 'redeem',
         javaReturnType: 'Object', isArray: false, elementType: null,
@@ -584,7 +609,7 @@ const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
 // core signature no tier implements — and would re-expose the symbol-based surface
 // (closePosition, fetchGreeks, ...) prediction deliberately drops. Exclude them from the
 // interface, matching javaTranspiler's PredictionExchange injection.
-function predictionTierExcludeNames(): Set<string> {
+export function predictionTierExcludeNames(): Set<string> {
     const src = fs.readFileSync(TS_BASE_FILE, 'utf8').split('\n');
     const es = src.findIndex(l => l.startsWith('export default class Exchange extends BaseExchange'));
     const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;
@@ -658,18 +683,18 @@ function main() {
     const predictionExclude = predictionTierExcludeNames();
     const predictionRestMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnlyMethods);
     const wsMethods = methods.filter(m => m.isWatch || isWsApi(m));
-    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods)), 'utf-8');
+    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods), 'rest'), 'utf-8');
     const predictionExtra = Object.values(PREDICTION_EXCHANGE_METHODS).flat();
     const predictionMethods = predictionRestMethods.concat(predictionExtra);
-    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods), 'utf-8');
+    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction'), 'utf-8');
     console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionMethods.length} methods)`);
 
     const exchangesDir = BASE_PKG + 'exchanges/';
     const javaFiles = (dir: string) => fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.java')).map(f => dir + f) : [];
     const mainTierFiles = [ BASE_PKG + 'BaseExchange.java', BASE_PKG + 'Exchange.java' ].concat(javaFiles(exchangesDir), javaFiles(exchangesDir + 'pro/'));
     const predictionTierFiles = [ BASE_PKG + 'PredictionExchange.java' ].concat(javaFiles(exchangesDir + 'prediction/'));
-    const mismatches = assertErasureMatches(restMethods.concat(wsMethods), mainTierFiles)
-        .concat(assertErasureMatches(predictionMethods, predictionTierFiles));
+    const mismatches = assertErasureMatches(restMethods.concat(wsMethods), typedReturnTable('rest'), mainTierFiles)
+        .concat(assertErasureMatches(predictionMethods, typedReturnTable('prediction'), predictionTierFiles));
     if (mismatches.length > 0) {
         console.error(`\nERROR: ${mismatches.length} core override(s) do not erase to the abstract interface signature:`);
         for (const x of mismatches) console.error(`  ${x}`);
