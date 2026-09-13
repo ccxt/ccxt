@@ -1551,7 +1551,7 @@ export default class bingx extends Exchange {
             time = undefined;
         }
         // Spot execution reports distinguish the last fill from the original order's p/q.
-        const isSpotExecution = this.safeString (trade, 'e') === 'executionReport';
+        const isSpotExecution = (this.safeString (trade, 'e') === 'executionReport') && (this.safeString (trade, 'x') === 'TRADE');
         const cost = isSpotExecution ? this.safeString (trade, 'Y') : this.safeString (trade, 'quoteQty');
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         const currencyId = this.safeStringN (trade, [ 'currency', 'N', 'commissionAsset' ]);
