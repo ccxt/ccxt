@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official upbit API documentation:** [docs.upbit.com](https://docs.upbit.com/kr) · [global-docs.upbit.com](https://global-docs.upbit.com)
 
-> 53 implicit endpoints across 2 access groups.
+> 60 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -110,6 +110,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetTravelRuleVasps` | GET | `travel_rule/vasps` | 0.67 |
 | `privateGetStatusWallet` | GET | `status/wallet` | 0.67 |
 | `privateGetApiKeys` | GET | `api_keys` | 0.67 |
+| `privateGetPockets` | GET | `pockets` | 0.67 |
+| `privateGetPocketsApiKeys` | GET | `pockets/api_keys` | 0.67 |
+| `privateGetPocketsAssets` | GET | `pockets/assets` | 0.67 |
+| `privateGetPocketsUniversalTransfers` | GET | `pockets/universal_transfers` | 0.67 |
+| `privateGetPocketsTransfers` | GET | `pockets/transfers` | 0.67 |
 | `privatePostOrders` | POST | `orders` | 2.5 |
 | `privatePostOrdersTest` | POST | `orders/test` | 2.5 |
 | `privatePostOrdersCancelAndNew` | POST | `orders/cancel_and_new` | 2.5 |
@@ -119,6 +124,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostDepositsGenerateCoinAddress` | POST | `deposits/generate_coin_address` | 0.67 |
 | `privatePostTravelRuleDepositUuid` | POST | `travel_rule/deposit/uuid` | 0.67 |
 | `privatePostTravelRuleDepositTxid` | POST | `travel_rule/deposit/txid` | 0.67 |
+| `privatePostPocketsUniversalTransfers` | POST | `pockets/universal_transfers` | 0.67 |
+| `privatePostPocketsTransfers` | POST | `pockets/transfers` | 0.67 |
 | `privateDeleteOrder` | DELETE | `order` | 0.67 |
 | `privateDeleteOrdersOpen` | DELETE | `orders/open` | 40 |
 | `privateDeleteOrdersUuids` | DELETE | `orders/uuids` | 0.67 |

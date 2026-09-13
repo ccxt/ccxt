@@ -139,6 +139,7 @@ public class ModetradeCore extends ModetradeApi
                     put( "private", "https://testnet-api-evm.orderly.org" );
                 }} );
                 put( "www", "https://trade.mode.network" );
+                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://orderly.network/docs/build-on-omnichain/building-on-omnichain")) );
                 put( "referral", new java.util.HashMap<String, Object>() {{
                     put( "url", "https://trade.mode.network?ref=MODETRADE" );
                     put( "discount", 0.2 );
@@ -259,6 +260,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "tv/symbol_info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "tv/kline_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
                             put( "public/funding_rate_history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -289,6 +293,9 @@ public class ModetradeCore extends ModetradeApi
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "register_account", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/query", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -349,6 +356,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "pnl_settlement/history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "internal_transfer_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "volume/user/daily", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
@@ -388,10 +398,46 @@ public class ModetradeCore extends ModetradeApi
                             put( "broker/user_info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
+                            put( "broker/daily_fee_revenue", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "orderbook/{symbol}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "kline", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "client/margin_modes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/referee_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/max_rebate_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/referee_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/statistics", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/volume_prerequisite", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -426,6 +472,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "settle_pnl", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "internal_transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "notification/inbox/mark_read", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
@@ -434,6 +483,15 @@ public class ModetradeCore extends ModetradeApi
                             }} );
                             put( "client/leverage", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
+                            }} );
+                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 120 );
+                            }} );
+                            put( "client/margin_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "position_margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
                             }} );
                             put( "client/maintenance_config", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
@@ -469,6 +527,33 @@ public class ModetradeCore extends ModetradeApi
                                 put( "cost", 10 );
                             }} );
                             put( "referral/edit_split", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/edit_referee_description", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/update", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/create/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/reset/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/update/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/claim_code", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_rate/set_default", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_rate/update", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
                         }} );
@@ -546,12 +631,12 @@ public class ModetradeCore extends ModetradeApi
                             put( "GTD", false );
                         }} );
                         put( "hedged", false );
-                        put( "trailing", true );
-                        put( "leverage", true );
+                        put( "trailing", false );
+                        put( "leverage", false );
                         put( "marketBuyByCost", false );
                         put( "marketBuyRequiresPrice", false );
                         put( "selfTradePrevention", false );
-                        put( "iceberg", true );
+                        put( "iceberg", false );
                     }} );
                     put( "createOrders", new java.util.HashMap<String, Object>() {{
                         put( "max", 10 );
@@ -576,7 +661,15 @@ public class ModetradeCore extends ModetradeApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", null );
+                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 500 );
+                        put( "daysBack", null );
+                        put( "untilDays", 100000 );
+                        put( "trigger", true );
+                        put( "trailing", false );
+                        put( "symbolRequired", false );
+                    }} );
                     put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
@@ -591,9 +684,7 @@ public class ModetradeCore extends ModetradeApi
                         put( "limit", 1000 );
                     }} );
                 }} );
-                put( "spot", new java.util.HashMap<String, Object>() {{
-                    put( "extends", "default" );
-                }} );
+                put( "spot", null );
                 put( "forDerivatives", new java.util.HashMap<String, Object>() {{
                     put( "extends", "default" );
                     put( "createOrder", new java.util.HashMap<String, Object>() {{
@@ -659,7 +750,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -669,7 +760,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -681,7 +772,7 @@ public class ModetradeCore extends ModetradeApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object status = this.safeString(data, "status");
+            String status = this.safeString(data, "status");
             if (Helpers.isTrue(Helpers.isEqual(status, null)))
             {
                 status = "error";
@@ -708,7 +799,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -718,7 +809,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -763,15 +854,15 @@ public class ModetradeCore extends ModetradeApi
         //     "liquidation_tier": "1"
         //   }
         //
-        Object marketId = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "symbol", "");
         Object parts = Helpers.split(marketId, "_");
-        Object marketType = "swap";
-        Object baseId = this.safeString(parts, 1);
-        Object quoteId = this.safeString(parts, 2);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object settleId = this.safeString(parts, 2);
-        Object settle = this.safeCurrencyCode(settleId);
+        String marketType = "swap";
+        String baseId = this.safeString(parts, 1);
+        String quoteId = this.safeString(parts, 2);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String settleId = this.safeString(parts, 2);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -829,7 +920,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchMarkets
      * @description retrieves data on all markets for modetrade
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -839,7 +930,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PublicGetPublicInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetPublicInfo(parameters)).join();
             //
             //   {
             //     "success": true,
@@ -886,7 +977,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -896,7 +987,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PublicGetPublicToken(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetPublicToken(parameters)).join();
             //
             // {
             //     "success": true,
@@ -928,16 +1019,16 @@ public class ModetradeCore extends ModetradeApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object currencyId = this.safeString(rawCurrency, "token");
+        String currencyId = this.safeString(rawCurrency, "token");
         Object networks = this.safeList(rawCurrency, "chain_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object minPrecision = null;
-        Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> resultingNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
             Object network = Helpers.GetValue(networks, j);
             // TODO: transform chain id to human readable name
-            Object networkId = this.safeString(network, "chain_id", "");
+            String networkId = this.safeString(network, "chain_id", "");
             Object precision = this.parsePrecision(this.safeString(network, "decimals"));
             if (Helpers.isTrue(!Helpers.isEqual(precision, null)))
             {
@@ -992,12 +1083,12 @@ public class ModetradeCore extends ModetradeApi
 
     public Object parseTokenAndFeeTemp(Object item, Object feeTokenKey, Object feeAmountKey)
     {
-        Object feeCost = this.safeString(item, feeAmountKey);
+        String feeCost = this.safeString(item, feeAmountKey);
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
-            Object feeCurrencyId = this.safeString(item, feeTokenKey);
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyId = this.safeString(item, feeTokenKey);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1037,27 +1128,27 @@ public class ModetradeCore extends ModetradeApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object isFromFetchOrder = (Helpers.inOp(trade, "id"));
-        Object timestamp = this.safeInteger(trade, "executed_timestamp");
-        Object marketId = this.safeString(trade, "symbol");
+        Boolean isFromFetchOrder = (Helpers.inOp(trade, "id"));
+        Long timestamp = this.safeInteger(trade, "executed_timestamp");
+        String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object price = this.safeString(trade, "executed_price");
-        Object amount = this.safeString(trade, "executed_quantity");
-        Object order_id = this.safeString(trade, "order_id");
+        String price = this.safeString(trade, "executed_price");
+        String amount = this.safeString(trade, "executed_quantity");
+        String order_id = this.safeString(trade, "order_id");
         Object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
-        Object feeCost = this.safeString(fee, "cost");
+        String feeCost = this.safeString(fee, "cost");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(feeCost, null))) && Helpers.isTrue((!Helpers.isEqual(fee, null)))))
         {
             Helpers.addElementToObject(fee, "cost", feeCost);
         }
-        Object cost = Precise.stringMul(price, amount);
-        Object side = this.safeStringLower(trade, "side");
-        Object id = this.safeString(trade, "id");
-        Object takerOrMaker = null;
+        String cost = Precise.stringMul(price, amount);
+        String side = this.safeStringLower(trade, "side");
+        String id = this.safeString(trade, "id");
+        String takerOrMaker = null;
         if (Helpers.isTrue(isFromFetchOrder))
         {
-            Object isMaker = Helpers.isEqual(this.safeString(trade, "is_maker"), "1");
+            Boolean isMaker = Helpers.isEqual(this.safeString(trade, "is_maker"), "1");
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         }
         final Object finalTakerOrMaker = takerOrMaker;
@@ -1083,14 +1174,14 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1102,15 +1193,15 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v1PublicGetPublicMarketTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetPublicMarketTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1147,14 +1238,14 @@ public class ModetradeCore extends ModetradeApi
         //         }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeString(fundingRate, "symbol");
+        String symbol = this.safeString(fundingRate, "symbol");
         market = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? market : this.market(symbol);
-        Object nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
-        Object estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
-        Object lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
-        Object fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
-        Object nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
-        Object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
+        Long nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
+        Long estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
+        Long lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
+        String fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
+        String nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
+        String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         Object fundingSymbol = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "symbol") : null;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fundingRate );
@@ -1178,9 +1269,9 @@ public class ModetradeCore extends ModetradeApi
         }};
     }
 
-    public Object parseFundingInterval(Object interval)
+    public String parseFundingInterval(Object interval)
     {
-        Object intervals = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> intervals = new java.util.HashMap<String, Object>() {{
             put( "3600000", "1h" );
             put( "14400000", "4h" );
             put( "28800000", "8h" );
@@ -1194,12 +1285,12 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingInterval(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingInterval(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1214,12 +1305,12 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1229,11 +1320,11 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1259,7 +1350,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchFundingRates
      * @description fetch the current funding rate for multiple markets
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1276,7 +1367,7 @@ public class ModetradeCore extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.v1PublicGetPublicFundingRates(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRates(parameters)).join();
             //
             // {
             //     "success": true,
@@ -1305,7 +1396,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1328,7 +1419,7 @@ public class ModetradeCore extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1338,7 +1429,7 @@ public class ModetradeCore extends ModetradeApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
@@ -1346,10 +1437,10 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "start_t", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_t", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1371,12 +1462,12 @@ public class ModetradeCore extends ModetradeApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object result = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
-                Object marketId = this.safeString(entry, "symbol");
-                Object timestamp = this.safeInteger(entry, "funding_rate_timestamp");
+                String marketId = this.safeString(entry, "symbol");
+                Long timestamp = this.safeInteger(entry, "funding_rate_timestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", ModetradeCore.this.safeSymbol(marketId) );
@@ -1385,7 +1476,7 @@ public class ModetradeCore extends ModetradeApi
                     put( "datetime", ModetradeCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -1406,13 +1497,13 @@ public class ModetradeCore extends ModetradeApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(income, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
-        Object amount = this.safeString(income, "funding_fee");
-        Object code = this.safeCurrencyCode("USDC");
-        Object timestamp = this.safeInteger(income, "updated_time");
-        Object rate = this.safeNumber(income, "funding_rate");
-        Object paymentType = this.safeString(income, "payment_type");
+        String marketId = this.safeString(income, "symbol");
+        String symbol = this.safeSymbol(marketId, market);
+        String amount = this.safeString(income, "funding_fee");
+        String code = this.safeCurrencyCode("USDC");
+        Long timestamp = this.safeInteger(income, "updated_time");
+        Double rate = this.safeNumber(income, "funding_rate");
+        String paymentType = this.safeString(income, "payment_type");
         amount = ((Helpers.isTrue((Helpers.isEqual(paymentType, "Pay"))))) ? Precise.stringNeg(amount) : amount;
         final Object finalAmount = amount;
         return new java.util.HashMap<String, Object>() {{
@@ -1431,7 +1522,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1453,14 +1544,14 @@ public class ModetradeCore extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1471,7 +1562,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "start_t", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1481,7 +1572,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, 500));
             }
-            Object response = (this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1516,7 +1607,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -1530,7 +1621,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v1PrivateGetClientInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetClientInfo(parameters)).join();
             //
             // {
             //     "success": true,
@@ -1559,10 +1650,10 @@ public class ModetradeCore extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object maker = this.safeString(data, "futures_maker_fee_rate");
-            Object taker = this.safeString(data, "futures_taker_fee_rate");
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            Object symbols = this.symbols;
+            String maker = this.safeString(data, "futures_maker_fee_rate");
+            String taker = this.safeString(data, "futures_taker_fee_rate");
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            java.util.List<Object> symbols = this.symbols;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1587,7 +1678,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1604,8 +1695,8 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1613,7 +1704,7 @@ public class ModetradeCore extends ModetradeApi
                 limit = Helpers.mathMin(limit, 1000);
                 Helpers.addElementToObject(request, "max_level", limit);
             }
-            Object response = (this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1632,7 +1723,7 @@ public class ModetradeCore extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(data, "timestamp");
+            Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         });
 
@@ -1647,7 +1738,7 @@ public class ModetradeCore extends ModetradeApi
     /**
      * @method
      * @name modetrade#fetchOHLCV
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1669,8 +1760,8 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", ModetradeCore.this.safeString(ModetradeCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -1678,7 +1769,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            Object response = (this.v1PrivateGetKline(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetKline(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             // {
@@ -1754,37 +1845,37 @@ public class ModetradeCore extends ModetradeApi
         //   }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "created_time", "createdTime")));
-        Object orderId = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "orderId", "algoOrderId")));
+        Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "created_time", "createdTime")));
+        String orderId = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "orderId", "algoOrderId")));
         Object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
-        Object marketId = this.safeString(order, "symbol");
+        String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object price = this.safeString2(order, "order_price", "price");
-        Object amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
-        Object cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
-        Object orderType = this.safeStringLower2(order, "order_type", "type");
+        String price = this.safeString2(order, "order_price", "price");
+        String amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
+        String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
+        String orderType = this.safeStringLower2(order, "order_type", "type");
         Object status = this.safeValue2(order, "status", "algoStatus");
         Object success = this.safeBool(order, "success");
         if (Helpers.isTrue(!Helpers.isEqual(success, null)))
         {
             status = ((Helpers.isTrue((success)))) ? "NEW" : "REJECTED";
         }
-        Object side = this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
         Object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        Object remaining = Precise.stringSub(cost, filled);
+        String remaining = Precise.stringSub(cost, filled);
         Object fee = this.safeValue2(order, "total_fee", "totalFee");
-        Object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
+        String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         Object transactions = this.safeValue(order, "Transactions");
-        Object triggerPrice = this.safeNumber(order, "triggerPrice");
+        Double triggerPrice = this.safeNumber(order, "triggerPrice");
         Object takeProfitPrice = null;
         Object stopLossPrice = null;
         Object childOrders = this.safeValue(order, "childOrders");
         if (Helpers.isTrue(!Helpers.isEqual(childOrders, null)))
         {
             Object first = this.safeValue(childOrders, 0);
-            Object innerChildOrders = this.safeValue(first, "childOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object innerChildOrders = this.safeList(first, "childOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object innerChildOrdersLength = Helpers.getArrayLength(innerChildOrders);
             if (Helpers.isTrue(Helpers.isGreaterThan(innerChildOrdersLength, 0)))
             {
@@ -1794,7 +1885,7 @@ public class ModetradeCore extends ModetradeApi
                 stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice");
             }
         }
-        Object lastUpdateTimestamp = this.safeInteger2(order, "updatedTime", "updated_time");
+        Long lastUpdateTimestamp = (Long) this.safeInteger2(order, "updatedTime", "updated_time");
         final Object finalStatus = status;
         final Object finalTakeProfitPrice = takeProfitPrice;
         final Object finalStopLossPrice = stopLossPrice;
@@ -1830,9 +1921,9 @@ public class ModetradeCore extends ModetradeApi
         }}, market);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "ioc", "IOC" );
             put( "fok", "FOK" );
             put( "post_only", "PO" );
@@ -1844,11 +1935,11 @@ public class ModetradeCore extends ModetradeApi
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
-            Object statuses = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
                 put( "NEW", "open" );
                 put( "FILLED", "closed" );
                 put( "CANCEL_SENT", "canceled" );
@@ -1865,12 +1956,12 @@ public class ModetradeCore extends ModetradeApi
             }
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
             put( "POST_ONLY", "limit" );
@@ -1888,11 +1979,11 @@ public class ModetradeCore extends ModetradeApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         /**
          * @method
@@ -1909,30 +2000,30 @@ public class ModetradeCore extends ModetradeApi
          */
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         Object orderType = ((String)type).toUpperCase();
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
         }
         Object orderSide = ((String)side).toUpperCase();
         final Object finalOrderSide = orderSide;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", finalOrderSide );
         }};
-        Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
         Object takeProfit = this.safeValue(parameters, "takeProfit");
-        Object hasStopLoss = !Helpers.isEqual(stopLoss, null);
-        Object hasTakeProfit = !Helpers.isEqual(takeProfit, null);
-        Object algoType = this.safeString(parameters, "algoType");
-        Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(hasStopLoss)) || Helpers.isTrue(hasTakeProfit)) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
-        Object isMarket = Helpers.isEqual(orderType, "MARKET");
-        Object timeInForce = this.safeStringLower(parameters, "timeInForce");
+        Boolean hasStopLoss = !Helpers.isEqual(stopLoss, null);
+        Boolean hasTakeProfit = !Helpers.isEqual(takeProfit, null);
+        String algoType = this.safeString(parameters, "algoType");
+        Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(hasStopLoss)) || Helpers.isTrue(hasTakeProfit)) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
+        Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
+        String timeInForce = this.safeStringLower(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
-        Object orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
-        Object priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
-        Object typeKey = ((Helpers.isTrue(isConditional))) ? "type" : "order_type";
+        String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
+        String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
+        String typeKey = ((Helpers.isTrue(isConditional))) ? "type" : "order_type";
         Helpers.addElementToObject(request, typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Helpers.isTrue(isConditional))
         {
@@ -1947,7 +2038,7 @@ public class ModetradeCore extends ModetradeApi
                 Helpers.addElementToObject(request, "order_type", "IOC");
             }
         }
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "reduce_only", reduceOnly);
         }
@@ -1962,7 +2053,7 @@ public class ModetradeCore extends ModetradeApi
         {
             Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
         }
-        Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+        String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -1974,18 +2065,18 @@ public class ModetradeCore extends ModetradeApi
         } else if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
         {
             Helpers.addElementToObject(request, "algo_type", "TP_SL");
-            Object outterOrder = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> outterOrder = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "reduce_only", false );
                 put( "algo_type", "POSITIONAL_TP_SL" );
                 put( "child_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             }};
             Object childOrders = Helpers.GetValue(outterOrder, "child_orders");
-            Object closeSide = ((Helpers.isTrue((Helpers.isEqual(orderSide, "BUY"))))) ? "SELL" : "BUY";
+            String closeSide = ((Helpers.isTrue((Helpers.isEqual(orderSide, "BUY"))))) ? "SELL" : "BUY";
             if (Helpers.isTrue(hasStopLoss))
             {
-                Object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
-                Object stopLossOrder = new java.util.HashMap<String, Object>() {{
+                Double stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
+                java.util.Map<String, Object> stopLossOrder = new java.util.HashMap<String, Object>() {{
                     put( "side", closeSide );
                     put( "algo_type", "TP_SL" );
                     put( "trigger_price", ModetradeCore.this.priceToPrecision(symbol, stopLossPrice) );
@@ -1996,8 +2087,8 @@ public class ModetradeCore extends ModetradeApi
             }
             if (Helpers.isTrue(hasTakeProfit))
             {
-                Object takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
-                Object takeProfitOrder = new java.util.HashMap<String, Object>() {{
+                Double takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
+                java.util.Map<String, Object> takeProfitOrder = new java.util.HashMap<String, Object>() {{
                     put( "side", closeSide );
                     put( "algo_type", "TP_SL" );
                     put( "trigger_price", ModetradeCore.this.priceToPrecision(symbol, takeProfitPrice) );
@@ -2016,8 +2107,8 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#createOrder
      * @description create a trade order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2029,8 +2120,11 @@ public class ModetradeCore extends ModetradeApi
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+     * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2045,12 +2139,12 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
-            Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
+            Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
             Object response = null;
             if (Helpers.isTrue(isConditional))
             {
@@ -2072,7 +2166,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#createOrders
      * @description *contract only* create a list of trade orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2087,35 +2181,35 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
-                Object marketId = this.safeString(rawOrder, "symbol");
+                String marketId = this.safeString(rawOrder, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
                 }
-                Object type = this.safeString(rawOrder, "type", "");
-                Object side = this.safeString(rawOrder, "side");
+                String type = this.safeString(rawOrder, "type", "");
+                String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
+                String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
                 Object stopLoss = this.safeValue(orderParams, "stopLoss");
                 Object takeProfit = this.safeValue(orderParams, "takeProfit");
-                Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(orderParams, "childOrders"), null)));
+                Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(orderParams, "childOrders"), null)));
                 if (Helpers.isTrue(isConditional))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrders() only support non-stop order")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrders() only support non-stop order")) ;
                 }
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
-            Object response = (this.v1PrivatePostBatchOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivatePostBatchOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -2144,8 +2238,8 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#editOrder
      * @description edit a trade order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -2158,7 +2252,7 @@ public class ModetradeCore extends ModetradeApi
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
     {
         final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2170,18 +2264,18 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
+            String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Object isConditional = Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
-            Object orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
-            Object priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
+            Boolean isConditional = Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
+            String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
+            String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
                 Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
@@ -2203,8 +2297,8 @@ public class ModetradeCore extends ModetradeApi
                     Helpers.addElementToObject(request, "side", ((String)side).toUpperCase());
                 }
                 Object orderType = ((String)type).toUpperCase();
-                Object timeInForce = this.safeStringLower(parameters, "timeInForce");
-                Object isMarket = Helpers.isEqual(orderType, "MARKET");
+                String timeInForce = this.safeStringLower(parameters, "timeInForce");
+                Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
                 if (Helpers.isTrue(postOnly))
                 {
@@ -2219,7 +2313,7 @@ public class ModetradeCore extends ModetradeApi
                 {
                     Helpers.addElementToObject(request, "order_type", orderType);
                 }
-                Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+                String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
                 {
@@ -2248,10 +2342,10 @@ public class ModetradeCore extends ModetradeApi
     /**
      * @method
      * @name modetrade#cancelOrder
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2269,9 +2363,9 @@ public class ModetradeCore extends ModetradeApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            if (Helpers.isTrue(!Helpers.isTrue(trigger) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2283,14 +2377,14 @@ public class ModetradeCore extends ModetradeApi
                 market = this.market(symbol);
             }
             final Object finalMarket = market;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ModetradeCore.this.safeString(finalMarket, "id") );
             }};
-            Object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
-            Object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
-            Object isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
+            String clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
+            String clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
+            Boolean isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(isByClientOrder))
                 {
@@ -2331,7 +2425,7 @@ public class ModetradeCore extends ModetradeApi
             // }
             //
             final Object finalSymbol = symbol;
-            Object extendParams = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendParams = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             if (Helpers.isTrue(isByClientOrder))
@@ -2341,7 +2435,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(extendParams, "id", id);
             }
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 return this.extend(this.parseOrder(response), extendParams);
             }
@@ -2355,8 +2449,8 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#cancelOrders
      * @description cancel multiple orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2376,15 +2470,15 @@ public class ModetradeCore extends ModetradeApi
             }
             Object clientOrderIds = this.safeListN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            if (Helpers.isTrue(clientOrderIds))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
-                Helpers.addElementToObject(request, "client_order_ids", String.join((String)",", (java.util.List<String>)clientOrderIds));
+                Helpers.addElementToObject(request, "client_order_ids", String.join(",", (java.util.List<String>)clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "order_ids", String.join((String)",", (java.util.List<String>)ids));
+                Helpers.addElementToObject(request, "order_ids", String.join(",", (java.util.List<String>)ids));
                 response = (this.v1PrivateDeleteBatchOrder(this.extend(request, parameters))).join();
             }
             //
@@ -2407,8 +2501,8 @@ public class ModetradeCore extends ModetradeApi
     /**
      * @method
      * @name modetrade#cancelAllOrders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
      * @description cancel all open orders in a market
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2428,14 +2522,14 @@ public class ModetradeCore extends ModetradeApi
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.v1PrivateDeleteAlgoOrders(this.extend(request, parameters))).join();
             } else
@@ -2468,10 +2562,10 @@ public class ModetradeCore extends ModetradeApi
     /**
      * @method
      * @name modetrade#fetchOrder
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2497,13 +2591,13 @@ public class ModetradeCore extends ModetradeApi
                 market = this.market(symbol);
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object request = new java.util.HashMap<String, Object>() {{}};
-            Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                if (Helpers.isTrue(clientOrderId))
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)) && Helpers.isTrue(!Helpers.isEqual(clientOrderId, ""))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     response = (this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, parameters))).join();
@@ -2514,7 +2608,7 @@ public class ModetradeCore extends ModetradeApi
                 }
             } else
             {
-                if (Helpers.isTrue(clientOrderId))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, "")))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     response = (this.v1PrivateGetClientOrderClientOrderId(this.extend(request, parameters))).join();
@@ -2561,11 +2655,11 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2589,8 +2683,8 @@ public class ModetradeCore extends ModetradeApi
             }
             Object paginate = false;
             Object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object maxLimit = ((Helpers.isTrue((isTrigger)))) ? 100 : 500;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 100 : 500;
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2611,20 +2705,20 @@ public class ModetradeCore extends ModetradeApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "size", limit);
+                Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, maxLimit));
             } else
             {
                 Helpers.addElementToObject(request, "size", maxLimit);
             }
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 Helpers.addElementToObject(request, "algo_type", "STOP");
             }
-            var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(request, parameters))).join();
             } else
@@ -2676,11 +2770,11 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2702,7 +2796,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "INCOMPLETE" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
@@ -2714,11 +2808,11 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2740,7 +2834,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "COMPLETED" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
@@ -2752,7 +2846,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2760,7 +2854,7 @@ public class ModetradeCore extends ModetradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2778,10 +2872,10 @@ public class ModetradeCore extends ModetradeApi
             {
                 market = this.market(symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "oid", id );
             }};
-            Object response = (this.v1PrivateGetOrderOidTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetOrderOidTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -2813,7 +2907,7 @@ public class ModetradeCore extends ModetradeApi
     /**
      * @method
      * @name modetrade#fetchMyTrades
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2837,7 +2931,7 @@ public class ModetradeCore extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2862,10 +2956,10 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "size", 500);
             }
-            var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -2901,14 +2995,14 @@ public class ModetradeCore extends ModetradeApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.safeList(response, "holding", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            Object code = this.safeCurrencyCode(this.safeString(balance, "token"));
+            String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "holding"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
@@ -2924,7 +3018,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -2938,7 +3032,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v1PrivateGetClientHolding(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetClientHolding(parameters)).join();
             //
             // {
             //     "success": true,
@@ -2973,7 +3067,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2988,13 +3082,13 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "pageSize", limit);
             }
-            Object transactionType = this.safeString(parameters, "type");
+            String transactionType = this.safeString(parameters, "type");
             parameters = this.omit(parameters, "type");
             if (Helpers.isTrue(!Helpers.isEqual(transactionType, null)))
             {
                 Helpers.addElementToObject(request, "type", transactionType);
             }
-            Object response = (this.v1PrivateGetAssetHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetAssetHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -3029,13 +3123,13 @@ public class ModetradeCore extends ModetradeApi
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(item, "token");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String currencyId = this.safeString(item, "token");
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Object amount = this.safeNumber(item, "amount");
-        Object side = this.safeString(item, "token_side");
-        Object direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
-        Object timestamp = this.safeInteger(item, "created_time");
+        Double amount = this.safeNumber(item, "amount");
+        String side = this.safeString(item, "token_side");
+        String direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
+        Long timestamp = this.safeInteger(item, "created_time");
         Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "id", ModetradeCore.this.safeString(item, "id") );
@@ -3058,7 +3152,7 @@ public class ModetradeCore extends ModetradeApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "BALANCE", "transaction" );
             put( "COLLATERAL", "transfer" );
         }};
@@ -3069,7 +3163,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -3097,16 +3191,16 @@ public class ModetradeCore extends ModetradeApi
     {
         // example in fetchLedger
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object code = this.safeString(transaction, "token");
-        Object movementDirection = this.safeStringLower(transaction, "token_side");
+        String code = this.safeString(transaction, "token");
+        String movementDirection = this.safeStringLower(transaction, "token_side");
         if (Helpers.isTrue(Helpers.isEqual(movementDirection, "withdraw")))
         {
             movementDirection = "withdrawal";
         }
         Object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
-        Object addressTo = this.safeString(transaction, "target_address");
-        Object addressFrom = this.safeString(transaction, "source_address");
-        Object timestamp = this.safeInteger(transaction, "created_time");
+        String addressTo = this.safeString(transaction, "target_address");
+        String addressFrom = this.safeString(transaction, "source_address");
+        Long timestamp = this.safeInteger(transaction, "created_time");
         final Object finalMovementDirection = movementDirection;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3132,9 +3226,9 @@ public class ModetradeCore extends ModetradeApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "pending" );
             put( "CONFIRMING", "pending" );
             put( "PROCESSING", "pending" );
@@ -3152,7 +3246,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3168,7 +3262,7 @@ public class ModetradeCore extends ModetradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "side", "DEPOSIT" );
             }};
             return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
@@ -3180,7 +3274,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3196,7 +3290,7 @@ public class ModetradeCore extends ModetradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "side", "WITHDRAW" );
             }};
             return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
@@ -3208,7 +3302,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -3224,7 +3318,7 @@ public class ModetradeCore extends ModetradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
             Object currency = this.safeValue(currencyRows, 0);
             Object rows = this.safeList(currencyRows, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3250,7 +3344,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PrivateGetWithdrawNonce(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetWithdrawNonce(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -3276,8 +3370,8 @@ public class ModetradeCore extends ModetradeApi
         Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
-        Object v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
+        String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
+        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -3289,7 +3383,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#withdraw
      * @description make a withdrawal
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3297,7 +3391,7 @@ public class ModetradeCore extends ModetradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code2, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3314,29 +3408,29 @@ public class ModetradeCore extends ModetradeApi
                 code = ((String)code).toUpperCase();
                 if (Helpers.isTrue(!Helpers.isEqual(code, "USDC")))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " withdraw() only support USDC")) ;
+                    throw new NotSupported(Helpers.add(this.id, " withdraw() only support USDC")) ;
                 }
             }
-            Object currency = this.currency(code);
-            Object verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
-            Object chainId = this.safeString(parameters, "chainId");
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            String verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
+            String chainId = this.safeString(parameters, "chainId");
             Object currencyNetworks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
             Object coinNetwork = ((Helpers.isTrue((Helpers.isEqual(chainId, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeDict(currencyNetworks, chainId, new java.util.HashMap<String, Object>() {{}});
-            Object coinNetworkId = this.safeNumber(coinNetwork, "id");
+            Double coinNetworkId = this.safeNumber(coinNetwork, "id");
             if (Helpers.isTrue(Helpers.isEqual(coinNetworkId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() require chainId parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() require chainId parameter")) ;
             }
             Object withdrawNonce = (this.getWithdrawNonce(parameters)).join();
             Object nonce = this.nonce();
             final Object finalChainId = chainId;
-            Object domain = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
                 put( "chainId", finalChainId );
                 put( "name", "Orderly" );
                 put( "verifyingContract", verifyingContractAddress );
                 put( "version", "1" );
             }};
-            Object messageTypes = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
                 put( "Withdraw", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "brokerId" );
         put( "type", "string" );
@@ -3361,7 +3455,7 @@ public class ModetradeCore extends ModetradeApi
     }})) );
             }};
             final Object finalCode = code;
-            Object withdrawRequest = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> withdrawRequest = new java.util.HashMap<String, Object>() {{
                 put( "brokerId", ModetradeCore.this.safeString(ModetradeCore.this.options, "keyBrokerId", "mode") );
                 put( "chainId", ModetradeCore.this.parseToInt(finalChainId) );
                 put( "receiver", address );
@@ -3372,14 +3466,14 @@ public class ModetradeCore extends ModetradeApi
             }};
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
             Object signature = this.signMessage(msg, this.privateKey);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "signature", signature );
                 put( "userAddress", address );
                 put( "verifyingContract", verifyingContractAddress );
                 put( "message", withdrawRequest );
             }};
             parameters = this.omit(parameters, "chainId");
-            Object response = (this.v1PrivatePostWithdrawRequest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivatePostWithdrawRequest(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -3398,7 +3492,7 @@ public class ModetradeCore extends ModetradeApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object leverageValue = this.safeInteger(leverage, "max_leverage");
+        Long leverageValue = this.safeInteger(leverage, "max_leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", ModetradeCore.this.safeString(market, "symbol") );
@@ -3412,12 +3506,12 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3427,8 +3521,8 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object response = (this.v1PrivateGetClientInfo(parameters)).join();
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> response = (this.v1PrivateGetClientInfo(parameters)).join();
             //
             // {
             //     "success": true,
@@ -3466,7 +3560,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#setLeverage
      * @description set the level of leverage for a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
      * @param {int} [leverage] the rate of leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3483,14 +3577,14 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object isMinLeverage = Helpers.isLessThan(leverage, 1);
-            Object isMaxLeverage = Helpers.isGreaterThan(leverage, 50);
+            Boolean isMinLeverage = Helpers.isLessThan(leverage, 1);
+            Boolean isMaxLeverage = Helpers.isGreaterThan(leverage, 50);
             if (Helpers.isTrue(Helpers.isTrue(isMinLeverage) || Helpers.isTrue(isMaxLeverage)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 50")) ;
+                throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 50")) ;
             }
             final Object finalLeverage = leverage;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "leverage", finalLeverage );
             }};
             return (this.v1PrivatePostClientLeverage(this.extend(request, parameters))).join();
@@ -3523,10 +3617,10 @@ public class ModetradeCore extends ModetradeApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object contract = this.safeString(position, "symbol");
+        String contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market);
-        Object size = this.safeString(position, "position_qty");
-        Object side = null;
+        String size = this.safeString(position, "position_qty");
+        String side = null;
         if (Helpers.isTrue(Precise.stringGt(size, "0")))
         {
             side = "long";
@@ -3534,13 +3628,13 @@ public class ModetradeCore extends ModetradeApi
         {
             side = "short";
         }
-        Object contractSize = this.safeString(market, "contractSize");
-        Object markPrice = this.safeString(position, "mark_price");
-        Object timestamp = this.safeInteger(position, "timestamp");
-        Object entryPrice = this.safeString(position, "average_open_price");
-        Object unrealisedPnl = this.safeString(position, "unsettled_pnl");
+        String contractSize = this.safeString(market, "contractSize");
+        String markPrice = this.safeString(position, "mark_price");
+        Long timestamp = this.safeInteger(position, "timestamp");
+        String entryPrice = this.safeString(position, "average_open_price");
+        String unrealisedPnl = this.safeString(position, "unsettled_pnl");
         size = Precise.stringAbs(size);
-        Object notional = Precise.stringMul(size, markPrice);
+        String notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;
@@ -3579,7 +3673,7 @@ public class ModetradeCore extends ModetradeApi
     /**
      * @method
      * @name modetrade#fetchPosition
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3597,13 +3691,13 @@ public class ModetradeCore extends ModetradeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v1PrivateGetPositionSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetPositionSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -3640,7 +3734,7 @@ public class ModetradeCore extends ModetradeApi
      * @method
      * @name modetrade#fetchPositions
      * @description fetch all open positions
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3656,7 +3750,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v1PrivateGetPositions(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetPositions(parameters)).join();
             //
             // {
             //     "success": true,
@@ -3723,21 +3817,21 @@ public class ModetradeCore extends ModetradeApi
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
             url = Helpers.add(url, pathWithParams);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            Object isPostOrPut = Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"));
-            Object isOrder = Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(path, "algo/order")) || Helpers.isTrue(Helpers.isEqual(path, "order"))) || Helpers.isTrue(Helpers.isEqual(path, "batch-order"));
+            Boolean isPostOrPut = Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"));
+            Boolean isOrder = Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(path, "algo/order")) || Helpers.isTrue(Helpers.isEqual(path, "order"))) || Helpers.isTrue(Helpers.isEqual(path, "batch-order"));
             if (Helpers.isTrue(Helpers.isTrue(isPostOrPut) && Helpers.isTrue(isOrder)))
             {
                 Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-                if (!Helpers.isTrue(isSandboxMode))
+                if (Helpers.isTrue(!Helpers.isEqual(isSandboxMode, true)))
                 {
-                    Object brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
+                    String brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
                     if (Helpers.isTrue(Helpers.isEqual(path, "batch-order")))
                     {
                         Object ordersList = this.safeList(parameters, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3755,7 +3849,7 @@ public class ModetradeCore extends ModetradeApi
             Object auth = "";
             Object ts = String.valueOf(this.nonce());
             url = Helpers.add(url, pathWithParams);
-            Object apiKey = this.apiKey;
+            String apiKey = this.apiKey;
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(apiKey, "ed25519:"), 0)))
             {
                 apiKey = Helpers.add("ed25519:", apiKey);
@@ -3775,7 +3869,7 @@ public class ModetradeCore extends ModetradeApi
                 Helpers.addElementToObject(headers, "content-type", "application/json");
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
                     auth = Helpers.add(auth, Helpers.add("?", this.rawencode(parameters)));
@@ -3809,7 +3903,7 @@ public class ModetradeCore extends ModetradeApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }
@@ -3818,8 +3912,8 @@ public class ModetradeCore extends ModetradeApi
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         Object success = this.safeBool(response, "success");
-        Object errorCode = this.safeString(response, "code");
-        if (!Helpers.isTrue(success))
+        String errorCode = this.safeString(response, "code");
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);

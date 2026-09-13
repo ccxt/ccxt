@@ -140,7 +140,7 @@ class indodax extends Exchange {
                 'transfer' => false,
                 'withdraw' => true,
             ),
-            'version' => '2.0', // 9 April 2018
+            'version' => '2.0', // as of 9 April 2018
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api' => array(
@@ -174,7 +174,9 @@ class indodax extends Exchange {
                         'openOrders' => array( 'cost' => 4 ),
                         'orderHistory' => array( 'cost' => 4 ),
                         'getOrder' => array( 'cost' => 4 ),
+                        'getOrderByClientOrderId' => array( 'cost' => 4 ),
                         'cancelOrder' => array( 'cost' => 4 ),
+                        'cancelByClientOrderId' => array( 'cost' => 4 ),
                         'withdrawFee' => array( 'cost' => 4 ),
                         'withdrawCoin' => array( 'cost' => 4 ),
                         'listDownline' => array( 'cost' => 4 ),
@@ -389,6 +391,7 @@ class indodax extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $isMaintenance = $this->safe_integer($market, 'is_maintenance');
+            $inMaintenance = ($isMaintenance !== null) && ($isMaintenance !== 0);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -404,7 +407,7 @@ class indodax extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => $isMaintenance ? false : true,
+                'active' => $inMaintenance ? false : true,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -447,7 +450,7 @@ class indodax extends Exchange {
 
     public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'return', array());
-        $free = $this->safe_value($balances, 'balance', array());
+        $free = $this->safe_dict($balances, 'balance', array());
         $used = $this->safe_value($balances, 'balance_hold', array());
         $timestamp = $this->safe_timestamp($balances, 'server_time');
         $result = array(
@@ -755,7 +758,7 @@ class indodax extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -966,7 +969,7 @@ class indodax extends Exchange {
         $openOrdersResult = $this->safe_dict($response, 'return', array());
         $rawOrders = $openOrdersResult['orders'];
         // array( success => 1, return => array( orders => null )) if no orders
-        if (!$rawOrders) {
+        if (($rawOrders === null) || ($rawOrders === null)) {
             return array();
         }
         // array( success => 1, return => array( orders => array( ... objects ) )) for orders fetched by $symbol
@@ -1312,8 +1315,8 @@ class indodax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'return', array());
-        $withdraw = $this->safe_value($data, 'withdraw', array());
-        $deposit = $this->safe_value($data, 'deposit', array());
+        $withdraw = $this->safe_dict($data, 'withdraw', array());
+        $deposit = $this->safe_dict($data, 'deposit', array());
         $transactions = array();
         $currency = null;
         if ($code === null) {
@@ -1372,7 +1375,7 @@ class indodax extends Exchange {
             'withdraw_address' => $address,
             'request_id' => (string) $requestId,
         );
-        if ($tag) {
+        if (($tag !== null) && ($tag !== '')) {
             $request['withdraw_memo'] = $tag;
         }
         $response = Async\await($this->privatePostWithdrawCoin($this->extend($request, $params)));
@@ -1591,7 +1594,7 @@ class indodax extends Exchange {
             $query = $this->omit($params, $this->extract_params($path));
             $requestPath = '/' . $this->implode_params($path, $params);
             $url = $url . $requestPath;
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode_with_array_repeat($query);
             }
         } else {

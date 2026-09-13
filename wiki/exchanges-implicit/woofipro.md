@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official woofipro API documentation:** [orderly.network](https://orderly.network/docs/build-on-omnichain/building-on-omnichain)
 
-> 118 implicit endpoints across 1 access group.
+> 149 implicit endpoints across 2 access groups.
 
 ## v1
 
@@ -85,6 +85,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PublicGetClientPoints` | GET | `client/points` | 1 |
 | `v1PublicGetPublicPointsEpoch` | GET | `public/points/epoch` | 1 |
 | `v1PublicGetPublicPointsEpochDates` | GET | `public/points/epoch_dates` | 1 |
+| `v1PublicGetPublicPointsRankings` | GET | `public/points/rankings` | 1 |
+| `v1PublicGetPublicPointsStages` | GET | `public/points/stages` | 1 |
 | `v1PublicGetPublicReferralCheckRefCode` | GET | `public/referral/check_ref_code` | 1 |
 | `v1PublicGetPublicReferralVerifyRefCode` | GET | `public/referral/verify_ref_code` | 1 |
 | `v1PublicGetReferralAdminInfo` | GET | `referral/admin_info` | 1 |
@@ -98,6 +100,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PublicGetTvConfig` | GET | `tv/config` | 1 |
 | `v1PublicGetTvHistory` | GET | `tv/history` | 1 |
 | `v1PublicGetTvSymbolInfo` | GET | `tv/symbol_info` | 1 |
+| `v1PublicGetTvKlineHistory` | GET | `tv/kline_history` | 1 |
 | `v1PublicGetPublicFundingRateHistory` | GET | `public/funding_rate_history` | 1 |
 | `v1PublicGetPublicFundingRateSymbol` | GET | `public/funding_rate/{symbol}` | 0.33 |
 | `v1PublicGetPublicFundingRates` | GET | `public/funding_rates` | 1 |
@@ -107,6 +110,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PublicGetPublicToken` | GET | `public/token` | 1 |
 | `v1PublicGetPublicFutures` | GET | `public/futures` | 1 |
 | `v1PublicGetPublicFuturesSymbol` | GET | `public/futures/{symbol}` | 1 |
+| `v1PublicGetStakingValor2BatchInfo` | GET | `staking/valor2/batch_info` | 1 |
+| `v1PublicGetStakingValor2PoolInfo` | GET | `staking/valor2/pool_info` | 1 |
+| `v1PublicGetStakingValor2RevenueBuyback` | GET | `staking/valor2/revenue_buyback` | 1 |
 | `v1PublicPostRegisterAccount` | POST | `register_account` | 1 |
 | `v1PrivateGetClientKeyInfo` | GET | `client/key_info` | 6 |
 | `v1PrivateGetClientOrderlyKeyIpRestriction` | GET | `client/orderly_key_ip_restriction` | 6 |
@@ -125,6 +131,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateGetClientHolding` | GET | `client/holding` | 1 |
 | `v1PrivateGetWithdrawNonce` | GET | `withdraw_nonce` | 1 |
 | `v1PrivateGetSettleNonce` | GET | `settle_nonce` | 1 |
+| `v1PrivateGetTransferNonce` | GET | `transfer_nonce` | 1 |
 | `v1PrivateGetPnlSettlementHistory` | GET | `pnl_settlement/history` | 1 |
 | `v1PrivateGetVolumeUserDaily` | GET | `volume/user/daily` | 60 |
 | `v1PrivateGetVolumeUserStats` | GET | `volume/user/stats` | 60 |
@@ -139,9 +146,22 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateGetVolumeBrokerDaily` | GET | `volume/broker/daily` | 60 |
 | `v1PrivateGetBrokerFeeRateDefault` | GET | `broker/fee_rate/default` | 10 |
 | `v1PrivateGetBrokerUserInfo` | GET | `broker/user_info` | 10 |
+| `v1PrivateGetBrokerDailyFeeRevenue` | GET | `broker/daily_fee_revenue` | 10 |
 | `v1PrivateGetOrderbookSymbol` | GET | `orderbook/{symbol}` | 1 |
 | `v1PrivateGetKline` | GET | `kline` | 1 |
 | `v1PrivateGetClientMarginModes` | GET | `client/margin_modes` | 1 |
+| `v1PrivateGetClientLeverages` | GET | `client/leverages` | 1 |
+| `v1PrivateGetClientPointsUserStatistics` | GET | `client/points/user_statistics` | 1 |
+| `v1PrivateGetStakingValor2Redeem` | GET | `staking/valor2/redeem` | 1 |
+| `v1PrivateGetReferralMultiLevelAdmin` | GET | `referral/multi_level/admin` | 1 |
+| `v1PrivateGetReferralMultiLevelAdminInfo` | GET | `referral/multi_level/admin/info` | 1 |
+| `v1PrivateGetReferralMultiLevelAdminRefereeList` | GET | `referral/multi_level/admin/referee_list` | 1 |
+| `v1PrivateGetReferralMultiLevelAdminSummary` | GET | `referral/multi_level/admin/summary` | 1 |
+| `v1PrivateGetReferralMultiLevelMaxRebateRate` | GET | `referral/multi_level/max_rebate_rate` | 1 |
+| `v1PrivateGetReferralMultiLevelRebateInfo` | GET | `referral/multi_level/rebate_info` | 1 |
+| `v1PrivateGetReferralMultiLevelRefereeList` | GET | `referral/multi_level/referee_list` | 1 |
+| `v1PrivateGetReferralMultiLevelStatistics` | GET | `referral/multi_level/statistics` | 1 |
+| `v1PrivateGetReferralMultiLevelVolumePrerequisite` | GET | `referral/multi_level/volume_prerequisite` | 1 |
 | `v1PrivatePostOrderlyKey` | POST | `orderly_key` | 1 |
 | `v1PrivatePostClientSetOrderlyKeyIpRestriction` | POST | `client/set_orderly_key_ip_restriction` | 6 |
 | `v1PrivatePostClientResetOrderlyKeyIpRestriction` | POST | `client/reset_orderly_key_ip_restriction` | 6 |
@@ -155,6 +175,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivatePostNotificationInboxMarkRead` | POST | `notification/inbox/mark_read` | 60 |
 | `v1PrivatePostNotificationInboxMarkReadAll` | POST | `notification/inbox/mark_read_all` | 60 |
 | `v1PrivatePostClientLeverage` | POST | `client/leverage` | 120 |
+| `v1PrivatePostClientLeverages` | POST | `client/leverages` | 120 |
 | `v1PrivatePostClientMarginMode` | POST | `client/margin_mode` | 1 |
 | `v1PrivatePostPositionMargin` | POST | `position_margin` | 1 |
 | `v1PrivatePostClientMaintenanceConfig` | POST | `client/maintenance_config` | 60 |
@@ -169,6 +190,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivatePostReferralUpdate` | POST | `referral/update` | 10 |
 | `v1PrivatePostReferralBind` | POST | `referral/bind` | 10 |
 | `v1PrivatePostReferralEditSplit` | POST | `referral/edit_split` | 10 |
+| `v1PrivatePostReferralEditRefereeDescription` | POST | `referral/edit_referee_description` | 10 |
+| `v1PrivatePostReferralMultiLevelAdmin` | POST | `referral/multi_level/admin` | 10 |
+| `v1PrivatePostReferralMultiLevelAdminCreateAffiliate` | POST | `referral/multi_level/admin/create/affiliate` | 10 |
+| `v1PrivatePostReferralMultiLevelAdminResetAffiliate` | POST | `referral/multi_level/admin/reset/affiliate` | 10 |
+| `v1PrivatePostReferralMultiLevelAdminUpdate` | POST | `referral/multi_level/admin/update` | 10 |
+| `v1PrivatePostReferralMultiLevelAdminUpdateAffiliate` | POST | `referral/multi_level/admin/update/affiliate` | 10 |
+| `v1PrivatePostReferralMultiLevelClaimCode` | POST | `referral/multi_level/claim_code` | 10 |
+| `v1PrivatePostReferralMultiLevelRebateRateSetDefault` | POST | `referral/multi_level/rebate_rate/set_default` | 10 |
+| `v1PrivatePostReferralMultiLevelRebateRateUpdate` | POST | `referral/multi_level/rebate_rate/update` | 10 |
 | `v1PrivatePutOrder` | PUT | `order` | 1 |
 | `v1PrivatePutAlgoOrder` | PUT | `algo/order` | 1 |
 | `v1PrivateDeleteOrder` | DELETE | `order` | 1 |
@@ -179,4 +209,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateDeleteOrders` | DELETE | `orders` | 1 |
 | `v1PrivateDeleteBatchOrder` | DELETE | `batch-order` | 1 |
 | `v1PrivateDeleteClientBatchOrder` | DELETE | `client/batch-order` | 1 |
+
+## v2
+
+| Method | HTTP | Endpoint | Cost |
+| --- | --- | --- | --- |
+| `v2PrivatePostInternalTransfer` | POST | `internal_transfer` | 1 |
 

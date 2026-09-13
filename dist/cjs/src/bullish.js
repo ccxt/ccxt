@@ -159,15 +159,22 @@ class bullish extends bullish$1["default"] {
                         'v1/time': { 'cost': 1 },
                         'v1/assets': { 'cost': 1 },
                         'v1/assets/{symbol}': { 'cost': 1 },
+                        'v1/vol-grids': { 'cost': 1 },
+                        'v1/assets/{symbol}/vol-grid': { 'cost': 1 },
                         'v1/markets': { 'cost': 1 },
                         'v1/markets/{symbol}': { 'cost': 1 },
+                        'v1/history/markets': { 'cost': 1 },
                         'v1/history/markets/{symbol}': { 'cost': 1 },
                         'v1/markets/{symbol}/orderbook/hybrid': { 'cost': 1 },
                         'v1/markets/{symbol}/trades': { 'cost': 1 },
                         'v1/markets/{symbol}/tick': { 'cost': 1 },
                         'v1/markets/{symbol}/candle': { 'cost': 1 },
+                        'v1/markets/{symbol}/auctions': { 'cost': 1 },
+                        'v1/markets/{symbol}/auctions/noii': { 'cost': 1 },
                         'v1/history/markets/{symbol}/trades': { 'cost': 1 },
                         'v1/history/markets/{symbol}/funding-rate': { 'cost': 1 },
+                        'v1/history/markets/{symbol}/auctions': { 'cost': 1 },
+                        'v1/history/option-trades': { 'cost': 1 },
                         'v1/index-prices': { 'cost': 1 },
                         'v1/index-prices/{assetSymbol}': { 'cost': 1 },
                         'v1/expiry-prices/{symbol}': { 'cost': 1 },
@@ -180,6 +187,7 @@ class bullish extends bullish$1["default"] {
                         'v2/orders': { 'cost': 1 },
                         'v2/history/orders': { 'cost': 1 },
                         'v2/orders/{orderId}': { 'cost': 1 },
+                        'v2/orders/client-order-id/{clientOrderId}': { 'cost': 1 },
                         'v2/amm-instructions': { 'cost': 1 },
                         'v2/amm-instructions/{instructionId}': { 'cost': 1 },
                         'v1/wallets/transactions': { 'cost': 1 },
@@ -207,6 +215,9 @@ class bullish extends bullish$1["default"] {
                         'v2/otc-trades': { 'cost': 1 },
                         'v2/otc-trades/{otcTradeId}': { 'cost': 1 },
                         'v2/otc-trades/unconfirmed-trade': { 'cost': 1 },
+                        'v2/otc-trades/delegated-accounts': { 'cost': 1 },
+                        'v2/idb/delegated-accounts': { 'cost': 1 },
+                        'v2/idb/otc-trades': { 'cost': 1 },
                     },
                     'post': {
                         'v2/orders': { 'cost': 5 },
@@ -215,10 +226,13 @@ class bullish extends bullish$1["default"] {
                         'v1/wallets/withdrawal': { 'cost': 1 },
                         'v2/users/login': { 'cost': 1 },
                         'v1/simulate-portfolio-margin': { 'cost': 1 },
+                        'v1/bulk-simulate-portfolio-margin': { 'cost': 1 },
                         'v1/wallets/self-hosted/initiate': { 'cost': 1 },
                         'v2/mmp-configuration': { 'cost': 1 },
                         'v2/otc-trades': { 'cost': 1 },
                         'v2/otc-command': { 'cost': 1 },
+                        'v2/idb/otc-trades': { 'cost': 1 },
+                        'v2/idb/otc-command': { 'cost': 1 },
                     },
                 },
             },
@@ -547,7 +561,7 @@ class bullish extends bullish$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetV1Markets(params);
@@ -1142,7 +1156,7 @@ class bullish extends bullish$1["default"] {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker = undefined;
-        if (isTaker) {
+        if (isTaker === true) {
             takerOrMaker = 'taker';
         }
         else {
@@ -1425,7 +1439,7 @@ class bullish extends bullish$1["default"] {
             return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, params, maxLimit);
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request = {
@@ -1486,7 +1500,7 @@ class bullish extends bullish$1["default"] {
         await Promise.all([this.loadMarkets(), this.handleToken()]);
         const tradingAccountId = await this.loadAccount(params);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             params = this.handlePaginationParams('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params, 100);
         }
@@ -1819,7 +1833,7 @@ class bullish extends bullish$1["default"] {
             request['type'] = type.toUpperCase();
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             params = this.omit(params, 'postOnly');
             request['type'] = 'POST_ONLY';
         }
@@ -2682,7 +2696,7 @@ class bullish extends bullish$1["default"] {
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2972,7 +2986,7 @@ class bullish extends bullish$1["default"] {
         }
         if (method === 'GET') {
             const query = this.urlencode(request);
-            if (query.length) {
+            if (query.length > 0) {
                 url += '?' + query;
             }
         }

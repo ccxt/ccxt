@@ -97,6 +97,50 @@ public class DeepcoinApi extends Exchange
     }
 
     /**
+     * Calls the publicGetDeepcoinMarketMarkPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketMarkPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetDeepcoinMarketMarkPrice", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetDeepcoinMarketOpenInterestVolume endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketOpenInterestVolume (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetDeepcoinMarketOpenInterestVolume", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetDeepcoinMarketLongShortRatio endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketLongShortRatio (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetDeepcoinMarketLongShortRatio", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetDeepcoinMarketTakerVolume endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketTakerVolume (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetDeepcoinMarketTakerVolume", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetDeepcoinMarketStepMargin endpoint.
      *
      * @param optionalArgs the request parameters
@@ -152,6 +196,17 @@ public class DeepcoinApi extends Exchange
     }
 
     /**
+     * Calls the privateGetDeepcoinAccountAllBalances endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountAllBalances (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetDeepcoinAccountAllBalances", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetDeepcoinAccountBills endpoint.
      *
      * @param optionalArgs the request parameters
@@ -174,6 +229,39 @@ public class DeepcoinApi extends Exchange
     }
 
     /**
+     * Calls the privateGetDeepcoinAccountTradeFee endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountTradeFee (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetDeepcoinAccountTradeFee", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetDeepcoinAccountLeverageInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountLeverageInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetDeepcoinAccountLeverageInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetDeepcoinAccountPositionsHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountPositionsHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetDeepcoinAccountPositionsHistory", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetDeepcoinTradeFills endpoint.
      *
      * @param optionalArgs the request parameters
@@ -193,6 +281,17 @@ public class DeepcoinApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeOrderByID (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeOrderByID", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetDeepcoinTradeOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetDeepcoinTradeOrder", optionalArgs);
     }
 
     /**
@@ -427,6 +526,17 @@ public class DeepcoinApi extends Exchange
     }
 
     /**
+     * Calls the privateGetDeepcoinSubAccountSubAccountApikey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinSubAccountSubAccountApikey (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetDeepcoinSubAccountSubAccountApikey", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostDeepcoinAccountSetLeverage endpoint.
      *
      * @param optionalArgs the request parameters
@@ -515,6 +625,17 @@ public class DeepcoinApi extends Exchange
     }
 
     /**
+     * Calls the privatePostDeepcoinTradeAmendTriggerOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeAmendTriggerOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDeepcoinTradeAmendTriggerOrder", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostDeepcoinTradeBatchClosePosition endpoint.
      *
      * @param optionalArgs the request parameters
@@ -545,6 +666,28 @@ public class DeepcoinApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeClosePositionByIds (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeClosePositionByIds", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostDeepcoinTradeIncreasePosition endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeIncreasePosition (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDeepcoinTradeIncreasePosition", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostDeepcoinTradeMergePositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeMergePositions (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDeepcoinTradeMergePositions", optionalArgs);
     }
 
     /**
@@ -600,6 +743,39 @@ public class DeepcoinApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinAssetTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinAssetTransfer", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostDeepcoinSubAccountCreateSubAccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinSubAccountCreateSubAccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDeepcoinSubAccountCreateSubAccount", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostDeepcoinSubAccountSubAccountApikey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinSubAccountSubAccountApikey (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDeepcoinSubAccountSubAccountApikey", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostDeepcoinSubAccountDeleteSubAccountApikey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinSubAccountDeleteSubAccountApikey (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDeepcoinSubAccountDeleteSubAccountApikey", optionalArgs);
     }
 
 }

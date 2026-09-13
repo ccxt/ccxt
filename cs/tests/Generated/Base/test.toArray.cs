@@ -12,17 +12,17 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object obj1 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj1 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "b", 3 },
                 { "c", 2 },
             };
-            object obj2 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj2 = new Dictionary<string, object>() {
                 { "a", "x" },
                 { "b", 2 },
             };
-            object result1 = exchange.toArray(obj1);
-            object result2 = exchange.toArray(obj2);
+            IList<object> result1 = exchange.toArray(obj1);
+            IList<object> result2 = exchange.toArray(obj2);
             // we can't guarantee order of values in GO lang
             // AssertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
             // AssertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);

@@ -16,7 +16,7 @@ public class TestFetchMarginMode extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchMarginMode";
+        String method = "fetchMarginMode";
         Object marginMode = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginMode", new Object[]{symbol})).join();
         TestMarginMode.testMarginMode(exchange, skippedProperties, method, marginMode);
         return true;

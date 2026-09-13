@@ -294,7 +294,9 @@ public class ArrayCacheByTimestamp : BaseCache
         {
             return this.newUpdates;
         }
-        var limit = (int)limit2;
+        // the caller's `limit` is a boxed core argument, now narrowed to Int64 -- an
+        // unbox-cast binds by exact type and throws InvalidCastException on Int64.
+        var limit = Convert.ToInt32(limit2);
         return Math.Min(this.newUpdates, limit);
     }
 

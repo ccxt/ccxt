@@ -349,7 +349,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    fetchVolatilityHistory(code: string, params?: {}): Promise<List>;
+    fetchVolatilityHistory(code: string, params?: {}): Promise<Dict[]>;
     parseVolatilityHistory(volatility: any): List;
     /**
      * @method

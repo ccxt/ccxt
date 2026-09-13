@@ -18,8 +18,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import Exchange from '../abstract/prediction/limitless.js';
-import type {
-    int,
+import type { int,
     Int, Str, Num, Dict, List,
     Strings,
     Market, PredictionOrderBook, OHLCV,
@@ -224,7 +223,7 @@ export default class limitless extends Exchange {
         const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         let allRaw: any[] = [];
         const queriesLength = queries.length;
-        if (queries && queriesLength > 0) {
+        if (queriesLength > 0) {
             const requestedLimit = this.safeInteger (params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
@@ -238,7 +237,7 @@ export default class limitless extends Exchange {
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const slug = this.safeString (raw, 'slug');
-                    if (slug && !(slug in seen)) {
+                    if ((slug !== undefined && slug !== '') && !(slug in seen)) {
                         seen[slug] = true;
                         allRaw.push (raw);
                     }
@@ -288,7 +287,7 @@ export default class limitless extends Exchange {
                     const rawPageMarkets = this.safeList (response, 'data', responseRows);
                     const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
                     const pageMarketsLength = page_markets.length;
-                    if (!page_markets || pageMarketsLength === 0) {
+                    if (pageMarketsLength === 0) {
                         break;
                     }
                     for (let i = 0; i < page_markets.length; i++) {
@@ -310,10 +309,10 @@ export default class limitless extends Exchange {
         for (let i = 0; i < expandedRaw.length; i++) {
             const raw = expandedRaw[i];
             const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
-            const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
+            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug (groupId) : undefined;
             const m = this.parseMarket (raw);
             markets.push (m);
-            if (eventKey) {
+            if ((eventKey !== undefined) && (eventKey !== '')) {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
@@ -425,12 +424,12 @@ export default class limitless extends Exchange {
         const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], slug);
         // CTF condition id — needed to redeem a resolved winning position
         const conditionId = this.safeString (raw, 'conditionId');
-        const tokens = this.safeValue (raw, 'tokens', {});
+        const tokens = this.safeDict (raw, 'tokens', {});
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool (raw, 'expired', false);
         const marketStatus = this.safeString (raw, 'status');
-        const active = !isExpired && (marketStatus === 'FUNDED');
+        const active = (isExpired !== true) && (marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         const expiryTimestamp = this.safeInteger (raw, 'expirationTimestamp');
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -836,6 +835,10 @@ export default class limitless extends Exchange {
         const groupId = this.safeString (event, 'address', this.safeString (event, 'groupId', this.safeString (event, 'slug')));
         const endDate = this.safeString (event, 'deadline', this.safeString (event, 'expiresAt'));
         const title = this.safeString (event, 'title', groupId);
+        const hasGroupId = (groupId !== undefined) && (groupId !== '');
+        const eventSlug = hasGroupId ? this.shortenSlug (groupId) : undefined;
+        const hasEndDate = (endDate !== undefined) && (endDate !== '');
+        const endTimestamp = hasEndDate ? this.parse8601 (endDate) : undefined;
         const markets: Market[] = [];
         const rawMarkets = this.safeList (event, 'markets', []);
         // aggregate 24h volume across the markets so sort by volume works
@@ -859,7 +862,7 @@ export default class limitless extends Exchange {
         return this.extend ({
             'id': groupId,
             'slug': groupId,
-            'event': groupId ? this.shortenSlug (groupId) : undefined,
+            'event': eventSlug,
             'title': title,
             'description': this.safeString (event, 'description'),
             'markets': markets,
@@ -873,7 +876,7 @@ export default class limitless extends Exchange {
             'tags': this.safeList (event, 'tags'),
             'created': this.parse8601 (this.safeString (event, 'createdAt')),
             'createdDatetime': this.safeString (event, 'createdAt'),
-            'end': endDate ? this.parse8601 (endDate) : undefined,
+            'end': endTimestamp,
             'endDatetime': endDate,
             'lastUpdatedAt': this.parse8601 (this.safeString (event, 'updatedAt')),
             'resolutionSource': this.safeString (event, 'resolutionSource'),
@@ -1227,7 +1230,7 @@ export default class limitless extends Exchange {
             'slug': slug,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.limitlessPublicGetMarketsSlugEvents (this.extend (request, params));
         //
@@ -1439,7 +1442,7 @@ export default class limitless extends Exchange {
             let pointTs = this.safeInteger (point, 'timestamp');
             if (pointTs === undefined) {
                 const tsString = this.safeString (point, 'timestamp');
-                pointTs = tsString ? this.parse8601 (tsString) : undefined;
+                pointTs = (tsString !== undefined && tsString !== '') ? this.parse8601 (tsString) : undefined;
             } else if (pointTs < 1000000000000) {
                 // old responses may return unix seconds
                 pointTs = pointTs * 1000;
@@ -2049,7 +2052,7 @@ export default class limitless extends Exchange {
         const tradeWalletOption = this.safeString (accountInfo, 'tradeWalletOption');
         const usesSmartWallet = (tradeWalletOption === 'smartWallet');
         const walletFromAccount = (usesSmartWallet) ? this.safeString (accountInfo, 'smartWallet') : this.safeString (accountInfo, 'account');
-        let maker = this.walletAddress ? this.walletAddress : walletFromAccount;
+        let maker = (this.walletAddress !== '') ? this.walletAddress : walletFromAccount;
         [ maker, params ] = this.handleOptionAndParams (params, 'createOrder', 'maker', maker);
         try {
             this.checkAddress (maker);
@@ -2645,9 +2648,9 @@ export default class limitless extends Exchange {
         if (rawSide.indexOf ('limit') >= 0) {
             type = 'limit';
             takerOrMaker = 'maker';
-        if (rawSide === undefined) {
-            throw new ExchangeError (this.id + ' method() missing rawSide');
-        }
+            if (rawSide === undefined) {
+                throw new ExchangeError (this.id + ' method() missing rawSide');
+            }
         } else if (rawSide.indexOf ('market') >= 0) {
             type = 'market';
             takerOrMaker = 'taker';
@@ -2933,7 +2936,7 @@ export default class limitless extends Exchange {
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const rawSlug = this.safeString (raw, 'slug');
-                    if (rawSlug && !(rawSlug in seen)) {
+                    if ((rawSlug !== undefined && rawSlug !== '') && !(rawSlug in seen)) {
                         seen[rawSlug] = true;
                         rawMarkets.push (raw);
                     }
@@ -2952,10 +2955,10 @@ export default class limitless extends Exchange {
                 rawMarkets.push (listRaw[i]);
             }
         }
-        if (!this.events) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
         const eventGroups: Dict = {};
@@ -2966,13 +2969,13 @@ export default class limitless extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = expandedMarkets[i];
             const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
-            const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
+            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug (groupId) : undefined;
             const m = this.parseMarket (raw);
             if (m === undefined) {
                 throw new ExchangeError (this.id + ' fetchEvents() missing m');
             }
             this.markets[(m as Dict)['market']] = m;
-            if (eventKey) {
+            if ((eventKey !== undefined) && (eventKey !== '')) {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
@@ -3119,22 +3122,22 @@ export default class limitless extends Exchange {
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [section] the api group and access level
+     * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, section: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup: string = typeof section === 'string' ? section : section[0];
-        const access: string = typeof section === 'string' ? 'public' : section[1];
+    override sign (path: any, api: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencodeWithArrayRepeat (query);
-        if (method === 'GET' && querystring) {
+        if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
         if (access === 'private') {
@@ -3142,7 +3145,7 @@ export default class limitless extends Exchange {
             if (headers === undefined) {
                 headers = {};
             }
-            if (method === 'POST' && querystring) {
+            if (method === 'POST' && (querystring !== '')) {
                 bodyString = this.json (query);
                 body = bodyString;
                 const headerDefaults = (headers !== undefined) ? headers : {};
@@ -3157,10 +3160,13 @@ export default class limitless extends Exchange {
             const payload = timestamp + newline + method + newline + url + newline + bodyString;
             const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), sha256, 'base64');
             headers = this.extend (headers, {
-                'lmts-api-key': this.apiKey,
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             });
+            const headerKey = 'lmts-api' + '-key'; // concatenating because of the php version
+            const headersKey: Dict = {};
+            headersKey[headerKey] = this.apiKey;
+            headers = this.extend (headers, headersKey);
         }
         url = baseUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

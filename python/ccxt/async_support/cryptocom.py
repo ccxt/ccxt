@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -228,6 +228,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/get-deposit-history': {'cost': 10 / 3},
                             'private/get-fee-rate': {'cost': 2},
                             'private/get-instrument-fee-rate': {'cost': 2},
+                            'private/get-fee-credit-balances': {'cost': 10 / 3},
                             'private/fiat/fiat-deposit-info': {'cost': 10 / 3},
                             'private/fiat/fiat-deposit-history': {'cost': 10 / 3},
                             'private/fiat/fiat-withdraw-history': {'cost': 10 / 3},
@@ -247,6 +248,13 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/staking/get-convert-history': {'cost': 2},
                             'private/create-isolated-margin-transfer': {'cost': 10 / 3},
                             'private/change-isolated-margin-leverage': {'cost': 10 / 3},
+                            'private/bot/create-trading-bot': {'cost': 10 / 3},
+                            'private/bot/update-trading-bot': {'cost': 10 / 3},
+                            'private/bot/terminate-trading-bot': {'cost': 10 / 3},
+                            'private/bot/pause-trading-bot': {'cost': 10 / 3},
+                            'private/bot/resume-trading-bot': {'cost': 10 / 3},
+                            'private/bot/get-trading-bots': {'cost': 10 / 3},
+                            'private/bot/get-trading-bot-executions': {'cost': 10 / 3},
                         },
                     },
                 },
@@ -817,8 +825,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 symbolOptionType = 'C' if (optionType == 'call') else 'P'
                 symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
                 contract = True
-            isLinear = True if (contract) else None
-            isInverse = False if (contract) else None
+            isLinear = True if (contract is True) else None
+            isInverse = False if (contract is True) else None
             result.append({
                 'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
@@ -830,7 +838,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': ((marginBuyEnabled) or (marginSellEnabled)),
+                'margin': ((marginBuyEnabled is True) or (marginSellEnabled is True)),
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -1088,7 +1096,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1160,7 +1168,7 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {
             'instrument_name': market['id'],
         }
-        if limit:
+        if (limit is not None) and (limit != 0):
             request['depth'] = min(limit, 50)  # max 50
         response = await self.v1PublicGetPublicGetBook(self.extend(request, params))
         #
@@ -1190,7 +1198,7 @@ class cryptocom(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         responseResult = self.safe_dict(response, 'result', {})
         data = self.safe_list(responseResult, 'data', [])
-        positionBalances = self.safe_value(data[0], 'position_balances', [])
+        positionBalances = self.safe_list(data[0], 'position_balances', [])
         result = {'info': response}
         for i in range(0, len(positionBalances)):
             balance = positionBalances[i]
@@ -1351,7 +1359,7 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if (postOnly) or (timeInForce == 'PO'):
+        if (postOnly is True) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'ref_price'])
@@ -1548,7 +1556,7 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if (postOnly) or (timeInForce == 'PO'):
+        if (postOnly is True) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'ref_price'])
@@ -1965,7 +1973,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_transaction(result, currency)
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -2920,7 +2928,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'instrument_name': market['id'],
@@ -3004,7 +3012,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request = {
             'instrument_name': market['id'],
@@ -3180,8 +3188,8 @@ class cryptocom(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'hedged': None,
-            'side': 'buy' if Precise.string_gt(amount, '0') else 'sell',
-            'contracts': Precise.string_abs(amount),
+            'side': 'long' if Precise.string_gt(amount, '0') else 'short',
+            'contracts': self.parse_number(Precise.string_abs(amount)),
             'contractSize': market['contractSize'],
             'entryPrice': None,
             'markPrice': None,
@@ -3355,8 +3363,8 @@ class cryptocom(Exchange, ImplicitAPI):
             symbol = self.symbols[i]
             market = self.market(symbol)
             isSwap = market['swap']
-            takerFeeKey = 'effective_deriv_taker_rate_bps' if isSwap else 'effective_spot_taker_rate_bps'
-            makerFeeKey = 'effective_deriv_maker_rate_bps' if isSwap else 'effective_spot_maker_rate_bps'
+            takerFeeKey = 'effective_deriv_taker_rate_bps' if (isSwap is True) else 'effective_spot_taker_rate_bps'
+            makerFeeKey = 'effective_deriv_maker_rate_bps' if (isSwap is True) else 'effective_spot_maker_rate_bps'
             tradingFee = {
                 'info': response,
                 'symbol': symbol,
@@ -3393,7 +3401,7 @@ class cryptocom(Exchange, ImplicitAPI):
         url = self.urls['api'][type] + '/' + path
         query = self.omit(params, self.extract_params(path))
         if access == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -3413,7 +3421,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'nonce': nonce,
             })
             # fix issue https://github.com/ccxt/ccxt/issues/11179
-            # php always encodes dictionaries
+            # php always encodes dictionaries as arrays
             # if an array is empty, php will put it in square brackets
             # python and js will put it in curly brackets
             # the code below checks and replaces those brackets in empty requests

@@ -320,7 +320,7 @@ export default class bitrue extends bitrueRest {
         let url = undefined;
         let channel = undefined;
         let cbId = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             const baseIdLower = this.safeStringLower(market, 'baseId');
             const quoteIdLower = this.safeStringLower(market, 'quoteId');
             const wsId = 'e_' + baseIdLower + quoteIdLower;
@@ -419,7 +419,7 @@ export default class bitrue extends bitrueRest {
         const symbols = Object.keys(markets);
         for (let i = 0; i < symbols.length; i++) {
             const candidate = markets[symbols[i]];
-            if (!candidate['swap']) {
+            if (candidate['swap'] !== true) {
                 continue;
             }
             const baseId = this.safeStringLower(candidate, 'baseId', '');
@@ -446,7 +446,7 @@ export default class bitrue extends bitrueRest {
             return undefined;
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             return rawQuantity;
         }
         const contractSize = this.safeNumber(market, 'contractSize', 1);
@@ -469,7 +469,7 @@ export default class bitrue extends bitrueRest {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' watchTrades is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower(market, 'baseId');
@@ -581,7 +581,7 @@ export default class bitrue extends bitrueRest {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' watchOHLCV is only supported for swap markets');
         }
         const futuresTimeframes = this.safeDict(this.options, 'futuresTimeframes', {});
@@ -683,7 +683,7 @@ export default class bitrue extends bitrueRest {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' watchTicker is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower(market, 'baseId');

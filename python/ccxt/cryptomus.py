@@ -173,6 +173,7 @@ class cryptomus(Exchange, ImplicitAPI):
                     'get': {
                         'v2/user-api/exchange/markets': {'cost': 1},  # done
                         'v2/user-api/exchange/market/price': {'cost': 1},  # not used
+                        'v2/user-api/exchange/markets/price': {'cost': 1},
                         'v1/exchange/market/assets': {'cost': 1},  # done
                         'v1/exchange/market/order-book/{currencyPair}': {'cost': 1},  # done
                         'v1/exchange/market/tickers': {'cost': 1},  # done
@@ -188,13 +189,27 @@ class cryptomus(Exchange, ImplicitAPI):
                         'v2/user-api/payment/services': {'cost': 1},
                         'v2/user-api/payout/services': {'cost': 1},
                         'v2/user-api/transaction/list': {'cost': 1},
+                        'v2/user-api/balance': {'cost': 1},
+                        'v2/user-api/convert/direction-list': {'cost': 1},
+                        'v2/user-api/convert/order-list': {'cost': 1},
+                        'v2/user-api/aml/check/balance': {'cost': 1},
+                        'v2/user-api/aml/check/currencies': {'cost': 1},
+                        'v2/user-api/aml/check/packages': {'cost': 1},
+                        'v2/user-api/aml/check/request': {'cost': 1},
+                        'v2/user-api/aml/check/request/{id}': {'cost': 1},
                     },
                     'post': {
                         'v2/user-api/exchange/orders': {'cost': 1},  # done
                         'v2/user-api/exchange/orders/market': {'cost': 1},  # done
+                        'v2/user-api/convert': {'cost': 1},
+                        'v2/user-api/convert/calculate': {'cost': 1},
+                        'v2/user-api/convert/limit': {'cost': 1},
+                        'v2/user-api/aml/check/request': {'cost': 1},
+                        'v2/user-api/aml/check/request/{id}/report/send': {'cost': 1},
                     },
                     'delete': {
                         'v2/user-api/exchange/orders/{orderId}': {'cost': 1},  # done
+                        'v2/user-api/convert/{orderUuid}': {'cost': 1},
                     },
                 },
             },
@@ -414,7 +429,7 @@ class cryptomus(Exchange, ImplicitAPI):
 
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         # currency here is array of networks
-        id = None  # all entries have same id, were grouped by
+        id = None  # all entries have same id, as they were grouped by
         code = None
         networks = {}
         for i in range(0, len(rawCurrency)):
@@ -695,7 +710,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders(only for limit orders)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: *market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *market buy only* the quote quantity that can be used as an alternative for the amount
         :param str [params.clientOrderId]: a unique identifier for the order(optional)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -727,7 +742,7 @@ class cryptomus(Exchange, ImplicitAPI):
                     elif cost is None:
                         cost = Precise.string_mul(amountToString, priceToString)
                 else:
-                    cost = cost if cost else amountToString
+                    cost = cost if (cost is not None and cost != '') else amountToString
                 request['value'] = cost
             else:
                 request['quantity'] = amountToString

@@ -18,10 +18,10 @@ public partial class BaseTest
                     } },
                 } },
             });
-            object initialParams = new Dictionary<string, object>() {
+            Dictionary<string, object> initialParams = new Dictionary<string, object>() {
                 { "defaultType", "valueFromParam" },
             };
-            object market = exchange.safeMarket("TEST1/TEST2");
+            Dictionary<string, object> market = exchange.safeMarket("TEST1/TEST2");
             ((IDictionary<string,object>)market)["type"] = "spot";
             //
             // ########### test different variations ###########
@@ -84,7 +84,7 @@ public partial class BaseTest
                 } },
             });
             exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-            object currencyCode = "ETH"; // todo: in future with complex cases
+            string currencyCode = "ETH"; // todo: in future with complex cases
             // no-case
             var request1params1Variable = exchange.handleRequestNetwork(new Dictionary<string, object>() {
             { "network", "XYZ" },

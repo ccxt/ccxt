@@ -77,7 +77,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 			Assert(!IsEqual(value, nil), Add(Add(ToString(i), " index is expected to have a value"), logText))
 			// because of other langs, this is needed for arrays
 			var typeAssertion any = AssertType(exchange, map[string]any{}, entry, i, format)
-			Assert(typeAssertion, Add(Add(ToString(i), " index does not have an expected type "), logText))
+			Assert(IsEqual(typeAssertion, true), Add(Add(ToString(i), " index does not have an expected type "), logText))
 		}
 	} else {
 		Assert(exchange.IsDictionary(entry), Add("entry is not a dict", logText))
@@ -101,7 +101,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 			// add exclusion for info key, as it can be any type
 			if IsTrue(!IsEqual(key, "info")) {
 				var typeAssertion any = AssertType(exchange, map[string]any{}, entry, key, format)
-				Assert(typeAssertion, Add(Add(Add("\"", StringValue(key)), "\" key is neither undefined, neither of expected type"), logText))
+				Assert(IsEqual(typeAssertion, true), Add(Add(Add("\"", StringValue(key)), "\" key is neither undefined, neither of expected type"), logText))
 				if IsTrue(deep) {
 					if IsTrue(IsTrue(exchange.IsDictionary(value)) || IsTrue(IsArray(value))) {
 						AssertStructure(exchange, skippedProperties, method, value, GetValue(format, key), emptyAllowedFor, deep)
@@ -135,12 +135,12 @@ func AssertTimestamp(exchange ccxt.ICoreExchange, skippedProperties any, method 
 	if IsTrue(!IsEqual(ts, nil)) {
 		Assert(IsNumber(ts), Add("timestamp is not numeric", logText))
 		Assert(IsInt(ts), Add("timestamp should be an integer", logText))
-		var minTs any = 1230940800000                                                                                                       // 03 Jan 2009 - first block
-		var maxTs any = 2147483648000                                                                                                       // 19 Jan 2038 - max int
+		var minTs int = 1230940800000                                                                                                       // 03 Jan 2009 - first block
+		var maxTs int = 2147483648000                                                                                                       // 19 Jan 2038 - max int
 		Assert(IsGreaterThan(ts, minTs), Add(Add(Add("timestamp is impossible to be before ", ToString(minTs)), " (03.01.2009)"), logText)) // 03 Jan 2009 - first block
 		Assert(IsLessThan(ts, maxTs), Add(Add(Add("timestamp more than ", ToString(maxTs)), " (19.01.2038)"), logText))                     // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
 		if IsTrue(!IsEqual(nowToCheck, nil)) {
-			var maxMsOffset any = 60000 // 1 min
+			var maxMsOffset int = 60000 // 1 min
 			Assert(IsLessThan(ts, Add(nowToCheck, maxMsOffset)), Add(Add(Add(Add(Add("returned item timestamp (", exchange.Iso8601(ts)), ") is ahead of the current time ("), exchange.Iso8601(nowToCheck)), ")"), logText))
 		}
 	}
@@ -420,7 +420,7 @@ func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties any, 
 		AssertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8") // in real-world cases, there would not be less than that
 	}
 }
-func FetchBestBidAsk(exchange ccxt.ICoreExchange, method any, symbol any) <-chan any {
+func FetchBestBidAskAsync(exchange ccxt.ICoreExchange, method any, symbol any) <-chan any {
 	ch := make(chan any, 1)
 	go fetchBestBidAskBody(ch, exchange, method, symbol)
 	return ch
@@ -433,10 +433,10 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	var bestBid any = nil
 	var bestAsk any = nil
 	var usedMethod any = nil
-	if IsTrue(GetValue(exchange.GetHas(), "fetchOrderBook")) {
+	if IsTrue(IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil))) && IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)))) {
 		usedMethod = "fetchOrderBook"
 
-		orderbook := (<-exchange.FetchOrderBook(symbol))
+		orderbook := (<-exchange.FetchOrderBookAsync(symbol))
 		PanicOnError(orderbook)
 		var bids any = exchange.SafeList(orderbook, "bids")
 		var asks any = exchange.SafeList(orderbook, "asks")
@@ -444,25 +444,25 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 		var bestAskArray any = exchange.SafeList(asks, 0)
 		bestBid = exchange.SafeNumber(bestBidArray, 0)
 		bestAsk = exchange.SafeNumber(bestAskArray, 0)
-	} else if IsTrue(GetValue(exchange.GetHas(), "fetchBidsAsks")) {
+	} else if IsTrue(IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), nil))) && IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), false)))) {
 		usedMethod = "fetchBidsAsks"
 
-		tickers := (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsks([]any{symbol}))
+		tickers := (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsksAsync([]any{symbol}))
 		PanicOnError(tickers)
 		var ticker any = exchange.SafeDict(tickers, symbol)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
-	} else if IsTrue(GetValue(exchange.GetHas(), "fetchTicker")) {
+	} else if IsTrue(IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), nil))) && IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), false)))) {
 		usedMethod = "fetchTicker"
 
-		ticker := (<-exchange.FetchTicker(symbol))
+		ticker := (<-exchange.FetchTickerAsync(symbol))
 		PanicOnError(ticker)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
-	} else if IsTrue(GetValue(exchange.GetHas(), "fetchTickers")) {
+	} else if IsTrue(IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), nil))) && IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), false)))) {
 		usedMethod = "fetchTickers"
 
-		tickers := (<-exchange.(ccxt.IFetchTickers).FetchTickers([]any{symbol}))
+		tickers := (<-exchange.(ccxt.IFetchTickers).FetchTickersAsync([]any{symbol}))
 		PanicOnError(tickers)
 		var ticker any = exchange.SafeDict(tickers, symbol)
 		bestBid = exchange.SafeNumber(ticker, "bid")
@@ -474,7 +474,7 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	ch <- []any{bestBid, bestAsk}
 	return nil
 }
-func FetchOrder(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <-chan any {
+func FetchOrderAsync(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <-chan any {
 	ch := make(chan any, 1)
 	go fetchOrderBody(ch, exchange, symbol, orderId, skippedProperties)
 	return ch
@@ -490,7 +490,7 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 	var methods_singular []any = []any{"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"}
 	for i := 0; IsLessThan(i, GetArrayLength(methods_singular)); i++ {
 		var singularFetchName any = GetValue(methods_singular, i)
-		if IsTrue(GetValue(exchange.GetHas(), singularFetchName)) {
+		if IsTrue(IsTrue((!IsEqual(GetValue(exchange.GetHas(), singularFetchName), nil))) && IsTrue((!IsEqual(GetValue(exchange.GetHas(), singularFetchName), false)))) {
 
 			currentOrder := (<-callDynamically(singularFetchName, originalId, symbol))
 			PanicOnError(currentOrder)
@@ -507,7 +507,7 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 		var methods_plural []any = []any{"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"}
 		for i := 0; IsLessThan(i, GetArrayLength(methods_plural)); i++ {
 			var pluralFetchName any = GetValue(methods_plural, i)
-			if IsTrue(GetValue(exchange.GetHas(), pluralFetchName)) {
+			if IsTrue(IsTrue((!IsEqual(GetValue(exchange.GetHas(), pluralFetchName), nil))) && IsTrue((!IsEqual(GetValue(exchange.GetHas(), pluralFetchName), false)))) {
 
 				orders := (<-callDynamically(pluralFetchName, symbol, sinceTime))
 				PanicOnError(orders)

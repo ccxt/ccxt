@@ -480,6 +480,41 @@ public partial class bybiteu : bybit
         return await this.callAsync<Dictionary<string, object>> ("publicGetV5EarnProduct",parameters);
     }
 
+    /// <summary>Calls the publicGetV5SpotXLaunchpoolProjectList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV5SpotXLaunchpoolProjectList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV5SpotXLaunchpoolProjectList",parameters);
+    }
+
+    /// <summary>Calls the publicGetV5SpotXPuzzleProjectList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV5SpotXPuzzleProjectList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV5SpotXPuzzleProjectList",parameters);
+    }
+
+    /// <summary>Calls the publicGetV5SpotXTokenSplashProjectList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV5SpotXTokenSplashProjectList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV5SpotXTokenSplashProjectList",parameters);
+    }
+
+    /// <summary>Calls the publicGetV5EventInstrumentsInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV5EventInstrumentsInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV5EventInstrumentsInfo",parameters);
+    }
+
+    /// <summary>Calls the publicGetV5EventOrderbook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV5EventOrderbook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV5EventOrderbook",parameters);
+    }
+
     /// <summary>Calls the privateGetV5MarketInstrumentsInfo endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetV5MarketInstrumentsInfo (object parameters = null)
@@ -1418,6 +1453,13 @@ public partial class bybiteu : bybit
         return await this.callAsync<Dictionary<string, object>> ("privateGetV5UserInvitationReferrals",parameters);
     }
 
+    /// <summary>Calls the privateGetV5UserInvitationCode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5UserInvitationCode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5UserInvitationCode",parameters);
+    }
+
     /// <summary>Calls the privateGetV5AffiliateAffUserList endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetV5AffiliateAffUserList (object parameters = null)
@@ -1444,6 +1486,13 @@ public partial class bybiteu : bybit
     public async Task<Dictionary<string, object>> privateGetV5SpotMarginTradeFlexibleAvailableInventory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetV5SpotMarginTradeFlexibleAvailableInventory",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5SpotMarginTradeFixedAvailableInventory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5SpotMarginTradeFixedAvailableInventory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5SpotMarginTradeFixedAvailableInventory",parameters);
     }
 
     /// <summary>Calls the privateGetV5SpotMarginTradeInterestRateHistory endpoint.</summary>
@@ -1684,6 +1733,20 @@ public partial class bybiteu : bybit
         return await this.callAsync<Dictionary<string, object>> ("privateGetV5CryptoLoanFixedRepaymentHistory",parameters);
     }
 
+    /// <summary>Calls the privateGetV5CryptoLoanFixedAvailableInventory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5CryptoLoanFixedAvailableInventory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5CryptoLoanFixedAvailableInventory",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5CryptoLoanFlexibleAvailableInventory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5CryptoLoanFlexibleAvailableInventory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5CryptoLoanFlexibleAvailableInventory",parameters);
+    }
+
     /// <summary>Calls the privateGetV5InsLoanProductInfos endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetV5InsLoanProductInfos (object parameters = null)
@@ -1822,6 +1885,83 @@ public partial class bybiteu : bybit
     public async Task<Dictionary<string, object>> privateGetV5EarnHourlyYield (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetV5EarnHourlyYield",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5EventOrderRealtime endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5EventOrderRealtime (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5EventOrderRealtime",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5EventOrderList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5EventOrderList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5EventOrderList",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5EventPositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5EventPositions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5EventPositions",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5EventTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5EventTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5EventTrades",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5EventSettlements endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5EventSettlements (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5EventSettlements",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5SpotXLaunchpoolUserCurrentStaking endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5SpotXLaunchpoolUserCurrentStaking (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5SpotXLaunchpoolUserCurrentStaking",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5SpotXTokenSplashUserActivityParams endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5SpotXTokenSplashUserActivityParams (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5SpotXTokenSplashUserActivityParams",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5RfqRfqDetailList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5RfqRfqDetailList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5RfqRfqDetailList",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5AlphaPredictionEngineStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5AlphaPredictionEngineStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5AlphaPredictionEngineStatus",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5AlphaPredictionPayTokenList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5AlphaPredictionPayTokenList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5AlphaPredictionPayTokenList",parameters);
+    }
+
+    /// <summary>Calls the privateGetV5AlphaPredictionSportsTimelineStages endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV5AlphaPredictionSportsTimelineStages (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV5AlphaPredictionSportsTimelineStages",parameters);
     }
 
     /// <summary>Calls the privatePostSpotV3PrivateOrder endpoint.</summary>
@@ -2837,6 +2977,132 @@ public partial class bybiteu : bybit
     public async Task<Dictionary<string, object>> privatePostV5EarnPlaceOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostV5EarnPlaceOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5EventQuotes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5EventQuotes (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5EventQuotes",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5EventCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5EventCancel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5EventCancel",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5SpotXLaunchpoolUserActivityLog endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5SpotXLaunchpoolUserActivityLog (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5SpotXLaunchpoolUserActivityLog",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5SpotXLaunchpoolUserHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5SpotXLaunchpoolUserHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5SpotXLaunchpoolUserHistory",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionEventDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionEventDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionEventDetail",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionOrderEstimate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionOrderEstimate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionOrderEstimate",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionBuy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionBuy (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionBuy",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionSell endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionSell (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionSell",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionOrderList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionOrderList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionOrderList",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionOrderBook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionOrderBook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionOrderBook",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionTokenPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionTokenPrice (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionTokenPrice",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionPriceHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionPriceHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionPriceHistory",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionPositionList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionPositionList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionPositionList",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionPositionHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionPositionHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionPositionHistory",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionPortfolioSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionPortfolioSummary (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionPortfolioSummary",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionSideMarketList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionSideMarketList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionSideMarketList",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionSportsMatchList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionSportsMatchList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionSportsMatchList",parameters);
+    }
+
+    /// <summary>Calls the privatePostV5AlphaPredictionSportsGroupStageDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV5AlphaPredictionSportsGroupStageDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV5AlphaPredictionSportsGroupStageDetail",parameters);
     }
 
 }

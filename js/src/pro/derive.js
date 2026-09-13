@@ -724,7 +724,7 @@ export default class derive extends deriveRest {
         }
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const methods = {

@@ -219,6 +219,8 @@ class coinone(Exchange, ImplicitAPI):
                         'transaction/krw/history': {'cost': 1},
                         'transaction/coin/history': {'cost': 1},
                         'transaction/coin/withdrawal/limit': {'cost': 1},
+                        'event/order-reward/programs': {'cost': 1},
+                        'event/order-reward/history': {'cost': 1},
                     },
                 },
             },
@@ -1045,7 +1047,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        # The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+        # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
@@ -1181,7 +1183,7 @@ class coinone(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             key = keys[i]
             value = walletAddress[key]
-            if (not value) or (value == '-1'):
+            if (value is None) or (value is None) or (value == '') or (value == '-1'):
                 continue
             parts = key.split('_')
             currencyId = self.safe_value(parts, 0)
@@ -1220,7 +1222,7 @@ class coinone(Exchange, ImplicitAPI):
             url = self.urls['api']['v2_1Private'] + '/'
         if api == 'public':
             url += request
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()

@@ -19,6 +19,8 @@ public class TestInit extends BaseTest
             (new TestExtend()).testExtend();
             (new TestDeepExtend()).testDeepExtend();
             (new TestCryptography()).testCryptography();
+            (new TestBase58ToBinary()).testBase58ToBinary();
+            (new TestBinaryToBase58()).testBinaryToBase58();
             (new TestDatetime()).testDatetime();
             (new TestDecimalToPrecision()).testDecimalToPrecision();
             (new TestNumberToString()).testNumberToString();
@@ -32,6 +34,7 @@ public class TestInit extends BaseTest
             (new TestGroupBy()).testGroupBy();
             (new TestFilterBy()).testFilterBy();
             (new TestHandleMethods()).testHandleMethods();
+            (new TestHandleHttpStatusCode()).testHandleHttpStatusCode();
             (new TestRemoveRepeatedElementsFromArray()).testRemoveRepeatedElementsFromArray();
             (new TestParsePrecision()).testParsePrecision();
             (new TestArraysConcat()).testArraysConcat();

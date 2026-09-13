@@ -182,6 +182,7 @@ class delta extends Exchange {
                         'users/update_mmp' => array( 'cost' => 1 ),
                         'users/reset_mmp' => array( 'cost' => 1 ),
                         'users/margin_mode' => array( 'cost' => 1 ),
+                        'users/trading_preferences' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'orders' => array( 'cost' => 1 ),
@@ -320,12 +321,12 @@ class delta extends Exchange {
                     // Margin required to place order with selected leverage and quantity is insufficient.
                     'insufficient_margin' => '\\ccxt\\InsufficientFunds', // array("error":array("code":"insufficient_margin","context":array("available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000")),"success":false)
                     'order_size_exceed_available' => '\\ccxt\\InvalidOrder', // The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
-                    'risk_limits_breached' => '\\ccxt\\BadRequest', // orders couldn't be placed will breach allowed risk limits.
+                    'risk_limits_breached' => '\\ccxt\\BadRequest', // orders couldn't be placed as it will breach allowed risk limits.
                     'invalid_contract' => '\\ccxt\\BadSymbol', // The contract/product is either doesn't exist or has already expired.
                     'immediate_liquidation' => '\\ccxt\\InvalidOrder', // Order will cause immediate liquidation.
                     'out_of_bankruptcy' => '\\ccxt\\InvalidOrder', // Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only' => '\\ccxt\\InvalidOrder', // Self matching is not allowed during auction.
-                    'immediate_execution_post_only' => '\\ccxt\\InvalidOrder', // orders couldn't be placed includes post only orders which will be immediately executed
+                    'immediate_execution_post_only' => '\\ccxt\\InvalidOrder', // orders couldn't be placed as it includes post only orders which will be immediately executed
                     'bad_schema' => '\\ccxt\\BadRequest', // array("error":array("code":"bad_schema","context":array("schema_errors":[array("code":"validation_error","message":"id is required","param":"")])),"success":false)
                     'invalid_api_key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_api_key"))
                     'invalid_signature' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_signature"))
@@ -1635,7 +1636,7 @@ class delta extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1643,7 +1644,7 @@ class delta extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
-        $limit = $limit ? $limit : 2000; // max 2000
+        $limit = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : 2000; // max 2000
         $until = $this->safe_integer_product($params, 'until', 0.001);
         $untilIsDefined = ($until !== null);
         if ($untilIsDefined) {
@@ -2041,7 +2042,7 @@ class delta extends Exchange {
             $request['client_order_id'] = $clientOrderId;
         }
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduce_only'] = $reduceOnly;
             $params = $this->omit($params, 'reduceOnly');
         }
@@ -2323,7 +2324,7 @@ class delta extends Exchange {
         return $this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $this->load_markets();
         $request = array(
             // 'product_ids' => $market['id'], // comma-separated
@@ -2670,7 +2671,7 @@ class delta extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -2978,7 +2979,7 @@ class delta extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -4154,7 +4155,7 @@ class delta extends Exchange {
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -4166,7 +4167,7 @@ class delta extends Exchange {
             );
             $auth = $method . $timestamp . $requestPath;
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $queryString = '?' . $this->urlencode($query);
                     $auth .= $queryString;
                     $url .= $queryString;

@@ -82,7 +82,7 @@ class whitebit extends \ccxt\async\whitebit {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -125,7 +125,7 @@ class whitebit extends \ccxt\async\whitebit {
         //     "id" => null
         // }
         //
-        $params = $this->safe_value($message, 'params', array());
+        $params = $this->safe_list($message, 'params', array());
         for ($i = 0; $i < count($params); $i++) {
             $data = $params[$i];
             $marketId = $this->safe_string($data, 7);
@@ -240,7 +240,7 @@ class whitebit extends \ccxt\async\whitebit {
         $orderbook = $this->orderbooks[$symbol];
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
-        if ($isSnapshot) {
+        if ($isSnapshot === true) {
             $snapshot = $this->parse_order_book($data, $symbol);
             $orderbook->reset($snapshot);
         } else {
@@ -817,7 +817,7 @@ class whitebit extends \ccxt\async\whitebit {
             return;
         }
         $fetchBalanceSnapshot = $this->handle_option('watchBalance', 'fetchBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot) {
+        if ($fetchBalanceSnapshot === true) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -970,12 +970,12 @@ class whitebit extends \ccxt\async\whitebit {
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $method, $subscription));
         } else {
-            $subscription = $this->safe_value($client->subscriptions, $method, array());
+            $subscription = $this->safe_dict($client->subscriptions, $method, array());
             $hasSymbolSubscription = true;
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $isSubscribed = $this->safe_bool($subscription, $marketId, false);
-            if (!$isSubscribed) {
+            if ($isSubscribed !== true) {
                 if ($marketId !== null) {
                     $subscription[$marketId] = true;
                 }
@@ -1035,18 +1035,11 @@ class whitebit extends \ccxt\async\whitebit {
         // the $authorized sentinel authenticate () has always returned - every
         // path below hands back that same value
         $authorized = 1;
-        // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393 => the handshake is gated on
-        // subscriptions['authenticated'], which watch () only registers once
-        // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
-        // every concurrent cold caller used to pass that gate, burn a
-        // rate-limited private REST call for its own websocket_token and push
-        // its own authorize frame down the shared socket. the flight is
-        // registered in $client->futures on the very $client that carries the
-        // handshake, under a key that is not one of the exchange's own
-        // messageHashes, and is settled through $client->resolve() /
-        // $client->reject() so every write to that map goes through the
-        // client's own accessors
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        // $token fetch, so concurrent cold callers would each burn a private REST call and push
+        // their own authorize frame. the flight lives in $client->futures of the handshake $client
+        // under a non-$messageHash key and settles only via $client->resolve() / $client->reject()
         $messageHash = 'authenticateFlight';
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             // a flight is already in progress - wake when the leader settles
@@ -1165,7 +1158,7 @@ class whitebit extends \ccxt\async\whitebit {
         // pong
         //    array( error => null, $result => "pong", $id => 0 )
         //
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         $result = $this->safe_string($message, 'result');
@@ -1198,7 +1191,7 @@ class whitebit extends \ccxt\async\whitebit {
 
     public function handle_subscription_status(Client $client, mixed $message, mixed $id) {
         // not every $method stores its $subscription
-        // object so we can't do indeById here
+        // as an object so we can't do indeById here
         $subs = $client->subscriptions;
         $values = is_array($subs) ? array_values($subs) : array();
         for ($i = 0; $i < count($values); $i++) {

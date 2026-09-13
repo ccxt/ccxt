@@ -138,6 +138,7 @@ class btcbox extends Exchange {
                 'private' => array(
                     'post' => array(
                         'balance' => array( 'cost' => 1 ),
+                        'order_history' => array( 'cost' => 1 ),
                         'trade_add' => array( 'cost' => 1 ),
                         'trade_cancel' => array( 'cost' => 1 ),
                         'trade_list' => array( 'cost' => 1 ),
@@ -812,7 +813,7 @@ class btcbox extends Exchange {
         //
         $orders = $this->parse_orders($response, $market, $since, $limit);
         // status (open/closed/canceled) is null
-        // btcbox does not return status, but we know it's 'open' queried for open $orders
+        // btcbox does not return status, but we know it's 'open' as we queried for open $orders
         if ($type === 'open') {
             for ($i = 0; $i < count($orders); $i++) {
                 $orders[$i]['status'] = 'open';
@@ -866,7 +867,7 @@ class btcbox extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($api === 'webApi') {

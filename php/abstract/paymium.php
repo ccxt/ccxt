@@ -86,6 +86,12 @@ abstract class paymium extends \ccxt\Exchange {
         return $this->request('user/price_alerts', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function private_get_user_withdrawals($params = array()) {
+        return $this->request('user/withdrawals', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function private_get_merchant_get_payment_uuid($params = array()) {
@@ -228,6 +234,12 @@ abstract class paymium extends \ccxt\Exchange {
      */
     public function privateGetUserPriceAlerts($params = array()) {
         return $this->request('user/price_alerts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetUserWithdrawals($params = array()) {
+        return $this->request('user/withdrawals', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

@@ -197,7 +197,7 @@ class bittrade(ccxt.async_support.bittrade):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -486,7 +486,7 @@ class bittrade(ccxt.async_support.bittrade):
     def handle_system_status(self, client: Client, message: object):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
@@ -573,7 +573,7 @@ class bittrade(ccxt.async_support.bittrade):
         return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             #
@@ -583,7 +583,7 @@ class bittrade(ccxt.async_support.bittrade):
             #
             #     " {"ch":"market.ethbtc.m "
             #
-            # self is passed to handleMessage string since it failed to be decoded
+            # self is passed to handleMessage as a string since it failed to be decoded
             #
             if self.safe_string(message, 'id') is not None:
                 self.handle_subscription_status(client, message)

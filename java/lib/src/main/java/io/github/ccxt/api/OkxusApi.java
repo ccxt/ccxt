@@ -64,6 +64,17 @@ public class OkxusApi extends OkxCore
     }
 
     /**
+     * Calls the publicGetMarketBooksRpi endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetMarketBooksRpi (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketBooksRpi", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetMarketCandles endpoint.
      *
      * @param optionalArgs the request parameters
@@ -622,6 +633,28 @@ public class OkxusApi extends OkxCore
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicVipInterestRateLoanQuota (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicVipInterestRateLoanQuota", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetPublicMmInstrumentTypes endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicMmInstrumentTypes (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetPublicMmInstrumentTypes", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetPublicDeltaHedgeCurrencies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicDeltaHedgeCurrencies (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetPublicDeltaHedgeCurrencies", optionalArgs);
     }
 
     /**
@@ -2704,6 +2737,138 @@ public class OkxusApi extends OkxCore
     }
 
     /**
+     * Calls the privateGetFinanceFlexibleLoanEmodeInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceFlexibleLoanEmodeInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceFlexibleLoanEmodeInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceOkusdLimits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceOkusdLimits (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceOkusdLimits", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceOkusdAccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceOkusdAccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceOkusdAccount", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceOkusdSubscribeHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceOkusdSubscribeHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceOkusdSubscribeHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceOkusdRedeemHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceOkusdRedeemHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceOkusdRedeemHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceOkusdRewardsHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceOkusdRewardsHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceOkusdRewardsHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceOkusdRateHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceOkusdRateHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceOkusdRateHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceStableRewardsProductInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceStableRewardsProductInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceStableRewardsProductInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceStableRewardsBalance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceStableRewardsBalance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceStableRewardsBalance", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFinanceStableRewardsApyHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFinanceStableRewardsApyHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFinanceStableRewardsApyHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUsersGlpTodayperformance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUsersGlpTodayperformance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUsersGlpTodayperformance", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUsersGlpHistoricalperformance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUsersGlpHistoricalperformance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUsersGlpHistoricalperformance", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetCopytradingCurrentSubpositions endpoint.
      *
      * @param optionalArgs the request parameters
@@ -3053,6 +3218,61 @@ public class OkxusApi extends OkxCore
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateInviteeDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAffiliateInviteeDetail", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliatePerformanceSummary endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliatePerformanceSummary (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliatePerformanceSummary", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateInviteeList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateInviteeList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateInviteeList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateLinkList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateLinkList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateLinkList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateCoInviterList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateCoInviterList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateCoInviterList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateSubAffiliateList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateSubAffiliateList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateSubAffiliateList", optionalArgs);
     }
 
     /**
@@ -4615,6 +4835,50 @@ public class OkxusApi extends OkxCore
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFinanceFlexibleLoanAdjustCollateral (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFinanceFlexibleLoanAdjustCollateral", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFinanceFlexibleLoanBorrow endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFinanceFlexibleLoanBorrow (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFinanceFlexibleLoanBorrow", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFinanceFlexibleLoanRepay endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFinanceFlexibleLoanRepay (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFinanceFlexibleLoanRepay", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFinanceOkusdSubscribe endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFinanceOkusdSubscribe (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFinanceOkusdSubscribe", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFinanceOkusdRedeem endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFinanceOkusdRedeem (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFinanceOkusdRedeem", optionalArgs);
     }
 
     /**

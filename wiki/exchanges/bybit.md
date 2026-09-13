@@ -564,6 +564,7 @@ create a trade order
 | params.trailingAmount | <code>string</code> | No | the quote amount to trail away from the current market price |
 | params.trailingTriggerPrice | <code>string</code> | No | the price to trigger a trailing order, default uses the price argument |
 | params.tradingStopEndpoint | <code>boolean</code> | No | whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order |
+| params.rpiTakerAccess | <code>boolean</code> | No | set to true to match a taker order against retail price improvement quotes (https://announcements.bybit.com/en/article/rpi-liquidity-now-available-to-api-taker-orders-bltb943887bfa4c4d17/), supported order combinations: (1) orderType=Market; (2) orderType=Limit with timeInForce=IOC or FOK |
 
 
 ```javascript
@@ -1759,7 +1760,7 @@ bybit.fetchGreeks (symbol, params?)
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers  
 

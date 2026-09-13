@@ -251,6 +251,17 @@ public class LighterApi extends Exchange
     }
 
     /**
+     * Calls the publicGetMarkPriceCandles endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetMarkPriceCandles (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarkPriceCandles", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetFundings endpoint.
      *
      * @param optionalArgs the request parameters
@@ -292,6 +303,39 @@ public class LighterApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetWithdrawalDelay (Object... optionalArgs)
     {
         return this.callAsync ("publicGetWithdrawalDelay", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetPartnerStats endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPartnerStats (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetPartnerStats", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetSyntheticSpotInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSyntheticSpotInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetSyntheticSpotInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetTokenlist endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTokenlist (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetTokenlist", optionalArgs);
     }
 
     /**
@@ -394,6 +438,17 @@ public class LighterApi extends Exchange
     }
 
     /**
+     * Calls the privateGetGetMakerOnlyApiKeys endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetMakerOnlyApiKeys (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetMakerOnlyApiKeys", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetAccountActiveOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -416,6 +471,17 @@ public class LighterApi extends Exchange
     }
 
     /**
+     * Calls the privateGetAccountOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountOrders", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetExport endpoint.
      *
      * @param optionalArgs the request parameters
@@ -424,6 +490,17 @@ public class LighterApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetExport (Object... optionalArgs)
     {
         return this.callAsync ("privateGetExport", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetExportHistoricalTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetExportHistoricalTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetExportHistoricalTrades", optionalArgs);
     }
 
     /**
@@ -504,6 +581,28 @@ public class LighterApi extends Exchange
     }
 
     /**
+     * Calls the privateGetRfqGet endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRfqGet (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRfqGet", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetRfqList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRfqList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRfqList", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostChangeAccountTier endpoint.
      *
      * @param optionalArgs the request parameters
@@ -515,6 +614,17 @@ public class LighterApi extends Exchange
     }
 
     /**
+     * Calls the privatePostSetMakerOnlyApiKeys endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSetMakerOnlyApiKeys (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostSetMakerOnlyApiKeys", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostNotificationAck endpoint.
      *
      * @param optionalArgs the request parameters
@@ -523,6 +633,39 @@ public class LighterApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostNotificationAck (Object... optionalArgs)
     {
         return this.callAsync ("privatePostNotificationAck", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostRfqCreate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRfqCreate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostRfqCreate", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostRfqRespond endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRfqRespond (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostRfqRespond", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostRfqUpdate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRfqUpdate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostRfqUpdate", optionalArgs);
     }
 
 }

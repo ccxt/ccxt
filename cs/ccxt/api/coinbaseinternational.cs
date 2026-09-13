@@ -67,6 +67,34 @@ public partial class coinbaseinternational : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PublicGetInstrumentsInstrumentCandles",parameters);
     }
 
+    /// <summary>Calls the v1PublicGetInstrumentsVolumesDaily endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PublicGetInstrumentsVolumesDaily (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PublicGetInstrumentsVolumesDaily",parameters);
+    }
+
+    /// <summary>Calls the v1PublicGetPositionOffsets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PublicGetPositionOffsets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PublicGetPositionOffsets",parameters);
+    }
+
+    /// <summary>Calls the v1PublicGetFeeRateTiers endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v1PublicGetFeeRateTiers (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v1PublicGetFeeRateTiers",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetAddressBook endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v1PrivateGetAddressBook (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v1PrivateGetAddressBook",parameters);
+    }
+
     /// <summary>Calls the v1PrivateGetOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivateGetOrders (object parameters = null)
@@ -79,6 +107,34 @@ public partial class coinbaseinternational : Exchange
     public async Task<Dictionary<string, object>> v1PrivateGetOrdersId (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetOrdersId",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetIndexIndexComposition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetIndexIndexComposition (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetIndexIndexComposition",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetIndexIndexCompositionHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetIndexIndexCompositionHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetIndexIndexCompositionHistory",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetIndexIndexPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetIndexIndexPrice (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetIndexIndexPrice",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetIndexIndexCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetIndexIndexCandles (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetIndexIndexCandles",parameters);
     }
 
     /// <summary>Calls the v1PrivateGetPortfolios endpoint.</summary>
@@ -137,6 +193,27 @@ public partial class coinbaseinternational : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfoliosPortfolioPositionsInstrument",parameters);
     }
 
+    /// <summary>Calls the v1PrivateGetPortfoliosPortfolioPositionLimits endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfoliosPortfolioPositionLimits (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfoliosPortfolioPositionLimits",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfoliosPortfolioPositionLimitsPositions endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v1PrivateGetPortfoliosPortfolioPositionLimitsPositions (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v1PrivateGetPortfoliosPortfolioPositionLimitsPositions",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument",parameters);
+    }
+
     /// <summary>Calls the v1PrivateGetPortfoliosFills endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivateGetPortfoliosFills (object parameters = null)
@@ -151,6 +228,41 @@ public partial class coinbaseinternational : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfoliosPortfolioFills",parameters);
     }
 
+    /// <summary>Calls the v1PrivateGetPortfoliosFeeRates endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v1PrivateGetPortfoliosFeeRates (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v1PrivateGetPortfoliosFeeRates",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfoliosPortfolioLoans endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v1PrivateGetPortfoliosPortfolioLoans (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v1PrivateGetPortfoliosPortfolioLoans",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfoliosPortfolioLoansAsset endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfoliosPortfolioLoansAsset (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfoliosPortfolioLoansAsset",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfoliosPortfolioLoansAssetAvailability endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfoliosPortfolioLoansAssetAvailability (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfoliosPortfolioLoansAssetAvailability",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfoliosPortfolioMarginCallStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfoliosPortfolioMarginCallStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfoliosPortfolioMarginCallStatus",parameters);
+    }
+
     /// <summary>Calls the v1PrivateGetTransfers endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivateGetTransfers (object parameters = null)
@@ -163,6 +275,13 @@ public partial class coinbaseinternational : Exchange
     public async Task<Dictionary<string, object>> v1PrivateGetTransfersTransferUuid (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetTransfersTransferUuid",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit",parameters);
     }
 
     /// <summary>Calls the v1PrivatePostOrders endpoint.</summary>
@@ -186,11 +305,46 @@ public partial class coinbaseinternational : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPortfoliosMargin",parameters);
     }
 
+    /// <summary>Calls the v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPortfoliosPortfolioAutoMarginEnabled endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPortfoliosPortfolioAutoMarginEnabled (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPortfoliosPortfolioAutoMarginEnabled",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPortfoliosPortfolioLoansAsset endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPortfoliosPortfolioLoansAsset (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPortfoliosPortfolioLoansAsset",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPortfoliosPortfolioLoansAssetPreview endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPortfoliosPortfolioLoansAssetPreview (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPortfoliosPortfolioLoansAssetPreview",parameters);
+    }
+
     /// <summary>Calls the v1PrivatePostPortfoliosTransfer endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivatePostPortfoliosTransfer (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPortfoliosTransfer",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPortfoliosTransferPosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPortfoliosTransferPosition (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPortfoliosTransferPosition",parameters);
     }
 
     /// <summary>Calls the v1PrivatePostTransfersWithdraw endpoint.</summary>
@@ -254,6 +408,13 @@ public partial class coinbaseinternational : Exchange
     public async Task<Dictionary<string, object>> v1PrivateDeleteOrdersId (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateDeleteOrdersId",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePatchPortfoliosPortfolio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePatchPortfoliosPortfolio (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePatchPortfoliosPortfolio",parameters);
     }
 
 }

@@ -207,7 +207,7 @@ class gemini extends \ccxt\async\gemini {
         //             array( "buy", '22252.37', "0.02" ),
         //             array( "buy", '22251.61', "0.04" ),
         //             array( "buy", '22251.60', "0.04" ),
-        //             // some asks
+        //             // some asks as well
         //         ),
         //         "trades" => array(
         //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => "0.00004473", side => "buy" ),
@@ -300,7 +300,7 @@ class gemini extends \ccxt\async\gemini {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -360,7 +360,7 @@ class gemini extends \ccxt\async\gemini {
         $marketId = strtolower($this->safe_string($message, 'symbol', ''));
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_symbol($marketId, $market);
-        $changes = $this->safe_value($message, 'changes', array());
+        $changes = $this->safe_list($message, 'changes', array());
         $timeframe = $this->find_timeframe($timeframeId);
         $ohlcvsBySymbol = $this->safe_value($this->ohlcvs, $symbol);
         if ($ohlcvsBySymbol === null) {
@@ -429,7 +429,7 @@ class gemini extends \ccxt\async\gemini {
 
     public function handle_order_book(Client $client, mixed $message) {
         $isInitial = (is_array($message) && array_key_exists('auction_events' ?? '', $message)) && (is_array($message) && array_key_exists('trades' ?? '', $message)) && (is_array($message) && array_key_exists('changes' ?? '', $message));
-        $changes = $this->safe_value($message, 'changes', array());
+        $changes = $this->safe_list($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -568,7 +568,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $symbols = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbols[0]);
-        if (!$firstMarket['spot'] && !$firstMarket['linear']) {
+        if (($firstMarket['spot'] !== true) && ($firstMarket['linear'] !== true)) {
             throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
         }
         $messageHashes = array();
@@ -649,7 +649,7 @@ class gemini extends \ccxt\async\gemini {
         //             array( "buy", '22252.37', "0.02" ),
         //             array( "buy", '22251.61', "0.04" ),
         //             array( "buy", '22251.60', "0.04" ),
-        //             // some asks
+        //             // some asks as well
         //         ),
         //         "trades" => array(
         //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => "0.00004473", side => "buy" ),

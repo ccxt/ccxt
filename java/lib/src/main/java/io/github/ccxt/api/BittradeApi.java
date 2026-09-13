@@ -746,6 +746,17 @@ public class BittradeApi extends Exchange
     }
 
     /**
+     * Calls the publicGetRetailMaintainTime endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetRetailMaintainTime (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetRetailMaintainTime", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetAccountAccounts endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1010,6 +1021,17 @@ public class BittradeApi extends Exchange
     }
 
     /**
+     * Calls the privateGetRetailOrderList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRetailOrderList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRetailOrderList", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostAccountTransfer endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1227,6 +1249,17 @@ public class BittradeApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubuserTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubuserTransfer", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostRetailOrderPlace endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRetailOrderPlace (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostRetailOrderPlace", optionalArgs);
     }
 
 }

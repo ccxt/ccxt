@@ -20,8 +20,11 @@ const isDictionary = (o) => (isObject(o) && (Object.getPrototypeOf(o) === Object
 const isStringCoercible = (x) => ((hasProps(x) && x.toString) || isNumber(x));
 /*  .............................................   */
 const prop = (o, k) => {
-    if (k !== undefined && k !== null && isObject(o) && o[k] !== null && o[k] !== '') {
-        return o[k];
+    if (k !== undefined && k !== null && isObject(o)) {
+        const x = o[k];
+        if (x !== null && x !== '') {
+            return x;
+        }
     }
     return undefined;
 };
@@ -29,41 +32,90 @@ const prop2 = (o, k1, k2) => {
     if (!isObject(o)) {
         return undefined;
     }
-    if (k1 !== undefined && k1 !== null && o[k1] !== undefined && o[k1] !== null && o[k1] !== '') {
-        return o[k1];
+    if (k1 !== undefined && k1 !== null) {
+        const x = o[k1];
+        if (x !== undefined && x !== null && x !== '') {
+            return x;
+        }
     }
-    if (k2 !== undefined && k2 !== null && o[k2] !== undefined && o[k2] !== null && o[k2] !== '') {
-        return o[k2];
+    if (k2 !== undefined && k2 !== null) {
+        const x = o[k2];
+        if (x !== undefined && x !== null && x !== '') {
+            return x;
+        }
     }
     return undefined;
 };
-const getValueFromKeysInArray = (object, array) => isObject(object) ? object[array.find((k) => prop(object, k) !== undefined)] : undefined;
+const getValueFromKeysInArray = (object, keys) => {
+    if (!isObject(object))
+        return undefined;
+    const length = keys.length;
+    for (let i = 0; i < length; i++) {
+        const k = keys[i];
+        if (k === undefined || k === null)
+            continue;
+        const v = object[k];
+        if (v !== undefined && v !== null && v !== '')
+            return v;
+    }
+    return undefined;
+};
 /*  .............................................   */
-const asFloat = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? parseFloat(x) : NaN);
-const asInteger = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? Math.trunc(Number(x)) : NaN);
+const asFloat = (x) => {
+    if (isString(x) && x.length !== 0) {
+        return parseFloat(x);
+    }
+    if (isNumber(x)) {
+        return x; // already a finite number, skip the string round-trip of parseFloat
+    }
+    return NaN;
+};
+const asInteger = (x) => {
+    if (isString(x) && x.length !== 0) {
+        return Math.trunc(Number(x));
+    }
+    if (isNumber(x)) {
+        return Math.trunc(x); // already a finite number, skip the Number () cast
+    }
+    return NaN;
+};
 /*  .............................................   */
 function safeFloat(o, k, $default) {
-    const n = asFloat(prop(o, k));
+    const value = prop(o, k);
+    if (value === undefined)
+        return $default;
+    const n = asFloat(value);
     return isNumber(n) ? n : $default;
 }
 function safeInteger(o, k, $default) {
-    const n = asInteger(prop(o, k));
+    const value = prop(o, k);
+    if (value === undefined)
+        return $default;
+    const n = asInteger(value);
     return isNumber(n) ? n : $default;
 }
 function safeIntegerProduct(o, k, $factor, $default) {
-    const n = asFloat(prop(o, k));
-    return isNumber(n) ? parseInt(n * $factor) : $default;
+    const value = prop(o, k);
+    if (value === undefined)
+        return $default;
+    const product = asFloat(value) * $factor;
+    return isNumber(product) ? Math.trunc(product) : $default; // guard the product, not just the value
 }
 function safeTimestamp(o, k, $default) {
-    const n = asFloat(prop(o, k));
-    return isNumber(n) ? parseInt(n * 1000) : $default;
+    const value = prop(o, k);
+    if (value === undefined)
+        return $default;
+    const product = asFloat(value) * 1000;
+    return isNumber(product) ? Math.trunc(product) : $default; // guard the product, not just the value
 }
 function safeValue(o, k, $default) {
     const x = prop(o, k);
-    return hasProps(x) ? x : $default;
+    return (x !== undefined) ? x : $default; // prop () never yields null or ''
 }
 function safeString(o, k, $default) {
     const x = prop(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x;
     if (Number.isFinite(x))
@@ -72,6 +124,8 @@ function safeString(o, k, $default) {
 }
 function safeStringLower(o, k, $default) {
     const x = prop(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x.toLowerCase();
     if (Number.isFinite(x))
@@ -80,6 +134,8 @@ function safeStringLower(o, k, $default) {
 }
 function safeStringUpper(o, k, $default) {
     const x = prop(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x.toUpperCase();
     if (Number.isFinite(x))
@@ -88,27 +144,41 @@ function safeStringUpper(o, k, $default) {
 }
 /*  .............................................   */
 function safeFloat2(o, k1, k2, $default) {
-    const n = asFloat(prop2(o, k1, k2));
+    const value = prop2(o, k1, k2);
+    if (value === undefined)
+        return $default;
+    const n = asFloat(value);
     return isNumber(n) ? n : $default;
 }
 function safeInteger2(o, k1, k2, $default) {
-    const n = asInteger(prop2(o, k1, k2));
+    const value = prop2(o, k1, k2);
+    if (value === undefined)
+        return $default;
+    const n = asInteger(value);
     return isNumber(n) ? n : $default;
 }
 function safeIntegerProduct2(o, k1, k2, $factor, $default) {
-    const n = asFloat(prop2(o, k1, k2));
-    return isNumber(n) ? parseInt(n * $factor) : $default;
+    const value = prop2(o, k1, k2);
+    if (value === undefined)
+        return $default;
+    const product = asFloat(value) * $factor;
+    return isNumber(product) ? Math.trunc(product) : $default; // guard the product, not just the value
 }
 function safeTimestamp2(o, k1, k2, $default) {
-    const n = asFloat(prop2(o, k1, k2));
-    return isNumber(n) ? parseInt(n * 1000) : $default;
+    const value = prop2(o, k1, k2);
+    if (value === undefined)
+        return $default;
+    const product = asFloat(value) * 1000;
+    return isNumber(product) ? Math.trunc(product) : $default; // guard the product, not just the value
 }
 function safeValue2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
-    return hasProps(x) ? x : $default;
+    return (x !== undefined) ? x : $default; // prop2 () never yields null or ''
 }
 function safeString2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x;
     if (Number.isFinite(x))
@@ -117,6 +187,8 @@ function safeString2(o, k1, k2, $default) {
 }
 function safeStringLower2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x.toLowerCase();
     if (Number.isFinite(x))
@@ -125,6 +197,8 @@ function safeStringLower2(o, k1, k2, $default) {
 }
 function safeStringUpper2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x.toUpperCase();
     if (Number.isFinite(x))
@@ -132,35 +206,53 @@ function safeStringUpper2(o, k1, k2, $default) {
     return $default;
 }
 function safeFloatN(o, k, $default) {
-    const n = asFloat(getValueFromKeysInArray(o, k));
+    const found = getValueFromKeysInArray(o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asFloat(found);
     return isNumber(n) ? n : $default;
 }
 function safeIntegerN(o, k, $default) {
     if (o === undefined) {
         return $default;
     }
-    const n = asInteger(getValueFromKeysInArray(o, k));
+    const found = getValueFromKeysInArray(o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asInteger(found);
     return isNumber(n) ? n : $default;
 }
 function safeIntegerProductN(o, k, $factor, $default) {
-    const n = asFloat(getValueFromKeysInArray(o, k));
-    return isNumber(n) ? parseInt(n * $factor) : $default;
+    const found = getValueFromKeysInArray(o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const product = asFloat(found) * $factor;
+    return isNumber(product) ? Math.trunc(product) : $default; // guard the product, not just the value
 }
 function safeTimestampN(o, k, $default) {
-    const n = asFloat(getValueFromKeysInArray(o, k));
-    return isNumber(n) ? parseInt(n * 1000) : $default;
+    const found = getValueFromKeysInArray(o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const product = asFloat(found) * 1000;
+    return isNumber(product) ? Math.trunc(product) : $default; // guard the product, not just the value
 }
 function safeValueN(o, k, $default) {
     if (o === undefined) {
         return $default;
     }
     const x = getValueFromKeysInArray(o, k);
-    return hasProps(x) ? x : $default;
+    return (x !== undefined) ? x : $default; // the key lookup never yields null or ''
 }
 function safeStringN(o, k, $default) {
     if (o === undefined)
         return $default;
     const x = getValueFromKeysInArray(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x;
     if (Number.isFinite(x))
@@ -171,6 +263,8 @@ function safeStringLowerN(o, k, $default) {
     if (o === undefined)
         return $default;
     const x = getValueFromKeysInArray(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x.toLowerCase();
     if (Number.isFinite(x))
@@ -181,6 +275,8 @@ function safeStringUpperN(o, k, $default) {
     if (o === undefined)
         return $default;
     const x = getValueFromKeysInArray(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x.toUpperCase();
     if (Number.isFinite(x))

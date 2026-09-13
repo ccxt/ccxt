@@ -192,7 +192,7 @@ jobs:
         git remote set-url origin \
           "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
-        git add js/ dist/ wiki/ README.md ts/ccxt.ts examples/
+        git add js/ dist/ wiki/ README.md ts/ccxt.ts ts/src/abstract/ examples/
 
         if git diff --cached --quiet; then
           echo "No changes to commit."

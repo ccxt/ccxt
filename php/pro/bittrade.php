@@ -223,7 +223,7 @@ class bittrade extends \ccxt\async\bittrade {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -549,7 +549,7 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_system_status(Client $client, mixed $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified for any usage pattern that
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -652,7 +652,7 @@ class bittrade extends \ccxt\async\bittrade {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
             //
@@ -662,7 +662,7 @@ class bittrade extends \ccxt\async\bittrade {
             //
             //     " {"ch":"market.ethbtc.m "
             //
-            // this is passed to handleMessage string since it failed to be decoded
+            // this is passed to handleMessage as a string since it failed to be decoded
             //
             if ($this->safe_string($message, 'id') !== null) {
                 $this->handle_subscription_status($client, $message);

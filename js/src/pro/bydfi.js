@@ -101,7 +101,7 @@ export default class bydfi extends bydfiRest {
         };
         const unsubscribe = this.safeBool(params, 'unsubscribe', false);
         let method = 'SUBSCRIBE';
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
             params = this.omit(params, 'unsubscribe');
             subscriptionParams['unsubscribe'] = true;
@@ -879,7 +879,7 @@ export default class bydfi extends bydfiRest {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
             await client.future('fetchBalanceSnapshot');
         }
         const messageHash = 'balance';
@@ -888,7 +888,7 @@ export default class bydfi extends bydfiRest {
     fetchBalanceSnapshot(client) {
         const options = this.safeValue(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -985,7 +985,7 @@ export default class bydfi extends bydfiRest {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription(client, subscription);
         }
         return message;

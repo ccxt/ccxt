@@ -933,7 +933,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.parse8601 (this.safeString (message, 'time'));
-            const changes = this.safeValue (message, 'changes', []);
+            const changes = this.safeList (message, 'changes', []);
             const sides: Dict = {
                 'sell': 'asks',
                 'buy': 'bids',

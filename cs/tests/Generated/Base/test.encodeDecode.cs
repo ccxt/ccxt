@@ -12,9 +12,9 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object input = "encode-test";
-            object encoded = exchange.encode(input);
-            object decoded = exchange.decode(encoded);
+            string input = "encode-test";
+            string? encoded = exchange.encode(input);
+            string? decoded = exchange.decode(encoded);
             Assert(isEqual(decoded, input), add(add(add("decoded should be equal to input, got ", decoded), " instead of "), input));
         }
         public void testDecode()
@@ -22,9 +22,9 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object input = "decode-test";
-            object encoded = exchange.encode(input);
-            object decoded = exchange.decode(encoded);
+            string input = "decode-test";
+            string? encoded = exchange.encode(input);
+            string? decoded = exchange.decode(encoded);
             Assert(isEqual(decoded, input), add(add(add("decoded should be equal to input, got ", decoded), " instead of "), input));
         }
         public void testEncodeDecode()

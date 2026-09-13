@@ -16,18 +16,18 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchOrderBookForSymbols";
+        String method = "watchOrderBookForSymbols";
         // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
         // loop has to be bounded by the deadline alone. waiting for every requested
         // symbol to be seen would hang forever whenever one of them stays idle.
-        Object maxIdleTime = 5000;
+        Integer maxIdleTime = 5000;
         Object currentTime = exchange.milliseconds();
         Object deadline = Helpers.add(currentTime, 15000);
-        Object idle = false;
+        Boolean idle = false;
         while (Helpers.isTrue((Helpers.isLessThan(currentTime, deadline))) && !Helpers.isTrue(idle))
         {
             Object response = null;
-            Object succeeded = true;
+            Boolean succeeded = true;
             Object startTime = exchange.milliseconds();
             try
             {

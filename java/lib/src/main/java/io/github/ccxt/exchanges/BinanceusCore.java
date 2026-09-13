@@ -174,12 +174,18 @@ public class BinanceusCore extends BinanceusApi
                             put( "cost", 2 );
                             put( "noSymbol", 100 );
                         }} );
+                        put( "ticker/tradingDay", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "account", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
+                        }} );
+                        put( "account/commission", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 20 );
                         }} );
                         put( "rateLimit/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 20 );
@@ -196,6 +202,9 @@ public class BinanceusCore extends BinanceusApi
                         }} );
                         put( "myPreventedMatches", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
+                        }} );
+                        put( "myFilters", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 40 );
                         }} );
                         put( "allOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official pacifica API documentation:** [docs.pacifica.fi](https://docs.pacifica.fi/api-documentation/api/rest-api)
 
-> 67 implicit endpoints across 2 access groups.
+> 84 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -87,11 +87,17 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetOrders` | GET | `orders` | 1 |
 | `publicGetOrdersHistory` | GET | `orders/history` | 12 |
 | `publicGetOrdersHistoryById` | GET | `orders/history_by_id` | 1 |
+| `publicGetOrdersTwap` | GET | `orders/twap` | 1 |
+| `publicGetOrdersTwapHistory` | GET | `orders/twap/history` | 12 |
+| `publicGetOrdersTwapHistoryById` | GET | `orders/twap/history_by_id` | 1 |
 | `publicGetSpotAssets` | GET | `spot_assets` | 1 |
 | `publicGetSpotAssetsBridgeInfo` | GET | `spot_assets/bridge/info` | 1 |
 | `publicGetSpotAssetsBridgeParametersSymbol` | GET | `spot_assets/bridge/parameters/{symbol}` | 1 |
 | `publicGetLakeList` | GET | `lake/list` | 1 |
 | `publicGetAccountBuilderCodesApprovals` | GET | `account/builder_codes/approvals` | 1 |
+| `publicGetBuilderOverview` | GET | `builder/overview` | 1 |
+| `publicGetBuilderTrades` | GET | `builder/trades` | 1 |
+| `publicGetLeaderboardBuilderCode` | GET | `leaderboard/builder_code` | 1 |
 
 ## private
 
@@ -119,9 +125,20 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostOrdersStopCancel` | POST | `orders/stop/cancel` | 0.5 |
 | `privatePostOrdersEdit` | POST | `orders/edit` | 1 |
 | `privatePostOrdersBatch` | POST | `orders/batch` | 1 |
+| `privatePostOrdersTwapCreate` | POST | `orders/twap/create` | 1 |
+| `privatePostOrdersTwapCancel` | POST | `orders/twap/cancel` | 0.5 |
 | `privatePostAccountBuilderCodesApprove` | POST | `account/builder_codes/approve` | 1 |
 | `privatePostAccountBuilderCodesRevoke` | POST | `account/builder_codes/revoke` | 1 |
+| `privatePostBuilderUpdateFeeRate` | POST | `builder/update_fee_rate` | 1 |
+| `privatePostReferralUserCodeClaim` | POST | `referral/user/code/claim` | 1 |
 | `privatePostAgentBind` | POST | `agent/bind` | 1 |
+| `privatePostAgentList` | POST | `agent/list` | 1 |
+| `privatePostAgentRevoke` | POST | `agent/revoke` | 1 |
+| `privatePostAgentRevokeAll` | POST | `agent/revoke_all` | 1 |
+| `privatePostAgentIpWhitelistList` | POST | `agent/ip_whitelist/list` | 1 |
+| `privatePostAgentIpWhitelistAdd` | POST | `agent/ip_whitelist/add` | 1 |
+| `privatePostAgentIpWhitelistRemove` | POST | `agent/ip_whitelist/remove` | 1 |
+| `privatePostAgentIpWhitelistToggle` | POST | `agent/ip_whitelist/toggle` | 1 |
 | `privatePostAccountApiKeysCreate` | POST | `account/api_keys/create` | 1 |
 | `privatePostAccountApiKeysRevoke` | POST | `account/api_keys/revoke` | 1 |
 | `privatePostAccountApiKeys` | POST | `account/api_keys` | 1 |

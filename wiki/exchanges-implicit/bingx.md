@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bingx API documentation:** [bingx-api.github.io](https://bingx-api.github.io/docs/)
 
-> 187 implicit endpoints across 12 access groups.
+> 203 implicit endpoints across 13 access groups.
 
 ## fund
 
@@ -100,6 +100,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotV2PublicGetMarketDepth` | GET | `market/depth` | 1 |
 | `spotV2PublicGetMarketKline` | GET | `market/kline` | 1 |
 | `spotV2PublicGetTickerPrice` | GET | `ticker/price` | 1 |
+| `spotV2PublicGetQuoteBookTicker` | GET | `quote/bookTicker` | 1 |
+| `spotV2PublicGetQuoteDepth` | GET | `quote/depth` | 1 |
+| `spotV2PublicGetQuoteHistoricalKlines` | GET | `quote/historicalKlines` | 1 |
+| `spotV2PublicGetQuoteHistoricalTrades` | GET | `quote/historicalTrades` | 1 |
+| `spotV2PublicGetQuoteKlines` | GET | `quote/klines` | 1 |
+| `spotV2PublicGetQuotePrice` | GET | `quote/price` | 1 |
+| `spotV2PublicGetQuoteTicker` | GET | `quote/ticker` | 1 |
+| `spotV2PublicGetQuoteTrades` | GET | `quote/trades` | 1 |
 | `spotV3PrivateGetGetAssetTransfer` | GET | `get/asset/transfer` | 1 |
 | `spotV3PrivateGetAssetTransfer` | GET | `asset/transfer` | 1 |
 | `spotV3PrivateGetCapitalDepositHisrec` | GET | `capital/deposit/hisrec` | 1 |
@@ -162,6 +170,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `swapV2PrivateGetTradeAllOrders` | GET | `trade/allOrders` | 2 |
 | `swapV2PrivateGetTradeAllFillOrders` | GET | `trade/allFillOrders` | 2 |
 | `swapV2PrivateGetTradeFillHistory` | GET | `trade/fillHistory` | 2 |
+| `swapV2PrivateGetTradePositionHistory` | GET | `trade/positionHistory` | 2 |
 | `swapV2PrivateGetUserIncomeExport` | GET | `user/income/export` | 2 |
 | `swapV2PrivateGetUserCommissionRate` | GET | `user/commissionRate` | 2 |
 | `swapV2PrivateGetQuoteBookTicker` | GET | `quote/bookTicker` | 1 |
@@ -210,6 +219,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `cswapV1PrivatePostTradePositionMargin` | POST | `trade/positionMargin` | 2 |
 | `cswapV1PrivateDeleteTradeAllOpenOrders` | DELETE | `trade/allOpenOrders` | 2 |
 | `cswapV1PrivateDeleteTradeCancelOrder` | DELETE | `trade/cancelOrder` | 2 |
+| `cswapV2PrivatePostTradeOrder` | POST | `trade/order` | 2 |
 
 ## contract
 
@@ -263,6 +273,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `accountV1PrivateGetUid` | GET | `uid` | 1 |
 | `accountV1PrivateGetApiKeyQuery` | GET | `apiKey/query` | 2 |
 | `accountV1PrivateGetAccountApiPermissions` | GET | `account/apiPermissions` | 5 |
+| `accountV1PrivateGetAccountApiRestrictions` | GET | `account/apiRestrictions` | 5 |
 | `accountV1PrivateGetAllAccountBalance` | GET | `allAccountBalance` | 2 |
 | `accountV1PrivatePostInnerTransferAuthorizeSubAccount` | POST | `innerTransfer/authorizeSubAccount` | 1 |
 | `accountTransferV1PrivateGetSubAccountAssetTransferHistory` | GET | `subAccount/asset/transferHistory` | 1 |
@@ -325,4 +336,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `agentV1PrivateGetAssetPartnerData` | GET | `asset/partnerData` | 5 |
 | `agentV1PrivateGetCommissionDataListReferralCode` | GET | `commissionDataList/referralCode` | 5 |
 | `agentV1PrivateGetAccountSuperiorCheck` | GET | `account/superiorCheck` | 5 |
+
+## wealth
+
+| Method | HTTP | Endpoint | Cost |
+| --- | --- | --- | --- |
+| `wealthV1PrivateGetProductDualCurrencyPreOrder` | GET | `product/dual-currency/pre-order` | 2 |
+| `wealthV1PrivateGetProductDualCurrencyPosition` | GET | `product/dual-currency/position` | 2 |
+| `wealthV1PrivateGetProductDualCurrencyOrderRecords` | GET | `product/dual-currency/order-records` | 2 |
+| `wealthV1PrivatePostProductDualCurrencyInvestAssetList` | POST | `product/dual-currency/invest-asset-list` | 2 |
+| `wealthV1PrivatePostProductDualCurrencyOrder` | POST | `product/dual-currency/order` | 2 |
 

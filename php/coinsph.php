@@ -266,6 +266,8 @@ class coinsph extends Exchange {
                         'openapi/fiat/v1/support-channel' => array( 'cost' => 1 ),
                         'openapi/fiat/v1/cash-out' => array( 'cost' => 1 ),
                         'openapi/fiat/v1/history' => array( 'cost' => 1 ),
+                        'openapi/fiat/v2/history' => array( 'cost' => 1 ),
+                        'openapi/fiat/v1/cancel_qr_code' => array( 'cost' => 1 ),
                         'openapi/migration/v4/sellorder' => array( 'cost' => 1 ),
                         'openapi/migration/v4/validate-field' => array( 'cost' => 1 ),
                         'openapi/transfer/v3/transfers' => array( 'cost' => 1 ),
@@ -661,7 +663,7 @@ class coinsph extends Exchange {
             'id' => $id,
             'name' => $this->safe_string($rawCurrency, 'name'),
             'code' => $code,
-            'type' => $isFiat ? 'fiat' : 'crypto',
+            'type' => ($isFiat === true) ? 'fiat' : 'crypto',
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'transferPrecision'))),
             'info' => $rawCurrency,
             'active' => null,
@@ -1078,7 +1080,7 @@ class coinsph extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (default 500, max 1000)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1401,7 +1403,7 @@ class coinsph extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
+         * @param {float} [$params->cost] the quote quantity that can be used as an alternative for the $amount for $market buy orders
          * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
@@ -1472,7 +1474,7 @@ class coinsph extends Exchange {
         $request['newOrderRespType'] = $newOrderRespType;
         $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = array();
-        if ($testOrder) {
+        if ($testOrder === true) {
             $response = $this->privatePostOpenapiV1OrderTest($this->extend($request, $params));
         } else {
             $response = $this->privatePostOpenapiV1Order($this->extend($request, $params));
@@ -1933,7 +1935,7 @@ class coinsph extends Exchange {
          */
         $options = $this->safe_value($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
-        if ($warning) {
+        if ($warning === true) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         $networkCode = $this->safe_string($params, 'network');

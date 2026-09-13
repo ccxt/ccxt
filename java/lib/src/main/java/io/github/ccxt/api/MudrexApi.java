@@ -86,6 +86,17 @@ public class MudrexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetFuturesTransactions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesTransactions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFuturesTransactions", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetFuturesOrders endpoint.
      *
      * @param optionalArgs the request parameters

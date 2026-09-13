@@ -199,7 +199,7 @@ export default class coinbase extends coinbaseRest {
     parseWsOrder(order: any, market?: Market): Order;
     handleOrderBookHelper(orderbook: any, updates: any): void;
     handleOrderBook(client: any, message: any): void;
-    tryResolveUsdc(client: Client, messageHash: any, result: any): void;
+    tryResolveUsdc(client: Client, messageHash: string, result: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleHeartbeats(client: Client, message: any): any;
     handleMessage(client: any, message: any): void;

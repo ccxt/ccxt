@@ -100,6 +100,12 @@ abstract class paradex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_staking_balance_history_global($params = array()) {
+        return $this->request('staking/balance/history/global', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_staking_config($params = array()) {
         return $this->request('staking/config', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -150,6 +156,12 @@ abstract class paradex extends \ccxt\Exchange {
      */
     public function public_get_vaults($params = array()) {
         return $this->request('vaults', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_vaults_analytics($params = array()) {
+        return $this->request('vaults/analytics', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -400,6 +412,36 @@ abstract class paradex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_rfqs($params = array()) {
+        return $this->request('rfqs', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_rfqs_drafts($params = array()) {
+        return $this->request('rfqs/drafts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_rfqs_markets($params = array()) {
+        return $this->request('rfqs/markets', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_rfqs_rfq_id_bbo($params = array()) {
+        return $this->request('rfqs/{rfq_id}/bbo', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_staking_balance_history($params = array()) {
+        return $this->request('staking/balance/history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_staking_history($params = array()) {
         return $this->request('staking/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -508,6 +550,18 @@ abstract class paradex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_account_paradigm_enable($params = array()) {
+        return $this->request('account/paradigm/enable', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_account_terminal_token($params = array()) {
+        return $this->request('account/terminal-token', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_account_keys_subkeys_activate($params = array()) {
         return $this->request('account/keys/subkeys/activate', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -580,6 +634,24 @@ abstract class paradex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_rfqs($params = array()) {
+        return $this->request('rfqs', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_rfqs_drafts($params = array()) {
+        return $this->request('rfqs/drafts', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_rfqs_rfq_id_execute($params = array()) {
+        return $this->request('rfqs/{rfq_id}/execute', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_v2_auth($params = array()) {
         return $this->request('v2/auth', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -612,6 +684,18 @@ abstract class paradex extends \ccxt\Exchange {
      */
     public function private_put_account_keys_subkeys_public_key($params = array()) {
         return $this->request('account/keys/subkeys/{public_key}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_put_account_keys_subkeys_public_key_allowed_cidrs($params = array()) {
+        return $this->request('account/keys/subkeys/{public_key}/allowed-cidrs', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_put_account_tokens_lookup_id_allowed_cidrs($params = array()) {
+        return $this->request('account/tokens/{lookup_id}/allowed-cidrs', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -672,6 +756,18 @@ abstract class paradex extends \ccxt\Exchange {
      */
     public function private_delete_orders_order_id($params = array()) {
         return $this->request('orders/{order_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_rfqs_drafts_draft_id($params = array()) {
+        return $this->request('rfqs/drafts/{draft_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_rfqs_rfq_id($params = array()) {
+        return $this->request('rfqs/{rfq_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -766,6 +862,12 @@ abstract class paradex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function publicGetStakingBalanceHistoryGlobal($params = array()) {
+        return $this->request('staking/balance/history/global', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetStakingConfig($params = array()) {
         return $this->request('staking/config', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -816,6 +918,12 @@ abstract class paradex extends \ccxt\Exchange {
      */
     public function publicGetVaults($params = array()) {
         return $this->request('vaults', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetVaultsAnalytics($params = array()) {
+        return $this->request('vaults/analytics', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1066,6 +1174,36 @@ abstract class paradex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetRfqs($params = array()) {
+        return $this->request('rfqs', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetRfqsDrafts($params = array()) {
+        return $this->request('rfqs/drafts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetRfqsMarkets($params = array()) {
+        return $this->request('rfqs/markets', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetRfqsRfqIdBbo($params = array()) {
+        return $this->request('rfqs/{rfq_id}/bbo', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetStakingBalanceHistory($params = array()) {
+        return $this->request('staking/balance/history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetStakingHistory($params = array()) {
         return $this->request('staking/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1174,6 +1312,18 @@ abstract class paradex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostAccountParadigmEnable($params = array()) {
+        return $this->request('account/paradigm/enable', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostAccountTerminalToken($params = array()) {
+        return $this->request('account/terminal-token', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostAccountKeysSubkeysActivate($params = array()) {
         return $this->request('account/keys/subkeys/activate', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1246,6 +1396,24 @@ abstract class paradex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostRfqs($params = array()) {
+        return $this->request('rfqs', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostRfqsDrafts($params = array()) {
+        return $this->request('rfqs/drafts', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostRfqsRfqIdExecute($params = array()) {
+        return $this->request('rfqs/{rfq_id}/execute', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostV2Auth($params = array()) {
         return $this->request('v2/auth', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1278,6 +1446,18 @@ abstract class paradex extends \ccxt\Exchange {
      */
     public function privatePutAccountKeysSubkeysPublicKey($params = array()) {
         return $this->request('account/keys/subkeys/{public_key}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePutAccountKeysSubkeysPublicKeyAllowedCidrs($params = array()) {
+        return $this->request('account/keys/subkeys/{public_key}/allowed-cidrs', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePutAccountTokensLookupIdAllowedCidrs($params = array()) {
+        return $this->request('account/tokens/{lookup_id}/allowed-cidrs', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1338,5 +1518,17 @@ abstract class paradex extends \ccxt\Exchange {
      */
     public function privateDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{order_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteRfqsDraftsDraftId($params = array()) {
+        return $this->request('rfqs/drafts/{draft_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteRfqsRfqId($params = array()) {
+        return $this->request('rfqs/{rfq_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
 }

@@ -208,6 +208,8 @@ class coinmate(Exchange, ImplicitAPI):
                         'solDepositAddresses': {'cost': 1},
                         'unconfirmedSolDeposits': {'cost': 1},
                         'bankWireWithdrawal': {'cost': 1},
+                        'lightningDeposit': {'cost': 1},
+                        'lightningWithdraw': {'cost': 1},
                     },
                 },
             },
@@ -386,7 +388,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -448,7 +450,7 @@ class coinmate(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response, 'data', {})
+        balances = self.safe_dict(response, 'data', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
@@ -569,7 +571,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         keys = list(data.keys())
         result = {}
         for i in range(0, len(keys)):
@@ -752,7 +754,7 @@ class coinmate(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        methods = self.safe_value(withdrawOptions, 'methods', {})
+        methods = self.safe_dict(withdrawOptions, 'methods', {})
         method = self.safe_string(methods, code)
         if method is None:
             allowedCurrencies = list(methods.keys())
@@ -797,7 +799,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         transaction = self.parse_transaction(data, currency)
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transaction['amount'] = amount
             transaction['currency'] = code
             transaction['address'] = address
@@ -1189,7 +1191,7 @@ class coinmate(Exchange, ImplicitAPI):
             'orderId': id,
         }
         market = None
-        if symbol:
+        if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
         response = self.privatePostOrderById(self.extend(request, params))
         data = self.safe_dict(response, 'data')
@@ -1228,7 +1230,7 @@ class coinmate(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = (self.urls['api'])['rest'] + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()

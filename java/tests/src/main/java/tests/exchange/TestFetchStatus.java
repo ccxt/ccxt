@@ -16,7 +16,7 @@ public class TestFetchStatus extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchStatus";
+        String method = "fetchStatus";
         Object status = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchStatus", new Object[]{})).join();
         TestStatus.testStatus(exchange, skippedProperties, method, status, exchange.milliseconds());
         return true;

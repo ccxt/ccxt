@@ -839,7 +839,7 @@ class extended extends extended$1["default"] {
         throw new errors.ExchangeError(feedback);
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const type = this.safeString(message, 'type');

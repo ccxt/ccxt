@@ -28,7 +28,7 @@ class blofin(Exchange, ImplicitAPI):
             'name': 'BloFin',
             'countries': ['US'],
             'version': 'v1',
-            'rateLimit': 100,
+            'rateLimit': 200,  # 1500 requests per 5 minutes per IP is the binding budget => 200ms per request(500/min allows 120ms, but 1500/5min does not)
             'pro': True,
             'has': {
                 'CORS': None,
@@ -184,6 +184,7 @@ class blofin(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         'market/instruments': {'cost': 1},
+                        'market/instruments-history': {'cost': 1},
                         'market/tickers': {'cost': 1},
                         'market/books': {'cost': 1},
                         'market/trades': {'cost': 1},
@@ -194,6 +195,12 @@ class blofin(Exchange, ImplicitAPI):
                         'market/index-candles': {'cost': 1},
                         'market/mark-price-candles': {'cost': 1},
                         'market/position-tiers': {'cost': 1},
+                        # spot
+                        'spot/market/instruments': {'cost': 1},
+                        'spot/market/tickers': {'cost': 1},
+                        'spot/market/books': {'cost': 1},
+                        'spot/market/trades': {'cost': 1},
+                        'spot/market/candles': {'cost': 1},
                     },
                 },
                 'private': {
@@ -203,26 +210,28 @@ class blofin(Exchange, ImplicitAPI):
                         'asset/bills': {'cost': 1},
                         'asset/withdrawal-history': {'cost': 1},
                         'asset/deposit-history': {'cost': 1},
+                        'asset/deposit-address': {'cost': 1},
                         'account/config': {'cost': 1},
                         'asset/currencies': {'cost': 1},
                         # trading
                         'account/balance': {'cost': 1},
                         'account/positions': {'cost': 1},
                         'account/positions-history': {'cost': 1},
+                        'account/funding-fees': {'cost': 1},
                         'account/margin-mode': {'cost': 1},
                         'account/position-mode': {'cost': 1},
                         'account/leverage-info': {'cost': 1},
                         'account/batch-leverage-info': {'cost': 1},
-                        'trade/orders-pending': {'cost': 1},
-                        'trade/order-detail': {'cost': 1},
-                        'trade/orders-tpsl-pending': {'cost': 1},
-                        'trade/order-tpsl-detail': {'cost': 1},
-                        'trade/orders-algo-pending': {'cost': 1},
-                        'trade/orders-history': {'cost': 1},
-                        'trade/orders-tpsl-history': {'cost': 1},
-                        'trade/orders-algo-history': {'cost': 1},  # todo new
-                        'trade/fills-history': {'cost': 1},
-                        'trade/order/price-range': {'cost': 1},
+                        'trade/orders-pending': {'cost': 1.67},
+                        'trade/order-detail': {'cost': 1.67},
+                        'trade/orders-tpsl-pending': {'cost': 1.67},
+                        'trade/order-tpsl-detail': {'cost': 1.67},
+                        'trade/orders-algo-pending': {'cost': 1.67},
+                        'trade/orders-history': {'cost': 1.67},
+                        'trade/orders-tpsl-history': {'cost': 1.67},
+                        'trade/orders-algo-history': {'cost': 1.67},  # todo new
+                        'trade/fills-history': {'cost': 1.67},
+                        'trade/order/price-range': {'cost': 1.67},
                         # affiliate
                         'affiliate/basic': {'cost': 1},
                         'affiliate/referral-code': {'cost': 1},
@@ -239,44 +248,63 @@ class blofin(Exchange, ImplicitAPI):
                         'copytrading/account/positions-by-contract': {'cost': 1},
                         'copytrading/account/position-mode': {'cost': 1},
                         'copytrading/account/leverage-info': {'cost': 1},
-                        'copytrading/trade/orders-pending': {'cost': 1},
-                        'copytrading/trade/pending-tpsl-by-contract': {'cost': 1},
-                        'copytrading/trade/position-history-by-order': {'cost': 1},
-                        'copytrading/trade/orders-history': {'cost': 1},
-                        'copytrading/trade/pending-tpsl-by-order': {'cost': 1},
+                        'copytrading/trade/orders-pending': {'cost': 1.67},
+                        'copytrading/trade/pending-tpsl-by-contract': {'cost': 1.67},
+                        'copytrading/trade/position-history-by-order': {'cost': 1.67},
+                        'copytrading/trade/orders-history': {'cost': 1.67},
+                        'copytrading/trade/pending-tpsl-by-order': {'cost': 1.67},
                         # user
                         'user/query-apikey': {'cost': 1},
                         # tax
                         'spot/trade/fills-history': {'cost': 1},
+                        # spot
+                        'spot/trade/orders-pending': {'cost': 1.67},
+                        'spot/trade/order-detail': {'cost': 1.67},
+                        'spot/trade/orders-algo-pending': {'cost': 1.67},
+                        'spot/trade/orders-history': {'cost': 1.67},
+                        'spot/trade/orders-algo-history': {'cost': 1.67},
+                        'spot/trade/order/price-range': {'cost': 1.67},
                     },
                     'post': {
                         # account
                         'asset/transfer': {'cost': 1},
                         'asset/demo-apply-money': {'cost': 1},
+                        'asset/withdrawal-apply': {'cost': 1},
                         # trading
-                        'account/set-margin-mode': {'cost': 1},
-                        'account/set-position-mode': {'cost': 1},
-                        'account/set-leverage': {'cost': 1},
-                        'trade/order': {'cost': 1},
-                        'trade/batch-orders': {'cost': 1},
-                        'trade/order-tpsl': {'cost': 1},
-                        'trade/order-algo': {'cost': 1},
-                        'trade/cancel-order': {'cost': 1},
-                        'trade/cancel-batch-orders': {'cost': 1},
-                        'trade/cancel-tpsl': {'cost': 1},
-                        'trade/cancel-algo': {'cost': 1},
-                        'trade/close-position': {'cost': 1},
+                        'account/set-margin-mode': {'cost': 1.67},
+                        'account/set-position-mode': {'cost': 1.67},
+                        'account/set-leverage': {'cost': 1.67},
+                        'trade/order': {'cost': 1.67},
+                        'trade/batch-orders': {'cost': 1.67},
+                        'trade/order-tpsl': {'cost': 1.67},
+                        'trade/order-algo': {'cost': 1.67},
+                        'trade/cancel-order': {'cost': 1.67},
+                        'trade/cancel-batch-orders': {'cost': 1.67},
+                        'trade/cancel-tpsl': {'cost': 1.67},
+                        'trade/cancel-algo': {'cost': 1.67},
+                        'trade/amend-order': {'cost': 1.67},
+                        'trade/amend-batch-orders': {'cost': 1.67},
+                        'trade/amend-tpsl': {'cost': 1.67},
+                        'trade/amend-algo': {'cost': 1.67},
+                        'trade/close-position': {'cost': 1.67},
+                        # spot
+                        'spot/trade/order': {'cost': 1.67},
+                        'spot/trade/batch-orders': {'cost': 1.67},
+                        'spot/trade/order-algo': {'cost': 1.67},
+                        'spot/trade/cancel-order': {'cost': 1.67},
+                        'spot/trade/cancel-batch-orders': {'cost': 1.67},
+                        'spot/trade/cancel-algo': {'cost': 1.67},
                         # copy trading
-                        'copytrading/account/set-position-mode': {'cost': 1},
-                        'copytrading/account/set-leverage': {'cost': 1},
-                        'copytrading/trade/place-order': {'cost': 1},
-                        'copytrading/trade/cancel-order': {'cost': 1},
-                        'copytrading/trade/place-tpsl-by-contract': {'cost': 1},
-                        'copytrading/trade/cancel-tpsl-by-contract': {'cost': 1},
-                        'copytrading/trade/place-tpsl-by-order': {'cost': 1},
-                        'copytrading/trade/cancel-tpsl-by-order': {'cost': 1},
-                        'copytrading/trade/close-position-by-order': {'cost': 1},
-                        'copytrading/trade/close-position-by-contract': {'cost': 1},
+                        'copytrading/account/set-position-mode': {'cost': 1.67},
+                        'copytrading/account/set-leverage': {'cost': 1.67},
+                        'copytrading/trade/place-order': {'cost': 1.67},
+                        'copytrading/trade/cancel-order': {'cost': 1.67},
+                        'copytrading/trade/place-tpsl-by-contract': {'cost': 1.67},
+                        'copytrading/trade/cancel-tpsl-by-contract': {'cost': 1.67},
+                        'copytrading/trade/place-tpsl-by-order': {'cost': 1.67},
+                        'copytrading/trade/cancel-tpsl-by-order': {'cost': 1.67},
+                        'copytrading/trade/close-position-by-order': {'cost': 1.67},
+                        'copytrading/trade/close-position-by-contract': {'cost': 1.67},
                     },
                 },
             },
@@ -422,7 +450,7 @@ class blofin(Exchange, ImplicitAPI):
                     '102055': InvalidOrder,  # stop loss trigger price should be lower than the best ask price
                     '102064': BadRequest,  # Buy price is not within the price limit(Minimum: 310.40; Maximum:1,629.40)
                     '102065': BadRequest,  # Sell price is not within the price limit
-                    '102068': BadRequest,  # Cancel failed order has been filled, triggered, canceled or does not exist
+                    '102068': BadRequest,  # Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013': ExchangeError,  # Internal error; unable to process your request. Please try again.
                     'Order failed. Insufficient USDT margin in account': InsufficientFunds,  # Insufficient USDT margin in account
                 },
@@ -671,7 +699,7 @@ class blofin(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
         spot = self.safe_bool(market, 'spot', False)
-        quoteVolume = self.safe_string(ticker, 'volCurrency24h') if spot else None
+        quoteVolume = self.safe_string(ticker, 'volCurrency24h') if (spot is True) else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')
@@ -935,7 +963,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1055,7 +1083,7 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
         request = {
             'instId': market['id'],
@@ -1173,7 +1201,7 @@ class blofin(Exchange, ImplicitAPI):
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
-            # blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            # blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
             'percentage': None,
@@ -1227,7 +1255,7 @@ class blofin(Exchange, ImplicitAPI):
         triggerPriceSlTp = self.safe_string_2(params, 'stopLossPrice', 'takeProfitPrice')
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         isHedged = self.safe_bool(params, 'hedged', False)
-        if isHedged:
+        if isHedged is True:
             request['positionSide'] = 'long' if (side == 'buy') else 'short'
         isMarketOrder = type == 'market'
         params = self.omit(params, ['timeInForce'])
@@ -1464,7 +1492,7 @@ class blofin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         hedged = self.safe_bool(params, 'hedged', False)
         positionSide = 'net'
-        if hedged:
+        if hedged is True:
             positionSide = 'short' if (side == 'buy') else 'long'
         request = {
             'instId': market['id'],
@@ -1532,18 +1560,18 @@ class blofin(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         else:
-            if not isTrigger and not isTpsl:
+            if (isTrigger is not True) and (isTpsl is not True):
                 request['orderId'] = str(id)
-            elif isTpsl:
+            elif isTpsl is True:
                 request['tpslId'] = str(id)
-            elif isTrigger:
+            elif isTrigger is True:
                 request['algoId'] = str(id)
         query = self.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl'])
-        if isTpsl:
+        if isTpsl is True:
             tpslResponse = self.cancel_orders([id], symbol, params)
             first = self.safe_dict(tpslResponse, 0)
             return first
-        elif isTrigger:
+        elif isTrigger is True:
             triggerResponse = self.privatePostTradeCancelAlgo(self.extend(request, query))
             triggerData = self.safe_dict(triggerResponse, 'data')
             return self.parse_order(triggerData, market)
@@ -1616,9 +1644,9 @@ class blofin(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
-        if isTpSl or (method == 'privateGetTradeOrdersTpslPending'):
+        if (isTpSl is True) or (method == 'privateGetTradeOrdersTpslPending'):
             response = self.privateGetTradeOrdersTpslPending(self.extend(request, query))
-        elif isTrigger or (method == 'privateGetTradeOrdersAlgoPending'):
+        elif (isTrigger is True) or (method == 'privateGetTradeOrdersAlgoPending'):
             request['orderType'] = 'trigger'
             response = self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
         else:
@@ -1972,7 +2000,7 @@ class blofin(Exchange, ImplicitAPI):
         clientOrderIds = self.parse_ids(self.safe_value(params, 'clientOrderId'))
         tpslIds = self.parse_ids(self.safe_value(params, 'tpslId'))
         trigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'])
-        if trigger:
+        if trigger is True:
             method = 'privatePostTradeCancelTpsl'
         if clientOrderIds is None:
             ids = self.parse_ids(ids)
@@ -1983,7 +2011,7 @@ class blofin(Exchange, ImplicitAPI):
                         'instId': market['id'],
                     })
             for i in range(0, len(ids)):
-                if trigger:
+                if trigger is True:
                     request.append({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -2224,7 +2252,7 @@ class blofin(Exchange, ImplicitAPI):
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPrice')
         notionalString = self.safe_string(position, 'notionalUsd')
-        if market['inverse']:
+        if market['inverse'] is True:
             notionalString = Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
         notional = self.parse_number(notionalString)
         marginMode = self.safe_string(position, 'marginMode')
@@ -2305,7 +2333,7 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverages', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
         symbols = self.market_symbols(symbols)
@@ -2355,7 +2383,7 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
@@ -2430,7 +2458,7 @@ class blofin(Exchange, ImplicitAPI):
         https://blofin.com/docs#close-positions
 
         :param str symbol: Unified CCXT market symbol
-        :param str [side]: 'buy' or 'sell', leave in net mode
+        :param str [side]: 'buy' or 'sell', leave as None in net mode
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique identifier for the order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross
@@ -2492,7 +2520,7 @@ class blofin(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
-        if (isTrigger) or (method == 'privateGetTradeOrdersTpslHistory'):
+        if (isTrigger is True) or (method == 'privateGetTradeOrdersTpslHistory'):
             response = self.privateGetTradeOrdersTpslHistory(self.extend(request, query))
         else:
             response = self.privateGetTradeOrdersHistory(self.extend(request, query))

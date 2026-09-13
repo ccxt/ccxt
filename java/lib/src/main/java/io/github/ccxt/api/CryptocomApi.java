@@ -482,6 +482,17 @@ public class CryptocomApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivatePostPrivateGetFeeCreditBalances endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateGetFeeCreditBalances (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPrivateGetFeeCreditBalances", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivatePostPrivateFiatFiatDepositInfo endpoint.
      *
      * @param optionalArgs the request parameters
@@ -688,6 +699,83 @@ public class CryptocomApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateChangeIsolatedMarginLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostPrivateChangeIsolatedMarginLeverage", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPrivateBotCreateTradingBot endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateBotCreateTradingBot (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPrivateBotCreateTradingBot", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPrivateBotUpdateTradingBot endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateBotUpdateTradingBot (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPrivateBotUpdateTradingBot", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPrivateBotTerminateTradingBot endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateBotTerminateTradingBot (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPrivateBotTerminateTradingBot", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPrivateBotPauseTradingBot endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateBotPauseTradingBot (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPrivateBotPauseTradingBot", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPrivateBotResumeTradingBot endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateBotResumeTradingBot (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPrivateBotResumeTradingBot", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPrivateBotGetTradingBots endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateBotGetTradingBots (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPrivateBotGetTradingBots", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPrivateBotGetTradingBotExecutions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPrivateBotGetTradingBotExecutions (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPrivateBotGetTradingBotExecutions", optionalArgs);
     }
 
     /**

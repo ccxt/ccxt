@@ -295,6 +295,83 @@ public class WeexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetApiV3ApiReferralCheckUserEligibility endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ApiReferralCheckUserEligibility (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV3ApiReferralCheckUserEligibility", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV3ApiReferralRebateRecentRecord endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ApiReferralRebateRecentRecord (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV3ApiReferralRebateRecentRecord", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV3ApiReferralRebateRatio endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ApiReferralRebateRatio (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV3ApiReferralRebateRatio", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV3ContentArticlesDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ContentArticlesDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV3ContentArticlesDetail", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV3ContentArticlesList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ContentArticlesList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV3ContentArticlesList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV3ContentArticlesListByCoin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ContentArticlesListByCoin (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV3ContentArticlesListByCoin", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV3ContentBannersLatest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ContentBannersLatest (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV3ContentBannersLatest", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostApiV3AccountBills endpoint.
      *
      * @param optionalArgs the request parameters
@@ -347,6 +424,17 @@ public class WeexApi extends Exchange
     public java.util.concurrent.CompletableFuture<String>  privatePostApiV3RebateAffiliateInternalWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV3RebateAffiliateInternalWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostApiV3TaxIncome endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostApiV3TaxIncome (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV3TaxIncome", optionalArgs);
     }
 
     /**
@@ -713,6 +801,105 @@ public class WeexApi extends Exchange
     }
 
     /**
+     * Calls the contractPrivateGetCapiV3CopyFollowerHistoryOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3CopyFollowerHistoryOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3CopyFollowerHistoryOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3CopyFollowerMyTraders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3CopyFollowerMyTraders (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3CopyFollowerMyTraders", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3CopyFollowerOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3CopyFollowerOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3CopyFollowerOpenOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3CopyFollowerSettings endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3CopyFollowerSettings (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3CopyFollowerSettings", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3CopyTraderHistoryOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3CopyTraderHistoryOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3CopyTraderHistoryOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3CopyTraderOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3CopyTraderOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3CopyTraderOpenOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3CopyTraderPairs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3CopyTraderPairs (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3CopyTraderPairs", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3TrailingOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3TrailingOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3TrailingOpenOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3TrailingHistoryOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3TrailingHistoryOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3TrailingHistoryOrders", optionalArgs);
+    }
+
+    /**
      * Calls the contractPrivatePostCapiV3AccountIncome endpoint.
      *
      * @param optionalArgs the request parameters
@@ -842,6 +1029,39 @@ public class WeexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3SimOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3SimOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostCapiV3CopyFollowerClosePos endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerClosePos (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostCapiV3CopyFollowerClosePos", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostCapiV3CopyFollowerSettings endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerSettings (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostCapiV3CopyFollowerSettings", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostCapiV3CopyFollowerStopCopy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerStopCopy (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostCapiV3CopyFollowerStopCopy", optionalArgs);
     }
 
     /**

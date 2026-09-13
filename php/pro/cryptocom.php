@@ -138,7 +138,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbols = $this->market_symbols($symbols);
         $topics = array();
         $messageHashes = array();
-        if (!$limit) {
+        if (($limit === null) || ($limit === 0)) {
             $limit = 50;
         }
         $topicParams = $this->safe_value($params, 'params');
@@ -317,7 +317,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $currentNonce = $orderbook['nonce'];
             if ($currentNonce !== $previousNonce) {
                 $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-                if ($checksum) {
+                if ($checksum === true) {
                     throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 }
             }
@@ -461,7 +461,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $dataLength = count($data);
         if ($dataLength === 0) {
             return;
@@ -654,7 +654,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $messageHash = $this->safe_string($message, 'subscription');
         $marketId = $this->safe_string($message, 'instrument_name');
         $market = $this->safe_market($marketId);
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $data[$i];
             $parsed = $this->parse_ws_ticker($ticker, $market);
@@ -801,7 +801,7 @@ class cryptocom extends \ccxt\async\cryptocom {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -830,7 +830,7 @@ class cryptocom extends \ccxt\async\cryptocom {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -947,7 +947,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $channel = $this->safe_string($message, 'channel');
         $symbolSpecificMessageHash = $this->safe_string($message, 'subscription');
-        $orders = $this->safe_value($message, 'data', array());
+        $orders = $this->safe_list($message, 'data', array());
         $ordersLength = count($orders);
         if ($ordersLength > 0) {
             if ($this->orders === null) {
@@ -1007,7 +1007,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $this->set_positions_cache($client, $symbols);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -1020,7 +1020,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1083,7 +1083,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         // and has exactly one subscriptionhash which is the account type
         $data = $this->safe_value($message, 'data', array());
         $firstData = $this->safe_value($data, 0, array());
-        $rawPositions = $this->safe_value($firstData, 'positions', array());
+        $rawPositions = $this->safe_list($firstData, 'positions', array());
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
@@ -1173,8 +1173,8 @@ class cryptocom extends \ccxt\async\cryptocom {
         //     }
         //
         $messageHash = $this->safe_string($message, 'subscription');
-        $data = $this->safe_value($message, 'data', array());
-        $positionBalances = $this->safe_value($data[0], 'position_balances', array());
+        $data = $this->safe_list($message, 'data', array());
+        $positionBalances = $this->safe_list($data[0], 'position_balances', array());
         $this->balance['info'] = $data;
         for ($i = 0; $i < count($positionBalances); $i++) {
             $balance = $positionBalances[$i];
@@ -1454,7 +1454,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $id = $this->safe_string($message, 'id');
         $errorCode = $this->safe_string($message, 'code');
         try {
-            if ($errorCode && $errorCode !== '0') {
+            if (($errorCode !== null && $errorCode !== '') && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $messageString = $this->safe_value($message, 'message');
@@ -1540,7 +1540,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         // handle unsubscribe
         // array("id":1725448572836,"method":"unsubscribe","code":0)
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $method = $this->safe_string($message, 'method');

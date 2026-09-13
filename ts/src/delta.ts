@@ -188,6 +188,7 @@ export default class delta extends Exchange {
                         'users/update_mmp': { 'cost': 1 } as Endpoint<Dict>,
                         'users/reset_mmp': { 'cost': 1 } as Endpoint<Dict>,
                         'users/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/trading_preferences': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'orders': { 'cost': 1 } as Endpoint<Dict>,
@@ -1653,7 +1654,7 @@ export default class delta extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
-        limit = limit ? limit : 2000; // max 2000
+        limit = (limit !== undefined && limit !== null && limit !== 0) ? limit : 2000; // max 2000
         let until = this.safeIntegerProduct (params, 'until', 0.001);
         const untilIsDefined = (until !== undefined);
         if (untilIsDefined) {
@@ -2051,7 +2052,7 @@ export default class delta extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         const reduceOnly = this.safeBool (params, 'reduceOnly');
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
             params = this.omit (params, 'reduceOnly');
         }
@@ -2333,7 +2334,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'product_ids': market['id'], // comma-separated
@@ -2682,7 +2683,7 @@ export default class delta extends Exchange {
     override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request: Dict = {
@@ -2990,7 +2991,7 @@ export default class delta extends Exchange {
     override async fetchOpenInterest (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -4166,7 +4167,7 @@ export default class delta extends Exchange {
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -4178,7 +4179,7 @@ export default class delta extends Exchange {
             };
             let auth = method + timestamp + requestPath;
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     const queryString = '?' + this.urlencode (query);
                     auth += queryString;
                     url += queryString;

@@ -163,6 +163,17 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the publicGetGetAprHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetAprHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetAprHistory", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetGetBookSummaryByCurrency endpoint.
      *
      * @param optionalArgs the request parameters
@@ -218,6 +229,17 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the publicGetGetExpirations endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetExpirations (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetExpirations", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetGetFundingChartData endpoint.
      *
      * @param optionalArgs the request parameters
@@ -270,6 +292,17 @@ public class DeribitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetIndex (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetIndex", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetGetIndexChartData endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetIndexChartData (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetIndexChartData", optionalArgs);
     }
 
     /**
@@ -402,6 +435,17 @@ public class DeribitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetOrderBook", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetGetSupportedIndexNames endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetSupportedIndexNames (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetSupportedIndexNames", optionalArgs);
     }
 
     /**
@@ -669,6 +713,17 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetGetCurrencies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetCurrencies (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetCurrencies", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetGetEmailLanguage endpoint.
      *
      * @param optionalArgs the request parameters
@@ -823,6 +878,17 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetSetDisabledTradingProducts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSetDisabledTradingProducts (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSetDisabledTradingProducts", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetSetEmailForSubaccount endpoint.
      *
      * @param optionalArgs the request parameters
@@ -856,6 +922,17 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetSimulatePortfolio endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSimulatePortfolio (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSimulatePortfolio", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetToggleNotificationsFromSubaccount endpoint.
      *
      * @param optionalArgs the request parameters
@@ -875,6 +952,17 @@ public class DeribitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetToggleSubaccountLogin (Object... optionalArgs)
     {
         return this.callAsync ("privateGetToggleSubaccountLogin", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApproveBlockTrade endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApproveBlockTrade (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApproveBlockTrade", optionalArgs);
     }
 
     /**
@@ -900,6 +988,28 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetGetBlockTradeRequests endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetBlockTradeRequests (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetBlockTradeRequests", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetGetBlockTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetBlockTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetBlockTrades", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetGetLastBlockTradesByCurrency endpoint.
      *
      * @param optionalArgs the request parameters
@@ -919,6 +1029,28 @@ public class DeribitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetInvalidateBlockTradeSignature (Object... optionalArgs)
     {
         return this.callAsync ("privateGetInvalidateBlockTradeSignature", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetRejectBlockTrade endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRejectBlockTrade (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRejectBlockTrade", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetSimulateBlockTrade endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSimulateBlockTrade (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSimulateBlockTrade", optionalArgs);
     }
 
     /**
@@ -1032,6 +1164,17 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetCancelQuotes endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetCancelQuotes (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetCancelQuotes", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetClosePosition endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1065,6 +1208,28 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetGetMmpStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetMmpStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetMmpStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetGetOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetOpenOrders", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetGetOpenOrdersByCurrency endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1084,6 +1249,17 @@ public class DeribitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetOpenOrdersByInstrument (Object... optionalArgs)
     {
         return this.callAsync ("privateGetGetOpenOrdersByInstrument", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetGetOpenOrdersByLabel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetOpenOrdersByLabel (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetOpenOrdersByLabel", optionalArgs);
     }
 
     /**
@@ -1128,6 +1304,17 @@ public class DeribitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetOrderState (Object... optionalArgs)
     {
         return this.callAsync ("privateGetGetOrderState", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetGetOrderStateByLabel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetOrderStateByLabel (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetOrderStateByLabel", optionalArgs);
     }
 
     /**
@@ -1208,6 +1395,28 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetMassQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMassQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetMassQuote", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetMovePositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMovePositions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetMovePositions", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetResetMmp endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1252,6 +1461,17 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetAddToAddressBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAddToAddressBook (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAddToAddressBook", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetCancelTransferById endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1285,6 +1505,17 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetGetAddressBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetAddressBook (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetAddressBook", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetGetCurrentDepositAddress endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1304,6 +1535,17 @@ public class DeribitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privateGetGetDeposits", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetGetRewardEligibility endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetGetRewardEligibility (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetRewardEligibility", optionalArgs);
     }
 
     /**
@@ -1329,6 +1571,28 @@ public class DeribitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetRemoveFromAddressBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRemoveFromAddressBook (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRemoveFromAddressBook", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetSetClearanceOriginator endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSetClearanceOriginator (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSetClearanceOriginator", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetSubmitTransferToSubaccount endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1348,6 +1612,17 @@ public class DeribitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubmitTransferToUser (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubmitTransferToUser", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUpdateInAddressBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUpdateInAddressBook (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUpdateInAddressBook", optionalArgs);
     }
 
     /**

@@ -162,12 +162,14 @@ class hollaex(Exchange, ImplicitAPI):
                         'user/deposits': {'cost': 1},
                         'user/withdrawals': {'cost': 1},
                         'user/withdrawal/fee': {'cost': 1},
+                        'subaccounts': {'cost': 1},
                         'user/trades': {'cost': 1},
                         'orders': {'cost': 1},
                         'order': {'cost': 1},
                     },
                     'post': {
                         'user/withdrawal': {'cost': 1},
+                        'subaccount/transfer': {'cost': 1},
                         'order': {'cost': 1},
                     },
                     'delete': {
@@ -268,7 +270,7 @@ class hollaex(Exchange, ImplicitAPI):
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
-                    'Error 1001 - Order rejected. Order could not be submitted order was set to a post only order.': OrderImmediatelyFillable,
+                    'Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order.': OrderImmediatelyFillable,
                 },
                 'exact': {
                     '400': BadRequest,
@@ -360,7 +362,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         "status": True
         #     }
         #
-        pairs = self.safe_value(response, 'pairs', {})
+        pairs = self.safe_dict(response, 'pairs', {})
         keys = list(pairs.keys())
         result = []
         for i in range(0, len(keys)):
@@ -912,7 +914,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1308,7 +1310,7 @@ class hollaex(Exchange, ImplicitAPI):
             'size': self.amount_to_precision(symbol, amount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
-            # 'meta': {},  # other options such
+            # 'meta': {},  # other options such as post_only
         }
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
@@ -1557,7 +1559,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         wallet = self.safe_value(response, 'wallet', [])
         addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
-        return self.parse_deposit_addresses(addresses, codes)
+        return self.parse_deposit_addresses(addresses, codes, False)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
@@ -1617,7 +1619,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1778,11 +1780,11 @@ class hollaex(Exchange, ImplicitAPI):
         status = self.safe_value(transaction, 'status')
         dismissed = self.safe_value(transaction, 'dismissed')
         rejected = self.safe_value(transaction, 'rejected')
-        if status:
+        if status is True:
             status = 'ok'
-        elif dismissed:
+        elif dismissed is True:
             status = 'canceled'
-        elif rejected:
+        elif rejected is True:
             status = 'failed'
         else:
             status = 'pending'
@@ -1905,7 +1907,7 @@ class hollaex(Exchange, ImplicitAPI):
             'networks': {},
         }
         allowWithdrawal = self.safe_value(fee, 'allow_withdrawal')
-        if allowWithdrawal:
+        if allowWithdrawal is True:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
         withdrawalFees = self.safe_value(fee, 'withdrawal_fees')
         if withdrawalFees is not None:
@@ -1980,7 +1982,7 @@ class hollaex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
-            if query:
+            if len(query) > 0:
                 path += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + path
         if api == 'private':
@@ -1995,7 +1997,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 headers['Content-type'] = 'application/json'
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     auth += body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
@@ -2012,7 +2014,7 @@ class hollaex(Exchange, ImplicitAPI):
             #
             # different errors return the same code eg
             #
-            #  {"message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order."}
+            #  {"message":"Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order."}
             #
             #  {"message":"Error 1001 - POST ONLY order can not be of type market"}
             #

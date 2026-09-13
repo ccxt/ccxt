@@ -52,34 +52,9 @@ export default class okx extends okxRest {
             },
             'options': {
                 'watchOrderBook': {
-                    'checksum': true,
                     //
-                    // bbo-tbt
-                    // 1. Newly added channel that sends tick-by-tick Level 1 data
-                    // 2. All API users can subscribe
-                    // 3. Public depth channel, verification not required
-                    //
-                    // books-l2-tbt
-                    // 1. Only users who're VIP5 and above can subscribe
-                    // 2. Identity verification required before subscription
-                    //
-                    // books50-l2-tbt
-                    // 1. Only users who're VIP4 and above can subscribe
-                    // 2. Identity verification required before subscription
-                    //
-                    // books
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    //
-                    // books5
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-                    //
-                    // books-rpi
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    // 3. 400 depth levels, data feeds will be delivered every 100ms
+                    // channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
+                    // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
                     //
                     'depth': 'books',
                 },
@@ -120,7 +95,7 @@ export default class okx extends okxRest {
             throw new ArgumentsRequired(this.id + ' getUrl() requires a channel argument');
         }
         const isSandbox = this.options['sandboxMode'];
-        const sandboxSuffix = isSandbox ? '?brokerId=9999' : '';
+        const sandboxSuffix = (isSandbox === true) ? '?brokerId=9999' : '';
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
         const url = this.urls['api']['ws'];
@@ -345,7 +320,7 @@ export default class okx extends okxRest {
         const channel = this.safeString(arg, 'channel');
         const marketId = this.safeString(arg, 'instId');
         const symbol = this.safeSymbol(marketId);
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade(data[i]);
@@ -615,7 +590,7 @@ export default class okx extends okxRest {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString(arg, 'channel');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker(data[i]);
@@ -746,7 +721,7 @@ export default class okx extends okxRest {
         }
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchliquidationsForSymbols', market, params);
+        [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params);
         const channel = 'liquidation-orders';
         if (type === 'spot') {
             type = 'SWAP';
@@ -834,7 +809,8 @@ export default class okx extends okxRest {
         }
         const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
-        await this.authenticate({ 'access': isTrigger ? 'business' : 'private' });
+        const accessType = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate({ 'access': accessType });
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const messageHash = 'myLiquidations';
         const messageHashes = [];
@@ -1149,7 +1125,7 @@ export default class okx extends okxRest {
         if (channel === undefined) {
             return;
         }
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -1190,32 +1166,8 @@ export default class okx extends okxRest {
      */
     watchOrderBook(symbol, limit = undefined, params = {}) {
         //
-        // bbo-tbt
-        // 1. Newly added channel that sends tick-by-tick Level 1 data
-        // 2. All API users can subscribe
-        // 3. Public depth channel, verification not required
-        //
-        // books-l2-tbt
-        // 1. Only users who're VIP5 and above can subscribe
-        // 2. Identity verification required before subscription
-        //
-        // books50-l2-tbt
-        // 1. Only users who're VIP4 and above can subscribe
-        // 2. Identity verification required before subscription
-        //
-        // books
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        //
-        // books5
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-        //
-        // books-rpi
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        // 3. 400 depth levels, data feeds will be delivered every 100ms
+        // channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
+        // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
         //
         return this.watchOrderBookForSymbols([symbol], limit, params);
     }
@@ -1746,8 +1698,9 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        await this.authenticate({ 'access': isTrigger ? 'business' : 'private' });
-        const channel = isTrigger ? 'orders-algo' : 'orders';
+        const access = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate({ 'access': access });
+        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
         let market = undefined;
         if (symbol !== undefined) {
@@ -1894,7 +1847,7 @@ export default class okx extends okxRest {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString(arg, 'channel', '');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1942,7 +1895,8 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        await this.authenticate({ 'access': isTrigger ? 'business' : 'private' });
+        const accessType = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate({ 'access': accessType });
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1966,7 +1920,7 @@ export default class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        const channel = isTrigger ? 'orders-algo' : 'orders';
+        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.subscribe('private', channel, channel, symbol, this.extend(request, params));
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
@@ -2031,7 +1985,7 @@ export default class okx extends okxRest {
         this.handleMyTrades(client, message);
         const arg = this.safeValue(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
-        const orders = this.safeValue(message, 'data', []);
+        const orders = this.safeList(message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -2113,7 +2067,7 @@ export default class okx extends okxRest {
         //
         const arg = this.safeValue(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
-        const rawOrders = this.safeValue(message, 'data', []);
+        const rawOrders = this.safeList(message, 'data', []);
         const filteredOrders = [];
         // filter orders with no last trade id
         for (let i = 0; i < rawOrders.length; i++) {
@@ -2439,7 +2393,7 @@ export default class okx extends okxRest {
         //
         let errorCode = this.safeString(message, 'code');
         try {
-            if (errorCode && errorCode !== '0') {
+            if ((errorCode !== undefined && errorCode !== '') && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 if (errorCode !== '1') {
                     this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -2488,7 +2442,7 @@ export default class okx extends okxRest {
         return true;
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         //

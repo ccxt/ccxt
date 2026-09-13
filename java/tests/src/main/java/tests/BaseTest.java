@@ -515,6 +515,14 @@ public class BaseTest {
         throw new Exception("Not implemented");
     }
 
+    // JSON fixtures carry ids as bare numbers; a String-typed parameter takes the decimal text.
+    private static Object coerceArg(Class<?> target, Object value) {
+        if (value instanceof Number && target == String.class) {
+            return (value instanceof Long || value instanceof Integer) ? String.valueOf(value) : java.math.BigDecimal.valueOf(((Number) value).doubleValue()).toPlainString();
+        }
+        return value;
+    }
+
     @SuppressWarnings("unchecked")
     public static CompletableFuture<Object> callExchangeMethodDynamically(
         Object exchange,
@@ -572,7 +580,7 @@ public class BaseTest {
             // fill fixed args
             invokeArgs = new Object[parameterTypes.length];
             for (int i = 0; i < fixedCount; i++) {
-                invokeArgs[i] = (i < realArgs.size()) ? realArgs.get(i) : null;
+                invokeArgs[i] = coerceArg(parameterTypes[i], (i < realArgs.size()) ? realArgs.get(i) : null);
             }
 
             // pack remaining args into an array for the varargs parameter
@@ -591,7 +599,7 @@ public class BaseTest {
             // non-varargs: your old approach is fine
             invokeArgs = new Object[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
-                invokeArgs[i] = (i < realArgs.size()) ? realArgs.get(i) : null;
+                invokeArgs[i] = coerceArg(parameterTypes[i], (i < realArgs.size()) ? realArgs.get(i) : null);
             }
         }
 

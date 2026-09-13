@@ -532,7 +532,7 @@ class blofin extends blofin$1["default"] {
         }
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
-        const channel = trigger ? 'orders-algo' : 'orders';
+        const channel = (trigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.watchMultipleWrapper(false, channel, 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
             const first = this.safeValue(orders, 0);
@@ -784,11 +784,11 @@ class blofin extends blofin$1["default"] {
             const arg = this.safeDict(message, 'arg');
             const channelName = this.safeString(arg, 'channel');
             method = this.safeValue(methods, channelName);
-            if (!method && channelName.indexOf('candle') >= 0) {
+            if ((method === undefined) && (channelName.indexOf('candle') >= 0)) {
                 method = methods['candle'];
             }
         }
-        if (method) {
+        if (method !== undefined) {
             method.call(this, client, message);
         }
     }

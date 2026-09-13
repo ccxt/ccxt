@@ -40,7 +40,7 @@ function filterArgvs (argsArray: string[], needle: string, include = true) {
 }
 function selectArgv (argsArray: string[], needle: string) {
     const foundArray = argsArray.filter ((x: string) => (x.includes (needle)));
-    return foundArray.length ? foundArray[0] : undefined;
+    return (foundArray.length > 0) ? foundArray[0] : undefined;
 }
 
 const argvs_filtered = filterArgvs (argv, '--', false);

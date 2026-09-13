@@ -84,7 +84,7 @@ class PredictionExchange(BaseExchange):
         })
 
     def is_prediction(self) -> bool:
-        return self.safe_bool(self.has, 'prediction', False) is True
+        return self.safe_bool(self.has, 'prediction', False)
 
     def parse_search_queries(self, params={}):
         # accepts either `query`(a single search string) or `queries`(a list of strings)
@@ -137,7 +137,7 @@ class PredictionExchange(BaseExchange):
             result = filtered
         result = self.filter_events_by_status(result, self.safe_string(params, 'status'))
         result = self.filter_events_by_tags(result, self.safe_list(params, 'tags'))
-        # own-line length read so the regex transpiler treats `queries` array(count())
+        # own-line length read so the regex transpiler treats `queries` as an array(count())
         # and not a string(strlen()); guard None since the default is None
         queriesLength = 0
         if queries is not None:
@@ -302,7 +302,7 @@ class PredictionExchange(BaseExchange):
         return self.events
 
     def events_list(self) -> list[object]:
-        # the cached events list; empty on a cold instance(self.events is keyed by both
+        # the cached events as a list; empty on a cold instance(self.events is keyed by both
         # id and handle, so de-duplicate by identity before returning)
         if self.events is None:
             return []
@@ -321,7 +321,7 @@ class PredictionExchange(BaseExchange):
         # note: the cache-hit shortcut ignores params, so events fetched under one scope are
         # returned for a later differently-scoped call. events are scoped(unlike global
         # markets), so prefer fetchEvents(params) directly when you need a specific scope
-        if not reload and self.events:
+        if not reload and (self.events is not None and self.events is not None):
             return self.events
         events = await self.fetch_events(params)
         return self.set_events(events)
@@ -564,7 +564,7 @@ class PredictionExchange(BaseExchange):
         # register a single event's markets into self.markets and rebuild the outcome cache so the
         # handles fetchEvent() returns resolve immediately in outcome-addressed methods(fetchTicker,
         # createOrder, ...). without self, on a cold instance or a loadAllOutcomes:false venue
-        # such, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        # such as kalshi, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
         # BadSymbols because the outcome was never cached
         if self.markets is None:
             self.markets = self.create_safe_dictionary()
@@ -595,8 +595,8 @@ class PredictionExchange(BaseExchange):
             missingLength = len(missing)
             wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
             loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
-            if (missingLength > 0) and loadAll and not wasWarm and not reload:
-                # same trade-off: on venues where the whole universe is one cheap
+            if (missingLength > 0) and (loadAll is True) and not wasWarm and not reload:
+                # same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 # request(hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await self.load_outcomes()
                 stillMissing = []
@@ -647,7 +647,7 @@ class PredictionExchange(BaseExchange):
                 if self.has_outcome(outcomeSymbol):
                     return self.safe_outcome(outcomeSymbol)
             loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
-            if loadAll and not wasWarm:
+            if (loadAll is True) and not wasWarm:
                 # a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 # a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 # listed, so fall through to fetchOutcome(a real BadSymbol) rather than refetching
@@ -712,7 +712,7 @@ class PredictionExchange(BaseExchange):
             try:
                 await self.fetch_events({'query': searchQuery, 'limit': searchLimit})
             except Exception as e:
-                # a query with zero matches surfaces on some venues — treat it
+                # a query with zero matches surfaces on some venues — treat it as a
                 # plain miss(the guidance-rich raise below); real transport errors propagate
                 if not (isinstance(e, BadSymbol)):
                     raise e
@@ -756,7 +756,7 @@ class PredictionExchange(BaseExchange):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to fetch
         :param dict [params]: extra exchange-specific parameters
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         return await super(PredictionExchange, self).fetch_ohlcv(outcome, timeframe, since, limit, params)
 
@@ -1087,7 +1087,7 @@ class PredictionExchange(BaseExchange):
         if timeInForce is None:
             if orderType == 'market':
                 timeInForce = 'IOC'
-            if postOnly:
+            if postOnly is True:
                 timeInForce = 'PO'
         elif postOnly is None:
             postOnly = (timeInForce == 'PO')
@@ -1401,7 +1401,7 @@ class PredictionExchange(BaseExchange):
     def int_to_rlp_hex(self, value: Int):
         if value is None:
             raise ArgumentsRequired(self.id + ' intToRlpHex() requires a value argument')
-        # an integer minimal big-endian byte hex; 0 is the empty byte string
+        # an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if value == 0:
             return ''
         hex = self.int_to_base16(value)
@@ -1409,7 +1409,7 @@ class PredictionExchange(BaseExchange):
         return hex
 
     def hex_to_rlp_bytes(self, hexValue: Str):
-        # a hex value(e.g. an RPC result) big-endian byte hex; leading zero bytes
+        # a hex value(e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         # are stripped and 0 becomes the empty byte string(RLP integer encoding)
         if hexValue is None:
             return ''
@@ -1460,7 +1460,7 @@ class PredictionExchange(BaseExchange):
         start = self.milliseconds()
         while((self.milliseconds() - start) < timeout):
             receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])
-            if receipt:
+            if (receipt is not None) and (receipt is not None):
                 return receipt
             await self.sleep(2000)
         raise ExchangeError(self.id + ' transaction ' + txHash + ' not mined within timeout')

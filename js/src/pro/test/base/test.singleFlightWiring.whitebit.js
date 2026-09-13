@@ -7,18 +7,11 @@
 import assert from 'assert';
 import { AuthenticationError } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
-// native ts test, intentionally not transpiled - pins the single-flight
-// authentication logic from https://github.com/ccxt/ccxt/issues/29393 on
-// ccxt.pro.whitebit. whitebit gates its handshake on
-// subscriptions['authenticated'], which watch () only registers once the
-// awaited v4PrivatePostProfileWebsocketToken () has resolved, so every
-// concurrent cold caller used to pass that gate, mint its own websocket_token
-// and push its own authorize frame down the shared socket. the logic is
-// inlined directly into authenticate (), so there is no helper method to
-// unit-test: this file is the only guard, and no build/lint gate sees it -
-// dropping the in-progress early-return or the flight settlement still
-// compiles and only surfaces as duplicate token fetches (plus duplicate
-// authorize frames) against a live venue
+// native ts test, intentionally not transpiled - pins the single-flight authentication
+// in ccxt.pro.whitebit (https://github.com/ccxt/ccxt/issues/29393). subscriptions['authenticated']
+// is only registered after the awaited v4PrivatePostProfileWebsocketToken () resolves, so without
+// the in-progress early-return every concurrent cold caller mints its own websocket_token and
+// sends its own authorize frame. the logic is inlined in authenticate (); this file is the only guard.
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -89,8 +82,9 @@ function makeStubbedWhitebit(state) {
         state.tokensSent.push(message['params'][0]);
         const client = exchange.client(url);
         const future = client.future(messageHash);
-        if (!client.subscriptions[subscribeHash]) {
-            client.subscriptions[subscribeHash] = subscription || true;
+        if ((client.subscriptions[subscribeHash] === undefined) || (client.subscriptions[subscribeHash] === null)) {
+            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
+            client.subscriptions[subscribeHash] = subscriptionValue;
         }
         setTimeout(() => {
             // whitebit.handleAuthenticate (): future.resolve (1)
@@ -257,8 +251,9 @@ async function testWhitebitAuthenticateHandshakeFailureRetries() {
         state.tokensSent.push(message['params'][0]);
         const failClient = exchange.client(url);
         const future = failClient.future(messageHash);
-        if (!failClient.subscriptions[subscribeHash]) {
-            failClient.subscriptions[subscribeHash] = subscription || true;
+        if ((failClient.subscriptions[subscribeHash] === undefined) || (failClient.subscriptions[subscribeHash] === null)) {
+            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
+            failClient.subscriptions[subscribeHash] = subscriptionValue;
         }
         setTimeout(() => {
             // Exchange.watch () rejects the handshake future when the dial or
@@ -288,8 +283,9 @@ async function testWhitebitAuthenticateHandshakeFailureRetries() {
         state.tokensSent.push(message['params'][0]);
         const okClient = exchange.client(url);
         const future = okClient.future(messageHash);
-        if (!okClient.subscriptions[subscribeHash]) {
-            okClient.subscriptions[subscribeHash] = subscription || true;
+        if ((okClient.subscriptions[subscribeHash] === undefined) || (okClient.subscriptions[subscribeHash] === null)) {
+            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
+            okClient.subscriptions[subscribeHash] = subscriptionValue;
         }
         setTimeout(() => {
             if (messageHash in okClient.futures) {

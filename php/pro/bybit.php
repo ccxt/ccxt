@@ -220,7 +220,7 @@ class bybit extends \ccxt\async\bybit {
             $unified = Async\await($this->isUnifiedEnabled());
             $isUnifiedMargin = $this->safe_bool($unified, 0, false);
             $isUnifiedAccount = $this->safe_bool($unified, 1, false);
-            if ($isUsdcSettled && !$isUnifiedMargin && !$isUnifiedAccount) {
+            if ($isUsdcSettled && ($isUnifiedMargin !== true) && ($isUnifiedAccount !== true)) {
                 $url = $url[$accessibility]['usdc'];
             } else {
                 $url = $url[$accessibility]['contract'];
@@ -424,7 +424,7 @@ class bybit extends \ccxt\async\bybit {
         $params = $this->clean_params($params);
         $options = $this->safe_value($this->options, 'watchTicker', array());
         $topic = $this->safe_string($options, 'name', 'tickers');
-        if (!$market['spot'] && $topic !== 'tickers') {
+        if (($market['spot'] !== true) && $topic !== 'tickers') {
             throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
         }
         $topic .= '.' . $market['id'];
@@ -740,7 +740,7 @@ class bybit extends \ccxt\async\bybit {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
@@ -762,7 +762,7 @@ class bybit extends \ccxt\async\bybit {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -803,7 +803,7 @@ class bybit extends \ccxt\async\bybit {
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -845,7 +845,7 @@ class bybit extends \ccxt\async\bybit {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
@@ -922,7 +922,8 @@ class bybit extends \ccxt\async\bybit {
         //         "timestamp" => 1670363219614
         //     }
         //
-        $volumeIndex = $this->safe_bool($market, 'inverse') ? 'turnover' : 'volume';
+        $isInverse = ($this->safe_bool($market, 'inverse') === true);
+        $volumeIndex = $isInverse ? 'turnover' : 'volume';
         return array(
             $this->safe_integer($ohlcv, 'start'),
             $this->safe_number($ohlcv, 'open'),
@@ -975,7 +976,7 @@ class bybit extends \ccxt\async\bybit {
         $market = $this->market($symbols[0]);
         if ($limit === null) {
             $limit = 50;
-            if ($market['option']) {
+            if ($market['option'] === true) {
                 $limit = 100;
             }
         } else {
@@ -1028,7 +1029,7 @@ class bybit extends \ccxt\async\bybit {
             $params = $this->omit($params, 'limit');
         } else {
             $firstMarket = $this->market($symbols[0]);
-            $limit = $firstMarket['spot'] ? 50 : 500;
+            $limit = ($firstMarket['spot'] === true) ? 50 : 500;
         }
         $channel .= (string) $limit;
         $subMessageHashes = array();
@@ -1341,7 +1342,7 @@ class bybit extends \ccxt\async\bybit {
         $takerOrMaker = null;
         $m = $this->safe_value($trade, 'm');
         if ($side === null) {
-            $side = $m ? 'buy' : 'sell';
+            $side = ($m === true) ? 'buy' : 'sell';
         } else {
             // spot private
             $takerOrMaker = $m;
@@ -1556,7 +1557,7 @@ class bybit extends \ccxt\async\bybit {
         $executionFast = $topic === 'execution.fast';
         $data = $this->safe_value($message, 'data', array());
         if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
-            $data = $this->safe_value($data, 'result', array());
+            $data = $this->safe_list($data, 'result', array());
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1565,7 +1566,7 @@ class bybit extends \ccxt\async\bybit {
         $trades = $this->myTrades;
         $symbols = array();
         // the option was renamed from filterExecTypes to $execType to mirror
-        // the exchange's own field name, the old key is still read
+        // the exchange's own field name, the old key is still read as a
         // fallback for backward compatibility
         // see https://github.com/ccxt/ccxt/issues/17244
         // and https://github.com/ccxt/ccxt/issues/28181
@@ -1575,7 +1576,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $execTypes = null;
         if (gettype($execTypeOption) === 'string') {
-            // a single execution type is accepted plain string
+            // a single execution type is accepted as a plain string as well
             $execTypes = array( $execTypeOption );
         } else {
             $execTypes = $execTypeOption;
@@ -1647,7 +1648,7 @@ class bybit extends \ccxt\async\bybit {
         $cache = $this->positions;
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($cache === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -1664,7 +1665,7 @@ class bybit extends \ccxt\async\bybit {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1680,7 +1681,7 @@ class bybit extends \ccxt\async\bybit {
     }
 
     private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
-        // one ws channel gives $positions for all types, for snapshot must load all $positions
+        // as only one ws channel gives $positions for all types, for snapshot must load all $positions
         $fetchFunctions = array(
             $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'linear' )),
             $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'inverse' )),
@@ -1748,7 +1749,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $cache = $this->positions;
         $newPositions = array();
-        $rawPositions = $this->safe_value($message, 'data', array());
+        $rawPositions = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
             $position = $this->parse_position($rawPosition);
@@ -1938,7 +1939,7 @@ class bybit extends \ccxt\async\bybit {
             'contracts' => $this->safe_number_2($liquidation, 'size', 'v'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number_2($liquidation, 'price', 'p'),
-            'side' => $this->safe_string_lower($liquidation, 'side', 'S'),
+            'side' => $this->safe_string_lower_2($liquidation, 'side', 'S'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2137,7 +2138,7 @@ class bybit extends \ccxt\async\bybit {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $orders = $this->orders;
-        $rawOrders = $this->safe_value($message, 'data', array());
+        $rawOrders = $this->safe_list($message, 'data', array());
         $first = $this->safe_value($rawOrders, 0, array());
         $category = $this->safe_string($first, 'category');
         $isSpot = $category === 'spot';
@@ -2199,7 +2200,7 @@ class bybit extends \ccxt\async\bybit {
             'spot' => 'outboundAccountInfo',
             'unified' => 'wallet',
         );
-        if ($isUnifiedAccount) {
+        if ($isUnifiedAccount === true) {
             // $unified account
             if ($subType === 'inverse') {
                 $messageHash .= ':contract';
@@ -2207,7 +2208,7 @@ class bybit extends \ccxt\async\bybit {
                 $messageHash .= ':unified';
             }
         }
-        if (!$isUnifiedMargin && !$isUnifiedAccount) {
+        if (($isUnifiedMargin !== true) && ($isUnifiedAccount !== true)) {
             // normal account using v5
             if ($type === 'spot') {
                 $messageHash .= ':spot';
@@ -2215,7 +2216,7 @@ class bybit extends \ccxt\async\bybit {
                 $messageHash .= ':contract';
             }
         }
-        if ($isUnifiedMargin) {
+        if ($isUnifiedMargin === true) {
             // $unified margin account using v5
             if ($type === 'spot') {
                 $messageHash .= ':spot';
@@ -2384,7 +2385,7 @@ class bybit extends \ccxt\async\bybit {
         $account = null;
         if ($topic === 'outboundAccountInfo') {
             $account = 'spot';
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $B = $this->safe_value($data[$i], 'B', array());
                 $rawBalances = $this->array_concat($rawBalances, $B);
@@ -2602,7 +2603,7 @@ class bybit extends \ccxt\async\bybit {
                 throw new ExchangeError($feedback);
             }
             $success = $this->safe_value($message, 'success');
-            if ($success !== null && !$success) {
+            if (($success !== null) && ($success !== true)) {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
@@ -2643,7 +2644,7 @@ class bybit extends \ccxt\async\bybit {
 
     public function handle_message(Client $client, mixed $message) {
         $topic = $this->safe_string_2($message, 'topic', 'op', '');
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         // contract $pong
@@ -2774,7 +2775,7 @@ class bybit extends \ccxt\async\bybit {
         $success = $this->safe_value($message, 'success');
         $code = $this->safe_integer($message, 'retCode');
         $messageHash = 'authenticated';
-        if ($success || $code === 0) {
+        if (($success === true) || ($code === 0)) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {

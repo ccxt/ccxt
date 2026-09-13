@@ -468,7 +468,7 @@ class bitmex extends \ccxt\async\bitmex {
         //        )
         //    }
         //
-        $rawLiquidations = $this->safe_value($message, 'data', array());
+        $rawLiquidations = $this->safe_list($message, 'data', array());
         $newLiquidations = array();
         if ($this->liquidations === null) {
             $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
@@ -754,7 +754,7 @@ class bitmex extends \ccxt\async\bitmex {
     public function handle_authentication_message(Client $client, mixed $message) {
         $authenticated = $this->safe_bool($message, 'success', false);
         $messageHash = 'authenticated';
-        if ($authenticated) {
+        if ($authenticated === true) {
             // we resolve the $future here permanently so authentication only happens once
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
@@ -960,7 +960,7 @@ class bitmex extends \ccxt\async\bitmex {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
-        $rawPositions = $this->safe_value($message, 'data', array());
+        $rawPositions = $this->safe_list($message, 'data', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
@@ -1193,7 +1193,7 @@ class bitmex extends \ccxt\async\bitmex {
         //         )
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $messageHash = 'order';
         // initial subscription response with multiple orders
         $dataLength = count($data);
@@ -1474,7 +1474,7 @@ class bitmex extends \ccxt\async\bitmex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1567,7 +1567,7 @@ class bitmex extends \ccxt\async\bitmex {
         $interval = str_replace('tradeBin', '', $table);
         $timeframe = $this->find_timeframe($interval);
         $duration = $this->parse_timeframe($timeframe);
-        $candles = $this->safe_value($message, 'data', array());
+        $candles = $this->safe_list($message, 'data', array());
         $results = array();
         for ($i = 0; $i < count($candles); $i++) {
             $candle = $candles[$i];
@@ -1668,7 +1668,7 @@ class bitmex extends \ccxt\async\bitmex {
         if ($table === null) {
             return; // protecting from weird updates
         }
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         // if it's an initial snapshot
         if ($action === 'partial') {
             $filter = $this->safe_dict($message, 'filter', array());
@@ -1741,7 +1741,7 @@ class bitmex extends \ccxt\async\bitmex {
     public function handle_system_status(Client $client, mixed $message) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
-        // and unified for any usage pattern that
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -1786,7 +1786,7 @@ class bitmex extends \ccxt\async\bitmex {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             $request = $this->safe_value($message, 'request', array());
-            $args = $this->safe_value($request, 'args', array());
+            $args = $this->safe_list($request, 'args', array());
             $numArgs = count($args);
             if ($numArgs > 0) {
                 $messageHash = $args[0];
@@ -1840,7 +1840,7 @@ class bitmex extends \ccxt\async\bitmex {
         //         )
         //     }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             $table = $this->safe_string($message, 'table');
             $methods = array(
                 'orderBookL2' => array($this, 'handle_order_book'),

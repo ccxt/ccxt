@@ -154,6 +154,11 @@ export default class upbit extends Exchange {
                         'travel_rule/vasps': { 'cost': 0.67 },
                         'status/wallet': { 'cost': 0.67 },
                         'api_keys': { 'cost': 0.67 }, // Upbit KR only
+                        'pockets': { 'cost': 0.67 },
+                        'pockets/api_keys': { 'cost': 0.67 },
+                        'pockets/assets': { 'cost': 0.67 },
+                        'pockets/universal_transfers': { 'cost': 0.67 },
+                        'pockets/transfers': { 'cost': 0.67 },
                     },
                     'post': {
                         'orders': { 'cost': 2.5 }, // RPS: 8
@@ -165,6 +170,8 @@ export default class upbit extends Exchange {
                         'deposits/generate_coin_address': { 'cost': 0.67 },
                         'travel_rule/deposit/uuid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers': { 'cost': 0.67 },
+                        'pockets/transfers': { 'cost': 0.67 },
                     },
                     'delete': {
                         'order': { 'cost': 0.67 },
@@ -345,16 +352,16 @@ export default class upbit extends Exchange {
         const walletLocked = this.safeValue(memberInfo, 'wallet_locked');
         const locked = this.safeValue(memberInfo, 'locked');
         let active = true;
-        if ((canWithdraw !== undefined) && !canWithdraw) {
+        if ((canWithdraw !== undefined) && (canWithdraw !== true)) {
             active = false;
         }
         else if (walletState !== 'working') {
             active = false;
         }
-        else if ((walletLocked !== undefined) && walletLocked) {
+        else if ((walletLocked !== undefined) && (walletLocked === true)) {
             active = false;
         }
-        else if ((locked !== undefined) && locked) {
+        else if ((locked !== undefined) && (locked === true)) {
             active = false;
         }
         const maxOnetimeWithdrawal = this.safeString(withdrawLimits, 'onetime');
@@ -1221,7 +1228,7 @@ export default class upbit extends Exchange {
         if (cost !== undefined) {
             quoteAmount = this.costToPrecision(symbol, cost);
         }
-        else if (createMarketBuyOrderRequiresPrice) {
+        else if (createMarketBuyOrderRequiresPrice === true) {
             if (price === undefined || amount === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }
@@ -1349,7 +1356,7 @@ export default class upbit extends Exchange {
         }
         let response;
         params = this.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test']);
-        if (test) {
+        if (test === true) {
             response = await this.privatePostOrdersTest(this.extend(request, params));
         }
         else {
@@ -1919,7 +1926,7 @@ export default class upbit extends Exchange {
         let feeCost = this.safeString(order, 'paid_fee');
         const marketId = this.safeString(order, 'market');
         market = this.safeMarket(marketId, market);
-        let trades = this.safeValue(order, 'trades', []);
+        let trades = this.safeList(order, 'trades', []);
         trades = this.parseTrades(trades, market, undefined, undefined, {
             'order': id,
             'type': type,
@@ -2242,7 +2249,7 @@ export default class upbit extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses(response, codes);
+        return this.parseDepositAddresses(response, codes, false);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -2412,7 +2419,7 @@ export default class upbit extends Exchange {
         url += '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method !== 'POST') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2430,7 +2437,7 @@ export default class upbit extends Exchange {
                 body = this.json(params);
                 headers['Content-Type'] = 'application/json';
             }
-            if (hasQuery) {
+            if ((hasQuery !== undefined) && (hasQuery !== 0)) {
                 auth = this.rawencode(query);
             }
             if (auth !== undefined) {

@@ -58,6 +58,7 @@ interface Exchange {
     privatePutUsersUpdateMmp (params?: {}): Promise<Dict>;
     privatePutUsersResetMmp (params?: {}): Promise<Dict>;
     privatePutUsersMarginMode (params?: {}): Promise<Dict>;
+    privatePutUsersTradingPreferences (params?: {}): Promise<Dict>;
     privateDeleteOrders (params?: {}): Promise<Dict>;
     privateDeleteOrdersAll (params?: {}): Promise<Dict>;
     privateDeleteOrdersBatch (params?: {}): Promise<Dict>;
