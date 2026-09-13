@@ -2430,8 +2430,14 @@ export default class bingx extends Exchange {
         const high = this.safeString (ticker, 'highPrice');
         const low = this.safeString (ticker, 'lowPrice');
         const close = this.safeString (ticker, 'lastPrice');
-        const quoteVolume = this.safeString (ticker, 'quoteVolume');
-        const baseVolume = this.safeString (ticker, 'volume');
+        let quoteVolume = this.safeString (ticker, 'quoteVolume');
+        let baseVolume = this.safeString (ticker, 'volume');
+        if (market['inverse'] === true) {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            const contractSize = this.safeString (market, 'contractSize');
+            baseVolume = quoteVolume;
+            quoteVolume = Precise.stringMul (this.safeString (ticker, 'volume'), contractSize);
+        }
         let percentage = this.safeString (ticker, 'priceChangePercent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');

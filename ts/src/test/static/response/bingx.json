@@ -4444,6 +4444,401 @@
                     "bidQty": "1.3346"
                   }
                 }
+            },
+            {
+                "description": "Coin-M BTC ticker volumes use base currency and USD",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1789205377226,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "priceChange": "225.9",
+                            "priceChangePercent": "0.2900%",
+                            "lastPrice": "77295.1",
+                            "lastQty": "4",
+                            "highPrice": "79846.6",
+                            "lowPrice": "75948.0",
+                            "volume": "798047.00",
+                            "quoteVolume": "1029.03",
+                            "openPrice": "77069.2",
+                            "closeTime": "1789205376751",
+                            "bidPrice": "77295.0",
+                            "bidQty": "33",
+                            "askPrice": "77295.8",
+                            "askQty": "155"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": 1789205376751,
+                    "datetime": "2026-09-12T09:29:36.751Z",
+                    "high": 79846.6,
+                    "low": 75948,
+                    "bid": 77295,
+                    "bidVolume": 33,
+                    "ask": 77295.8,
+                    "askVolume": 155,
+                    "vwap": 77553.32691952615,
+                    "open": 77069.2,
+                    "close": 77295.1,
+                    "last": 77295.1,
+                    "previousClose": null,
+                    "change": 225.9,
+                    "percentage": 0.29,
+                    "average": 77182.1,
+                    "baseVolume": 1029.03,
+                    "quoteVolume": 79804700.0,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "priceChange": "225.9",
+                        "priceChangePercent": "0.2900%",
+                        "lastPrice": "77295.1",
+                        "lastQty": "4",
+                        "highPrice": "79846.6",
+                        "lowPrice": "75948.0",
+                        "volume": "798047.00",
+                        "quoteVolume": "1029.03",
+                        "openPrice": "77069.2",
+                        "closeTime": "1789205376751",
+                        "bidPrice": "77295.0",
+                        "bidQty": "33",
+                        "askPrice": "77295.8",
+                        "askQty": "155"
+                    }
+                }
+            },
+            {
+                "description": "Coin-M ticker missing base turnover",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastQty": "0",
+                            "volume": "2"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": 200,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastQty": "0",
+                        "volume": "2"
+                    }
+                }
+            },
+            {
+                "description": "Coin-M ticker missing contract volume",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastQty": "0",
+                            "quoteVolume": "0.003"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.003,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastQty": "0",
+                        "quoteVolume": "0.003"
+                    }
+                }
+            },
+            {
+                "description": "Coin-M ticker zero volumes",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastQty": "0",
+                            "volume": "0",
+                            "quoteVolume": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0,
+                    "quoteVolume": 0,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastQty": "0",
+                        "volume": "0",
+                        "quoteVolume": "0"
+                    }
+                }
+            },
+            {
+                "description": "Coin-M ticker without contract size (synthetic market)",
+                "method": "fetchTicker",
+                "input": [
+                    "TEST/USD:TEST"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "TEST-USD",
+                            "lastQty": "2",
+                            "lastPrice": "100",
+                            "volume": "2",
+                            "quoteVolume": "0.5"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "TEST/USD:TEST",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 100,
+                    "last": 100,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.5,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "TEST-USD",
+                        "lastQty": "2",
+                        "lastPrice": "100",
+                        "volume": "2",
+                        "quoteVolume": "0.5"
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Coin-M tickers respect different contract sizes",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "SOL/USD:SOL"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "priceChange": "225.9",
+                            "priceChangePercent": "0.2900%",
+                            "lastPrice": "77295.7",
+                            "lastQty": "3",
+                            "highPrice": "79846.6",
+                            "lowPrice": "75948.0",
+                            "volume": "798047.00",
+                            "quoteVolume": "1029.03",
+                            "openPrice": "77069.2",
+                            "closeTime": "1789205377677",
+                            "bidPrice": "77295.0",
+                            "bidQty": "31",
+                            "askPrice": "77295.8",
+                            "askQty": "149"
+                        },
+                        {
+                            "symbol": "SOL-USD",
+                            "priceChange": "2.376",
+                            "priceChangePercent": "2.3900%",
+                            "lastPrice": "101.922",
+                            "lastQty": "11",
+                            "highPrice": "105.680",
+                            "lowPrice": "97.883",
+                            "volume": "769000.00",
+                            "quoteVolume": "75569.34",
+                            "openPrice": "99.527",
+                            "closeTime": "1789205376752",
+                            "bidPrice": "101.902",
+                            "bidQty": "170",
+                            "askPrice": "101.923",
+                            "askQty": "669"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD:BTC": {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1789205377677,
+                        "datetime": "2026-09-12T09:29:37.677Z",
+                        "high": 79846.6,
+                        "low": 75948,
+                        "bid": 77295,
+                        "bidVolume": 31,
+                        "ask": 77295.8,
+                        "askVolume": 149,
+                        "vwap": 77553.32691952615,
+                        "open": 77069.2,
+                        "close": 77295.7,
+                        "last": 77295.7,
+                        "previousClose": null,
+                        "change": 225.9,
+                        "percentage": 0.29,
+                        "average": 77182.4,
+                        "baseVolume": 1029.03,
+                        "quoteVolume": 79804700.0,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTC-USD",
+                            "priceChange": "225.9",
+                            "priceChangePercent": "0.2900%",
+                            "lastPrice": "77295.7",
+                            "lastQty": "3",
+                            "highPrice": "79846.6",
+                            "lowPrice": "75948.0",
+                            "volume": "798047.00",
+                            "quoteVolume": "1029.03",
+                            "openPrice": "77069.2",
+                            "closeTime": "1789205377677",
+                            "bidPrice": "77295.0",
+                            "bidQty": "31",
+                            "askPrice": "77295.8",
+                            "askQty": "149"
+                        }
+                    },
+                    "SOL/USD:SOL": {
+                        "symbol": "SOL/USD:SOL",
+                        "timestamp": 1789205376752,
+                        "datetime": "2026-09-12T09:29:36.752Z",
+                        "high": 105.68,
+                        "low": 97.883,
+                        "bid": 101.902,
+                        "bidVolume": 170,
+                        "ask": 101.923,
+                        "askVolume": 669,
+                        "vwap": 101.76084639617072,
+                        "open": 99.527,
+                        "close": 101.922,
+                        "last": 101.922,
+                        "previousClose": null,
+                        "change": 2.376,
+                        "percentage": 2.39,
+                        "average": 100.724,
+                        "baseVolume": 75569.34,
+                        "quoteVolume": 7690000.0,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "SOL-USD",
+                            "priceChange": "2.376",
+                            "priceChangePercent": "2.3900%",
+                            "lastPrice": "101.922",
+                            "lastQty": "11",
+                            "highPrice": "105.680",
+                            "lowPrice": "97.883",
+                            "volume": "769000.00",
+                            "quoteVolume": "75569.34",
+                            "openPrice": "99.527",
+                            "closeTime": "1789205376752",
+                            "bidPrice": "101.902",
+                            "bidQty": "170",
+                            "askPrice": "101.923",
+                            "askQty": "669"
+                        }
+                    }
+                }
             }
         ],
         "fetchOHLCV": [
