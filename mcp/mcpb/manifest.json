@@ -11,7 +11,7 @@
     "url": "https://ccxt.com"
   },
   "homepage": "https://ccxt.com",
-  "documentation": "https://docs.ccxt.com/#/mcp",
+  "documentation": "https://docs.ccxt.com/docs/mcp",
   "repository": {
     "type": "git",
     "url": "https://github.com/ccxt/ccxt"
@@ -157,7 +157,7 @@
     "config_file": {
       "type": "file",
       "title": "Config file (for 4+ exchanges, wallet venues, or live trading)",
-      "description": "Point this at a ccxt-mcp config.json with an \"accounts\" map to configure any number of exchanges, wallet-based venues (walletAddress/privateKey), or live trading/withdrawals. See https://docs.ccxt.com/#/mcp. It merges with the inline exchanges above; on a name clash the file wins.",
+      "description": "Point this at a ccxt-mcp config.json with an \"accounts\" map to configure any number of exchanges, wallet-based venues (walletAddress/privateKey), or live trading/withdrawals. See https://docs.ccxt.com/docs/mcp. It merges with the inline exchanges above; on a name clash the file wins.",
       "required": false
     }
   },
