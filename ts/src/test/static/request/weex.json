@@ -404,6 +404,20 @@
         ],
         "fetchLedger": [
             {
+                "description": "fetch ledger for contract without a code",
+                "method": "fetchLedger",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
                 "description": "fetch ledger for funding",
                 "method": "fetchLedger",
                 "url": "https://api-spot.weex.com/api/v3/account/fundingBills",
