@@ -1868,6 +1868,9 @@ class BaseExchange {
             $request['base_amount'],
             $request['price'],
             $request['trigger_price'],
+            $this->safe_integer($request, 'integrator_account_index', 0),
+            $this->safe_integer($request, 'integrator_taker_fee', 0),
+            $this->safe_integer($request, 'integrator_maker_fee', 0),
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
