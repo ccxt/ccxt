@@ -3851,7 +3851,7 @@ export default class weex extends Exchange {
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidatePrice'),
             'marginMode': marginMode,
-            'hedged': undefined, // separatedMode describes per-symbol segregation, not the hedge mode — the account-wide hedge flag comes from accountConfig dualSidePosition, see fetchPositionMode
+            'hedged': undefined, // callers should use fetchPositionMode for the account-wide hedge flag — separatedMode here describes per-symbol segregation, not the hedge mode
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'initialMargin': this.safeNumber (position, 'marginSize'),
