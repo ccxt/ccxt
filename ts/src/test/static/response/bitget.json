@@ -4,6 +4,203 @@
         "uta": false
     },
     "methods": {
+        "fetchLedger": [
+            {
+                "description": "uta spot ledger empty window returns an empty list",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789303836609,
+                    "data": {
+                        "list": null,
+                        "cursor": null
+                    }
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "uta funding ledger with coin and since",
+                "method": "fetchLedger",
+                "input": [
+                    "USDT",
+                    1787700000000,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "funding"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789303835335,
+                    "data": {
+                        "list": [
+                            {
+                                "id": "1477174343261219362",
+                                "coin": "USDT",
+                                "groupType": "withdraw",
+                                "type": "withdraw",
+                                "amount": "-28.50000000",
+                                "balance": "0.00000000",
+                                "ts": "1787918826202"
+                            },
+                            {
+                                "id": "1477141273662556067",
+                                "coin": "USDT",
+                                "groupType": "withdraw",
+                                "type": "",
+                                "amount": "30.00000000",
+                                "balance": "30.00000000",
+                                "ts": "1787918664410"
+                            },
+                            {
+                                "id": "1477103021016917536",
+                                "coin": "USDT",
+                                "groupType": "transfer",
+                                "type": "transfer_out",
+                                "amount": "-30.00000000",
+                                "balance": "0.00000000",
+                                "ts": "1787913879280"
+                            },
+                            {
+                                "id": "1477193981444267642",
+                                "coin": "USDT",
+                                "groupType": "deposit",
+                                "type": "deposit",
+                                "amount": "30.00000000",
+                                "balance": "30.00000000",
+                                "ts": "1787913876998"
+                            }
+                        ],
+                        "cursor": "1477193981444267642"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1477193981444267642",
+                        "timestamp": 1787913876998,
+                        "datetime": "2026-08-28T10:44:36.998Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "amount": 30,
+                        "before": 0,
+                        "after": 30,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "info": {
+                            "id": "1477193981444267642",
+                            "coin": "USDT",
+                            "groupType": "deposit",
+                            "type": "deposit",
+                            "amount": "30.00000000",
+                            "balance": "30.00000000",
+                            "ts": "1787913876998"
+                        }
+                    },
+                    {
+                        "id": "1477103021016917536",
+                        "timestamp": 1787913879280,
+                        "datetime": "2026-08-28T10:44:39.280Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": 30,
+                        "before": 30,
+                        "after": 0,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "info": {
+                            "id": "1477103021016917536",
+                            "coin": "USDT",
+                            "groupType": "transfer",
+                            "type": "transfer_out",
+                            "amount": "-30.00000000",
+                            "balance": "0.00000000",
+                            "ts": "1787913879280"
+                        }
+                    },
+                    {
+                        "id": "1477141273662556067",
+                        "timestamp": 1787918664410,
+                        "datetime": "2026-08-28T12:04:24.410Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "withdrawal",
+                        "currency": "USDT",
+                        "amount": 30,
+                        "before": 0,
+                        "after": 30,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "info": {
+                            "id": "1477141273662556067",
+                            "coin": "USDT",
+                            "groupType": "withdraw",
+                            "type": "",
+                            "amount": "30.00000000",
+                            "balance": "30.00000000",
+                            "ts": "1787918664410"
+                        }
+                    },
+                    {
+                        "id": "1477174343261219362",
+                        "timestamp": 1787918826202,
+                        "datetime": "2026-08-28T12:07:06.202Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "withdrawal",
+                        "currency": "USDT",
+                        "amount": 28.5,
+                        "before": 28.5,
+                        "after": 0,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "info": {
+                            "id": "1477174343261219362",
+                            "coin": "USDT",
+                            "groupType": "withdraw",
+                            "type": "withdraw",
+                            "amount": "-28.50000000",
+                            "balance": "0.00000000",
+                            "ts": "1787918826202"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchTradingFees": [
             {
                 "description": "uta future fetchTradingFees skips rows that resolve to no market of the requested type",

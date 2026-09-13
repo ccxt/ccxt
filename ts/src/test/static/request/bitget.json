@@ -2654,6 +2654,109 @@
         ],
         "fetchLedger": [
             {
+                "description": "uta swap ledger for a single symbol",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "symbol": "BTC/USDT:USDT"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot ledger with coin, since and until",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=SPOT&coin=USDT&endTime=1789300000000&startTime=1787700000000",
+                "input": [
+                    "USDT",
+                    1787700000000,
+                    null,
+                    {
+                        "uta": true,
+                        "until": 1789300000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta margin ledger",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=MARGIN",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta linear ledger",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=USDT-FUTURES",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot ledger with coin",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=SPOT&coin=USDT",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot ledger empty window returns an empty list",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=SPOT",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta funding ledger with coin and since",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/funding-financial-records?coin=USDT&startTime=1787700000000",
+                "input": [
+                    "USDT",
+                    1787700000000,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch USDT ledger",
                 "method": "fetchLedger",
                 "url": "https://api.bitget.com/api/v2/spot/account/bills?coin=USDT",
