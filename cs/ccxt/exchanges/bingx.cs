@@ -3758,7 +3758,12 @@ public partial class bingx : Exchange
                         ((IDictionary<string,object>)slRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
                     string? slQuantity = this.safeString(stopLossDict, "quantity", stringifiedAmount);
-                    ((IDictionary<string,object>)slRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
+                    object slQuantityRequest = this.parseToNumeric(slQuantity);
+                    if (isTrue(!isEqual(getValue(market, "inverse"), true)))
+                    {
+                        slQuantityRequest = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
+                    }
+                    ((IDictionary<string,object>)slRequest)["quantity"] = slQuantityRequest;
                     ((IDictionary<string,object>)request)["stopLoss"] = this.json(slRequest);
                 }
                 if (isTrue(hasTakeProfit))
@@ -3777,7 +3782,12 @@ public partial class bingx : Exchange
                         ((IDictionary<string,object>)tpRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
                     string? tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
-                    ((IDictionary<string,object>)tpRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
+                    object tkQuantityRequest = this.parseToNumeric(tkQuantity);
+                    if (isTrue(!isEqual(getValue(market, "inverse"), true)))
+                    {
+                        tkQuantityRequest = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
+                    }
+                    ((IDictionary<string,object>)tpRequest)["quantity"] = tkQuantityRequest;
                     ((IDictionary<string,object>)request)["takeProfit"] = this.json(tpRequest);
                 }
             }

@@ -3762,7 +3762,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
         object agentAddress = null;
-        IList<object> agentAddressparametersVariable = (IList<object>)this.handleOption("createSubAccount", "agentAddress");
+        IList<object> agentAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createSubAccount", "agentAddress");
         agentAddress = ((IList<object>)agentAddressparametersVariable)[0];
         parameters = ((IList<object>)agentAddressparametersVariable)[1];
         object originAddress = null;
@@ -3793,7 +3793,10 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
         }
-        Int64 timestamp = this.milliseconds();
+        object timestamp = null;
+        IList<object> timestampparametersVariable = (IList<object>)this.handleParamInteger(parameters, "timestamp", this.milliseconds());
+        timestamp = ((IList<object>)timestampparametersVariable)[0];
+        parameters = ((IList<object>)timestampparametersVariable)[1];
         object expiryWindow = null;
         IList<object> expiryWindowparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
         expiryWindow = ((IList<object>)expiryWindowparametersVariable)[0];
@@ -3823,7 +3826,7 @@ public partial class pacifica : Exchange
         ((IDictionary<string,object>)finalHeaders)["timestamp"] = timestamp;
         ((IDictionary<string,object>)finalHeaders)["expiry_window"] = expiryWindow;
         Dictionary<string, object> request = finalHeaders;
-        Dictionary<string, object> response = await this.privatePostAccountSubaccountCreate(request);
+        Dictionary<string, object> response = await this.privatePostAccountSubaccountCreate(this.extend(request, parameters));
         //
         // {
         //   "success": true,

@@ -3000,7 +3000,8 @@ public partial class bitget : Exchange
                     { "40014", typeof(PermissionDenied) },
                     { "40015", typeof(ExchangeError) },
                     { "40016", typeof(PermissionDenied) },
-                    { "40017", typeof(ExchangeError) },
+                    { "40017", typeof(BadRequest) },
+                    { "400172", typeof(BadRequest) },
                     { "40018", typeof(PermissionDenied) },
                     { "40019", typeof(BadRequest) },
                     { "40031", typeof(AccountSuspended) },
@@ -6139,9 +6140,11 @@ public partial class bitget : Exchange
      * @name bitget#fetchTradingFee
      * @description fetch the trading fees for a market
      * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
@@ -6155,6 +6158,32 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        object uta = null;
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchTradingFee", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(isEqual(uta, true)))
+        {
+            object productType = null;
+            IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
+            productType = ((IList<object>)productTypeparametersVariable)[0];
+            parameters = ((IList<object>)productTypeparametersVariable)[1];
+            ((IDictionary<string,object>)request)["category"] = productType;
+            Dictionary<string, object> utaResponse = await this.privateUtaGetV3AccountFeeRate(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1789206261241,
+            //         "data": {
+            //             "makerFeeRate": "0.001",
+            //             "takerFeeRate": "0.001"
+            //         }
+            //     }
+            //
+            IDictionary<string, object> utaData = this.safeDict(utaResponse, "data", new Dictionary<string, object>() {});
+            return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(utaData, market));
+        }
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchTradingFee", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -6195,9 +6224,11 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.margin] set to true for spot margin
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
@@ -6216,6 +6247,70 @@ public partial class bitget : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object uta = null;
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchTradingFees", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(isEqual(uta, true)))
+        {
+            bool? utaMargin = this.safeBool(parameters, "margin", false);
+            parameters = this.omit(parameters, "margin");
+            Dictionary<string, object> request = new Dictionary<string, object>() {};
+            if (isTrue(isEqual(marketType, "spot")))
+            {
+                if (isTrue(isTrue((!isEqual(marginMode, null))) || isTrue((isEqual(utaMargin, true)))))
+                {
+                    ((IDictionary<string,object>)request)["category"] = "MARGIN";
+                } else
+                {
+                    ((IDictionary<string,object>)request)["category"] = "SPOT";
+                }
+            } else if (isTrue(isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")))))
+            {
+                object productType = null;
+                IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
+                productType = ((IList<object>)productTypeparametersVariable)[0];
+                parameters = ((IList<object>)productTypeparametersVariable)[1];
+                ((IDictionary<string,object>)request)["category"] = productType;
+            } else
+            {
+                throw new NotSupported ((string)add(add(add(this.id, " does not support "), marketType), " market")) ;
+            }
+            Dictionary<string, object> utaResponse = await this.privateUtaGetV3AccountAllFeeRate(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1789206286428,
+            //         "data": [
+            //             {
+            //                 "makerFeeRate": "0.00036",
+            //                 "takerFeeRate": "0.001",
+            //                 "symbol": "BTCUSDT"
+            //             }
+            //         ]
+            //     }
+            //
+            List<object> rows = this.safeList(utaResponse, "data", new List<object>() {});
+            Dictionary<string, object> utaResult = new Dictionary<string, object>() {};
+            for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+            {
+                object entry = getValue(rows, i);
+                string? entryMarketId = this.safeString(entry, "symbol");
+                if (isTrue(isTrue(isTrue((isEqual(entryMarketId, null))) || isTrue((isEqual(this.markets_by_id, null)))) || !isTrue((inOp(this.markets_by_id, entryMarketId)))))
+                {
+                    continue;
+                }
+                Dictionary<string, object> entryMarket = this.safeMarket(entryMarketId, null, null, marketType);
+                string? entrySymbol = this.safeString(entryMarket, "symbol");
+                if (isTrue(isTrue((isEqual(entrySymbol, null))) || isTrue((isEqual(entrySymbol, entryMarketId)))))
+                {
+                    continue;
+                }
+                ((IDictionary<string,object>)utaResult)[(string)entrySymbol] = this.parseTradingFee(entry, entryMarket);
+            }
+            return ccxt.BaseExchange.ToTradingFees(utaResult);
+        }
         if (isTrue(isEqual(marketType, "spot")))
         {
             bool? margin = this.safeBool(parameters, "margin", false);
