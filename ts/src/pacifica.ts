@@ -3317,7 +3317,7 @@ export default class pacifica extends Exchange {
     override async createSubAccount (name: string, params = {}) {
         const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
-        [ agentAddress, params ] = this.handleOption ('createSubAccount', 'agentAddress');
+        [ agentAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
         let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3364,7 +3364,7 @@ export default class pacifica extends Exchange {
         finalHeaders['timestamp'] = timestamp;
         finalHeaders['expiry_window'] = expiryWindow;
         const request = finalHeaders;
-        const response = await this.privatePostAccountSubaccountCreate (request);
+        const response = await this.privatePostAccountSubaccountCreate (this.extend (request, params));
         //
         // {
         //   "success": true,
