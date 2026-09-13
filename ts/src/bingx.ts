@@ -3196,7 +3196,7 @@ export default class bingx extends Exchange {
             request['timeInForce'] = 'GTC';
         }
         if (isSpot) {
-            params = this.omit (params, 'cost');
+            params = this.omit (params, [ 'cost', 'quoteOrderQty' ]);
             if (cost !== undefined) {
                 request['quoteOrderQty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
             } else {
