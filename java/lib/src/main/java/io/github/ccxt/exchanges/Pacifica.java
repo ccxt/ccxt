@@ -4128,7 +4128,7 @@ public class Pacifica extends PacificaApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
             Object agentAddress = null;
-            List<Object> agentAddressparametersVariable = (List<Object>) this.handleOption("createSubAccount", "agentAddress");
+            List<Object> agentAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createSubAccount", "agentAddress");
             agentAddress = ((List<Object>) agentAddressparametersVariable).get(0);
             parameters = ((List<Object>) agentAddressparametersVariable).get(1);
             Object originAddress = null;
@@ -4159,14 +4159,18 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
             }
-            Long timestamp = this.milliseconds();
+            Long timestamp = null;
+            List<Object> timestampparametersVariable = (List<Object>) this.handleParamInteger(parameters, "timestamp", this.milliseconds());
+            timestamp = (Long) ((List<Object>) timestampparametersVariable).get(0);
+            parameters = ((List<Object>) timestampparametersVariable).get(1);
             Object expiryWindow = null;
             List<Object> expiryWindowparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
             expiryWindow = ((List<Object>) expiryWindowparametersVariable).get(0);
             parameters = ((List<Object>) expiryWindowparametersVariable).get(1);
+            final Object finalTimestamp = timestamp;
             final Object finalExpiryWindow = expiryWindow;
             Map<String, Object> subaccountSignatureHeader = new HashMap<String, Object>() {{
-                put( "timestamp", timestamp );
+                put( "timestamp", finalTimestamp );
                 put( "expiry_window", finalExpiryWindow );
                 put( "type", "subaccount_initiate" );
             }};
@@ -4176,7 +4180,7 @@ public class Pacifica extends PacificaApi
             }};
             Object subaccountSignature = this.signMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
             Map<String, Object> mainSignatureHeader = new HashMap<String, Object>() {{
-                put( "timestamp", timestamp );
+                put( "timestamp", finalTimestamp );
                 put( "expiry_window", finalExpiryWindow );
                 put( "type", "subaccount_confirm" );
             }};
@@ -4191,7 +4195,7 @@ public class Pacifica extends PacificaApi
             Helpers.addElementToObject(finalHeaders, "timestamp", timestamp);
             Helpers.addElementToObject(finalHeaders, "expiry_window", expiryWindow);
             Map<String, Object> request = finalHeaders;
-            Map<String, Object> response = (this.privatePostAccountSubaccountCreate(request)).join();
+            Map<String, Object> response = (this.privatePostAccountSubaccountCreate(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,

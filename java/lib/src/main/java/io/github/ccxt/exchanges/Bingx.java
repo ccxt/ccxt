@@ -3974,7 +3974,12 @@ public class Bingx extends BingxApi
                         Helpers.addElementToObject(slRequest, "price", this.parseToNumeric(this.priceToPrecision(symbol, slPrice)));
                     }
                     String slQuantity = this.safeString(stopLossDict, "quantity", stringifiedAmount);
-                    Helpers.addElementToObject(slRequest, "quantity", this.parseToNumeric(this.amountToPrecision(symbol, slQuantity)));
+                    Object slQuantityRequest = this.parseToNumeric(slQuantity);
+                    if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
+                    {
+                        slQuantityRequest = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
+                    }
+                    Helpers.addElementToObject(slRequest, "quantity", slQuantityRequest);
                     Helpers.addElementToObject(request, "stopLoss", this.json(slRequest));
                 }
                 if (Helpers.isTrue(hasTakeProfit))
@@ -3993,7 +3998,12 @@ public class Bingx extends BingxApi
                         Helpers.addElementToObject(tpRequest, "price", this.parseToNumeric(this.priceToPrecision(symbol, slPrice)));
                     }
                     String tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
-                    Helpers.addElementToObject(tpRequest, "quantity", this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity)));
+                    Object tkQuantityRequest = this.parseToNumeric(tkQuantity);
+                    if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
+                    {
+                        tkQuantityRequest = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
+                    }
+                    Helpers.addElementToObject(tpRequest, "quantity", tkQuantityRequest);
                     Helpers.addElementToObject(request, "takeProfit", this.json(tpRequest));
                 }
             }

@@ -55,7 +55,7 @@ public class Extended extends ExtendedApi
             put( "dex", true );
             put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", true );
+                put( "spot", false );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );
@@ -752,6 +752,9 @@ public class Extended extends ExtendedApi
         Object contractSize = null;
         Object linear = null;
         Object inverse = null;
+        // SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
+        // only advertises the capability and gates the unified spot tests, it does not filter
+        // markets, so accounts still holding spot balances keep resolving their symbols
         if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
         {
             isSpot = true;

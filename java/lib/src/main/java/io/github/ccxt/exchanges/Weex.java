@@ -7,6 +7,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.LastPrices;
@@ -127,7 +128,7 @@ public class Weex extends WeexApi
                 put( "fetchDepositsWithdrawals", false );
                 put( "fetchDepositWithdrawFee", false );
                 put( "fetchDepositWithdrawFees", false );
-                put( "fetchFundingHistory", false );
+                put( "fetchFundingHistory", true );
                 put( "fetchFundingInterval", false );
                 put( "fetchFundingIntervals", false );
                 put( "fetchFundingRate", true );
@@ -4270,11 +4271,7 @@ public class Weex extends WeexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(accountType, "contract")))
             {
-                if (Helpers.isTrue(Helpers.isEqual(currency, null)))
-                {
-                    throw new ExchangeError(Helpers.add(this.id, " fetchLedger() could not resolve currency")) ;
-                }
-                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
                 {
                     Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
                 }
@@ -4438,6 +4435,130 @@ public class Weex extends WeexApi
             put( "position_close_short", "trade" );
         }};
         return this.safeString(types, ((String)type), type);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            if (Helpers.isTrue(paginate))
+            {
+                return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 100)).join();
+            }
+            Object market = null;
+            Object request = new HashMap<String, Object>() {{
+                put( "incomeType", "position_funding" );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+                {
+                    throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+                }
+                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "startTime", since);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", limit);
+            }
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+            Boolean hasSince = (Helpers.inOp(request, "startTime"));
+            Boolean hasUntil = (Helpers.inOp(request, "endTime"));
+            if (Helpers.isTrue(Helpers.isTrue(hasSince) && !Helpers.isTrue(hasUntil)))
+            {
+                Helpers.addElementToObject(request, "endTime", this.milliseconds());
+            } else if (Helpers.isTrue(Helpers.isTrue(hasUntil) && !Helpers.isTrue(hasSince)))
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires since to be set when until is used")) ;
+            }
+            Map<String, Object> response = (this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "hasNextPage": false,
+            //         "nextKey": null,
+            //         "items": [
+            //             {
+            //                 "billId": "793622764958253481",
+            //                 "asset": "USDT",
+            //                 "symbol": "VIRTUALUSDT",
+            //                 "income": "0.00000378",
+            //                 "incomeType": "position_funding",
+            //                 "balance": "29.36239410",
+            //                 "fillFee": "0",
+            //                 "time": "1789214411964",
+            //                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+            //             }
+            //         ]
+            //     }
+            //
+            Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            return this.parseIncomes(items, market, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+
+    }
+
+    public Object parseIncome(Object income, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "billId": "793622764958253481",
+        //         "asset": "USDT",
+        //         "symbol": "VIRTUALUSDT",
+        //         "income": "0.00000378",
+        //         "incomeType": "position_funding",
+        //         "balance": "29.36239410",
+        //         "fillFee": "0",
+        //         "time": "1789214411964",
+        //         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        String marketId = this.safeString(income, "symbol");
+        String currencyId = this.safeString(income, "asset");
+        Long timestamp = this.safeInteger(income, "time");
+        return new HashMap<String, Object>() {{
+            put( "info", income );
+            put( "symbol", Weex.this.safeSymbol(marketId, market, null, "swap") );
+            put( "code", Weex.this.safeCurrencyCode(currencyId) );
+            put( "timestamp", timestamp );
+            put( "datetime", Weex.this.iso8601(timestamp) );
+            put( "id", Weex.this.safeString(income, "billId") );
+            put( "amount", Weex.this.safeNumber(income, "income") );
+        }};
     }
 
     /**

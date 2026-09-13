@@ -1465,8 +1465,14 @@ public class Ndax extends NdaxApi
             timestamp = this.safeInteger(trade, 6);
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
-            Object takerSide = this.safeValue(trade, 8);
-            side = ((Helpers.isTrue((Helpers.isEqual(takerSide, true))))) ? "sell" : "buy";
+            Long takerSide = this.safeInteger(trade, 8);
+            if (Helpers.isTrue(Helpers.isEqual(takerSide, 0)))
+            {
+                side = "buy";
+            } else if (Helpers.isTrue(Helpers.isEqual(takerSide, 1)))
+            {
+                side = "sell";
+            }
             orderId = this.safeString(trade, 4);
         } else
         {

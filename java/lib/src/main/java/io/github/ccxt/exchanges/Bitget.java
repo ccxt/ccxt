@@ -3050,7 +3050,8 @@ public class Bitget extends BitgetApi
                     put( "40014", PermissionDenied.class );
                     put( "40015", ExchangeError.class );
                     put( "40016", PermissionDenied.class );
-                    put( "40017", ExchangeError.class );
+                    put( "40017", BadRequest.class );
+                    put( "400172", BadRequest.class );
                     put( "40018", PermissionDenied.class );
                     put( "40019", BadRequest.class );
                     put( "40031", AccountSuspended.class );
@@ -6339,9 +6340,11 @@ final Object finalMinNotional = minNotional;
      * @name bitget#fetchTradingFee
      * @description fetch the trading fees for a market
      * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
@@ -6358,6 +6361,32 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
+            Object uta = null;
+            List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchTradingFee", false)).join();
+            uta = ((List<Object>) utaparametersVariable).get(0);
+            parameters = ((List<Object>) utaparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+            {
+                Object productType = null;
+                List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
+                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                parameters = ((List<Object>) productTypeparametersVariable).get(1);
+                Helpers.addElementToObject(request, "category", productType);
+                Map<String, Object> utaResponse = (this.privateUtaGetV3AccountFeeRate(this.extend(request, parameters))).join();
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1789206261241,
+                //         "data": {
+                //             "makerFeeRate": "0.001",
+                //             "takerFeeRate": "0.001"
+                //         }
+                //     }
+                //
+                Object utaData = this.safeDict(utaResponse, "data", new HashMap<String, Object>() {{}});
+                return this.parseTradingFee(utaData, market);
+            }
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchTradingFee", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -6400,9 +6429,11 @@ final Object finalMinNotional = minNotional;
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.margin] set to true for spot margin
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
@@ -6424,6 +6455,70 @@ final Object finalMinNotional = minNotional;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            Object uta = null;
+            List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchTradingFees", false)).join();
+            uta = ((List<Object>) utaparametersVariable).get(0);
+            parameters = ((List<Object>) utaparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+            {
+                Object utaMargin = this.safeBool(parameters, "margin", false);
+                parameters = this.omit(parameters, "margin");
+                Map<String, Object> request = new HashMap<String, Object>() {{}};
+                if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+                {
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(utaMargin, true)))))
+                    {
+                        Helpers.addElementToObject(request, "category", "MARGIN");
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "category", "SPOT");
+                    }
+                } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "swap"))) || Helpers.isTrue((Helpers.isEqual(marketType, "future")))))
+                {
+                    Object productType = null;
+                    List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
+                    productType = ((List<Object>) productTypeparametersVariable).get(0);
+                    parameters = ((List<Object>) productTypeparametersVariable).get(1);
+                    Helpers.addElementToObject(request, "category", productType);
+                } else
+                {
+                    throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " does not support "), marketType), " market")) ;
+                }
+                Map<String, Object> utaResponse = (this.privateUtaGetV3AccountAllFeeRate(this.extend(request, parameters))).join();
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1789206286428,
+                //         "data": [
+                //             {
+                //                 "makerFeeRate": "0.00036",
+                //                 "takerFeeRate": "0.001",
+                //                 "symbol": "BTCUSDT"
+                //             }
+                //         ]
+                //     }
+                //
+                Object rows = this.safeList(utaResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> utaResult = new HashMap<String, Object>() {{}};
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+                {
+                    Object entry = Helpers.GetValue(rows, i);
+                    String entryMarketId = this.safeString(entry, "symbol");
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryMarketId, null))) || Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null)))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, entryMarketId)))))
+                    {
+                        continue;
+                    }
+                    Map<String, Object> entryMarket = (Map<String, Object>) this.safeMarket(entryMarketId, null, null, marketType);
+                    String entrySymbol = this.safeString(entryMarket, "symbol");
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entrySymbol, null))) || Helpers.isTrue((Helpers.isEqual(entrySymbol, entryMarketId)))))
+                    {
+                        continue;
+                    }
+                    Helpers.addElementToObject(utaResult, entrySymbol, this.parseTradingFee(entry, entryMarket));
+                }
+                return utaResult;
+            }
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 Object margin = this.safeBool(parameters, "margin", false);

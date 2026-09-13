@@ -1666,6 +1666,7 @@ public class Alpaca extends AlpacaApi
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
@@ -1694,11 +1695,17 @@ public class Alpaca extends AlpacaApi
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
-                Helpers.addElementToObject(request, "endTime", this.iso8601(until));
+                Helpers.addElementToObject(request, "until", this.iso8601(until));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "after", this.iso8601(since));
+                String direction = this.safeString(parameters, "direction");
+                if (Helpers.isTrue(Helpers.isEqual(direction, null)))
+                {
+                    // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                    Helpers.addElementToObject(request, "direction", "asc");
+                }
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1760,6 +1767,7 @@ public class Alpaca extends AlpacaApi
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
@@ -1789,6 +1797,7 @@ public class Alpaca extends AlpacaApi
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
