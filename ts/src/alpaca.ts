@@ -374,8 +374,8 @@ export default class alpaca extends Exchange {
                         },
                         'timeInForce': {
                             'IOC': true,
-                            'FOK': true,
-                            'PO': true,
+                            'FOK': false, // {"code":42210000,"message":"invalid crypto time_in_force"} — verified live 2026-09-13
+                            'PO': false, // {"code":40010001,"message":"invalid time_in_force for crypto order"} — verified live 2026-09-13
                             'GTD': false,
                         },
                         'hedged': false,
@@ -445,6 +445,7 @@ export default class alpaca extends Exchange {
                     '40410000': InvalidOrder, // { "code": 40410000, "message": "order is not found."}
                     '40010001': BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
+                    '42210000': BadRequest, // {"code":42210000,"message":"invalid crypto time_in_force"}
                     '42910000': RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
@@ -1157,6 +1158,7 @@ export default class alpaca extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1194,6 +1196,10 @@ export default class alpaca extends Exchange {
         }
         let defaultTIF: Str = undefined;
         [ defaultTIF, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+        if (defaultTIF !== undefined) {
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = defaultTIF.toLowerCase ();
+        }
         request['time_in_force'] = defaultTIF;
         params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
         request['client_order_id'] = this.generateClientOrderId (params);
@@ -1477,7 +1483,8 @@ export default class alpaca extends Exchange {
         let timeInForce: Str = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
-            request['time_in_force'] = timeInForce;
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            request['time_in_force'] = timeInForce.toLowerCase ();
         }
         request['client_order_id'] = this.generateClientOrderId (params);
         params = this.omit (params, [ 'clientOrderId' ]);
