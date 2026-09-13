@@ -7973,7 +7973,12 @@ export default class bitget extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
             if (uta === true) {
-                return await this.fetchPaginatedCallCursor ('fetchLedger', symbol, since, limit, params, 'id', 'cursor', undefined, 100) as LedgerEntry[];
+                // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
+                params = this.extend (params, { 'uta': true, 'type': marketType });
+                if (symbol !== undefined) {
+                    params = this.extend (params, { 'symbol': symbol });
+                }
+                return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'id', 'cursor', undefined, 100) as LedgerEntry[];
             }
             let cursorReceived: Str = undefined;
             if (marketType !== 'spot') {
@@ -8197,7 +8202,7 @@ export default class bitget extends Exchange {
         const feeCostString = this.safeString2 (item, 'fees', 'fee');
         let feeCost: Num = undefined;
         if (feeCostString !== undefined) {
-            feeCost = this.parseNumber (Precise.stringAbs (feeCostString)); // uta reports charged fees as negative values
+            feeCost = this.parseNumber (Precise.stringAbs (feeCostString)); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
         }
         const amountRaw = this.safeString2 (item, 'size', 'amount', '');
         const amount = this.parseNumber (Precise.stringAbs (amountRaw));

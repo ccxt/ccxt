@@ -2654,6 +2654,22 @@
         ],
         "fetchLedger": [
             {
+                "description": "uta funding ledger paginated keeps the funding route and uta mode",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/funding-financial-records?coin=USDT&limit=100&startTime=1789000000000",
+                "input": [
+                    "USDT",
+                    1789000000000,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "funding",
+                        "paginate": true
+                    }
+                ],
+                "output": null
+            },
+                        {
                 "description": "uta swap ledger for a single symbol",
                 "method": "fetchLedger",
                 "url": "https://api.bitget.com/api/v3/account/financial-records?category=USDT-FUTURES&symbol=BTCUSDT",
