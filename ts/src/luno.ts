@@ -568,7 +568,7 @@ export default class luno extends Exchange {
         //     }
         //
         const result: List = [];
-        const markets = this.safeValue (response, 'markets', []);
+        const markets = this.safeList (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market_id');
@@ -668,7 +668,7 @@ export default class luno extends Exchange {
      */
     override async fetchAccounts (params = {}): Promise<Account[]> {
         const response = await this.privateGetBalance (params);
-        const wallets = this.safeValue (response, 'balance', []);
+        const wallets = this.safeList (response, 'balance', []);
         const result: Account[] = [];
         for (let i = 0; i < wallets.length; i++) {
             const account = wallets[i];
@@ -686,7 +686,7 @@ export default class luno extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const wallets = this.safeValue (response, 'balance', []);
+        const wallets = this.safeList (response, 'balance', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -872,7 +872,7 @@ export default class luno extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1076,15 +1076,15 @@ export default class luno extends Exchange {
             } else if ((type === 'BID') || (type === 'BUY')) {
                 side = 'buy';
             }
-            if (side === 'sell' && trade['is_buy']) {
+            if ((side === 'sell') && (trade['is_buy'] === true)) {
                 takerOrMaker = 'maker';
-            } else if (side === 'buy' && !trade['is_buy']) {
+            } else if ((side === 'buy') && (trade['is_buy'] !== true)) {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';
             }
         } else {
-            side = trade['is_buy'] ? 'buy' : 'sell';
+            side = (trade['is_buy'] === true) ? 'buy' : 'sell';
         }
         const feeBaseString = this.safeString (trade, 'fee_base');
         const feeCounterString = this.safeString (trade, 'fee_counter');
@@ -1712,7 +1712,7 @@ export default class luno extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
+        if (Object.keys (query).length > 0) {
             url += '?' + this.urlencode (query);
         }
         if ((api === 'private') || (api === 'exchangePrivate')) {

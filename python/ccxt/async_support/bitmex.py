@@ -196,34 +196,48 @@ class bitmex(Exchange, ImplicitAPI):
                         'trade': {'cost': 5},
                         'trade/bucketed': {'cost': 5},
                         'wallet/assets': {'cost': 5},
+                        'wallet/currencies': {'cost': 5},
+                        'wallet/haircuts': {'cost': 5},
                         'wallet/networks': {'cost': 5},
                     },
                 },
                 'private': {
                     'get': {
                         'address': {'cost': 5},
+                        'addressConfig': {'cost': 5},
                         'apiKey': {'cost': 5},
+                        'apiKey/self': {'cost': 5},
                         'execution': {'cost': 5},
                         'execution/tradeHistory': {'cost': 5},
                         'globalNotification': {'cost': 5},
                         'leaderboard/name': {'cost': 5},
+                        'leagueoftrader/myRankings': {'cost': 5},
+                        'managedSubAccountBinding/investor': {'cost': 5},
+                        'managedSubAccountBinding/tradingTeam': {'cost': 5},
                         'order': {'cost': 5},
                         'porl/snapshots': {'cost': 5},
                         'position': {'cost': 5},
+                        'referralCode': {'cost': 5},
+                        'referralCode/check/{code}': {'cost': 5},
+                        'referralCode/code/{code}': {'cost': 5},
+                        'referralCode/{id}': {'cost': 5},
                         'user': {'cost': 5},
                         'user/affiliateStatus': {'cost': 5},
                         'user/checkReferralCode': {'cost': 5},
                         'user/commission': {'cost': 5},
                         'user/csa': {'cost': 5},
                         'user/depositAddress': {'cost': 5},
+                        'user/depositAddressInformation': {'cost': 5},
                         'user/executionHistory': {'cost': 5},
                         'user/getWalletTransferAccounts': {'cost': 5},
                         'user/margin': {'cost': 5},
+                        'user/marginingMode': {'cost': 5},
                         'user/quoteFillRatio': {'cost': 5},
                         'user/quoteValueRatio': {'cost': 5},
                         'user/staking': {'cost': 5},
                         'user/staking/instruments': {'cost': 5},
                         'user/staking/tiers': {'cost': 5},
+                        'user/tradingSettings': {'cost': 5},
                         'user/tradingVolume': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
                         'user/wallet': {'cost': 5},
@@ -231,6 +245,8 @@ class bitmex(Exchange, ImplicitAPI):
                         'user/walletSummary': {'cost': 5},
                         'userAffiliates': {'cost': 5},
                         'userEvent': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
+                        'userStats/volumeRank': {'cost': 5},
                     },
                     'post': {
                         'address': {'cost': 5},
@@ -241,33 +257,52 @@ class bitmex(Exchange, ImplicitAPI):
                         'guild/kick': {'cost': 5},
                         'guild/leave': {'cost': 5},
                         'guild/sharesTrades': {'cost': 5},
+                        'managedSubAccountBinding/approve': {'cost': 5},
+                        'managedSubAccountBinding/cancel': {'cost': 5},
+                        'managedSubAccountBinding/createMSA': {'cost': 5},
+                        'managedSubAccountBinding/reject': {'cost': 5},
+                        'managedSubAccountBinding/toggleTradeHistory': {'cost': 5},
+                        'managedSubAccountBinding/unbind': {'cost': 5},
                         'order': {'cost': 1},
                         'order/cancelAllAfter': {'cost': 5},
                         'order/closePosition': {'cost': 5},
+                        'position/crossLeverage': {'cost': 5},
                         'position/isolate': {'cost': 1},
                         'position/leverage': {'cost': 1},
                         'position/riskLimit': {'cost': 5},
                         'position/transferMargin': {'cost': 1},
+                        'referralCode': {'cost': 5},
                         'user/addSubaccount': {'cost': 5},
                         'user/cancelWithdrawal': {'cost': 5},
                         'user/communicationToken': {'cost': 5},
                         'user/confirmEmail': {'cost': 5},
                         'user/confirmWithdrawal': {'cost': 5},
+                        'user/createIndependentSubaccount': {'cost': 5},
                         'user/logout': {'cost': 5},
+                        'user/marginingMode': {'cost': 5},
+                        'user/positionMode': {'cost': 5},
                         'user/preferences': {'cost': 5},
                         'user/requestWithdrawal': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
                         'user/updateSubaccount': {'cost': 5},
                         'user/walletTransfer': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
                     },
                     'put': {
+                        'address': {'cost': 5},
                         'guild': {'cost': 5},
                         'order': {'cost': 1},
+                        'referralCode/{id}': {'cost': 5},
+                        'userPriceAlert/{id}': {'cost': 5},
                     },
                     'delete': {
                         'order': {'cost': 1},
                         'order/all': {'cost': 1},
+                        'referralCode/{id}': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
+                        'user/withdrawal': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
+                        'userPriceAlert/{id}': {'cost': 5},
                     },
                 },
             },
@@ -482,7 +517,7 @@ class bitmex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(asset)
         id = self.safe_string(currency, 'currency')
         name = self.safe_string(currency, 'name')
-        chains = self.safe_value(currency, 'networks', [])
+        chains = self.safe_list(currency, 'networks', [])
         depositEnabled = False
         withdrawEnabled = False
         networks = {}
@@ -497,10 +532,10 @@ class bitmex(Exchange, ImplicitAPI):
             withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
             isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
             isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
-            active = (isDepositEnabled and isWithdrawEnabled)
-            if isDepositEnabled:
+            active = ((isDepositEnabled is True) and (isWithdrawEnabled is True))
+            if isDepositEnabled is True:
                 depositEnabled = True
-            if isWithdrawEnabled:
+            if isWithdrawEnabled is True:
                 withdrawEnabled = True
             if network is not None:
                 networks[network] = {
@@ -524,7 +559,7 @@ class bitmex(Exchange, ImplicitAPI):
                     },
                 }
         currencyEnabled = self.safe_value(currency, 'enabled')
-        currencyActive = currencyEnabled or (depositEnabled or withdrawEnabled)
+        currencyActive = (currencyEnabled is True) or (depositEnabled or withdrawEnabled)
         minWithdrawalString = self.safe_string(currency, 'minWithdrawalAmount')
         minWithdrawal = self.parse_number(Precise.string_mul(minWithdrawalString, precisionString))
         maxWithdrawalString = self.safe_string(currency, 'maxWithdrawalAmount')
@@ -580,19 +615,19 @@ class bitmex(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(symbol)
         market = self.market(symbol)
         oldPrecision = self.safe_value(self.options, 'oldPrecision')
-        if market['spot'] and not oldPrecision:
+        if (market['spot'] is True) and (oldPrecision is not True):
             amount = self.convert_from_real_amount(market['base'], amount)
         return super(bitmex, self).amount_to_precision(symbol, amount)
 
     def convert_from_raw_quantity(self, symbol: object, rawQuantity: object, currencySide='base'):
-        if self.safe_value(self.options, 'oldPrecision'):
+        if self.safe_value(self.options, 'oldPrecision') is True:
             return self.parse_number(rawQuantity)
         symbol = self.safe_symbol(symbol)
         marketExists = self.in_array(symbol, self.symbols)
         if not marketExists:
             return self.parse_number(rawQuantity)
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             return self.parse_number(self.convert_to_real_amount(self.safe_string(market, currencySide), rawQuantity))
         return self.parse_number(rawQuantity)
 
@@ -827,7 +862,7 @@ class bitmex(Exchange, ImplicitAPI):
         contractSize = None
         isInverse = self.safe_value(market, 'isInverse')  # self is True when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        linear = (not isInverse and not isQuanto) if contract else None
+        linear = ((isInverse is not True) and (isQuanto is not True)) if contract else None
         status = self.safe_string(market, 'state')
         active = status == 'Open'  # Open, Settled, Unlisted
         expiry = None
@@ -837,7 +872,7 @@ class bitmex(Exchange, ImplicitAPI):
             symbol = base + '/' + quote
         elif contract:
             symbol = base + '/' + quote + ':' + settle
-            if linear:
+            if linear is True:
                 multiplierString = self.safe_string_2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier')
                 contractSize = Precise.string_abs(Precise.string_div('1', multiplierString))
             else:
@@ -1587,7 +1622,7 @@ class bitmex(Exchange, ImplicitAPI):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetInstrumentActiveAndIndices(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         result = {}
         rawTickers = self.to_array(response)
         for i in range(0, len(rawTickers)):
@@ -1670,7 +1705,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1915,7 +1950,7 @@ class bitmex(Exchange, ImplicitAPI):
             defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
             isInverse = (defaultSubType == 'inverse')
         else:
-            isInverse = self.safe_bool(market, 'inverse', False) is True
+            isInverse = self.safe_bool(market, 'inverse', False)
         if isInverse:
             cost = self.convert_from_raw_quantity(symbol, qty)
         else:
@@ -2050,7 +2085,7 @@ class bitmex(Exchange, ImplicitAPI):
         capitalizeOrderType = orderType
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
-            if (not market['swap']) and (not market['future']):
+            if (market['swap'] is not True) and (market['future'] is not True):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
         postOnly = self.safe_bool(params, 'postOnly')
         params = self.omit(params, ['reduceOnly', 'postOnly'])
@@ -2646,7 +2681,7 @@ class bitmex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         filteredResponse = []
         rawItems = self.to_array(response)
         for i in range(0, len(rawItems)):
@@ -2654,7 +2689,7 @@ class bitmex(Exchange, ImplicitAPI):
             marketId = self.safe_string(item, 'symbol')
             market = self.safe_market(marketId)
             swap = self.safe_bool(market, 'swap', False)
-            if swap:
+            if swap is True:
                 filteredResponse.append(item)
         symbols = self.market_symbols(symbols)
         result = self.parse_funding_rates(filteredResponse)
@@ -2884,7 +2919,7 @@ class bitmex(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networks = self.safe_value(fee, 'networks', [])
+        networks = self.safe_list(fee, 'networks', [])
         networksLength = len(networks)
         result = {
             'info': fee,
@@ -3516,7 +3551,7 @@ class bitmex(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = '/api/' + self.version + '/' + path
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 query += '?' + self.urlencode(params)
         else:
             format = self.safe_string(params, '_format')
@@ -3541,7 +3576,7 @@ class bitmex(Exchange, ImplicitAPI):
             auth += stringExpires
             headers['api-expires'] = stringExpires
             if method == 'POST' or method == 'PUT' or method == 'DELETE':
-                if params:
+                if len(params) > 0:
                     body = self.json(params)
                     auth += body
             headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)

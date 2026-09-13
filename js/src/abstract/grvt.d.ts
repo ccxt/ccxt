@@ -1,8 +1,19 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
+    privateEdgeGetApiV1DepositAddresses(params?: {}): Promise<Dict>;
+    privateEdgeGetApiV1BridgeWithdrawalInfo(params?: {}): Promise<Dict>;
+    privateEdgeGetApiV1BridgeWithdrawalStatus(params?: {}): Promise<Dict>;
+    privateEdgeGetApiV1ReferralEpochs(params?: {}): Promise<Dict>;
+    privateEdgeGetApiV1ReferralPoints(params?: {}): Promise<Dict>;
+    privateEdgeGetApiV1ReferralData(params?: {}): Promise<Dict>;
+    privateEdgeGetApiV1ReferralIndirectData(params?: {}): Promise<Dict>;
     privateEdgePostAuthApiKeyLogin(params?: {}): Promise<Dict>;
     privateEdgePostAuthWalletLogin(params?: {}): Promise<Dict>;
+    privateEdgePostAuthBuilderAuthorize(params?: {}): Promise<Dict>;
+    privateEdgePostApiV1DepositGenerateAddress(params?: {}): Promise<Dict>;
+    privateEdgePostApiV1BridgeWithdrawalQuote(params?: {}): Promise<Dict>;
+    privateEdgePostApiV1BridgeWithdraw(params?: {}): Promise<Dict>;
     publicMarketPostFullV1Instrument(params?: {}): Promise<Dict>;
     publicMarketPostFullV1AllInstruments(params?: {}): Promise<Dict>;
     publicMarketPostFullV1Instruments(params?: {}): Promise<Dict>;
@@ -15,6 +26,8 @@ interface Exchange {
     publicMarketPostFullV1TradeHistory(params?: {}): Promise<Dict>;
     publicMarketPostFullV1Kline(params?: {}): Promise<Dict>;
     publicMarketPostFullV1Funding(params?: {}): Promise<Dict>;
+    publicMarketPostFullV1SupportedAssets(params?: {}): Promise<Dict>;
+    publicMarketPostFullV1GetAllCollateralAssetInfo(params?: {}): Promise<Dict>;
     privateTradingPostFullV1CreateOrder(params?: {}): Promise<Dict>;
     privateTradingPostFullV1CancelOrder(params?: {}): Promise<Dict>;
     privateTradingPostFullV1CancelOnDisconnect(params?: {}): Promise<Dict>;
@@ -51,6 +64,16 @@ interface Exchange {
     privateTradingPostFullV1AuthorizeBuilder(params?: {}): Promise<Dict>;
     privateTradingPostFullV1GetAuthorizedBuilders(params?: {}): Promise<Dict>;
     privateTradingPostFullV1BuilderFillHistory(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1CreateRfq(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1CancelRfq(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1EcnFromBroker(params?: {}): Promise<Dict>;
+    privateTradingPostFullV2BulkOrders(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1PositionHistory(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1InterestPaymentHistory(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1GetCollateralPreference(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1SpotAccountSummary(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1SetIndicativePrices(params?: {}): Promise<Dict>;
+    privateTradingPostFullV1WithdrawalFee(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

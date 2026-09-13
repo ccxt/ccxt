@@ -338,7 +338,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const orders: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -659,7 +659,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString (item, 'symbol');
@@ -852,7 +852,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
@@ -1038,7 +1038,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
@@ -1117,7 +1117,7 @@ export default class poloniex extends poloniexRest {
         //        "action": "update"
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const type = this.safeString (message, 'action');
         const snapshot = type === 'snapshot';
         const update = type === 'update';
@@ -1248,7 +1248,7 @@ export default class poloniex extends poloniexRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const type = this.safeString (message, 'channel');
@@ -1288,7 +1288,7 @@ export default class poloniex extends poloniexRest {
         } else if (type === undefined) {
             this.handleOrderRequest (client, message);
         } else {
-            const data = this.safeValue (message, 'data', []);
+            const data = this.safeList (message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
                 method.call (this, client, message);
@@ -1367,7 +1367,7 @@ export default class poloniex extends poloniexRest {
         const data = this.safeValue (message, 'data');
         const success = this.safeValue (data, 'success');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success === true) {
             client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));

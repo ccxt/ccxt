@@ -242,6 +242,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/account/depositOrders': { 'cost': 1 } as Endpoint<List>,
                         'api/v1/account/withdrawOrders': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/affiliate/inviteeInfo': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
                         'api/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
@@ -266,9 +267,11 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/order': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/spot/openOrders': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/spot/cancelOrderByIds': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/v1/spot/cancelAllOpenOrders': { 'cost': 5 } as Endpoint<Dict>,
                         'api/v1/futures/order': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/futures/batchOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/futures/cancelOrderByIds': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/cancelAllOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
@@ -1708,7 +1711,7 @@ export default class hashkey extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'c');
         let baseVolume = this.safeString (ticker, 'v');
-        if (market['contract'] && (market['contractSize'] !== undefined)) {
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul (baseVolume, this.numberToString (market['contractSize']));
         }
@@ -2175,7 +2178,7 @@ export default class hashkey extends Exchange {
         let status = this.safeString (transaction, 'status'); // for fetchDeposits
         if (status === undefined) {
             const success = this.safeBool (transaction, 'success', false); // for withdraw
-            if (success) {
+            if (success === true) {
                 status = 'ok';
             } else {
                 const addressUrl = this.safeString (transaction, 'addressUrl'); // for fetchWithdrawals
@@ -2281,7 +2284,7 @@ export default class hashkey extends Exchange {
         const currencyId = this.safeString (currency, 'id');
         let status: Str = undefined;
         const success = this.safeBool (transfer, 'success', false);
-        if (success) {
+        if (success === true) {
             status = 'ok';
         }
         return {
@@ -2527,9 +2530,9 @@ export default class hashkey extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             return await this.createSwapOrder (symbol, type, side, amount, price, params);
         } else {
             throw new NotSupported (this.id + ' createOrder() is not supported for ' + market['type'] + ' type of markets');
@@ -2550,7 +2553,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
         const req = {
@@ -2595,7 +2598,7 @@ export default class hashkey extends Exchange {
         const request = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
         let response: Dict = {};
         const test = this.safeBool (params, 'test');
-        if (test) {
+        if (test === true) {
             params = this.omit (params, 'test');
             response = await this.privatePostApiV1SpotOrderTest (request);
         } else if (isMarketBuy && (cost === undefined)) {
@@ -2691,9 +2694,9 @@ export default class hashkey extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return this.createSpotOrderRequest (symbol, type, side, amount, price, params);
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             return this.createSwapOrderRequest (symbol, type, side, amount, price, params);
         } else {
             throw new NotSupported (this.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets');
@@ -2792,7 +2795,7 @@ export default class hashkey extends Exchange {
         let reduceOnly: Bool = false;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly', reduceOnly);
         let suffix = '_OPEN';
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             suffix = '_CLOSE';
         }
         request['side'] = (side as string).toUpperCase () + suffix;
@@ -2905,7 +2908,7 @@ export default class hashkey extends Exchange {
             'orders': ordersRequests,
         };
         let response: NullableDict = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privatePostApiV1SpotBatchOrders (this.extend (request, params));
             //
             //     {
@@ -2934,7 +2937,7 @@ export default class hashkey extends Exchange {
             //         "concentration": ""
             //     }
             //
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             response = await this.privatePostApiV1FuturesBatchOrders (this.extend (request, params));
             //
             //     {
@@ -3038,7 +3041,7 @@ export default class hashkey extends Exchange {
         } else if (marketType === 'swap') {
             let isTrigger: Bool = false;
             [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
-            if (isTrigger) {
+            if (isTrigger === true) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';
@@ -3105,12 +3108,12 @@ export default class hashkey extends Exchange {
             request['side'] = side;
         }
         let response: Dict;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
             //     { "success": true }
             //
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             response = await this.privateDeleteApiV1FuturesBatchOrders (this.extend (request, params));
             //
             //     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
@@ -3240,7 +3243,7 @@ export default class hashkey extends Exchange {
         } else if (marketType === 'swap') {
             let isTrigger: Bool = false;
             [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
-            if (isTrigger) {
+            if (isTrigger === true) {
                 request['type'] = 'STOP';
             }
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
@@ -3416,7 +3419,7 @@ export default class hashkey extends Exchange {
         };
         let isTrigger: Bool = false;
         [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['type'] = 'STOP';
         } else {
             request['type'] = 'LIMIT';
@@ -3571,7 +3574,7 @@ export default class hashkey extends Exchange {
             request['symbol'] = this.safeString (market, 'id');
             let isTrigger: Bool = false;
             [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
-            if (isTrigger) {
+            if (isTrigger === true) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';
@@ -4044,7 +4047,7 @@ export default class hashkey extends Exchange {
         const market = this.market (symbol);
         let methodName = 'fetchPosition';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' ' + methodName + '() supports swap markets only');
         }
         const request: Dict = {
@@ -4212,7 +4215,7 @@ export default class hashkey extends Exchange {
             throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap markets only');
         }
         const request: Dict = {
@@ -4257,7 +4260,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' modifyMarginHelper() supports swap markets only');
         }
         let side: Str = undefined;
@@ -4449,10 +4452,10 @@ export default class hashkey extends Exchange {
         const market = this.market (symbol);
         const methodName = 'fetchTradingFee';
         let response: Dict | List | undefined = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.fetchTradingFees (params);
             return this.safeDict (response, symbol) as TradingFeeInterface;
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             response = await this.privateGetApiV1FuturesCommissionRate (this.extend ({ 'symbol': market['id'] }, params));
             return this.parseTradingFee (response as Dict, market);
             //

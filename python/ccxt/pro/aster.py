@@ -290,7 +290,7 @@ class aster(ccxt.async_support.aster):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            suffix = '@1s' if (use1sFreq) else ''
+            suffix = '@1s' if (use1sFreq is True) else ''
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('ticker:' + market['symbol'])
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
@@ -336,7 +336,7 @@ class aster(ccxt.async_support.aster):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            suffix = '@1s' if (use1sFreq) else ''
+            suffix = '@1s' if (use1sFreq is True) else ''
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
@@ -797,8 +797,8 @@ class aster(ccxt.async_support.aster):
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-            takerOrMaker = 'maker' if trade['m'] else 'taker'
+                side = 'sell' if (trade['m'] is True) else 'buy'  # self is reversed intentionally
+            takerOrMaker = 'maker' if (trade['m'] is True) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
@@ -995,7 +995,7 @@ class aster(ccxt.async_support.aster):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         if self.markets is None:
@@ -1014,7 +1014,7 @@ class aster(ccxt.async_support.aster):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'unWatchOHLCV'
         return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
@@ -1030,7 +1030,7 @@ class aster(ccxt.async_support.aster):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1077,7 +1077,7 @@ class aster(ccxt.async_support.aster):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1277,7 +1277,7 @@ class aster(ccxt.async_support.aster):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
         message = None
@@ -1288,7 +1288,7 @@ class aster(ccxt.async_support.aster):
             return
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1417,7 +1417,7 @@ class aster(ccxt.async_support.aster):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.positions
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         newPositions = await self.watch_multiple(url, messageHashes, None, [type])
@@ -1429,7 +1429,7 @@ class aster(ccxt.async_support.aster):
         if self.positions is not None:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)

@@ -184,6 +184,7 @@ export default class hitbtc extends Exchange {
                         'margin/history/trade': { 'cost': 15 } as Endpoint<List>,
                         'margin/history/positions': { 'cost': 15 } as Endpoint<List>,
                         'margin/history/clearing': { 'cost': 15 } as Endpoint<List>,
+                        'margin-settings': { 'cost': 15 } as Endpoint<Dict>,
                         'futures/balance': { 'cost': 15 } as Endpoint<Dict>,
                         'futures/balance/{currency}': { 'cost': 15 } as Endpoint<Dict>,
                         'futures/account': { 'cost': 1 } as Endpoint<List>,
@@ -197,8 +198,10 @@ export default class hitbtc extends Exchange {
                         'futures/history/trade': { 'cost': 15 } as Endpoint<List>,
                         'futures/history/positions': { 'cost': 15 } as Endpoint<List>,
                         'futures/history/clearing': { 'cost': 15 } as Endpoint<List>,
+                        'user/api-keys': { 'cost': 15 } as Endpoint<List>,
                         'wallet/balance': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/balance/{currency}': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/crypto/address/white-list': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/crypto/address': { 'cost': 30 } as Endpoint<List>,
                         'wallet/crypto/address/recent-deposit': { 'cost': 30 } as Endpoint<List>,
                         'wallet/crypto/address/recent-withdraw': { 'cost': 30 } as Endpoint<List>,
@@ -206,6 +209,7 @@ export default class hitbtc extends Exchange {
                         'wallet/transactions': { 'cost': 30 } as Endpoint<List>,
                         'wallet/transactions/{tx_id}': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/crypto/fee/estimate': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/crypto/fee/withdraw/hash': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/airdrops': { 'cost': 30 } as Endpoint<List>,
                         'wallet/amount-locks': { 'cost': 30 } as Endpoint<List>,
                         'sub-account': { 'cost': 15 } as Endpoint<List>,
@@ -227,10 +231,13 @@ export default class hitbtc extends Exchange {
                         'wallet/internal/withdraw': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/crypto/check-offchain-available': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/crypto/fees/estimate': { 'cost': 30 } as Endpoint<List>,
+                        'wallet/crypto/fee/estimate/bulk': { 'cost': 30 } as Endpoint<List>,
                         'wallet/airdrops/{id}/claim': { 'cost': 30 } as Endpoint<Dict>,
                         'sub-account/freeze': { 'cost': 15 } as Endpoint<Dict>,
                         'sub-account/activate': { 'cost': 15 } as Endpoint<Dict>,
                         'sub-account/transfer': { 'cost': 15 } as Endpoint<Dict>,
+                        'sub-account/transfer/sub-to-super': { 'cost': 15 } as Endpoint<Dict>,
+                        'sub-account/transfer/sub-to-sub': { 'cost': 15 } as Endpoint<Dict>,
                         'sub-account/acl': { 'cost': 15 } as Endpoint<List>,
                     },
                     'patch': {
@@ -253,7 +260,10 @@ export default class hitbtc extends Exchange {
                     },
                     'put': {
                         'margin/account/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin-settings/amm': { 'cost': 15 } as Endpoint<Dict>,
+                        'margin/margin-settings/amr': { 'cost': 15 } as Endpoint<Dict>,
                         'futures/account/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/margin-settings/amr': { 'cost': 15 } as Endpoint<Dict>,
                         'wallet/crypto/withdraw/{id}': { 'cost': 30 } as Endpoint<Dict>,
                     },
                 },
@@ -1000,7 +1010,7 @@ export default class hitbtc extends Exchange {
             'id': currencyId,
             'precision': this.safeNumber (entry, 'precision_transfer'),
             'name': this.safeString (entry, 'full_name'),
-            'active': !this.safeBool (entry, 'delisted'),
+            'active': this.safeBool (entry, 'delisted') !== true,
             'deposit': this.safeBool (entry, 'payin_enabled'),
             'withdraw': this.safeBool (entry, 'payout_enabled'),
             'networks': networks,
@@ -1128,7 +1138,7 @@ export default class hitbtc extends Exchange {
     override async fetchBalance (params = {}): Promise<Balances> {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const account = (type === undefined) ? undefined : this.safeString (accountsByType, type, type);
         let response: Dict;
         if (account === 'wallet') {
@@ -1442,7 +1452,7 @@ export default class hitbtc extends Exchange {
         const taker = this.safeValue (trade, 'taker');
         let takerOrMaker: string;
         if (taker !== undefined) {
-            takerOrMaker = taker ? 'taker' : 'maker';
+            takerOrMaker = (taker === true) ? 'taker' : 'maker';
         } else {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
@@ -2799,7 +2809,7 @@ export default class hitbtc extends Exchange {
         if (code !== 'USDT') {
             throw new ExchangeError (this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         fromNetwork = fromNetwork.toUpperCase ();
         toNetwork = toNetwork.toUpperCase ();
         fromNetwork = this.safeString (networks, fromNetwork); // handle ETH>ERC20 alias
@@ -2861,7 +2871,7 @@ export default class hitbtc extends Exchange {
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        if (includeFee) {
+        if (includeFee === true) {
             request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, params));
@@ -3201,7 +3211,7 @@ export default class hitbtc extends Exchange {
         const marginMode = this.safeString (position, 'type');
         const leverage = this.safeNumber (position, 'leverage');
         const datetime = this.safeString (position, 'updated_at');
-        const positions = this.safeValue (position, 'positions', []);
+        const positions = this.safeList (position, 'positions', []);
         let liquidationPrice: Num = undefined;
         let entryPrice: Num = undefined;
         let contracts: Num = undefined;
@@ -3211,7 +3221,7 @@ export default class hitbtc extends Exchange {
             entryPrice = this.safeNumber (entry, 'price_entry');
             contracts = this.safeNumber (entry, 'quantity');
         }
-        const currencies = this.safeValue (position, 'currencies', []);
+        const currencies = this.safeList (position, 'currencies', []);
         let collateral: Num = undefined;
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
@@ -3343,7 +3353,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request: Dict = {
@@ -3382,7 +3392,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request: Dict = {
@@ -3453,7 +3463,7 @@ export default class hitbtc extends Exchange {
         }
         const market = this.market (symbol);
         const leverage = this.safeString (params, 'leverage');
-        if (market['swap']) {
+        if (market['swap'] === true) {
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3771,7 +3781,7 @@ export default class hitbtc extends Exchange {
         //         ]
         //    }
         //
-        const networks = this.safeValue (fee, 'networks', []);
+        const networks = this.safeList (fee, 'networks', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
@@ -3903,7 +3913,7 @@ export default class hitbtc extends Exchange {
             'Content-Type': 'application/json',
         };
         if (method === 'GET') {
-            if (queryLength) {
+            if ((queryLength !== undefined) && (queryLength !== 0)) {
                 getRequest = '?' + this.urlencode (query);
                 url = url + getRequest;
             }

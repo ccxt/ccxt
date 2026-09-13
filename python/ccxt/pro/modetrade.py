@@ -94,7 +94,7 @@ class modetrade(ccxt.async_support.modetrade):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+        https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
 
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -153,7 +153,7 @@ class modetrade(ccxt.async_support.modetrade):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+        https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -241,7 +241,7 @@ class modetrade(ccxt.async_support.modetrade):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
+        https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-tickers
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -296,7 +296,7 @@ class modetrade(ccxt.async_support.modetrade):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+        https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
 
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -364,14 +364,14 @@ class modetrade(ccxt.async_support.modetrade):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+        https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -441,7 +441,7 @@ class modetrade(ccxt.async_support.modetrade):
         """
         watches information on multiple trades made in a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+        https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -575,7 +575,7 @@ class modetrade(ccxt.async_support.modetrade):
         #
         messageHash = 'authenticated'
         success = self.safe_value(message, 'success')
-        if success:
+        if success is True:
             # client.resolve(message, messageHash)
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)
@@ -638,8 +638,8 @@ class modetrade(ccxt.async_support.modetrade):
         """
         watches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+        https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+        https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -651,7 +651,7 @@ class modetrade(ccxt.async_support.modetrade):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger) else 'executionreport'
+        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
         if symbol is not None:
@@ -672,8 +672,8 @@ class modetrade(ccxt.async_support.modetrade):
         """
         watches information on multiple trades made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+        https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+        https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -685,7 +685,7 @@ class modetrade(ccxt.async_support.modetrade):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger) else 'executionreport'
+        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
         params = self.omit(params, 'stop')
         messageHash = 'myTrades'
         if symbol is not None:
@@ -941,7 +941,7 @@ class modetrade(ccxt.async_support.modetrade):
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+        https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
 
         watch all open positions
         :param str[] [symbols]: list of unified market symbols
@@ -965,7 +965,7 @@ class modetrade(ccxt.async_support.modetrade):
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (self.positions is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         request = {
@@ -979,7 +979,7 @@ class modetrade(ccxt.async_support.modetrade):
 
     def set_positions_cache(self, client: Client, type: object, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1127,7 +1127,7 @@ class modetrade(ccxt.async_support.modetrade):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+        https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -1202,7 +1202,7 @@ class modetrade(ccxt.async_support.modetrade):
         if not ('success' in message):
             return False
         success = self.safe_bool(message, 'success')
-        if success:
+        if success is True:
             return False
         errorMessage = self.safe_string(message, 'errorMsg')
         try:
@@ -1221,7 +1221,7 @@ class modetrade(ccxt.async_support.modetrade):
             return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         methods = {
             'ping': self.handle_ping,

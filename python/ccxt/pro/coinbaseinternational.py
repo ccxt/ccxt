@@ -228,7 +228,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            if market['active']:
+            if market['active'] is True:
                 output.append(symbol)
         return output
 
@@ -444,7 +444,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -760,7 +760,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         return True
 
     def handle_message(self, client: object, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         channel = self.safe_string(message, 'channel', '')
         methods = {

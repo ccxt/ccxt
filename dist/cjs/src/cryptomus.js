@@ -172,6 +172,7 @@ class cryptomus extends cryptomus$1["default"] {
                     'get': {
                         'v2/user-api/exchange/markets': { 'cost': 1 }, // done
                         'v2/user-api/exchange/market/price': { 'cost': 1 }, // not used
+                        'v2/user-api/exchange/markets/price': { 'cost': 1 },
                         'v1/exchange/market/assets': { 'cost': 1 }, // done
                         'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 }, // done
                         'v1/exchange/market/tickers': { 'cost': 1 }, // done
@@ -187,13 +188,27 @@ class cryptomus extends cryptomus$1["default"] {
                         'v2/user-api/payment/services': { 'cost': 1 },
                         'v2/user-api/payout/services': { 'cost': 1 },
                         'v2/user-api/transaction/list': { 'cost': 1 },
+                        'v2/user-api/balance': { 'cost': 1 },
+                        'v2/user-api/convert/direction-list': { 'cost': 1 },
+                        'v2/user-api/convert/order-list': { 'cost': 1 },
+                        'v2/user-api/aml/check/balance': { 'cost': 1 },
+                        'v2/user-api/aml/check/currencies': { 'cost': 1 },
+                        'v2/user-api/aml/check/packages': { 'cost': 1 },
+                        'v2/user-api/aml/check/request': { 'cost': 1 },
+                        'v2/user-api/aml/check/request/{id}': { 'cost': 1 },
                     },
                     'post': {
                         'v2/user-api/exchange/orders': { 'cost': 1 }, // done
                         'v2/user-api/exchange/orders/market': { 'cost': 1 }, // done
+                        'v2/user-api/convert': { 'cost': 1 },
+                        'v2/user-api/convert/calculate': { 'cost': 1 },
+                        'v2/user-api/convert/limit': { 'cost': 1 },
+                        'v2/user-api/aml/check/request': { 'cost': 1 },
+                        'v2/user-api/aml/check/request/{id}/report/send': { 'cost': 1 },
                     },
                     'delete': {
                         'v2/user-api/exchange/orders/{orderId}': { 'cost': 1 }, // done
+                        'v2/user-api/convert/{orderUuid}': { 'cost': 1 },
                     },
                 },
             },
@@ -742,7 +757,7 @@ class cryptomus extends cryptomus$1["default"] {
                     }
                 }
                 else {
-                    cost = cost ? cost : amountToString;
+                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
                 }
                 request['value'] = cost;
             }

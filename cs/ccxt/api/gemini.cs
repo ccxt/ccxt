@@ -158,11 +158,144 @@ public partial class gemini : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetV1RiskstatsSymbol",parameters);
     }
 
+    /// <summary>Calls the publicGetV1PredictionMarketsEvents endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsEvents (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsEvents",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsEventsEventTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsEventsEventTicker (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsEventsEventTicker",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsEventsEventTickerStrike endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsEventsEventTickerStrike (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsEventsEventTickerStrike",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsEventsNewlyListed endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsEventsNewlyListed (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsEventsNewlyListed",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsEventsRecentlySettled endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsEventsRecentlySettled (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsEventsRecentlySettled",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsEventsUpcoming endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsEventsUpcoming (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsEventsUpcoming",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsCategories endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsCategories (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsCategories",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsVolumeDate endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetV1PredictionMarketsVolumeDate (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetV1PredictionMarketsVolumeDate",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsVolumeDateHourly endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetV1PredictionMarketsVolumeDateHourly (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetV1PredictionMarketsVolumeDateHourly",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsTerms endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsTerms (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsTerms",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsMakerRebateRates endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsMakerRebateRates (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsMakerRebateRates",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsLiquidityRewardsConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsLiquidityRewardsConfig (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsLiquidityRewardsConfig",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1PredictionMarketsLiquidityRewardsEvents endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1PredictionMarketsLiquidityRewardsEvents (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1PredictionMarketsLiquidityRewardsEvents",parameters);
+    }
+
     /// <summary>Calls the privateGetV1PerpetualsFundingpaymentreportRecordsXlsx endpoint.</summary>
     /// <returns>a JSON scalar</returns>
     public async Task<string> privateGetV1PerpetualsFundingpaymentreportRecordsXlsx (object parameters = null)
     {
         return await this.callAsync<string> ("privateGetV1PerpetualsFundingpaymentreportRecordsXlsx",parameters);
+    }
+
+    /// <summary>Calls the privateGetV1PredictionMarketsTermsStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV1PredictionMarketsTermsStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV1PredictionMarketsTermsStatus",parameters);
+    }
+
+    /// <summary>Calls the privateGetV1PredictionMarketsMakerRebateSummaryTotal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV1PredictionMarketsMakerRebateSummaryTotal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV1PredictionMarketsMakerRebateSummaryTotal",parameters);
+    }
+
+    /// <summary>Calls the privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily",parameters);
+    }
+
+    /// <summary>Calls the privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2NetworkToken endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2NetworkToken (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2NetworkToken",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2NetworksNetworkAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2NetworksNetworkAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2NetworksNetworkAssets",parameters);
     }
 
     /// <summary>Calls the privatePostV1StakingUnstake endpoint.</summary>
@@ -583,6 +716,104 @@ public partial class gemini : Exchange
     public async Task<Dictionary<string, object>> privatePostV1Positions (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostV1Positions",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsOrderBatch endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsOrderBatch (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsOrderBatch",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsOrderCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsOrderCancel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsOrderCancel",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsOrderBatchCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsOrderBatchCancel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsOrderBatchCancel",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsOrdersActive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsOrdersActive (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsOrdersActive",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsOrdersHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsOrdersHistory",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsPositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsPositions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsPositions",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsPositionsSettled endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsPositionsSettled (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsPositionsSettled",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsMetricsVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsMetricsVolume (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsMetricsVolume",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsTermsAccept endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsTermsAccept (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsTermsAccept",parameters);
+    }
+
+    /// <summary>Calls the privatePostV1PredictionMarketsMakerRebatePayouts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV1PredictionMarketsMakerRebatePayouts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV1PredictionMarketsMakerRebatePayouts",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2Transfers endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostV2Transfers (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostV2Transfers",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2WithdrawNetworkTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2WithdrawNetworkTicker (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2WithdrawNetworkTicker",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2WithdrawNetworkTickerFeeEstimate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2WithdrawNetworkTickerFeeEstimate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2WithdrawNetworkTickerFeeEstimate",parameters);
     }
 
 }

@@ -12,6 +12,7 @@ interface Exchange {
     publicSpotGetV2SystemTime (params?: {}): Promise<Dict>;
     publicSpotGetV2SystemStatus (params?: {}): Promise<Dict>;
     publicSpotGetV2MarketOrderbook (params?: {}): Promise<Dict>;
+    publicSpotGetV2MarketOrderbookTicker (params?: {}): Promise<Dict>;
     publicSpotGetV2MarketTrades (params?: {}): Promise<Dict>;
     publicSpotGetV2MarketTicker (params?: {}): Promise<Dict>;
     publicSpotGetV2MarketAllTickers (params?: {}): Promise<Dict>;
@@ -23,15 +24,19 @@ interface Exchange {
     publicSwapGetV1SystemStatus (params?: {}): Promise<Dict>;
     publicSwapGetV1ExchangeTradefee (params?: {}): Promise<Dict>;
     publicSwapGetV1ExchangeTradefees (params?: {}): Promise<Dict>;
+    publicSwapGetV1ExchangeExchangeInfo (params?: {}): Promise<Dict>;
+    publicSwapGetV1ExchangePairs (params?: {}): Promise<Dict>;
     publicSwapGetV1MarketOrderBook (params?: {}): Promise<Dict>;
     publicSwapGetV1MarketTicker24Hr (params?: {}): Promise<Dict>;
     publicSwapGetV1MarketMarkets (params?: {}): Promise<Dict>;
+    publicSwapGetV1MarketMarketInfo (params?: {}): Promise<Dict>;
     publicSwapGetV1MarketAggTrade (params?: {}): Promise<Dict>;
     publicSwapPostV1MarketKlines (params?: {}): Promise<Dict>;
     privateSpotPostV2ExOrders (params?: {}): Promise<Dict>;
     privateSpotGetV2ExOrders (params?: {}): Promise<Dict>;
     privateSpotGetV2AccountBalance (params?: {}): Promise<Dict>;
     privateSpotGetV2ExTradefee (params?: {}): Promise<Dict>;
+    privateSpotGetV2ExMyfeeSymbol (params?: {}): Promise<Dict>;
     privateSpotGetV2ExOrder (params?: {}): Promise<Dict>;
     privateSpotGetV2ExOrderFills (params?: {}): Promise<Dict>;
     privateSpotDeleteV2ExOrder (params?: {}): Promise<Dict>;
@@ -40,10 +45,12 @@ interface Exchange {
     privateSwapGetV1WalletBalance (params?: {}): Promise<Dict>;
     privateSwapGetV1TradeOrder (params?: {}): Promise<Dict>;
     privateSwapGetV1TradeOrderOpenOrders (params?: {}): Promise<Dict>;
+    privateSwapGetV1TradeOrderHistory (params?: {}): Promise<Dict>;
     privateSwapGetV1TradeUserLeverages (params?: {}): Promise<Dict>;
     privateSwapGetV1TradeUserLeverage (params?: {}): Promise<Dict>;
     privateSwapGetV1TradePositions (params?: {}): Promise<Dict>;
     privateSwapGetV1TradeHistory (params?: {}): Promise<Dict>;
+    privateSwapGetV1TradeTransactionHistory (params?: {}): Promise<Dict>;
     privateSwapPostV1TradeOrder (params?: {}): Promise<Dict>;
     privateSwapPostV1TradeOrderAddTPSL (params?: {}): Promise<Dict>;
     privateSwapPostV1TradeAddMargin (params?: {}): Promise<Dict>;
@@ -51,6 +58,8 @@ interface Exchange {
     privateSwapPostV1TradePositionClose (params?: {}): Promise<Dict>;
     privateSwapPostV1TradeUpdateUserLeverage (params?: {}): Promise<Dict>;
     privateSwapDeleteV1TradeOrder (params?: {}): Promise<Dict>;
+    privateSwapDeleteV1TradeOrderAll (params?: {}): Promise<Dict>;
+    privateSwapPatchV1TradeOrder (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

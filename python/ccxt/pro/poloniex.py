@@ -202,7 +202,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: GTC(default), IOC, FOK
         :param str [params.clientOrderId]: Maximum 64-character length.*
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.amount]: quote units for the order
@@ -322,7 +322,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         messageHash = self.safe_string(message, 'id')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         orders = []
         for i in range(0, len(data)):
             order = data[i]
@@ -341,7 +341,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -609,7 +609,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -794,7 +794,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         orders = self.orders
         if orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
@@ -818,7 +818,7 @@ class poloniex(ccxt.async_support.poloniex):
                     trade = self.parse_ws_trade(order)
                     self.handle_my_trades(client, trade)
                     if previousOrder is None:
-                        # fill event for an order missing from the cache(e.g. placed before subscribing or after a reconnect) - parse fresh order instead of aggregating
+                        # fill event for an order missing from the cache(e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         parsedOrder = self.parse_ws_order(order)
                         orders.append(parsedOrder)
                         marketIds.append(marketId)
@@ -964,7 +964,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         newTickers = {}
         for i in range(0, len(data)):
             item = data[i]
@@ -1036,7 +1036,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        "action": "update"
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         type = self.safe_string(message, 'action')
         snapshot = type == 'snapshot'
         update = type == 'update'
@@ -1152,7 +1152,7 @@ class poloniex(ccxt.async_support.poloniex):
         client.lastPong = self.milliseconds()
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'channel')
         event = self.safe_string(message, 'event')
@@ -1190,7 +1190,7 @@ class poloniex(ccxt.async_support.poloniex):
         elif type is None:
             self.handle_order_request(client, message)
         else:
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             dataLength = len(data)
             if dataLength > 0:
                 method(client, message)
@@ -1261,7 +1261,7 @@ class poloniex(ccxt.async_support.poloniex):
         data = self.safe_value(message, 'data')
         success = self.safe_value(data, 'success')
         messageHash = 'authenticated'
-        if success:
+        if success is True:
             client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))

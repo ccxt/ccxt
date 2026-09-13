@@ -115,6 +115,9 @@ class zaif(Exchange, ImplicitAPI):
                         'last_price/{pair}': {'cost': 1},
                         'ticker/{pair}': {'cost': 1},
                         'trades/{pair}': {'cost': 1},
+                        'vasp_info/{vasp_master_id}': {'cost': 1},
+                        'country_info/{code}': {'cost': 1},
+                        'corp_type_id_info/{id}': {'cost': 1},
                     },
                 },
                 'private': {
@@ -329,7 +332,7 @@ class zaif(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        funds = self.safe_value(balances, 'funds', {})
+        funds = self.safe_dict(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -521,7 +524,7 @@ class zaif(Exchange, ImplicitAPI):
         numTrades = len(trades)
         if numTrades == 1:
             firstTrade = self.safe_dict(trades, 0, {})
-            if not firstTrade:
+            if len(firstTrade) == 0:
                 trades = []
         return self.parse_trades(trades, market, since, limit)
 
@@ -840,6 +843,6 @@ class zaif(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             raise ExchangeError(feedback)
         return None

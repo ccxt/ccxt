@@ -111,6 +111,7 @@ class blockchaincom extends Exchange {
                 'private' => array(
                     'get' => array(
                         'fees' => array( 'cost' => 1 ), // fetchFees
+                        'internal/orders' => array( 'cost' => 1 ), // getOrdersInternal
                         'orders' => array( 'cost' => 1 ), // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}' => array( 'cost' => 1 ), // fetchOrder(id)
                         'trades' => array( 'cost' => 1 ),
@@ -883,7 +884,7 @@ class blockchaincom extends Exchange {
         return Async\await($this->fetch_orders_by_state($state, $symbol, $since, $limit, $params));
     }
 
-    public function fetch_orders_by_state(mixed $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_state(mixed $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_state(...))($state, $symbol, $since, $limit, $params);
     }
 
@@ -1183,7 +1184,7 @@ class blockchaincom extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_withdrawal(...))($id, $code, $params);
     }
 
@@ -1242,7 +1243,7 @@ class blockchaincom extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit(...))($id, $code, $params);
     }
 
@@ -1372,7 +1373,7 @@ class blockchaincom extends Exchange {
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -1381,7 +1382,7 @@ class blockchaincom extends Exchange {
                 'X-API-Token' => $this->secret,
             );
             if (($method === 'GET')) {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {

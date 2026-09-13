@@ -321,7 +321,7 @@ func TestWsCache() {
 	// test ArrayCacheBySymbolById limit with symbol set
 	var symbol string = "BTC/USDT"
 	cacheSymbolId2 := NewArrayCacheBySymbolById()
-	var initialLength any = 5
+	var initialLength int = 5
 	for i := 0; IsLessThan(i, initialLength); i++ {
 		cacheSymbolId2.Append(map[string]any{
 			"symbol": symbol,
@@ -335,7 +335,7 @@ func TestWsCache() {
 	// ----------------------------------------------------------------------------
 
 	cacheSymbolId3 := NewArrayCacheBySymbolById()
-	var appendItemsLength any = 3
+	var appendItemsLength int = 3
 	for i := 0; IsLessThan(i, appendItemsLength); i++ {
 		cacheSymbolId3.Append(map[string]any{
 			"symbol": symbol,
@@ -343,7 +343,7 @@ func TestWsCache() {
 			"i":      i,
 		})
 	}
-	var outsideLimit any = 5
+	var outsideLimit int = 5
 	limited = cacheSymbolId3.GetLimit(symbol, outsideLimit)
 	Assert(IsEqual(appendItemsLength, limited))
 	outsideLimit = 2 // if limit < newsUpdate that should be returned

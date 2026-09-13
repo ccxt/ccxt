@@ -64,6 +64,12 @@ abstract class bitteam extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_trade_api_stats($params = array()) {
+        return $this->request('trade/api/stats', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_trade_api_trade_id($params = array()) {
         return $this->request('trade/api/trade/{id}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -210,6 +216,12 @@ abstract class bitteam extends \ccxt\async\Exchange {
      */
     public function publicGetTradeApiRates($params = array()) {
         return $this->request('trade/api/rates', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetTradeApiStats($params = array()) {
+        return $this->request('trade/api/stats', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

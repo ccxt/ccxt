@@ -548,6 +548,17 @@ public class BequantApi extends HitbtcCore
     }
 
     /**
+     * Calls the privateGetMarginSettings endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMarginSettings (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetMarginSettings", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetFuturesBalance endpoint.
      *
      * @param optionalArgs the request parameters
@@ -691,6 +702,17 @@ public class BequantApi extends HitbtcCore
     }
 
     /**
+     * Calls the privateGetUserApiKeys endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserApiKeys (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUserApiKeys", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetWalletBalance endpoint.
      *
      * @param optionalArgs the request parameters
@@ -710,6 +732,17 @@ public class BequantApi extends HitbtcCore
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletBalanceCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletBalanceCurrency", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetWalletCryptoAddressWhiteList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletCryptoAddressWhiteList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWalletCryptoAddressWhiteList", optionalArgs);
     }
 
     /**
@@ -787,6 +820,17 @@ public class BequantApi extends HitbtcCore
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletCryptoFeeEstimate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletCryptoFeeEstimate", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetWalletCryptoFeeWithdrawHash endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletCryptoFeeWithdrawHash (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWalletCryptoFeeWithdrawHash", optionalArgs);
     }
 
     /**
@@ -999,6 +1043,17 @@ public class BequantApi extends HitbtcCore
     }
 
     /**
+     * Calls the privatePostWalletCryptoFeeEstimateBulk endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostWalletCryptoFeeEstimateBulk (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostWalletCryptoFeeEstimateBulk", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostWalletAirdropsIdClaim endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1040,6 +1095,28 @@ public class BequantApi extends HitbtcCore
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubAccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubAccountTransfer", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostSubAccountTransferSubToSuper endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubAccountTransferSubToSuper (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostSubAccountTransferSubToSuper", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostSubAccountTransferSubToSub endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubAccountTransferSubToSub (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostSubAccountTransferSubToSub", optionalArgs);
     }
 
     /**
@@ -1219,6 +1296,28 @@ public class BequantApi extends HitbtcCore
     }
 
     /**
+     * Calls the privatePutMarginSettingsAmm endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutMarginSettingsAmm (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutMarginSettingsAmm", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutMarginMarginSettingsAmr endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutMarginMarginSettingsAmr (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutMarginMarginSettingsAmr", optionalArgs);
+    }
+
+    /**
      * Calls the privatePutFuturesAccountIsolatedSymbol endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1227,6 +1326,17 @@ public class BequantApi extends HitbtcCore
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutFuturesAccountIsolatedSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privatePutFuturesAccountIsolatedSymbol", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutFuturesMarginSettingsAmr endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutFuturesMarginSettingsAmr (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutFuturesMarginSettingsAmr", optionalArgs);
     }
 
     /**

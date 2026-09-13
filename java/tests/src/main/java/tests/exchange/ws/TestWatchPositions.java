@@ -16,13 +16,13 @@ public class TestWatchPositions extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchPositions";
+        String method = "watchPositions";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         while (Helpers.isLessThan(now, ends))
         {
             Object response = null;
-            Object success = true;
+            Boolean success = true;
             try
             {
                 response = (exchange.watchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
@@ -58,7 +58,7 @@ public class TestWatchPositions extends BaseTest {
             // Test with specific symbol
             //
             Object positionsForSymbols = null;
-            Object success2 = true;
+            Boolean success2 = true;
             try
             {
                 positionsForSymbols = (exchange.watchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();

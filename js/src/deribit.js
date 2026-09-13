@@ -161,16 +161,19 @@ export default class deribit extends Exchange {
                         // Account management
                         'get_announcements': { 'cost': 1 },
                         // Market data
+                        'get_apr_history': { 'cost': 1 },
                         'get_book_summary_by_currency': { 'cost': 1 },
                         'get_book_summary_by_instrument': { 'cost': 1 },
                         'get_contract_size': { 'cost': 1 },
                         'get_currencies': { 'cost': 1 },
                         'get_delivery_prices': { 'cost': 1 },
+                        'get_expirations': { 'cost': 1 },
                         'get_funding_chart_data': { 'cost': 1 },
                         'get_funding_rate_history': { 'cost': 1 },
                         'get_funding_rate_value': { 'cost': 1 },
                         'get_historical_volatility': { 'cost': 1 },
                         'get_index': { 'cost': 1 },
+                        'get_index_chart_data': { 'cost': 1 },
                         'get_index_price': { 'cost': 1 },
                         'get_index_price_names': { 'cost': 1 },
                         'get_instrument': { 'cost': 1 },
@@ -183,6 +186,7 @@ export default class deribit extends Exchange {
                         'get_last_trades_by_instrument_and_time': { 'cost': 1 },
                         'get_mark_price_history': { 'cost': 1 },
                         'get_order_book': { 'cost': 1 },
+                        'get_supported_index_names': { 'cost': 1 },
                         'get_trade_volumes': { 'cost': 1 },
                         'get_tradingview_chart_data': { 'cost': 1 },
                         'get_volatility_index_data': { 'cost': 1 },
@@ -215,6 +219,7 @@ export default class deribit extends Exchange {
                         'get_account_summary': { 'cost': 1 },
                         'get_account_summaries': { 'cost': 1 },
                         'get_affiliate_program_info': { 'cost': 1 },
+                        'get_currencies': { 'cost': 1 },
                         'get_email_language': { 'cost': 1 },
                         'get_new_announcements': { 'cost': 1 },
                         'get_portfolio_margins': { 'cost': 1 },
@@ -229,16 +234,23 @@ export default class deribit extends Exchange {
                         'reset_api_key': { 'cost': 1 },
                         'set_announcement_as_read': { 'cost': 1 },
                         'set_api_key_as_default': { 'cost': 1 },
+                        'set_disabled_trading_products': { 'cost': 1 },
                         'set_email_for_subaccount': { 'cost': 1 },
                         'set_email_language': { 'cost': 1 },
                         'set_password_for_subaccount': { 'cost': 1 },
+                        'simulate_portfolio': { 'cost': 1 },
                         'toggle_notifications_from_subaccount': { 'cost': 1 },
                         'toggle_subaccount_login': { 'cost': 1 },
                         // Block Trade
+                        'approve_block_trade': { 'cost': 1 },
                         'execute_block_trade': { 'cost': 4 },
                         'get_block_trade': { 'cost': 1 },
+                        'get_block_trade_requests': { 'cost': 1 },
+                        'get_block_trades': { 'cost': 1 },
                         'get_last_block_trades_by_currency': { 'cost': 1 },
                         'invalidate_block_trade_signature': { 'cost': 1 },
+                        'reject_block_trade': { 'cost': 1 },
+                        'simulate_block_trade': { 'cost': 4 },
                         'verify_block_trade': { 'cost': 4 },
                         // Trading
                         'buy': { 'cost': 4 },
@@ -250,15 +262,20 @@ export default class deribit extends Exchange {
                         'cancel_all_by_currency': { 'cost': 4 },
                         'cancel_all_by_instrument': { 'cost': 4 },
                         'cancel_by_label': { 'cost': 4 },
+                        'cancel_quotes': { 'cost': 4 },
                         'close_position': { 'cost': 4 },
                         'get_margins': { 'cost': 1 },
                         'get_mmp_config': { 'cost': 1 },
+                        'get_mmp_status': { 'cost': 1 },
+                        'get_open_orders': { 'cost': 1 },
                         'get_open_orders_by_currency': { 'cost': 1 },
                         'get_open_orders_by_instrument': { 'cost': 1 },
+                        'get_open_orders_by_label': { 'cost': 1 },
                         'get_order_history_by_currency': { 'cost': 1 },
                         'get_order_history_by_instrument': { 'cost': 1 },
                         'get_order_margin_by_ids': { 'cost': 1 },
                         'get_order_state': { 'cost': 1 },
+                        'get_order_state_by_label': { 'cost': 1 },
                         'get_stop_order_history': { 'cost': 1 }, // deprecated
                         'get_trigger_order_history': { 'cost': 1 },
                         'get_user_trades_by_currency': { 'cost': 1 },
@@ -266,20 +283,28 @@ export default class deribit extends Exchange {
                         'get_user_trades_by_instrument': { 'cost': 1 },
                         'get_user_trades_by_instrument_and_time': { 'cost': 1 },
                         'get_user_trades_by_order': { 'cost': 1 },
+                        'mass_quote': { 'cost': 4 },
+                        'move_positions': { 'cost': 4 },
                         'reset_mmp': { 'cost': 1 },
                         'set_mmp_config': { 'cost': 1 },
                         'get_settlement_history_by_instrument': { 'cost': 1 },
                         'get_settlement_history_by_currency': { 'cost': 1 },
                         // Wallet
+                        'add_to_address_book': { 'cost': 1 },
                         'cancel_transfer_by_id': { 'cost': 1 },
                         'cancel_withdrawal': { 'cost': 1 },
                         'create_deposit_address': { 'cost': 1 },
+                        'get_address_book': { 'cost': 1 },
                         'get_current_deposit_address': { 'cost': 1 },
                         'get_deposits': { 'cost': 1 },
+                        'get_reward_eligibility': { 'cost': 1 },
                         'get_transfers': { 'cost': 1 },
                         'get_withdrawals': { 'cost': 1 },
+                        'remove_from_address_book': { 'cost': 1 },
+                        'set_clearance_originator': { 'cost': 1 },
                         'submit_transfer_to_subaccount': { 'cost': 1 },
                         'submit_transfer_to_user': { 'cost': 1 },
+                        'update_in_address_book': { 'cost': 1 },
                         'withdraw': { 'cost': 1 },
                     },
                 },
@@ -836,7 +861,7 @@ export default class deribit extends Exchange {
             //         "testnet": false
             //     }
             //
-            const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
+            const currenciesResult = this.safeList(currenciesResponse, 'result', []);
             for (let i = 0; i < currenciesResult.length; i++) {
                 const currencyId = this.safeString(currenciesResult[i], 'currency');
                 const request = {
@@ -920,7 +945,7 @@ export default class deribit extends Exchange {
             }
         }
         for (let i = 0; i < instrumentsResponses.length; i++) {
-            const instrumentsResult = this.safeValue(instrumentsResponses[i], 'result', []);
+            const instrumentsResult = this.safeList(instrumentsResponses[i], 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
                 const kind = this.safeString(market, 'kind');
@@ -980,7 +1005,7 @@ export default class deribit extends Exchange {
                     linear = (settle === quote);
                 }
                 const parsedMarketValue = this.safeValue(parsedMarkets, symbol);
-                if (parsedMarketValue) {
+                if (parsedMarketValue !== undefined) {
                     continue;
                 }
                 if (symbol !== undefined) {
@@ -1577,7 +1602,7 @@ export default class deribit extends Exchange {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString(trade, 'amount');
         let cost = Precise.stringMul(amount, priceString);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             cost = Precise.stringDiv(amount, priceString);
         }
         const liquidity = this.safeString(trade, 'liquidity');
@@ -1750,7 +1775,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const fees = this.safeValue(result, 'fees', []);
+        const fees = this.safeList(result, 'fees', []);
         let perpetualFee = {};
         let futureFee = {};
         let optionFee = {};
@@ -1792,13 +1817,13 @@ export default class deribit extends Exchange {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 fee = this.extend(fee, perpetualFee);
             }
-            else if (market['future']) {
+            else if (market['future'] === true) {
                 fee = this.extend(fee, futureFee);
             }
-            else if (market['option']) {
+            else if (market['option'] === true) {
                 fee = this.extend(fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -1943,7 +1968,7 @@ export default class deribit extends Exchange {
         const filledString = this.safeString(order, 'filled_amount');
         const amount = this.safeString(order, 'amount');
         let cost = Precise.stringMul(filledString, averageString);
-        if (this.safeBool(market, 'inverse')) {
+        if (this.safeBool(market, 'inverse') === true) {
             if (averageString !== '0') {
                 cost = Precise.stringDiv(amount, averageString);
             }
@@ -2145,7 +2170,7 @@ export default class deribit extends Exchange {
                 }
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = true;
         }
         if (postOnly) {
@@ -2950,7 +2975,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const volatilityResult = this.safeValue(volatility, 'result', []);
+        const volatilityResult = this.safeList(volatility, 'result', []);
         const result = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger(volatilityResult[i], 0);
@@ -3279,7 +3304,8 @@ export default class deribit extends Exchange {
         const eachItemDuration = '1h';
         if (paginate) {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend(params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest);
+            const paginationParams = this.extend(params, { 'isDeribitPaginationCall': true });
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest);
         }
         const duration = this.parseTimeframe(eachItemDuration) * 1000;
         let time = this.milliseconds();
@@ -3327,7 +3353,7 @@ export default class deribit extends Exchange {
         //    }
         //
         const rates = [];
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         for (let i = 0; i < result.length; i++) {
             const fr = result[i];
             const rate = this.parseFundingRate(fr, market);
@@ -3400,7 +3426,7 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallCursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', undefined);
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported(this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request = {
@@ -3477,7 +3503,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request = {
@@ -3849,7 +3875,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -3922,7 +3948,7 @@ export default class deribit extends Exchange {
         const openInterest = this.safeNumber(interest, 'open_interest');
         let openInterestAmount = undefined;
         let openInterestValue = undefined;
-        if (market['option'] || (market['future'] && market['linear'])) {
+        if ((market['option'] === true) || ((market['future'] === true) && (market['linear'] === true))) {
             openInterestAmount = openInterest;
         }
         else {
@@ -3943,7 +3969,7 @@ export default class deribit extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
@@ -3952,7 +3978,7 @@ export default class deribit extends Exchange {
             const nonce = this.nonce().toString();
             const timestamp = this.milliseconds().toString();
             const requestBody = '';
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
@@ -3966,7 +3992,7 @@ export default class deribit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //

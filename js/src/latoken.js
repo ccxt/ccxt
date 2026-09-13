@@ -162,7 +162,9 @@ export default class latoken extends Exchange {
                     'get': {
                         'auth/account': { 'cost': 1 },
                         'auth/account/currency/{currency}/{type}': { 'cost': 1 },
+                        'auth/account/filtered': { 'cost': 1 },
                         'auth/order': { 'cost': 1 },
+                        'auth/order/active': { 'cost': 1 },
                         'auth/order/getOrder/{id}': { 'cost': 1 },
                         'auth/order/pair/{currency}/{quote}': { 'cost': 1 },
                         'auth/order/pair/{currency}/{quote}/active': { 'cost': 1 },
@@ -183,7 +185,9 @@ export default class latoken extends Exchange {
                         'auth/order/cancel': { 'cost': 1 },
                         'auth/order/cancelAll': { 'cost': 1 },
                         'auth/order/cancelAll/{currency}/{quote}': { 'cost': 1 },
+                        'auth/order/cancelBulk': { 'cost': 1 },
                         'auth/order/place': { 'cost': 1 },
+                        'auth/order/placeBulk': { 'cost': 1 },
                         'auth/spot/deposit': { 'cost': 1 },
                         'auth/spot/withdraw': { 'cost': 1 },
                         'auth/stopOrder/cancel': { 'cost': 1 },
@@ -600,7 +604,7 @@ export default class latoken extends Exchange {
         const types = this.safeValue(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
-        const balances = this.safeValue(balancesByType, accountType, []);
+        const balances = this.safeList(balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString(balance, 'currency');
@@ -860,7 +864,7 @@ export default class latoken extends Exchange {
         const makerBuyer = this.safeValue(trade, 'makerBuyer');
         let side = this.safeString(trade, 'direction');
         if (side === undefined) {
-            side = makerBuyer ? 'sell' : 'buy';
+            side = (makerBuyer === true) ? 'sell' : 'buy';
         }
         else {
             if (side === 'TRADE_DIRECTION_BUY') {
@@ -871,7 +875,8 @@ export default class latoken extends Exchange {
             }
         }
         const isBuy = (side === 'buy');
-        const takerOrMaker = (makerBuyer && isBuy) ? 'maker' : 'taker';
+        const isMaker = (makerBuyer === true) && isBuy;
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString(trade, 'baseCurrency');
         const quoteId = this.safeString(trade, 'quoteCurrency');
         const base = this.safeCurrencyCode(baseId);
@@ -1233,7 +1238,7 @@ export default class latoken extends Exchange {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, params));
         }
         else {
@@ -1299,7 +1304,7 @@ export default class latoken extends Exchange {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, params));
             }
             else {
@@ -1307,7 +1312,7 @@ export default class latoken extends Exchange {
             }
         }
         else {
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privateGetAuthStopOrder(this.extend(request, params));
             }
             else {
@@ -1360,7 +1365,7 @@ export default class latoken extends Exchange {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
         let response;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, params));
         }
         else {
@@ -1477,7 +1482,7 @@ export default class latoken extends Exchange {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
         let response;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privatePostAuthStopOrderCancel(this.extend(request, params));
         }
         else {
@@ -1521,7 +1526,7 @@ export default class latoken extends Exchange {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, params));
             }
             else {
@@ -1529,7 +1534,7 @@ export default class latoken extends Exchange {
             }
         }
         else {
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, params));
             }
             else {
@@ -1846,7 +1851,7 @@ export default class latoken extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         const urlencodedQuery = this.urlencode(query);
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 requestString += '?' + urlencodedQuery;
             }
         }
@@ -1868,7 +1873,7 @@ export default class latoken extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         //

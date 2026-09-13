@@ -93,7 +93,7 @@ class luno extends \ccxt\async\luno {
         //         "timestamp" => 1660598775360
         //     }
         //
-        $rawTrades = $this->safe_value($message, 'trade_updates', array());
+        $rawTrades = $this->safe_list($message, 'trade_updates', array());
         $length = count($rawTrades);
         if ($length === 0) {
             return;

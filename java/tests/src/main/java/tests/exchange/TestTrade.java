@@ -22,7 +22,7 @@ public class TestTrade extends BaseTest {
                 put( "fees", true );
             }}, skippedProperties);
         }
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "12345-67890:09876/54321" );
             put( "timestamp", 1502962946216L );
@@ -42,7 +42,7 @@ public class TestTrade extends BaseTest {
         }};
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("fees", "fee", "symbol", "order", "id", "takerOrMaker"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("fees", "fee", "symbol", "order", "id", "takerOrMaker"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);

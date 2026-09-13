@@ -139,7 +139,7 @@ function isTranspileNeeded (tsPath: string, outputPaths: string[]) {
 //
 // This MUST run before the worker pool is fed: the per-language drivers hand the
 // whole file list to piscina as the sticky ts.Program `roots` (see
-// build/worker-program-batch.js), so a skipped exchange that stayed in the list
+// build/worker-program-batch.ts), so a skipped exchange that stayed in the list
 // would still be parsed, printed and written — i.e. no saving at all.
 //
 // `resolvePaths` returns the ts source and every file the driver writes for that
@@ -167,7 +167,7 @@ function filterDirtyExchangeFiles (lang: string, files: string[], force: boolean
 // base methods, the error hierarchy, and the test groups. Those stages emit a fixed
 // set of files from a fixed set of sources, and they cannot be filtered file by file
 // — `webworkerTranspile` hands the whole stage list to piscina as the sticky
-// ts.Program `roots` (build/worker-program-batch.js), so printing a subset off a
+// ts.Program `roots` (build/worker-program-batch.ts), so printing a subset off a
 // different root set is not guaranteed to reproduce the full-run output. A stage is
 // therefore skipped all-or-nothing: clean only when every output exists and the
 // newest input is not newer than the oldest output.
@@ -389,6 +389,16 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+
+            // same shapes as the `undefined` rules above, but for JS `null`;
+            // these must run before the blanket `null` -> `None` rule further below,
+            // otherwise they would emit `x == None` / `x != None` (PEP8 E711)
+            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+null/g, '$1[$2] is None' ],
+            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+null/g, '$1[$2] is not None' ],
+            [ /([^\s]+)\s+\=\=\=?\s+null/g, '$1 is None' ],
+            [ /([^\s]+)\s+\!\=\=?\s+null/g, '$1 is not None' ],
+            [ /(.+?)\s+\=\=\=?\s+null/g, '$1 is None' ],
+            [ /(.+?)\s+\!\=\=?\s+null/g, '$1 is not None' ],
             //
             // too broad, have to rewrite these cause they don't work
             //
@@ -456,7 +466,10 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
-            [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+            // every `Object.keys (x).length` must become `len(x)` — including the bare
+            // form assigned to a variable and later compared (`queryLength > 0`),
+            // otherwise the emitted code compares a dict to an int at runtime
+            [ /Object\.keys\s*\((.*)\)\.length/g, 'len($1)' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
             [ /Object\.values\s*\((.*)\)/g, 'list($1.values())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
@@ -480,7 +493,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],
             [ /\s\&\&\s/g, ' and ' ],
-            [ /\!([^\s\='"])/g, 'not $1'],
+            [ /(?<!['"])\!([^\s\='"])/g, 'not $1'],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
             [ /^(\s*}\s*$)+/gm, '' ],
             [ /\;(\s+?\/\/.+?)/g, '$1' ],
@@ -534,6 +547,8 @@ class Transpiler {
             [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
+            [ /\!\=\sFalse/g, 'is not False' ], // a correction for PEP8 E712, it likes "is not False", not "!= False"
+            [ /\=\=\sFalse/g, 'is False' ], // a correction for PEP8 E712, it likes "is False", not "== False"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
             [ /.market_or_None/g, '.market_or_null'],
@@ -692,7 +707,8 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
-            [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+            // every `Object.keys (x).length` must become `count($x)`, see the python note above
+            [ /Object\.keys\s*\((.*)\)\.length/g, 'count($1)' ],
             [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
             [ /Object\.values\s*\((.*)\)/g, 'is_array($1) ? array_values($1) : array()' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
@@ -790,7 +806,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /(?<![a-zA-Z0-9_]\s)(?<![a-zA-Z0-9_])\((\w+)\sas\s\w+\)/g, '$1'], // remove parens around a cast like "(x as any)" -> "x"; but NOT when it's a call arg, in either the spaced "foo (x as string)" or unspaced "foo(x as string)" form (the latter is produced by trimmedUnCamelCase collapsing base-method calls, e.g. capitalize(side as string)) — both keep their parens and let the next rule drop just the " as T"
-            [ /\sas (\w+<[^<>]*(?:<[^<>]*>[^<>]*)*>|(?:Dictionary<)?\w+(?:\[])?>?)/g, ''], // remove any "as any" or "as number" or "as trade[]" or a generic cast such as "as Endpoint<Dict | List>" (the generic arm must run first, otherwise "as Foo" matches and strands "<T>")
+            [ /\sas (\w+<[^<>]*(?:<[^<>]*>[^<>]*)*>|(?:Dictionary<)?(?:[A-Z]\w*|(?:any|number|string|boolean|bigint|unknown|object|never|void|symbol)\b)(?:\[])?>?)/g, ''], // remove any "as any" or "as number" or "as trade[]" or a generic cast such as "as Endpoint<Dict | List>" (the generic arm must run first, otherwise "as Foo" matches and strands "<T>")
             [ /(^|[^a-zA-Z0-9_])((?:let|const)\s+\w+):[^=\n]+(\s+=.*$)/gm, '$1$2$3'], // remove variable type
         ]
     }
@@ -1066,9 +1082,11 @@ class Transpiler {
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'CurrencyInterface': /(?:->|:) (?:[Ll]ist\[)?CurrencyInterface\b/,
-            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress/,
+            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress\b(?!es)/,
+            'DepositAddresses': /-> (?:[Ll]ist\[)?DepositAddresses\b/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
+            'AllGreeks': /-> AllGreeks:/,
             'IndexType': /: IndexType/,
             'NullableIndexType': /: NullableIndexType/,
             'Int': /(: (?:[Ll]ist\[)?Int\b)|(-> Int:)/,
@@ -1076,7 +1094,7 @@ class Transpiler {
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
-            'LedgerEntry': /-> LedgerEntry:/,
+            'LedgerEntry': /-> (?:[Ll]ist\[)?LedgerEntry\b/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
             'LeverageTier': /-> (?:[Ll]ist\[)?LeverageTier/,
@@ -1085,9 +1103,9 @@ class Transpiler {
             'LongShortRatio': /-> (?:[Ll]ist\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarginModification': /-> MarginModification:/,
+            'MarginModification': /-> (?:[Ll]ist\[)?MarginModification\b/,
             'MarginLoan': /-> MarginLoan:/,
-            'Market': /(-> Market:|: Market)/,
+            'Market': /(-> (?:[Ll]ist\[)?Market\b|: Market)/,
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
@@ -1109,7 +1127,7 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'FundingRate': /-> FundingRate:/,
-            'OpenInterest': /-> OpenInterest:/,
+            'OpenInterest': /-> (?:[Ll]ist\[)?OpenInterest\b/,
             'FundingRates': /-> FundingRates:/,
             'OrderBooks': /-> OrderBooks:/,
             'OpenInterests': /-> OpenInterests:/,
@@ -1121,7 +1139,7 @@ class Transpiler {
             'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
             'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
-            'TransferEntry': /-> TransferEntry:/,
+            'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
             'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
@@ -1756,9 +1774,6 @@ class Transpiler {
 
         newContents = deleteFunction ('test_tickers_async', newContents)
         newContents = deleteFunction ('test_l2_order_books_async', newContents)
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -1778,9 +1793,6 @@ class Transpiler {
         ]
 
         const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -2226,7 +2238,7 @@ class Transpiler {
                     'List': 'array',
                     'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -2840,6 +2852,18 @@ class Transpiler {
         return unCamelCase (name).replace (/\./g, '_');
     }
 
+    // PEP8 E711/E712: ruff rejects `== None` / `== True` / `== False` and the
+    // negated forms, which strict boolean conditions in TS emit routinely
+    pythonPep8Comparisons (str: string) {
+        return str.
+            replace (/ == True/g, ' is True').
+            replace (/ != True/g, ' is not True').
+            replace (/ == False/g, ' is False').
+            replace (/ != False/g, ' is not False').
+            replace (/ == None/g, ' is None').
+            replace (/ != None/g, ' is not None');
+    }
+
     phpReplaceException (cont: string) {
         return cont.
             replace (/catch\(Exception/g, 'catch\(\\Throwable').
@@ -3056,6 +3080,7 @@ class Transpiler {
             const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
             let newPython = impHelper + python3;
             newPython = snakeCaseFunctions (newPython);
+            newPython = this.pythonPep8Comparisons (newPython);
             overwriteSafe (files.pyFileAsync, newPython);
             this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
             // remove 4 extra newlines
@@ -3109,7 +3134,7 @@ class Transpiler {
         // create worker
         const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
         const piscina = new Piscina({
-            filename: resolve(__dirname, './ast-transpiler-worker.js'),
+            filename: resolve(__dirname, './ast-transpiler-worker.ts'),
             maxThreads,
         });
 
@@ -3199,8 +3224,7 @@ class Transpiler {
 
         const pyFixes = (str: string, sync = false) => {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
-            str = str.replace (/ == True/g, ' is True');
-            str = str.replace (/ == False/g, ' is False');
+            str = this.pythonPep8Comparisons (str);
             if (sync) {
                 // str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
                 str = str.replace (/asyncio\.gather\(\*/g, '(');
@@ -3909,6 +3933,7 @@ if (isMainEntry(metaFileUrl)) {
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const baseClassOnly = process.argv.includes ('--baseClass')
+    const baseTestsOnly = process.argv.includes ('--baseTests')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3928,6 +3953,11 @@ if (isMainEntry(metaFileUrl)) {
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ()
         transpiler.transpilePredictionBaseMethods ()
+    } else if (baseTestsOnly) {
+        (async () => {
+            await transpiler.baseFunctionalitiesTests ()
+            transpiler.transpileCryptoTests ()
+        })()
     } else if (test) {
         (async () => {
             await transpiler.transpileTests ()

@@ -43,7 +43,7 @@ public partial class BaseExchange
 
     public static object DynamicallyCallMethod(BaseExchange instance, string methodName, object[] parameters)
     {
-        var method = instance.GetType().GetMethod(methodName);
+        var method = BaseExchange.ResolveMethod(instance.GetType(), methodName);
         var paramsLength = method.GetParameters().Count();
         if (parameters.Count() < paramsLength)
         {
@@ -59,9 +59,9 @@ public partial class BaseExchange
                     appendedMissingArgs[i] = null;
                 }
             }
-            return method.Invoke(instance, appendedMissingArgs);
+            return method.Invoke(instance, BaseExchange.coerceArgs(method, appendedMissingArgs));
 
         }
-        return method.Invoke(instance, parameters);
+        return method.Invoke(instance, BaseExchange.coerceArgs(method, parameters));
     }
 }

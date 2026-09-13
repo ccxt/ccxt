@@ -406,6 +406,12 @@ abstract class bittrade extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_retail_maintain_time($params = array()) {
+        return $this->request('retail/maintain/time', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_account_accounts($params = array()) {
         return $this->request('account/accounts', 'private', 'GET', $params, null, null, array("cost" => 0.2));
     }
@@ -550,6 +556,12 @@ abstract class bittrade extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_retail_order_list($params = array()) {
+        return $this->request('retail/order/list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_account_transfer($params = array()) {
         return $this->request('account/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -666,6 +678,12 @@ abstract class bittrade extends \ccxt\Exchange {
      */
     public function private_post_subuser_transfer($params = array()) {
         return $this->request('subuser/transfer', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_retail_order_place($params = array()) {
+        return $this->request('retail/order/place', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1066,6 +1084,12 @@ abstract class bittrade extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function publicGetRetailMaintainTime($params = array()) {
+        return $this->request('retail/maintain/time', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetAccountAccounts($params = array()) {
         return $this->request('account/accounts', 'private', 'GET', $params, null, null, array("cost" => 0.2));
     }
@@ -1210,6 +1234,12 @@ abstract class bittrade extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetRetailOrderList($params = array()) {
+        return $this->request('retail/order/list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostAccountTransfer($params = array()) {
         return $this->request('account/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1326,5 +1356,11 @@ abstract class bittrade extends \ccxt\Exchange {
      */
     public function privatePostSubuserTransfer($params = array()) {
         return $this->request('subuser/transfer', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostRetailOrderPlace($params = array()) {
+        return $this->request('retail/order/place', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

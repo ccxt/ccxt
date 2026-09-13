@@ -9,13 +9,13 @@ public partial class testMainClass : BaseTest
 {
     public static void testAccount(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "code", "BTC" },
             { "type", "spot" },
             { "id", "12345" },
         };
-        object emptyAllowedFor = new List<object>() {"code", "id"};
+        List<object> emptyAllowedFor = new List<object>() {"code", "id"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
     }

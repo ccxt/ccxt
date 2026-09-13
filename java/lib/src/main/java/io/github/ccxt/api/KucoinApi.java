@@ -240,6 +240,17 @@ public class KucoinApi extends Exchange
     }
 
     /**
+     * Calls the publicGetMarginAvailableInventory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetMarginAvailableInventory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarginAvailableInventory", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetConvertSymbol endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1054,6 +1065,17 @@ public class KucoinApi extends Exchange
     }
 
     /**
+     * Calls the privateGetMarginBorrowRate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMarginBorrowRate (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetMarginBorrowRate", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetProjectList endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1227,6 +1249,61 @@ public class KucoinApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateInviterStatistics (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAffiliateInviterStatistics", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateQueryInvitees endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateQueryInvitees (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateQueryInvitees", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateQueryMyCommission endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateQueryMyCommission (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateQueryMyCommission", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateQueryTransactionByUid endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateQueryTransactionByUid (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateQueryTransactionByUid", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateQueryTransactionByTime endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateQueryTransactionByTime (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateQueryTransactionByTime", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAffiliateQueryKumining endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAffiliateQueryKumining (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAffiliateQueryKumining", optionalArgs);
     }
 
     /**
@@ -3034,6 +3111,17 @@ public class KucoinApi extends Exchange
     }
 
     /**
+     * Calls the brokerGetBrokerNdMarkUp endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerGetBrokerNdMarkUp (Object... optionalArgs)
+    {
+        return this.callAsync ("brokerGetBrokerNdMarkUp", optionalArgs);
+    }
+
+    /**
      * Calls the brokerGetAssetNdbrokerDepositList endpoint.
      *
      * @param optionalArgs the request parameters
@@ -3119,6 +3207,17 @@ public class KucoinApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPostBrokerNdAccountUpdateApikey (Object... optionalArgs)
     {
         return this.callAsync ("brokerPostBrokerNdAccountUpdateApikey", optionalArgs);
+    }
+
+    /**
+     * Calls the brokerPostBrokerNdMarkUp endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPostBrokerNdMarkUp (Object... optionalArgs)
+    {
+        return this.callAsync ("brokerPostBrokerNdMarkUp", optionalArgs);
     }
 
     /**

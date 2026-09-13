@@ -117,6 +117,7 @@ class zebpay(Exchange, ImplicitAPI):
                             'v2/system/time': {'cost': 10},
                             'v2/system/status': {'cost': 10},
                             'v2/market/orderbook': {'cost': 10},
+                            'v2/market/orderbook/ticker': {'cost': 10},
                             'v2/market/trades': {'cost': 10},
                             'v2/market/ticker': {'cost': 10},
                             'v2/market/allTickers': {'cost': 10},
@@ -132,9 +133,12 @@ class zebpay(Exchange, ImplicitAPI):
                             'v1/system/status': {'cost': 10},
                             'v1/exchange/tradefee': {'cost': 10},
                             'v1/exchange/tradefees': {'cost': 10},
+                            'v1/exchange/exchangeInfo': {'cost': 10},
+                            'v1/exchange/pairs': {'cost': 10},
                             'v1/market/orderBook': {'cost': 10},
                             'v1/market/ticker24Hr': {'cost': 10},
                             'v1/market/markets': {'cost': 10},
+                            'v1/market/marketInfo': {'cost': 10},
                             'v1/market/aggTrade': {'cost': 10},
                         },
                         'post': {
@@ -151,6 +155,7 @@ class zebpay(Exchange, ImplicitAPI):
                             'v2/ex/orders': {'cost': 10},
                             'v2/account/balance': {'cost': 10},
                             'v2/ex/tradefee': {'cost': 10},
+                            'v2/ex/myfee/{symbol}': {'cost': 10},
                             'v2/ex/order': {'cost': 10},
                             'v2/ex/order/fills': {'cost': 10},
                         },
@@ -165,10 +170,12 @@ class zebpay(Exchange, ImplicitAPI):
                             'v1/wallet/balance': {'cost': 10},
                             'v1/trade/order': {'cost': 10},
                             'v1/trade/order/open-orders': {'cost': 10},
+                            'v1/trade/order/history': {'cost': 10},
                             'v1/trade/userLeverages': {'cost': 10},
                             'v1/trade/userLeverage': {'cost': 10},
                             'v1/trade/positions': {'cost': 10},
                             'v1/trade/history': {'cost': 10},
+                            'v1/trade/transaction/history': {'cost': 10},
                         },
                         'post': {
                             'v1/trade/order': {'cost': 10},
@@ -179,6 +186,10 @@ class zebpay(Exchange, ImplicitAPI):
                             'v1/trade/update/userLeverage': {'cost': 10},
                         },
                         'delete': {
+                            'v1/trade/order': {'cost': 10},
+                            'v1/trade/order/all': {'cost': 10},
+                        },
+                        'patch': {
                             'v1/trade/order': {'cost': 10},
                         },
                     },
@@ -473,7 +484,7 @@ class zebpay(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.privateSpotGetV2ExTradefee(self.extend(request, params))
             #
             # {
@@ -567,7 +578,7 @@ class zebpay(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if limit is not None:
                 request['limit'] = limit
             #
@@ -608,7 +619,7 @@ class zebpay(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.publicSpotGetV2MarketTicker(self.extend(request, params))
             #
             #     [
@@ -685,7 +696,7 @@ class zebpay(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.endtime]: the latest time in ms to fetch orders for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -695,14 +706,14 @@ class zebpay(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if market['spot']:
+        if market['spot'] is True:
             request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         else:
             request['interval'] = timeframe
-        if market['contract'] and (limit is not None):
+        if (market['contract'] is True) and (limit is not None):
             request['limit'] = limit
         if since is not None:
-            if market['spot']:
+            if market['spot'] is True:
                 request['startTime'] = since
             else:
                 request['since'] = since
@@ -711,7 +722,7 @@ class zebpay(Exchange, ImplicitAPI):
             request['endTime'] = until
             params = self.omit(params, ['endtime', 'until'])
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if until is None or since is None:
                 raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets')
             response = await self.publicSpotGetV2MarketKlines(self.extend(request, params))
@@ -770,10 +781,10 @@ class zebpay(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if market['spot'] and limit is not None:
+        if (market['spot'] is True) and limit is not None:
             request['limit'] = limit
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.publicSpotGetV2MarketTrades(self.extend(request, params))
         else:
             response = await self.publicSwapGetV1MarketAggTrade(self.extend(request, params))
@@ -996,7 +1007,7 @@ class zebpay(Exchange, ImplicitAPI):
             'side': side.upper(),
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             request, params = self.order_request(symbol, type, amount, request, price, params)
             response = await self.privateSpotPostV2ExOrders(self.extend(request, params))
         else:
@@ -1069,7 +1080,7 @@ class zebpay(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         request = {}
-        if market['spot']:
+        if market['spot'] is True:
             request['orderId'] = id
             response = await self.privateSpotDeleteV2ExOrder(self.extend(request, params))
         else:
@@ -1140,7 +1151,7 @@ class zebpay(Exchange, ImplicitAPI):
         }
         response = None
         orders = []
-        if market['spot']:
+        if market['spot'] is True:
             request['currentPage'] = 1
             if limit is not None:
                 request['pageSize'] = limit
@@ -1201,7 +1212,7 @@ class zebpay(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {}
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             request['orderId'] = id
             response = await self.privateSpotGetV2ExOrder(self.extend(request, params))
         else:
@@ -1825,11 +1836,11 @@ class zebpay(Exchange, ImplicitAPI):
         timestamp = str(self.milliseconds())
         signature = ''
         query = self.omit(params, self.extract_params(path))
-        queryLength = query
+        queryLength = len(query)
         access = self.safe_string(api, 0, 'public')
         if access == 'public':
             if method == 'GET' or method == 'DELETE':
-                if queryLength:
+                if (queryLength is not None) and (queryLength != 0):
                     url += '?' + self.urlencode(query)
             else:
                 body = json.dumps(params)
@@ -1859,7 +1870,7 @@ class zebpay(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None
         #

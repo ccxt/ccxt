@@ -158,6 +158,7 @@ export default class bitbank extends Exchange {
                         'user/assets': { 'cost': 1 },
                         'user/spot/order': { 'cost': 1 },
                         'user/spot/active_orders': { 'cost': 1 },
+                        'user/margin/status': { 'cost': 1 },
                         'user/margin/positions': { 'cost': 1 },
                         'user/spot/trade_history': { 'cost': 1 },
                         'user/deposit_history': { 'cost': 1 },
@@ -548,7 +549,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const pairs = this.safeValue(data, 'pairs', []);
+        const pairs = this.safeList(data, 'pairs', []);
         const result = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -647,7 +648,7 @@ export default class bitbank extends Exchange {
             'datetime': undefined,
         };
         const data = this.safeValue(response, 'data', {});
-        const assets = this.safeValue(data, 'assets', []);
+        const assets = this.safeList(data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = assets[i];
             const currencyId = this.safeString(balance, 'asset');
@@ -1068,7 +1069,7 @@ export default class bitbank extends Exchange {
         let url = this.implodeHostname(this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams(path, params);
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1097,7 +1098,7 @@ export default class bitbank extends Exchange {
             }
             else {
                 auth += '/' + this.version + '/' + path;
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     query = this.urlencode(query);
                     url += '?' + query;
                     auth += '?' + query;
@@ -1124,7 +1125,7 @@ export default class bitbank extends Exchange {
         }
         const success = this.safeInteger(response, 'success');
         const data = this.safeValue(response, 'data');
-        if (!success || !data) {
+        if ((success === undefined || success === null || success === 0) || (data === undefined)) {
             const errorMessages = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',

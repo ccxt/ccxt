@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official zebpay API documentation:** [github.com](https://github.com/zebpay/zebpay-api-references)
 
-> 42 implicit endpoints across 2 access groups.
+> 51 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -64,6 +64,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicSpotGetV2SystemTime` | GET | `v2/system/time` | 10 |
 | `publicSpotGetV2SystemStatus` | GET | `v2/system/status` | 10 |
 | `publicSpotGetV2MarketOrderbook` | GET | `v2/market/orderbook` | 10 |
+| `publicSpotGetV2MarketOrderbookTicker` | GET | `v2/market/orderbook/ticker` | 10 |
 | `publicSpotGetV2MarketTrades` | GET | `v2/market/trades` | 10 |
 | `publicSpotGetV2MarketTicker` | GET | `v2/market/ticker` | 10 |
 | `publicSpotGetV2MarketAllTickers` | GET | `v2/market/allTickers` | 10 |
@@ -75,9 +76,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicSwapGetV1SystemStatus` | GET | `v1/system/status` | 10 |
 | `publicSwapGetV1ExchangeTradefee` | GET | `v1/exchange/tradefee` | 10 |
 | `publicSwapGetV1ExchangeTradefees` | GET | `v1/exchange/tradefees` | 10 |
+| `publicSwapGetV1ExchangeExchangeInfo` | GET | `v1/exchange/exchangeInfo` | 10 |
+| `publicSwapGetV1ExchangePairs` | GET | `v1/exchange/pairs` | 10 |
 | `publicSwapGetV1MarketOrderBook` | GET | `v1/market/orderBook` | 10 |
 | `publicSwapGetV1MarketTicker24Hr` | GET | `v1/market/ticker24Hr` | 10 |
 | `publicSwapGetV1MarketMarkets` | GET | `v1/market/markets` | 10 |
+| `publicSwapGetV1MarketMarketInfo` | GET | `v1/market/marketInfo` | 10 |
 | `publicSwapGetV1MarketAggTrade` | GET | `v1/market/aggTrade` | 10 |
 | `publicSwapPostV1MarketKlines` | POST | `v1/market/klines` | 10 |
 
@@ -89,6 +93,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateSpotGetV2ExOrders` | GET | `v2/ex/orders` | 10 |
 | `privateSpotGetV2AccountBalance` | GET | `v2/account/balance` | 10 |
 | `privateSpotGetV2ExTradefee` | GET | `v2/ex/tradefee` | 10 |
+| `privateSpotGetV2ExMyfeeSymbol` | GET | `v2/ex/myfee/{symbol}` | 10 |
 | `privateSpotGetV2ExOrder` | GET | `v2/ex/order` | 10 |
 | `privateSpotGetV2ExOrderFills` | GET | `v2/ex/order/fills` | 10 |
 | `privateSpotDeleteV2ExOrder` | DELETE | `v2/ex/order` | 10 |
@@ -97,10 +102,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateSwapGetV1WalletBalance` | GET | `v1/wallet/balance` | 10 |
 | `privateSwapGetV1TradeOrder` | GET | `v1/trade/order` | 10 |
 | `privateSwapGetV1TradeOrderOpenOrders` | GET | `v1/trade/order/open-orders` | 10 |
+| `privateSwapGetV1TradeOrderHistory` | GET | `v1/trade/order/history` | 10 |
 | `privateSwapGetV1TradeUserLeverages` | GET | `v1/trade/userLeverages` | 10 |
 | `privateSwapGetV1TradeUserLeverage` | GET | `v1/trade/userLeverage` | 10 |
 | `privateSwapGetV1TradePositions` | GET | `v1/trade/positions` | 10 |
 | `privateSwapGetV1TradeHistory` | GET | `v1/trade/history` | 10 |
+| `privateSwapGetV1TradeTransactionHistory` | GET | `v1/trade/transaction/history` | 10 |
 | `privateSwapPostV1TradeOrder` | POST | `v1/trade/order` | 10 |
 | `privateSwapPostV1TradeOrderAddTPSL` | POST | `v1/trade/order/addTPSL` | 10 |
 | `privateSwapPostV1TradeAddMargin` | POST | `v1/trade/addMargin` | 10 |
@@ -108,4 +115,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateSwapPostV1TradePositionClose` | POST | `v1/trade/position/close` | 10 |
 | `privateSwapPostV1TradeUpdateUserLeverage` | POST | `v1/trade/update/userLeverage` | 10 |
 | `privateSwapDeleteV1TradeOrder` | DELETE | `v1/trade/order` | 10 |
+| `privateSwapDeleteV1TradeOrderAll` | DELETE | `v1/trade/order/all` | 10 |
+| `privateSwapPatchV1TradeOrder` | PATCH | `v1/trade/order` | 10 |
 

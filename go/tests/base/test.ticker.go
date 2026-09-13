@@ -71,7 +71,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		}
 	}
 	if IsTrue(InOp(skippedProperties, "skipNonActiveMarkets")) {
-		if IsTrue(IsTrue(IsEqual(market, nil)) || !IsTrue(GetValue(market, "active"))) {
+		if IsTrue(IsTrue(IsEqual(market, nil)) || IsTrue((!IsEqual(GetValue(market, "active"), true)))) {
 			return
 		}
 	}
@@ -116,7 +116,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// far above baseVolume * high), so the spot-derived invariant does not hold there,
 		// see https://github.com/ccxt/ccxt/pull/29563
 		var isInverse any = exchange.SafeBool(market, "inverse", false)
-		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) && !IsTrue(isInverse)) {
+		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) && IsTrue((!IsEqual(isInverse, true)))) {
 			var baseLow any = ccxt.Precise.StringMul(baseVolume, low)
 			var baseHigh any = ccxt.Precise.StringMul(baseVolume, high)
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -211,7 +211,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		if IsTrue(!IsEqual(percentage, nil)) {
 			// - should be above -100 and (for non-options) below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))
-			if !IsTrue(isOptionMarket) {
+			if IsTrue(!IsEqual(isOptionMarket, true)) {
 				Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add(Add(Add("percentage should be below ", maxIncrease), "00% "), logText))
 			}
 		}
@@ -222,7 +222,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		if IsTrue(!IsEqual(change, nil)) {
 			// - should be above -price and (for non-options) below +price*maxIncrease
 			Assert(ccxt.Precise.StringGe(change, ccxt.Precise.StringNeg(approxValue)), Add("change should be above -price ", logText))
-			if !IsTrue(isOptionMarket) {
+			if IsTrue(!IsEqual(isOptionMarket, true)) {
 				Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add(Add(Add("change should be below ", maxIncrease), "x price "), logText))
 			}
 		}

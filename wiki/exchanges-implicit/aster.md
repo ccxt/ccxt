@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official aster API documentation:** [github.com](https://github.com/asterdex/api-docs)
 
-> 165 implicit endpoints across 4 access groups.
+> 179 implicit endpoints across 4 access groups.
 
 ## fapiPublic
 
@@ -139,6 +139,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `fapiPrivateGetV4Account` | GET | `v4/account` | 1 |
 | `fapiPrivateGetV3Agent` | GET | `v3/agent` | 1 |
 | `fapiPrivateGetV3Builder` | GET | `v3/builder` | 1 |
+| `fapiPrivateGetV3BuilderUserTrades` | GET | `v3/builder/userTrades` | 5 |
+| `fapiPrivateGetV3BuilderApprovedUserList` | GET | `v3/builder/approvedUserList` | 5 |
+| `fapiPrivateGetV3StpMode` | GET | `v3/stpMode` | 30 |
+| `fapiPrivateGetV3AssetMigrateUserHistory` | GET | `v3/asset/migrateUser/history` | 50 |
+| `fapiPrivateGetV3StrategyOpenOrder` | GET | `v3/strategyOpenOrder` | 5 |
+| `fapiPrivateGetV3StrategyHistoryOrder` | GET | `v3/strategyHistoryOrder` | 5 |
 | `fapiPrivatePostV1PositionSideDual` | POST | `v1/positionSide/dual` | 1 |
 | `fapiPrivatePostV3PositionSideDual` | POST | `v3/positionSide/dual` | 1 |
 | `fapiPrivatePostV1MultiAssetsMargin` | POST | `v1/multiAssetsMargin` | 1 |
@@ -168,6 +174,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `fapiPrivatePostV3UpdateAgent` | POST | `v3/updateAgent` | 1 |
 | `fapiPrivatePostV3ApproveBuilder` | POST | `v3/approveBuilder` | 1 |
 | `fapiPrivatePostV3UpdateBuilder` | POST | `v3/updateBuilder` | 1 |
+| `fapiPrivatePostV3RegisterAndApproveAgent` | POST | `v3/registerAndApproveAgent` | 50 |
+| `fapiPrivatePostV3AssetMigrateUser` | POST | `v3/asset/migrateUser` | 50 |
+| `fapiPrivatePostV3Chase` | POST | `v3/chase` | 1 |
+| `fapiPrivatePostV3StpMode` | POST | `v3/stpMode` | 1 |
+| `fapiPrivatePostV3PlaceStrategyOrder` | POST | `v3/placeStrategyOrder` | 50 |
+| `fapiPrivatePostV3UpdateStrategyOrder` | POST | `v3/updateStrategyOrder` | 50 |
 | `fapiPrivatePutV1ListenKey` | PUT | `v1/listenKey` | 1 |
 | `fapiPrivatePutV3ListenKey` | PUT | `v3/listenKey` | 1 |
 | `fapiPrivateDeleteV1Order` | DELETE | `v1/order` | 1 |
@@ -176,6 +188,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `fapiPrivateDeleteV3AllOpenOrders` | DELETE | `v3/allOpenOrders` | 1 |
 | `fapiPrivateDeleteV1BatchOrders` | DELETE | `v1/batchOrders` | 1 |
 | `fapiPrivateDeleteV3BatchOrders` | DELETE | `v3/batchOrders` | 1 |
+| `fapiPrivateDeleteV3GuardedCancelOrder` | DELETE | `v3/guardedCancelOrder` | 1 |
+| `fapiPrivateDeleteV3GuardedBatchOrders` | DELETE | `v3/guardedBatchOrders` | 1 |
 | `fapiPrivateDeleteV3Mmp` | DELETE | `v3/mmp` | 1 |
 | `fapiPrivateDeleteV1ListenKey` | DELETE | `v1/listenKey` | 1 |
 | `fapiPrivateDeleteV3ListenKey` | DELETE | `v3/listenKey` | 1 |

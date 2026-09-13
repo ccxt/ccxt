@@ -370,7 +370,7 @@ binance.fetchTicker (symbol, params?)
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure) tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
 
 **See**
 
@@ -425,7 +425,7 @@ binance.fetchLastPrices (symbols, params?)
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure) tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
 
 **See**
 
@@ -2434,7 +2434,7 @@ binance.fetchGreeks (symbol, params?)
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price  
 

@@ -246,6 +246,7 @@ class hashkey extends Exchange {
                         'api/v1/account/deposit/address' => array( 'cost' => 1 ),
                         'api/v1/account/depositOrders' => array( 'cost' => 1 ),
                         'api/v1/account/withdrawOrders' => array( 'cost' => 1 ),
+                        'api/v1/affiliate/inviteeInfo' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'api/v1/userDataStream' => array( 'cost' => 1 ),
@@ -270,9 +271,11 @@ class hashkey extends Exchange {
                         'api/v1/spot/order' => array( 'cost' => 1 ),
                         'api/v1/spot/openOrders' => array( 'cost' => 5 ),
                         'api/v1/spot/cancelOrderByIds' => array( 'cost' => 5 ),
+                        'api/v1/spot/cancelAllOpenOrders' => array( 'cost' => 5 ),
                         'api/v1/futures/order' => array( 'cost' => 1 ),
                         'api/v1/futures/batchOrders' => array( 'cost' => 1 ),
                         'api/v1/futures/cancelOrderByIds' => array( 'cost' => 1 ),
+                        'api/v1/futures/cancelAllOpenOrders' => array( 'cost' => 1 ),
                         'api/v1/userDataStream' => array( 'cost' => 1 ),
                     ),
                 ),
@@ -1594,7 +1597,7 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $methodName = 'fetchOHLCV';
         if ($this->markets === null) {
@@ -1752,7 +1755,7 @@ class hashkey extends Exchange {
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
-        if ($market['contract'] && ($market['contractSize'] !== null)) {
+        if (($market['contract'] === true) && ($market['contractSize'] !== null)) {
             // 'v' counts contracts, and a $ticker reports base volume
             $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
         }
@@ -2243,7 +2246,7 @@ class hashkey extends Exchange {
         $status = $this->safe_string($transaction, 'status'); // for fetchDeposits
         if ($status === null) {
             $success = $this->safe_bool($transaction, 'success', false); // for withdraw
-            if ($success) {
+            if ($success === true) {
                 $status = 'ok';
             } else {
                 $addressUrl = $this->safe_string($transaction, 'addressUrl'); // for fetchWithdrawals
@@ -2353,7 +2356,7 @@ class hashkey extends Exchange {
         $currencyId = $this->safe_string($currency, 'id');
         $status = null;
         $success = $this->safe_bool($transfer, 'success', false);
-        if ($success) {
+        if ($success === true) {
             $status = 'ok';
         }
         return array(
@@ -2599,7 +2602,7 @@ class hashkey extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {boolean} [$params->test] *spot markets only* whether to use the test endpoint or not, default is false
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
@@ -2611,9 +2614,9 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $params));
-        } elseif ($market['swap']) {
+        } elseif ($market['swap'] === true) {
             return Async\await($this->create_swap_order($symbol, $type, $side, $amount, $price, $params));
         } else {
             throw new NotSupported($this->id . ' createOrder() is not supported for ' . $market['type'] . ' $type of markets');
@@ -2636,7 +2639,7 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
         $req = array(
@@ -2662,7 +2665,7 @@ class hashkey extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {bool} [$params->test] whether to use the $test endpoint or not, default is false
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', or 'PO'
@@ -2685,7 +2688,7 @@ class hashkey extends Exchange {
         $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = array();
         $test = $this->safe_bool($params, 'test');
-        if ($test) {
+        if ($test === true) {
             $params = $this->omit($params, 'test');
             $response = Async\await($this->privatePostApiV1SpotOrderTest($request));
         } elseif ($isMarketBuy && ($cost === null)) {
@@ -2781,9 +2784,9 @@ class hashkey extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a $side argument');
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             return $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
-        } elseif ($market['swap']) {
+        } elseif ($market['swap'] === true) {
             return $this->create_swap_order_request($symbol, $type, $side, $amount, $price, $params);
         } else {
             throw new NotSupported($this->id . ' ' . 'createOrderRequest() is not supported for ' . $market['type'] . ' $type of markets');
@@ -2806,7 +2809,7 @@ class hashkey extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
          * @param {string} [$params->clientOrderId] a unique id for the order
@@ -2878,7 +2881,7 @@ class hashkey extends Exchange {
         $reduceOnly = false;
         list($reduceOnly, $params) = $this->handle_param_bool($params, 'reduceOnly', $reduceOnly);
         $suffix = '_OPEN';
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $suffix = '_CLOSE';
         }
         $request['side'] = strtoupper($side) . $suffix;
@@ -2999,7 +3002,7 @@ class hashkey extends Exchange {
             'orders' => $ordersRequests,
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->privatePostApiV1SpotBatchOrders($this->extend($request, $params)));
             //
             //     {
@@ -3028,7 +3031,7 @@ class hashkey extends Exchange {
             //         "concentration" => ""
             //     }
             //
-        } elseif ($market['swap']) {
+        } elseif ($market['swap'] === true) {
             $response = Async\await($this->privatePostApiV1FuturesBatchOrders($this->extend($request, $params)));
             //
             //     {
@@ -3093,7 +3096,7 @@ class hashkey extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entry for (default 'spot')
-         * @param {string} [$params->clientOrderId] a unique $id for the order that can be used alternative for the $id
+         * @param {string} [$params->clientOrderId] a unique $id for the order that can be used as an alternative for the $id
          * @param {bool} [$params->trigger] *swap markets only* true for canceling a trigger order (default false)
          * @param {bool} [$params->stop] *swap markets only* an alternative for trigger param
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
@@ -3136,7 +3139,7 @@ class hashkey extends Exchange {
         } elseif ($marketType === 'swap') {
             $isTrigger = false;
             list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             } else {
                 $request['type'] = 'LIMIT';
@@ -3206,12 +3209,12 @@ class hashkey extends Exchange {
         if ($side !== null) {
             $request['side'] = $side;
         }
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->privateDeleteApiV1SpotOpenOrders($this->extend($request, $params)));
             //
             //     array( "success" => true )
             //
-        } elseif ($market['swap']) {
+        } elseif ($market['swap'] === true) {
             $response = Async\await($this->privateDeleteApiV1FuturesBatchOrders($this->extend($request, $params)));
             //
             //     array( "message" => "success", "timestamp" => "1723127222198", "code" => "0000" )
@@ -3287,7 +3290,7 @@ class hashkey extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entry for (default 'spot')
-         * @param {string} [$params->clientOrderId] a unique $id for the order that can be used alternative for the $id
+         * @param {string} [$params->clientOrderId] a unique $id for the order that can be used as an alternative for the $id
          * @param {string} [$params->accountId] *spot markets only* account $id to fetch the order from
          * @param {bool} [$params->trigger] *swap markets only* true for fetching a trigger order (default false)
          * @param {bool} [$params->stop] *swap markets only* an alternative for trigger param
@@ -3348,7 +3351,7 @@ class hashkey extends Exchange {
         } elseif ($marketType === 'swap') {
             $isTrigger = false;
             list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             }
             $response = Async\await($this->privateGetApiV1FuturesOrder($this->extend($request, $params)));
@@ -3536,7 +3539,7 @@ class hashkey extends Exchange {
         );
         $isTrigger = false;
         list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $request['type'] = 'STOP';
         } else {
             $request['type'] = 'LIMIT';
@@ -3695,7 +3698,7 @@ class hashkey extends Exchange {
             $request['symbol'] = $this->safe_string($market, 'id');
             $isTrigger = false;
             list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             } else {
                 $request['type'] = 'LIMIT';
@@ -4188,7 +4191,7 @@ class hashkey extends Exchange {
         $market = $this->market($symbol);
         $methodName = 'fetchPosition';
         list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' ' . $methodName . '() supports swap markets only');
         }
         $request = array(
@@ -4368,7 +4371,7 @@ class hashkey extends Exchange {
             throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap markets only');
         }
         $request = array(
@@ -4425,7 +4428,7 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' modifyMarginHelper() supports swap markets only');
         }
         $side = null;
@@ -4499,7 +4502,7 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->publicGetApiV1ExchangeInfo($params));
-        // $response is the same fetchMarkets()
+        // $response is the same as in fetchMarkets()
         $data = $this->safe_list($response, 'contracts', array());
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
@@ -4625,10 +4628,10 @@ class hashkey extends Exchange {
         $market = $this->market($symbol);
         $methodName = 'fetchTradingFee';
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->fetch_trading_fees($params));
             return $this->safe_dict($response, $symbol);
-        } elseif ($market['swap']) {
+        } elseif ($market['swap'] === true) {
             $response = Async\await($this->privateGetApiV1FuturesCommissionRate($this->extend(array( 'symbol' => $market['id'] ), $params)));
             return $this->parse_trading_fee($response, $market);
             //
@@ -4785,7 +4788,7 @@ class hashkey extends Exchange {
         }
         $errorInArray = false;
         $responseCodeString = $this->safe_string($response, 'code');
-        $responseCodeInteger = $this->safe_integer($response, 'code'); // some codes in $response are returned as '0000' others
+        $responseCodeInteger = $this->safe_integer($response, 'code'); // some codes in $response are returned as '0000' others as 0
         if ($responseCodeInteger === 0) {
             $result = $this->safe_list($response, 'result', array()); // for batch methods
             for ($i = 0; $i < count($result); $i++) {

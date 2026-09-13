@@ -104,7 +104,7 @@ class bydfi(ccxt.async_support.bydfi):
         }
         unsubscribe = self.safe_bool(params, 'unsubscribe', False)
         method = 'SUBSCRIBE'
-        if unsubscribe:
+        if unsubscribe is True:
             method = 'UNSUBSCRIBE'
             params = self.omit(params, 'unsubscribe')
             subscriptionParams['unsubscribe'] = True
@@ -191,7 +191,7 @@ class bydfi(ccxt.async_support.bydfi):
         channel = '@ticker'
         if symbols is None:
             messageHashes.append(messageHash + 'all')
-            channels.append('not ticker@arr')
+            channels.append('!ticker@arr')
         else:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -235,7 +235,7 @@ class bydfi(ccxt.async_support.bydfi):
                     marketId = self.market_id(symbol)
                     channels.append(marketId + channel)
             messageHashes.append(messageHash)
-            channels.append('not ticker@arr')
+            channels.append('!ticker@arr')
         else:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -289,7 +289,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
@@ -303,7 +303,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
@@ -317,7 +317,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -348,7 +348,7 @@ class bydfi(ccxt.async_support.bydfi):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -838,7 +838,7 @@ class bydfi(ccxt.async_support.bydfi):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
             await client.future('fetchBalanceSnapshot')
         messageHash = 'balance'
         return await self.watch_private([messageHash], params)
@@ -846,7 +846,7 @@ class bydfi(ccxt.async_support.bydfi):
     def fetch_balance_snapshot(self, client: Client):
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -938,7 +938,7 @@ class bydfi(ccxt.async_support.bydfi):
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id, {})
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage:
+        if isUnSubMessage is True:
             self.handle_un_subscription(client, subscription)
         return message
 

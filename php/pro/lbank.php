@@ -73,7 +73,7 @@ class lbank extends \ccxt\async\lbank {
     public function check_contract_market(array $market, string $methodName) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if (($market !== null) && $market['contract']) {
+        if (($market !== null) && ($market['contract'] === true)) {
             throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $market['type'] . ' markets yet');
         }
     }
@@ -93,7 +93,7 @@ class lbank extends \ccxt\async\lbank {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -137,7 +137,7 @@ class lbank extends \ccxt\async\lbank {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -984,6 +984,9 @@ class lbank extends \ccxt\async\lbank {
         //
         //  array( ping => 'a13a939c-5f25-4e06-9981-93cb3b890707', action => 'ping' )
         //
+        // lbank closes the socket if this app-level ping is unanswered within a minute, but does not
+        // reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
+        $client->lastPong = $this->milliseconds();
         $pingId = $this->safe_string($message, 'ping');
         try {
             Async\await($client->send(array(
@@ -1025,18 +1028,11 @@ class lbank extends \ccxt\async\lbank {
     }
 
     private function do_authenticate($params = array()) {
-        // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393 => both branches below read
-        // the cache, then fetch, then write it back, so concurrent
-        // watchOrders/watchBalance calls on a cold instance each POST
-        // subscribe/get_key, and concurrent callers past the expiry each POST
-        // subscribe/refresh_key - every loser burns rate limit on a
-        // subscribeKey that is immediately overwritten. the flight is parked
-        // on this exchange's own ws $client - the same one that carries
-        // subscriptions['authenticated'] - under a key that is not one of its
-        // messageHashes, registered in $client->futures before the first fetch
-        // and settled through $client->resolve / $client->reject so that every
-        // write to the futures map goes through the $client itself
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
+        // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
+        // overwritten. the flight lives in $client->futures of this exchange's own ws $client under
+        // a key that is not a $messageHash, and settles via $client->resolve / $client->reject only
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);

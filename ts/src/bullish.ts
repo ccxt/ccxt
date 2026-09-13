@@ -158,15 +158,22 @@ export default class bullish extends Exchange {
                         'v1/time': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/assets': { 'cost': 1 } as Endpoint<List>,
                         'v1/assets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/vol-grids': { 'cost': 1 } as Endpoint<List>,
+                        'v1/assets/{symbol}/vol-grid': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/markets': { 'cost': 1 } as Endpoint<List>,
                         'v1/markets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/history/markets': { 'cost': 1 } as Endpoint<List>,
                         'v1/history/markets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/markets/{symbol}/orderbook/hybrid': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/markets/{symbol}/trades': { 'cost': 1 } as Endpoint<List>,
                         'v1/markets/{symbol}/tick': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/markets/{symbol}/candle': { 'cost': 1 } as Endpoint<List>,
+                        'v1/markets/{symbol}/auctions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets/{symbol}/auctions/noii': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/history/markets/{symbol}/trades': { 'cost': 1 } as Endpoint<List>,
                         'v1/history/markets/{symbol}/funding-rate': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/markets/{symbol}/auctions': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/option-trades': { 'cost': 1 } as Endpoint<List>,
                         'v1/index-prices': { 'cost': 1 } as Endpoint<List>,
                         'v1/index-prices/{assetSymbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/expiry-prices/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
@@ -179,6 +186,7 @@ export default class bullish extends Exchange {
                         'v2/orders': { 'cost': 1 } as Endpoint<List>,
                         'v2/history/orders': { 'cost': 1 } as Endpoint<List>,
                         'v2/orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/orders/client-order-id/{clientOrderId}': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/amm-instructions': { 'cost': 1 } as Endpoint<List>,
                         'v2/amm-instructions/{instructionId}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/wallets/transactions': { 'cost': 1 } as Endpoint<Dict>,
@@ -206,6 +214,9 @@ export default class bullish extends Exchange {
                         'v2/otc-trades': { 'cost': 1 } as Endpoint<List>,
                         'v2/otc-trades/{otcTradeId}': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/otc-trades/unconfirmed-trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-trades/delegated-accounts': { 'cost': 1 } as Endpoint<List>,
+                        'v2/idb/delegated-accounts': { 'cost': 1 } as Endpoint<List>,
+                        'v2/idb/otc-trades': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
                         'v2/orders': { 'cost': 5 } as Endpoint<Dict>,
@@ -214,10 +225,13 @@ export default class bullish extends Exchange {
                         'v1/wallets/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/users/login': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/simulate-portfolio-margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/bulk-simulate-portfolio-margin': { 'cost': 1 } as Endpoint<List>,
                         'v1/wallets/self-hosted/initiate': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/mmp-configuration': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/otc-trades': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/otc-command': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/idb/otc-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/idb/otc-command': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -550,7 +564,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetV1Markets (params);
@@ -1148,7 +1162,7 @@ export default class bullish extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker: Str = undefined;
-        if (isTaker) {
+        if (isTaker === true) {
             takerOrMaker = 'taker';
         } else {
             takerOrMaker = 'maker';
@@ -1431,7 +1445,7 @@ export default class bullish extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request: Dict = {
@@ -1493,7 +1507,7 @@ export default class bullish extends Exchange {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             params = this.handlePaginationParams ('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
@@ -1831,7 +1845,7 @@ export default class bullish extends Exchange {
             request['type'] = type.toUpperCase ();
         }
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             params = this.omit (params, 'postOnly');
             request['type'] = 'POST_ONLY';
         }
@@ -2714,7 +2728,7 @@ export default class bullish extends Exchange {
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer (response, currency);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2787,7 +2801,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const currency = this.currency (code);
@@ -3010,7 +3024,7 @@ export default class bullish extends Exchange {
         }
         if (method === 'GET') {
             const query = this.urlencode (request);
-            if (query.length) {
+            if (query.length > 0) {
                 url += '?' + query;
             }
         }

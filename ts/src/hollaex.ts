@@ -155,12 +155,14 @@ export default class hollaex extends Exchange {
                         'user/deposits': { 'cost': 1 } as Endpoint<Dict>,
                         'user/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
                         'user/withdrawal/fee': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccounts': { 'cost': 1 } as Endpoint<Dict>,
                         'user/trades': { 'cost': 1 } as Endpoint<Dict>,
                         'orders': { 'cost': 1 } as Endpoint<Dict>,
                         'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'user/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccount/transfer': { 'cost': 1 } as Endpoint<Dict>,
                         'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
@@ -354,7 +356,7 @@ export default class hollaex extends Exchange {
         //         "status": true
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs', {});
+        const pairs = this.safeDict (response, 'pairs', {});
         const keys = Object.keys (pairs);
         const result: List = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1620,7 +1622,7 @@ export default class hollaex extends Exchange {
         //
         const wallet = this.safeValue (response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
-        return this.parseDepositAddresses (addresses, codes) as DepositAddress[];
+        return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 
     /**
@@ -1696,7 +1698,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1856,11 +1858,11 @@ export default class hollaex extends Exchange {
         let status = this.safeValue (transaction, 'status');
         const dismissed = this.safeValue (transaction, 'dismissed');
         const rejected = this.safeValue (transaction, 'rejected');
-        if (status) {
+        if (status === true) {
             status = 'ok';
-        } else if (dismissed) {
+        } else if (dismissed === true) {
             status = 'canceled';
-        } else if (rejected) {
+        } else if (rejected === true) {
             status = 'failed';
         } else {
             status = 'pending';
@@ -1990,7 +1992,7 @@ export default class hollaex extends Exchange {
             'networks': {},
         };
         const allowWithdrawal = this.safeValue (fee, 'allow_withdrawal');
-        if (allowWithdrawal) {
+        if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeValue (fee, 'withdrawal_fees');
@@ -2071,7 +2073,7 @@ export default class hollaex extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 path += '?' + this.urlencode (query);
             }
         }
@@ -2088,7 +2090,7 @@ export default class hollaex extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-type'] = 'application/json';
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     auth += body;
                 }

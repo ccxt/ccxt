@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official delta API documentation:** [docs.delta.exchange](https://docs.delta.exchange)
 
-> 52 implicit endpoints across 2 access groups.
+> 53 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -119,6 +119,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePutUsersUpdateMmp` | PUT | `users/update_mmp` | 1 |
 | `privatePutUsersResetMmp` | PUT | `users/reset_mmp` | 1 |
 | `privatePutUsersMarginMode` | PUT | `users/margin_mode` | 1 |
+| `privatePutUsersTradingPreferences` | PUT | `users/trading_preferences` | 1 |
 | `privateDeleteOrders` | DELETE | `orders` | 1 |
 | `privateDeleteOrdersAll` | DELETE | `orders/all` | 1 |
 | `privateDeleteOrdersBatch` | DELETE | `orders/batch` | 1 |

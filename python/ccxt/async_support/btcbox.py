@@ -145,6 +145,7 @@ class btcbox(Exchange, ImplicitAPI):
                 'private': {
                     'post': {
                         'balance': {'cost': 1},
+                        'order_history': {'cost': 1},
                         'trade_add': {'cost': 1},
                         'trade_cancel': {'cost': 1},
                         'trade_list': {'cost': 1},
@@ -741,7 +742,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         orders = self.parse_orders(response, market, since, limit)
         # status(open/closed/canceled) is None
-        # btcbox does not return status, but we know it's 'open' queried for open orders
+        # btcbox does not return status, but we know it's 'open' as we queried for open orders
         if type == 'open':
             for i in range(0, len(orders)):
                 orders[i]['status'] = 'open'
@@ -781,7 +782,7 @@ class btcbox(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         elif api == 'webApi':
             url = self.urls['www'] + '/' + path

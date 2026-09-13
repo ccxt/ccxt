@@ -174,11 +174,17 @@ class pacifica extends Exchange {
                         'orders' => array( 'cost' => 1 ),
                         'orders/history' => array( 'cost' => 12 ),
                         'orders/history_by_id' => array( 'cost' => 1 ),
+                        'orders/twap' => array( 'cost' => 1 ),
+                        'orders/twap/history' => array( 'cost' => 12 ),
+                        'orders/twap/history_by_id' => array( 'cost' => 1 ),
                         'spot_assets' => array( 'cost' => 1 ),
                         'spot_assets/bridge/info' => array( 'cost' => 1 ),
                         'spot_assets/bridge/parameters/{symbol}' => array( 'cost' => 1 ),
                         'lake/list' => array( 'cost' => 1 ),
                         'account/builder_codes/approvals' => array( 'cost' => 1 ),
+                        'builder/overview' => array( 'cost' => 1 ),
+                        'builder/trades' => array( 'cost' => 1 ),
+                        'leaderboard/builder_code' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -203,9 +209,20 @@ class pacifica extends Exchange {
                         'orders/stop/cancel' => array( 'cost' => 0.5 ),
                         'orders/edit' => array( 'cost' => 1 ),
                         'orders/batch' => array( 'cost' => 1 ),
+                        'orders/twap/create' => array( 'cost' => 1 ),
+                        'orders/twap/cancel' => array( 'cost' => 0.5 ),
                         'account/builder_codes/approve' => array( 'cost' => 1 ),
                         'account/builder_codes/revoke' => array( 'cost' => 1 ),
+                        'builder/update_fee_rate' => array( 'cost' => 1 ),
+                        'referral/user/code/claim' => array( 'cost' => 1 ),
                         'agent/bind' => array( 'cost' => 1 ),
+                        'agent/list' => array( 'cost' => 1 ),
+                        'agent/revoke' => array( 'cost' => 1 ),
+                        'agent/revoke_all' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/list' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/add' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/remove' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/toggle' => array( 'cost' => 1 ),
                         'account/api_keys/create' => array( 'cost' => 1 ),
                         'account/api_keys/revoke' => array( 'cost' => 1 ),
                         'account/api_keys' => array( 'cost' => 1 ),
@@ -546,11 +563,11 @@ class pacifica extends Exchange {
             return false;
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if (!$buildFee) {
+        if ($buildFee !== true) {
             return false; // skip if $builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee) {
+        if ($approvedBuilderFee === true) {
             return true; // skip if $builder fee is already approved
         }
         try {
@@ -694,7 +711,7 @@ class pacifica extends Exchange {
             $contractSize = $this->parse_number('1');
             $minLeverage = 1;
             $maxLeverage = $this->safe_integer($market, 'max_leverage');
-            $crossMargin = !$isolatedOnly;
+            $crossMargin = $isolatedOnly !== true;
             $isolatedMargin = true;
         }
         $base = $this->safe_currency_code($baseId);
@@ -874,7 +891,7 @@ class pacifica extends Exchange {
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
         $leverage = $this->safe_integer($setting, 'leverage');
-        $marginMode = $isIsolated ? 'isolated' : 'cross';
+        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
         return array(
             'info' => $setting,
             'symbol' => $symbol,
@@ -1009,7 +1026,7 @@ class pacifica extends Exchange {
         //
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
-        $marginMode = $isIsolated ? 'isolated' : 'cross';
+        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
         return array(
             'symbol' => $symbol,
             'marginMode' => $marginMode,
@@ -1180,7 +1197,7 @@ class pacifica extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch. 'limit' is priority
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($since === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a "since" argument');
@@ -1417,7 +1434,9 @@ class pacifica extends Exchange {
         $timestamp = $this->safe_integer($trade, 'created_at');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'history_id');
         $side = $this->safe_string($trade, 'side');
         if ($side === 'open_long') {
@@ -1513,7 +1532,7 @@ class pacifica extends Exchange {
         //
         $success = $this->safe_bool($response, 'success', false);
         $status = null;
-        if (!$success) {
+        if ($success !== true) {
             $status = 'rejected';
         } else {
             $status = 'open';
@@ -1541,7 +1560,7 @@ class pacifica extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, but can be used of Trigger Order.
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, but can be used as limit_price of Trigger Order.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at (optional provide stopLossCloid)
@@ -1750,7 +1769,7 @@ class pacifica extends Exchange {
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'rejected';
             } else {
                 $status = 'open';
@@ -1811,7 +1830,7 @@ class pacifica extends Exchange {
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';
@@ -1927,7 +1946,7 @@ class pacifica extends Exchange {
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
         $response = null;
-        if ($isStopOrder) {
+        if ($isStopOrder === true) {
             $response = $this->privatePostOrdersStopCancel($this->extend($request, $params));
         } else {
             $response = $this->privatePostOrdersCancel($this->extend($request, $params));
@@ -1940,7 +1959,7 @@ class pacifica extends Exchange {
         // }
         //
         $success = $this->safe_bool($response, 'success', false);
-        $status = $success ? 'canceled' : 'closed';
+        $status = ($success === true) ? 'canceled' : 'closed';
         return $this->safe_order(array( 'id' => $id, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
@@ -1948,7 +1967,7 @@ class pacifica extends Exchange {
         $market = $this->market($symbol);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $operationType = null;
-        if ($isStopOrder) {
+        if ($isStopOrder === true) {
             $operationType = 'cancel_stop_order';
         } else {
             $operationType = 'cancel_order';
@@ -2378,7 +2397,7 @@ class pacifica extends Exchange {
         $paginationCursor = $this->safe_string($response, 'next_cursor');
         $hasMore = $this->safe_bool($response, 'has_more', false);
         $dataLength = count($data);
-        if ($hasMore) {
+        if ($hasMore === true) {
             if (($paginationCursor !== null) && ($dataLength > 0)) {
                 $first = $data[0];
                 $first['next_cursor'] = $paginationCursor;
@@ -2458,7 +2477,7 @@ class pacifica extends Exchange {
         //
         $data = $this->safe_list($response, 'data', array());
         // return last state
-        $sorted = $this->sort_by($data, 'created_at');
+        $sorted = $this->sort_by($data, 'created_at', true);
         $lastIdx = count($sorted);
         $lastInfo = array();
         if ($lastIdx > 0) {
@@ -2603,11 +2622,8 @@ class pacifica extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_2($order, 'symbol', 's');
-        $symbol = null;
-        if ($symbol !== null) {
-            $market = $this->safe_market($marketId, $market);
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($order, 'created_at', 'ct');
         $status = $this->safe_string_2($order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         $side = $this->safe_string($order, 'side', 'd');
@@ -3205,11 +3221,11 @@ class pacifica extends Exchange {
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
-         * transfer currency internally between wallets on the same account
+         * transfer $currency internally between wallets on the same account
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
          *
-         * @param {string} $code unified currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from *spot, swap*
          * @param {string} $toAccount account to transfer to *swap, spot or address*
@@ -3217,10 +3233,14 @@ class pacifica extends Exchange {
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $currency = $this->currency($code);
         $operationType = 'transfer_funds';
         $sigPayload = array(
             'to_account' => $toAccount,
-            'amount' => $amount,
+            'amount' => $this->number_to_string($amount),
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));
@@ -3237,7 +3257,11 @@ class pacifica extends Exchange {
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_transfer($data);
+        return $this->extend($this->parse_transfer($data, $currency), array(
+            'amount' => $amount,
+            'fromAccount' => $this->safe_string($request, 'account'),
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -3252,16 +3276,21 @@ class pacifica extends Exchange {
         //   "code" => null
         // }
         //
+        $success = $this->safe_bool($transfer, 'success');
+        $status = null;
+        if ($success !== null) {
+            $status = ($success === true) ? 'ok' : 'failed';
+        }
         return array(
             'info' => $transfer,
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'currency' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'ok',
+            'status' => $status,
         );
     }
 
@@ -3407,7 +3436,7 @@ class pacifica extends Exchange {
         if ($address1 !== null) {
             return array( $address1, $params );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or or "address" in params');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -3444,11 +3473,11 @@ class pacifica extends Exchange {
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
-        $paramsLen = $params;
+        $paramsLen = count($params);
         $headers = array(
             'Content-Type' => 'application/json',
         );
-        if ($method === 'GET' && $paramsLen) {
+        if (($method === 'GET') && ($paramsLen > 0)) {
             $url .= '?' . $this->urlencode($params);
             $headers['Accept'] = '*/*';
         }
@@ -3527,12 +3556,12 @@ class pacifica extends Exchange {
         if (!$this->isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             $useBuilder = $this->handle_option('postActionRequest', 'builderFee', true);
             $builderCode = null;
-            if ($useBuilder) {
+            if ($useBuilder === true) {
                 $builderCode = $this->handle_option('postActionRequest', 'builderCode');
             }
             if ($builderCode !== null) {
                 $isOperationSupportBuilder = $this->safe_bool($this->options['builderSupportOperations'], $operationType, false);
-                if ($isOperationSupportBuilder) {
+                if ($isOperationSupportBuilder === true) {
                     $sigPayload['builder_code'] = $builderCode;
                 }
             }

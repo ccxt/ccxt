@@ -240,6 +240,17 @@ public class BitbnsApi extends Exchange
     }
 
     /**
+     * Calls the v1PostUserHistoryNew endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PostUserHistoryNew (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PostUserHistoryNew", optionalArgs);
+    }
+
+    /**
      * Calls the v1PostListOpenOrdersSymbol endpoint.
      *
      * @param optionalArgs the request parameters
@@ -248,6 +259,17 @@ public class BitbnsApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PostListOpenOrdersSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PostListOpenOrdersSymbol", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PostListOpenOrdersOtherSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PostListOpenOrdersOtherSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PostListOpenOrdersOtherSymbol", optionalArgs);
     }
 
     /**
@@ -284,6 +306,17 @@ public class BitbnsApi extends Exchange
     }
 
     /**
+     * Calls the v1PostPlaceSellOrderOtherSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PostPlaceSellOrderOtherSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PostPlaceSellOrderOtherSymbol", optionalArgs);
+    }
+
+    /**
      * Calls the v1PostPlaceBuyOrderSymbol endpoint.
      *
      * @param optionalArgs the request parameters
@@ -292,6 +325,17 @@ public class BitbnsApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PostPlaceBuyOrderSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PostPlaceBuyOrderSymbol", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PostPlaceBuyOrderOtherSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PostPlaceBuyOrderOtherSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PostPlaceBuyOrderOtherSymbol", optionalArgs);
     }
 
     /**
@@ -325,6 +369,17 @@ public class BitbnsApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PostCancelOrderSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PostCancelOrderSymbol", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PostCancelOrderOtherSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PostCancelOrderOtherSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PostCancelOrderOtherSymbol", optionalArgs);
     }
 
     /**

@@ -454,6 +454,24 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_get_future_copytrade_user_v1_copy_trade_current_following_v2($params = array()) {
+        return $this->request('future/copytrade/user/v1/copy-trade/current-following-v2', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_copytrade_user_v1_copy_trade_follower_balance_bill($params = array()) {
+        return $this->request('future/copytrade/user/v1/copy-trade/follower-balance-bill', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_copytrade_user_v1_copy_trade_follower_position($params = array()) {
+        return $this->request('future/copytrade/user/v1/copy-trade/follower-position', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_get_future_trade_v1_entrust_plan_detail($params = array()) {
         return $this->request('future/trade/v1/entrust/plan-detail', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -484,6 +502,24 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_get_future_trade_v1_entrust_profit_list_history($params = array()) {
+        return $this->request('future/trade/v1/entrust/profit-list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_trade_v1_entrust_reverse_plan_list($params = array()) {
+        return $this->request('future/trade/v1/entrust/reverse-plan-list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_trade_v1_entrust_reverse_plan_list_history($params = array()) {
+        return $this->request('future/trade/v1/entrust/reverse-plan-list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_get_future_trade_v1_entrust_track_detail($params = array()) {
         return $this->request('future/trade/v1/entrust/track-detail', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -498,6 +534,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function private_linear_get_future_trade_v1_entrust_track_list_history($params = array()) {
         return $this->request('future/trade/v1/entrust/track-list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_trade_v1_order_entrust_list($params = array()) {
+        return $this->request('future/trade/v1/order-entrust/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -520,8 +562,32 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_get_future_trade_v1_order_trade_history($params = array()) {
+        return $this->request('future/trade/v1/order/trade-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_get_future_trade_v1_position_list_history($params = array()) {
         return $this->request('future/trade/v1/position/list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_trade_v1_position_cross_margin_symbol($params = array()) {
+        return $this->request('future/trade/v1/position/cross-margin/{symbol}', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_trade_v1_position_leverage_list($params = array()) {
+        return $this->request('future/trade/v1/position/leverage/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_trade_v1_position_list_active($params = array()) {
+        return $this->request('future/trade/v1/position/list/active', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -532,8 +598,20 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_get_future_trade_v1_order_trade_list_all($params = array()) {
+        return $this->request('future/trade/v1/order/trade-list-all', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_get_future_user_v1_account_info($params = array()) {
         return $this->request('future/user/v1/account/info', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_user_v1_auto_deleverage_history($params = array()) {
+        return $this->request('future/user/v1/auto-deleverage/history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -562,6 +640,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_get_future_user_v1_compat_balance_coin($params = array()) {
+        return $this->request('future/user/v1/compat/balance/{coin}', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_get_future_user_v1_position_adl($params = array()) {
         return $this->request('future/user/v1/position/adl', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -576,6 +660,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function private_linear_get_future_user_v1_position_list($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_user_v1_taker_over_list($params = array()) {
+        return $this->request('future/user/v1/taker-over/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -766,6 +856,24 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_inverse_get_future_trade_v1_entrust_profit_list_history($params = array()) {
+        return $this->request('future/trade/v1/entrust/profit-list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_entrust_reverse_plan_list($params = array()) {
+        return $this->request('future/trade/v1/entrust/reverse-plan-list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_entrust_reverse_plan_list_history($params = array()) {
+        return $this->request('future/trade/v1/entrust/reverse-plan-list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_inverse_get_future_trade_v1_entrust_track_detail($params = array()) {
         return $this->request('future/trade/v1/entrust/track-detail', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -780,6 +888,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function private_inverse_get_future_trade_v1_entrust_track_list_history($params = array()) {
         return $this->request('future/trade/v1/entrust/track-list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_order_entrust_list($params = array()) {
+        return $this->request('future/trade/v1/order-entrust/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -802,8 +916,32 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_inverse_get_future_trade_v1_order_trade_history($params = array()) {
+        return $this->request('future/trade/v1/order/trade-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_inverse_get_future_trade_v1_position_list_history($params = array()) {
         return $this->request('future/trade/v1/position/list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_position_cross_margin_symbol($params = array()) {
+        return $this->request('future/trade/v1/position/cross-margin/{symbol}', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_position_leverage_list($params = array()) {
+        return $this->request('future/trade/v1/position/leverage/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_position_list_active($params = array()) {
+        return $this->request('future/trade/v1/position/list/active', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -814,8 +952,20 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_inverse_get_future_trade_v1_order_trade_list_all($params = array()) {
+        return $this->request('future/trade/v1/order/trade-list-all', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_inverse_get_future_user_v1_account_info($params = array()) {
         return $this->request('future/user/v1/account/info', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_user_v1_auto_deleverage_history($params = array()) {
+        return $this->request('future/user/v1/auto-deleverage/history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -844,6 +994,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_inverse_get_future_user_v1_compat_balance_coin($params = array()) {
+        return $this->request('future/user/v1/compat/balance/{coin}', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_inverse_get_future_user_v1_position_adl($params = array()) {
         return $this->request('future/user/v1/position/adl', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -858,6 +1014,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function private_inverse_get_future_user_v1_position_list($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_user_v1_taker_over_list($params = array()) {
+        return $this->request('future/user/v1/taker-over/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1498,6 +1660,24 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2($params = array()) {
+        return $this->request('future/copytrade/user/v1/copy-trade/current-following-v2', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill($params = array()) {
+        return $this->request('future/copytrade/user/v1/copy-trade/follower-balance-bill', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition($params = array()) {
+        return $this->request('future/copytrade/user/v1/copy-trade/follower-position', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearGetFutureTradeV1EntrustPlanDetail($params = array()) {
         return $this->request('future/trade/v1/entrust/plan-detail', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1528,6 +1708,24 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearGetFutureTradeV1EntrustProfitListHistory($params = array()) {
+        return $this->request('future/trade/v1/entrust/profit-list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureTradeV1EntrustReversePlanList($params = array()) {
+        return $this->request('future/trade/v1/entrust/reverse-plan-list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureTradeV1EntrustReversePlanListHistory($params = array()) {
+        return $this->request('future/trade/v1/entrust/reverse-plan-list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearGetFutureTradeV1EntrustTrackDetail($params = array()) {
         return $this->request('future/trade/v1/entrust/track-detail', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1542,6 +1740,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function privateLinearGetFutureTradeV1EntrustTrackListHistory($params = array()) {
         return $this->request('future/trade/v1/entrust/track-list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureTradeV1OrderEntrustList($params = array()) {
+        return $this->request('future/trade/v1/order-entrust/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1564,8 +1768,32 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearGetFutureTradeV1OrderTradeHistory($params = array()) {
+        return $this->request('future/trade/v1/order/trade-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearGetFutureTradeV1PositionListHistory($params = array()) {
         return $this->request('future/trade/v1/position/list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureTradeV1PositionCrossMarginSymbol($params = array()) {
+        return $this->request('future/trade/v1/position/cross-margin/{symbol}', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureTradeV1PositionLeverageList($params = array()) {
+        return $this->request('future/trade/v1/position/leverage/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureTradeV1PositionListActive($params = array()) {
+        return $this->request('future/trade/v1/position/list/active', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1576,8 +1804,20 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearGetFutureTradeV1OrderTradeListAll($params = array()) {
+        return $this->request('future/trade/v1/order/trade-list-all', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearGetFutureUserV1AccountInfo($params = array()) {
         return $this->request('future/user/v1/account/info', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureUserV1AutoDeleverageHistory($params = array()) {
+        return $this->request('future/user/v1/auto-deleverage/history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1606,6 +1846,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearGetFutureUserV1CompatBalanceCoin($params = array()) {
+        return $this->request('future/user/v1/compat/balance/{coin}', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearGetFutureUserV1PositionAdl($params = array()) {
         return $this->request('future/user/v1/position/adl', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1620,6 +1866,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function privateLinearGetFutureUserV1PositionList($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureUserV1TakerOverList($params = array()) {
+        return $this->request('future/user/v1/taker-over/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1810,6 +2062,24 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateInverseGetFutureTradeV1EntrustProfitListHistory($params = array()) {
+        return $this->request('future/trade/v1/entrust/profit-list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1EntrustReversePlanList($params = array()) {
+        return $this->request('future/trade/v1/entrust/reverse-plan-list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1EntrustReversePlanListHistory($params = array()) {
+        return $this->request('future/trade/v1/entrust/reverse-plan-list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateInverseGetFutureTradeV1EntrustTrackDetail($params = array()) {
         return $this->request('future/trade/v1/entrust/track-detail', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1824,6 +2094,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function privateInverseGetFutureTradeV1EntrustTrackListHistory($params = array()) {
         return $this->request('future/trade/v1/entrust/track-list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1OrderEntrustList($params = array()) {
+        return $this->request('future/trade/v1/order-entrust/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1846,8 +2122,32 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateInverseGetFutureTradeV1OrderTradeHistory($params = array()) {
+        return $this->request('future/trade/v1/order/trade-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateInverseGetFutureTradeV1PositionListHistory($params = array()) {
         return $this->request('future/trade/v1/position/list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1PositionCrossMarginSymbol($params = array()) {
+        return $this->request('future/trade/v1/position/cross-margin/{symbol}', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1PositionLeverageList($params = array()) {
+        return $this->request('future/trade/v1/position/leverage/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1PositionListActive($params = array()) {
+        return $this->request('future/trade/v1/position/list/active', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1858,8 +2158,20 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateInverseGetFutureTradeV1OrderTradeListAll($params = array()) {
+        return $this->request('future/trade/v1/order/trade-list-all', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateInverseGetFutureUserV1AccountInfo($params = array()) {
         return $this->request('future/user/v1/account/info', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureUserV1AutoDeleverageHistory($params = array()) {
+        return $this->request('future/user/v1/auto-deleverage/history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1888,6 +2200,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateInverseGetFutureUserV1CompatBalanceCoin($params = array()) {
+        return $this->request('future/user/v1/compat/balance/{coin}', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateInverseGetFutureUserV1PositionAdl($params = array()) {
         return $this->request('future/user/v1/position/adl', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1902,6 +2220,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function privateInverseGetFutureUserV1PositionList($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureUserV1TakerOverList($params = array()) {
+        return $this->request('future/user/v1/taker-over/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

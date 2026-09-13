@@ -164,26 +164,37 @@ class derive(Exchange, ImplicitAPI):
                         'build_register_session_key_tx': {'cost': 1},
                         'register_session_key': {'cost': 1},
                         'deregister_session_key': {'cost': 1},
+                        'get_wallets_from_session_key': {'cost': 1},
                         'login': {'cost': 1},
                         'statistics': {'cost': 1},
+                        'all_statistics': {'cost': 1},
+                        'user_statistics': {'cost': 1},
+                        'all_user_statistics': {'cost': 1},
                         'get_all_currencies': {'cost': 1},
                         'get_currency': {'cost': 1},
+                        'get_asset': {'cost': 1},
+                        'get_assets': {'cost': 1},
                         'get_instrument': {'cost': 1},
                         'get_all_instruments': {'cost': 1},
                         'get_instruments': {'cost': 1},
                         'get_ticker': {'cost': 1},
+                        'get_tickers': {'cost': 1},
                         'get_latest_signed_feeds': {'cost': 1},
                         'get_option_settlement_prices': {'cost': 1},
                         'get_spot_feed_history': {'cost': 1},
                         'get_spot_feed_history_candles': {'cost': 1},
+                        'get_index_chart_data': {'cost': 1},
+                        'get_tradingview_chart_data': {'cost': 1},
                         'get_funding_rate_history': {'cost': 1},
                         'get_trade_history': {'cost': 1},
                         'get_option_settlement_history': {'cost': 1},
                         'get_liquidation_history': {'cost': 1},
                         'get_interest_rate_history': {'cost': 1},
+                        'get_perp_impact_twap': {'cost': 1},
                         'get_transaction': {'cost': 1},
                         'get_margin': {'cost': 1},
                         'margin_watch': {'cost': 1},
+                        'order_quote': {'cost': 1},
                         'validate_invite_code': {'cost': 1},
                         'get_points': {'cost': 1},
                         'get_all_points': {'cost': 1},
@@ -191,6 +202,7 @@ class derive(Exchange, ImplicitAPI):
                         'get_descendant_tree': {'cost': 1},
                         'get_tree_roots': {'cost': 1},
                         'get_swell_percent_points': {'cost': 1},
+                        'get_stdrv_snapshots': {'cost': 1},
                         'get_vault_assets': {'cost': 1},
                         'get_etherfi_effective_balances': {'cost': 1},
                         'get_kelp_effective_balances': {'cost': 1},
@@ -199,18 +211,25 @@ class derive(Exchange, ImplicitAPI):
                         'get_vault_share': {'cost': 1},
                         'get_vault_statistics': {'cost': 1},
                         'get_vault_balances': {'cost': 1},
+                        'get_vault_pools': {'cost': 1},
+                        'get_vault_rates': {'cost': 1},
                         'estimate_integrator_points': {'cost': 1},
                         'create_subaccount_debug': {'cost': 1},
+                        'create_account_with_secret': {'cost': 1},
                         'deposit_debug': {'cost': 1},
                         'withdraw_debug': {'cost': 1},
                         'send_quote_debug': {'cost': 1},
                         'execute_quote_debug': {'cost': 1},
                         'get_invite_code': {'cost': 1},
                         'register_invite': {'cost': 1},
+                        'get_all_referral_codes': {'cost': 1},
+                        'get_referral_performance': {'cost': 1},
                         'get_time': {'cost': 1},
                         'get_live_incidents': {'cost': 1},
                         'get_maker_programs': {'cost': 1},
                         'get_maker_program_scores': {'cost': 1},
+                        'get_detailed_maker_snapshot_history': {'cost': 1},
+                        'getRateLimits': {'cost': 1},
                     },
                 },
                 'private': {
@@ -222,6 +241,7 @@ class derive(Exchange, ImplicitAPI):
                         'get_all_portfolios': {'cost': 1},
                         'change_subaccount_label': {'cost': 1},
                         'get_notificationsv': {'cost': 1},
+                        'get_notifications': {'cost': 1},
                         'update_notifications': {'cost': 1},
                         'deposit': {'cost': 1},
                         'withdraw': {'cost': 1},
@@ -234,12 +254,17 @@ class derive(Exchange, ImplicitAPI):
                         'get_order': {'cost': 1},
                         'get_orders': {'cost': 1},
                         'get_open_orders': {'cost': 1},
+                        'get_trigger_orders': {'cost': 1},
+                        'get_algo_orders': {'cost': 1},
                         'cancel': {'cost': 1},
                         'cancel_by_label': {'cost': 1},
                         'cancel_by_nonce': {'cost': 1},
                         'cancel_by_instrument': {'cost': 1},
                         'cancel_all': {'cost': 1},
                         'cancel_trigger_order': {'cost': 1},
+                        'cancel_algo_order': {'cost': 1},
+                        'cancel_all_algo_orders': {'cost': 1},
+                        'cancel_all_trigger_orders': {'cost': 1},
                         'get_order_history': {'cost': 1},
                         'get_trade_history': {'cost': 1},
                         'get_deposit_history': {'cost': 1},
@@ -255,6 +280,8 @@ class derive(Exchange, ImplicitAPI):
                         'get_quotes': {'cost': 1},
                         'poll_quotes': {'cost': 1},
                         'execute_quote': {'cost': 1},
+                        'order_quote': {'cost': 1},
+                        'replace_quote': {'cost': 1},
                         'rfq_get_best_quote': {'cost': 1},
                         'get_margin': {'cost': 1},
                         'get_collaterals': {'cost': 1},
@@ -270,6 +297,7 @@ class derive(Exchange, ImplicitAPI):
                         'get_liquidator_history': {'cost': 1},
                         'session_keys': {'cost': 1},
                         'edit_session_key': {'cost': 1},
+                        'change_session_key_label': {'cost': 1},
                         'register_scoped_session_key': {'cost': 1},
                         'get_mmp_config': {'cost': 1},
                         'set_mmp_config': {'cost': 1},
@@ -277,6 +305,10 @@ class derive(Exchange, ImplicitAPI):
                         'set_cancel_on_disconnect': {'cost': 1},
                         'get_invite_code': {'cost': 1},
                         'register_invite': {'cost': 1},
+                        'get_contact_info': {'cost': 1},
+                        'create_contact_info': {'cost': 1},
+                        'update_contact_info': {'cost': 1},
+                        'delete_contact_info': {'cost': 1},
                     },
                 },
             },
@@ -1145,7 +1177,7 @@ class derive(Exchange, ImplicitAPI):
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
+        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode is True) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
         binaryDomainSeparator = self.base16_to_binary(DOMAIN_SEPARATOR)
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
@@ -1210,12 +1242,13 @@ class derive(Exchange, ImplicitAPI):
         postOnly = self.safe_bool(params, 'postOnly')
         orderType = type.lower()
         orderSide = side.lower()
+        orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `==` bool inside a list literal(ethAbiEncode args)
         nonce = self.milliseconds()
         # Order signature expiry must be between 2592000 and 7776000 sec from now
         signatureExpiry = self.safe_integer(params, 'signature_expiry_sec', self.seconds() + 7776000)
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
         priceString = self.number_to_string(price)
         maxFee = None
         maxFee, params = self.handle_option_and_params(params, 'createOrder', 'max_fee')
@@ -1232,7 +1265,7 @@ class derive(Exchange, ImplicitAPI):
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
             subaccountId,
-            orderSide == 'buy',
+            orderSideIsBuy,
         ]), 'keccak', 'binary')
         deriveWalletAddress = None
         deriveWalletAddress, params = self.handle_derive_wallet_address('createOrder', params)
@@ -1261,7 +1294,7 @@ class derive(Exchange, ImplicitAPI):
         }
         if reduceOnly is not None:
             request['reduce_only'] = reduceOnly
-            if reduceOnly and postOnly:
+            if reduceOnly and (postOnly is True):
                 raise InvalidOrder(self.id + ' cannot use reduce only with post only time in force')
         if postOnly is not None:
             request['time_in_force'] = 'post_only'
@@ -1286,7 +1319,7 @@ class derive(Exchange, ImplicitAPI):
         request['signature'] = signature
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type'])
         response: dict
-        if test:
+        if test is True:
             response = await self.privatePostOrderDebug(self.extend(request, params))
         else:
             response = await self.privatePostOrder(self.extend(request, params))
@@ -1391,12 +1424,13 @@ class derive(Exchange, ImplicitAPI):
         postOnly = self.safe_bool(params, 'postOnly')
         orderType = type.lower()
         orderSide = side.lower()
+        orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `==` bool inside a list literal(ethAbiEncode args)
         nonce = self.milliseconds()
         signatureExpiry = self.safe_number(params, 'signature_expiry_sec', self.seconds() + 7776000)
         # TODO: subaccount id / trade module address
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
         priceString = self.number_to_string(price)
         maxFeeString = self.safe_string(params, 'max_fee', '0')
         amountString = self.number_to_string(amount)
@@ -1409,7 +1443,7 @@ class derive(Exchange, ImplicitAPI):
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
             subaccountId,
-            orderSide == 'buy',
+            orderSideIsBuy,
         ]), 'keccak', 'binary')
         deriveWalletAddress = None
         deriveWalletAddress, params = self.handle_derive_wallet_address('editOrder', params)
@@ -1438,7 +1472,7 @@ class derive(Exchange, ImplicitAPI):
         }
         if reduceOnly is not None:
             request['reduce_only'] = reduceOnly
-            if reduceOnly and postOnly:
+            if reduceOnly and (postOnly is True):
                 raise InvalidOrder(self.id + ' cannot use reduce only with post only time in force')
         if postOnly is not None:
             request['time_in_force'] = 'post_only'
@@ -1565,7 +1599,7 @@ class derive(Exchange, ImplicitAPI):
             response = await self.privatePostCancelByLabel(self.extend(request, params))
         else:
             request['order_id'] = id
-            if isTrigger:
+            if isTrigger is True:
                 response = await self.privatePostCancelTriggerOrder(self.extend(request, params))
             else:
                 response = await self.privatePostCancel(self.extend(request, params))
@@ -1697,7 +1731,7 @@ class derive(Exchange, ImplicitAPI):
             request['page_size'] = limit
         else:
             request['page_size'] = 500
-        if isTrigger:
+        if isTrigger is True:
             request['status'] = 'untriggered'
         response = await self.privatePostGetOrders(self.extend(request, params))
         #
@@ -1828,7 +1862,7 @@ class derive(Exchange, ImplicitAPI):
                 'expired': 'rejected',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order(self, rawOrder: dict, market: Market = None) -> Order:
         #
@@ -1900,7 +1934,7 @@ class derive(Exchange, ImplicitAPI):
         isBid = self.safe_bool(order, 'is_bid')
         side = self.safe_string(order, 'direction')
         if side is None:
-            if isBid:
+            if isBid is True:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -2213,9 +2247,9 @@ class derive(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': None,
-            'initialMargin': self.safe_string(position, 'initial_margin'),
+            'initialMargin': self.safe_number(position, 'initial_margin'),
             'initialMarginPercentage': None,
-            'maintenanceMargin': self.safe_string(position, 'maintenance_margin'),
+            'maintenanceMargin': self.safe_number(position, 'maintenance_margin'),
             'maintenanceMarginPercentage': None,
             'entryPrice': None,
             'notional': self.parse_number(notional),
@@ -2586,7 +2620,7 @@ class derive(Exchange, ImplicitAPI):
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.')
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None  # fallback to default error handler
         error = self.safe_dict(response, 'error')
         if error is not None:

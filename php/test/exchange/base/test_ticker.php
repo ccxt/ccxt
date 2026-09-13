@@ -75,7 +75,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         }
     }
     if (is_array($skipped_properties) && array_key_exists('skipNonActiveMarkets', $skipped_properties)) {
-        if ($market === null || !$market['active']) {
+        if ($market === null || ($market['active'] !== true)) {
             return;
         }
     }
@@ -120,7 +120,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
         $is_inverse = $exchange->safe_bool($market, 'inverse', false);
-        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null) && !$is_inverse) {
+        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null) && ($is_inverse !== true)) {
             $base_low = Precise::string_mul($base_volume, $low);
             $base_high = Precise::string_mul($base_volume, $high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -215,7 +215,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         if ($percentage !== null) {
             // - should be above -100 and (for non-options) below MAX
             assert(Precise::string_ge($percentage, '-100'), 'percentage should be above -100% ' . $log_text);
-            if (!$is_option_market) {
+            if ($is_option_market !== true) {
                 assert(Precise::string_le($percentage, Precise::string_mul('+100', $max_increase)), 'percentage should be below ' . $max_increase . '00% ' . $log_text);
             }
         }
@@ -226,7 +226,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         if ($change !== null) {
             // - should be above -price and (for non-options) below +price*maxIncrease
             assert(Precise::string_ge($change, Precise::string_neg($approx_value)), 'change should be above -price ' . $log_text);
-            if (!$is_option_market) {
+            if ($is_option_market !== true) {
                 assert(Precise::string_le($change, Precise::string_mul($approx_value, $max_increase)), 'change should be below ' . $max_increase . 'x price ' . $log_text);
             }
         }

@@ -201,6 +201,7 @@ class lighter(Exchange, ImplicitAPI):
                         'currentHeight': {'cost': 1},
                         # candlestick
                         'candles': {'cost': 1},
+                        'markPriceCandles': {'cost': 1},
                         'fundings': {'cost': 1},
                         # bridge
                         'fastbridge/info': {'cost': 1},
@@ -208,6 +209,9 @@ class lighter(Exchange, ImplicitAPI):
                         'funding-rates': {'cost': 1},
                         # info
                         'withdrawalDelay': {'cost': 1},
+                        'partnerStats': {'cost': 1},
+                        'syntheticSpotInfo': {'cost': 1},
+                        'tokenlist': {'cost': 1},
                     },
                     'post': {
                         # transaction
@@ -225,10 +229,13 @@ class lighter(Exchange, ImplicitAPI):
                         'liquidations': {'cost': 1},
                         'positionFunding': {'cost': 1},
                         'publicPoolsMetadata': {'cost': 1},
+                        'getMakerOnlyApiKeys': {'cost': 1},
                         # order
                         'accountActiveOrders': {'cost': 1},
                         'accountInactiveOrders': {'cost': 1},
+                        'accountOrders': {'cost': 1},
                         'export': {'cost': 1},
+                        'export/historicalTrades': {'cost': 1},
                         'trades': {'cost': 1},
                         # transaction
                         'accountTxs': {'cost': 1},
@@ -239,12 +246,20 @@ class lighter(Exchange, ImplicitAPI):
                         'referral/points': {'cost': 1},
                         # info
                         'transferFeeInfo': {'cost': 1},
+                        # rfq
+                        'rfq/get': {'cost': 1},
+                        'rfq/list': {'cost': 1},
                     },
                     'post': {
                         # account
                         'changeAccountTier': {'cost': 1},
+                        'setMakerOnlyApiKeys': {'cost': 1},
                         # notification
                         'notification/ack': {'cost': 1},
+                        # rfq
+                        'rfq/create': {'cost': 1},
+                        'rfq/respond': {'cost': 1},
+                        'rfq/update': {'cost': 1},
                     },
                 },
             },
@@ -310,7 +325,7 @@ class lighter(Exchange, ImplicitAPI):
                     '21730': InvalidOrder,  # order status is not pending
                     '21731': InvalidOrder,  # order can not be triggered
                     '21732': InvalidOrder,  # reduce only increases position
-                    '21733': InvalidOrder,  # order price flagged accidental price
+                    '21733': InvalidOrder,  # order price flagged as an accidental price
                     '21734': InvalidOrder,  # limit order price is too far from the mark price
                     '21735': InvalidOrder,  # SL/TP order price is too far from the trigger price
                     '21736': InvalidOrder,  # invalid order trigger status
@@ -594,10 +609,10 @@ class lighter(Exchange, ImplicitAPI):
 
     def handle_builder_fee_approval(self, accountIndex: float, apiKeyIndex: float):
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if not buildFee:
+        if buildFee is not True:
             return False
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee:
+        if approvedBuilderFee is True:
             return True
         try:
             builder = self.safe_integer(self.options, 'integratorAccountIndex', 718718)
@@ -716,7 +731,7 @@ class lighter(Exchange, ImplicitAPI):
         takeProfit = self.safe_value(params, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
         hasTakeProfit = (takeProfit is not None)
-        isConditional = (stopLossPrice or takeProfitPrice)
+        isConditional = ((stopLossPrice is not None) or (takeProfitPrice is not None))
         isMarketOrder = (orderType == 'MARKET')
         timeInForce = self.safe_string_lower(params, 'timeInForce', 'gtt')
         postOnly = self.is_post_only(isMarketOrder, None, params)
@@ -771,7 +786,7 @@ class lighter(Exchange, ImplicitAPI):
         request['order_expiry'] = orderExpiry
         request['order_type'] = orderTypeNum
         request['time_in_force'] = timeInForceNum
-        request['reduce_only'] = 1 if (reduceOnly) else 0
+        request['reduce_only'] = 1 if (reduceOnly is True) else 0
         request['client_order_index'] = clientOrderId
         request['base_amount'] = self.parse_to_int(Precise.string_mul(amountStr, amountScale))
         request['avg_execution_price'] = self.parse_to_int(Precise.string_mul(priceStr, priceScale))
@@ -1523,7 +1538,7 @@ class lighter(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
@@ -3129,7 +3144,7 @@ class lighter(Exchange, ImplicitAPI):
             headers = {
                 'Authorization': self.create_auth(params),
             }
-        if params:
+        if len(params) > 0:
             if method == 'POST':
                 headers = {
                     'Content-Type': 'multipart/form-data',
@@ -3140,7 +3155,7 @@ class lighter(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     {

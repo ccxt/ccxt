@@ -8,32 +8,25 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (ccxt.ICoreExchange, bool) {
 	switch exchangeId {
 	case "binance":
-		binanceItf := NewBinanceCore()
-		binanceItf.Init(exchangeArgs)
+		binanceItf := NewBinance(exchangeArgs)
 		return binanceItf, true
 	case "hyperliquid":
-		hyperliquidItf := NewHyperliquidCore()
-		hyperliquidItf.Init(exchangeArgs)
+		hyperliquidItf := NewHyperliquid(exchangeArgs)
 		return hyperliquidItf, true
 	case "kalshi":
-		kalshiItf := NewKalshiCore()
-		kalshiItf.Init(exchangeArgs)
+		kalshiItf := NewKalshi(exchangeArgs)
 		return kalshiItf, true
 	case "limitless":
-		limitlessItf := NewLimitlessCore()
-		limitlessItf.Init(exchangeArgs)
+		limitlessItf := NewLimitless(exchangeArgs)
 		return limitlessItf, true
 	case "myriad":
-		myriadItf := NewMyriadCore()
-		myriadItf.Init(exchangeArgs)
+		myriadItf := NewMyriad(exchangeArgs)
 		return myriadItf, true
 	case "opinion":
-		opinionItf := NewOpinionCore()
-		opinionItf.Init(exchangeArgs)
+		opinionItf := NewOpinion(exchangeArgs)
 		return opinionItf, true
 	case "polymarket":
-		polymarketItf := NewPolymarketCore()
-		polymarketItf.Init(exchangeArgs)
+		polymarketItf := NewPolymarket(exchangeArgs)
 		return polymarketItf, true
 	default:
 		return nil, false

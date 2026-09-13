@@ -119,7 +119,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             return;
         }
         $result = array( 'info' => $message );
-        $balances = $this->safe_value($message, 'balances', array());
+        $balances = $this->safe_list($message, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $balances[$i];
             $currencyId = $this->safe_string($entry, 'currency');
@@ -151,7 +151,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -568,7 +568,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         } elseif ($event === 'rejected') {
             throw new ExchangeError($this->id . ' ' . $this->json($message));
         } elseif ($event === 'snapshot') {
-            $orders = $this->safe_value($message, 'orders', array());
+            $orders = $this->safe_list($message, 'orders', array());
             for ($i = 0; $i < count($orders); $i++) {
                 $order = $orders[$i];
                 $parsedOrder = $this->parse_ws_order($order);

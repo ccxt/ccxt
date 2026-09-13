@@ -286,6 +286,8 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/fiat/v1/support-channel': {'cost': 1},
                         'openapi/fiat/v1/cash-out': {'cost': 1},
                         'openapi/fiat/v1/history': {'cost': 1},
+                        'openapi/fiat/v2/history': {'cost': 1},
+                        'openapi/fiat/v1/cancel_qr_code': {'cost': 1},
                         'openapi/migration/v4/sellorder': {'cost': 1},
                         'openapi/migration/v4/validate-field': {'cost': 1},
                         'openapi/transfer/v3/transfers': {'cost': 1},
@@ -676,7 +678,7 @@ class coinsph(Exchange, ImplicitAPI):
             'id': id,
             'name': self.safe_string(rawCurrency, 'name'),
             'code': code,
-            'type': 'fiat' if isFiat else 'crypto',
+            'type': 'fiat' if (isFiat is True) else 'crypto',
             'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': None,
@@ -1070,7 +1072,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(default 500, max 1000)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1367,7 +1369,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
+        :param float [params.cost]: the quote quantity that can be used as an alternative for the amount for market buy orders
         :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1429,7 +1431,7 @@ class coinsph(Exchange, ImplicitAPI):
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
         response = {}
-        if testOrder:
+        if testOrder is True:
             response = await self.privatePostOpenapiV1OrderTest(self.extend(request, params))
         else:
             response = await self.privatePostOpenapiV1Order(self.extend(request, params))
@@ -1850,7 +1852,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         options = self.safe_value(self.options, 'withdraw')
         warning = self.safe_bool(options, 'warning', True)
-        if warning:
+        if warning is True:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
         networkCode = self.safe_string(params, 'network')
         networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)

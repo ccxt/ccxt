@@ -297,7 +297,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $snapshot = $this->safe_dict($message, 'snapshot');
         $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
-        $type = $snapshot ? 'snapshot' : 'update';
+        $type = ($snapshot !== null && $snapshot !== null) ? 'snapshot' : 'update';
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -455,7 +455,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        }
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         $result = array();
         $topic = 'tickers';
@@ -694,7 +694,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        }
         //    }
         //
-        $data = $this->safe_value_2($message, 'snapshot', 'update', array());
+        $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -771,7 +771,7 @@ class hitbtc extends \ccxt\async\hitbtc {
          * @param {int} [$since] not used by hitbtc watchOHLCV
          * @param {int} [$limit] 0 – 1000, default value = 0 (no history returned)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $name = 'candles/' . $period;
@@ -825,7 +825,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        }
         //    }
         //
-        $data = $this->safe_value_2($message, 'snapshot', 'update', array());
+        $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         $channel = $this->safe_string($message, 'ch', '');
         $splitChannel = explode('/', $channel);
@@ -1450,7 +1450,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             }
             if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
                 // to do improve this, not very reliable right now
-                $first = $this->safe_value($result, 0, array());
+                $first = $this->safe_dict($result, 0, array());
                 $arrayLength = count($result);
                 if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id' ?? '', $first))) {
                     $this->handle_order_request($client, $message);
@@ -1468,7 +1468,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $success = $this->safe_value($message, 'result');
         $messageHash = 'authenticated';
-        if ($success) {
+        if ($success === true) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {
@@ -1481,7 +1481,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function handle_error(Client $client, mixed $message) {
+    public function handle_error(Client $client, mixed $message): bool {
         //
         //    {
         //        jsonrpc => '2.0',
@@ -1517,6 +1517,6 @@ class hitbtc extends \ccxt\async\hitbtc {
                 return true;
             }
         }
-        return null;
+        return false;
     }
 }

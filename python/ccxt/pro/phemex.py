@@ -280,7 +280,7 @@ class phemex(ccxt.async_support.phemex):
             ticker = self.safe_value(message, 'spot_market24h')
             tickers.append(self.parse_ticker(ticker))
         elif 'data' in message:
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             for i in range(0, len(data)):
                 tickers.append(self.parse_perpetual_ticker(data[i]))
         for i in range(0, len(tickers)):
@@ -500,7 +500,7 @@ class phemex(ccxt.async_support.phemex):
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         name = 'spot_market24h'
-        if isSwap:
+        if isSwap is True:
             name = 'perp_market24h_pack_p' if settleIsUSDT else 'market24h'
         url = self.urls['api']['ws']
         requestId = self.request_id()
@@ -535,7 +535,7 @@ class phemex(ccxt.async_support.phemex):
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         name = 'spot_market24h'
-        if isSwap:
+        if isSwap is True:
             name = 'perp_market24h_pack_p' if settleIsUSDT else 'market24h'
         url = self.urls['api']['ws']
         requestId = self.request_id()
@@ -578,7 +578,8 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
-        name = 'trade_p' if (isSwap and settleIsUSDT) else 'trade'
+        isUsdtSwap = (isSwap is True) and settleIsUSDT
+        name = 'trade_p' if isUsdtSwap else 'trade'
         messageHash = 'trade:' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -616,7 +617,8 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
-        name = 'orderbook_p' if (isSwap and settleIsUSDT) else 'orderbook'
+        isUsdtSwap = (isSwap is True) and settleIsUSDT
+        name = 'orderbook_p' if isUsdtSwap else 'orderbook'
         messageHash = 'orderbook:' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -643,7 +645,7 @@ class phemex(ccxt.async_support.phemex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -653,7 +655,8 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
-        name = 'kline_p' if (isSwap and settleIsUSDT) else 'kline'
+        isUsdtSwap = (isSwap is True) and settleIsUSDT
+        name = 'kline_p' if isUsdtSwap else 'kline'
         messageHash = 'kline:' + timeframe + ':' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -1104,7 +1107,7 @@ class phemex(ccxt.async_support.phemex):
             ordersLength = len(orders)
             if ordersLength == 0:
                 return
-            trades = self.safe_value(message, 'fills', [])
+            trades = self.safe_list(message, 'fills', [])
             for i in range(0, len(orders)):
                 rawOrder = orders[i]
                 parsedOrder = self.parse_order(rawOrder)

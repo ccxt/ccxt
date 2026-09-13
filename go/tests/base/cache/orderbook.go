@@ -258,6 +258,25 @@ func TestWsOrderBook() {
 
 	// --------------------------------------------------------------------------------------------------------------------
 
+	// a zero size delta for an id that is not in the book stores nothing, so the
+	// constructor must not advance the length on its account. it used to, which
+	// left the side with trailing holes and a length that overcounted the rows,
+	// and limit() then dereferenced one of those holes
+	noopDeltas := NewIndexedOrderBook(map[string]any{
+		"bids": []any{[]any{100, 1, "a"}, []any{101, 0, "ghost"}, []any{102, 1, "c"}},
+		"asks": []any{[]any{200, 0, "ghost"}, []any{201, 1, "d"}},
+	}, 2)
+	Assert(IsEqual(GetArrayLength(GetValue(noopDeltas, "bids")), 2))
+	Assert(IsEqual(GetArrayLength(GetValue(noopDeltas, "asks")), 1))
+	Assert(!IsEqual(GetValue(GetValue(noopDeltas, "bids"), 0), nil))
+	Assert(!IsEqual(GetValue(GetValue(noopDeltas, "bids"), 1), nil))
+	Assert(!IsEqual(GetValue(GetValue(noopDeltas, "asks"), 0), nil))
+	noopDeltas.Limit()
+	Assert(IsEqual(GetArrayLength(GetValue(noopDeltas, "bids")), 2))
+	Assert(IsEqual(GetArrayLength(GetValue(noopDeltas, "asks")), 1))
+
+	// --------------------------------------------------------------------------------------------------------------------
+
 	countedOrderBook := NewCountedOrderBook(countedOrderBookInput)
 	limitedCountedOrderBook := NewCountedOrderBook(countedOrderBookInput, 5)
 	countedOrderBook.Limit()

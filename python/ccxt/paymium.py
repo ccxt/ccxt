@@ -84,6 +84,7 @@ class paymium(Exchange, ImplicitAPI):
                         'user/orders': {'cost': 1},
                         'user/orders/{uuid}': {'cost': 1},
                         'user/price_alerts': {'cost': 1},
+                        'user/withdrawals': {'cost': 1},
                         'merchant/get_payment/{uuid}': {'cost': 1},
                     },
                     'post': {
@@ -408,7 +409,7 @@ class paymium(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_deposit_addresses(response, codes)
+        return self.parse_deposit_addresses(response, codes, False)
 
     def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
@@ -602,7 +603,7 @@ class paymium(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -613,12 +614,12 @@ class paymium(Exchange, ImplicitAPI):
                 'Api-Nonce': nonce,
             }
             if method == 'POST':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     auth += body
                     headers['Content-Type'] = 'application/json'
             else:
-                if query:
+                if len(query) > 0:
                     queryString = self.urlencode(query)
                     auth += queryString
                     url += '?' + queryString

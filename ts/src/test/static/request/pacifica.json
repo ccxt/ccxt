@@ -8,6 +8,20 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer between own accounts",
+                "method": "transfer",
+                "url": "https://test-api.pacifica.fi/api/v1/account/subaccount/transfer",
+                "input": [
+                    "USDC",
+                    10,
+                    "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                    "B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ"
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5MrUVrWfDRm3UKSU4oa11brK8Lhe3f6DbD1zApikDnTDjKtKp14RyPm4ojv7SfGJSPRpmRW6vqVKLmwaxMZCepGG\",\"timestamp\":1789202095104,\"expiry_window\":5000,\"to_account\":\"B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ\",\"amount\":\"10\"}"
+            }
+        ],
         "cancelOrders": [
             {
                 "description": "Cancel Orders with ids",
@@ -73,6 +87,33 @@
                 "method": "fetchOpenOrders",
                 "url": "https://test-api.pacifica.fi/api/v1/orders?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
                 "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/history_by_id?order_id=241146145",
+                "input": ["241146145"],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades without symbol",
+                "method": "fetchMyTrades",
+                "url": "https://test-api.pacifica.fi/api/v1/trades/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch recent public trades",
+                "method": "fetchTrades",
+                "url": "https://test-api.pacifica.fi/api/v1/trades?symbol=BTC",
+                "input": ["BTC/USDC:USDC"],
                 "output": null
             }
         ],

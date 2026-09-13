@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official myokx API documentation:** [my.okx.com](https://my.okx.com/docs-v5/en/#overview)
 
-> 446 implicit endpoints across 2 access groups.
+> 470 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -65,6 +65,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetMarketTicker` | GET | `market/ticker` | 1 |
 | `publicGetMarketBooks` | GET | `market/books` | 0.5 |
 | `publicGetMarketBooksFull` | GET | `market/books-full` | 2 |
+| `publicGetMarketBooksRpi` | GET | `market/books-rpi` | 0.5 |
 | `publicGetMarketCandles` | GET | `market/candles` | 0.5 |
 | `publicGetMarketHistoryCandles` | GET | `market/history-candles` | 1 |
 | `publicGetMarketTrades` | GET | `market/trades` | 0.2 |
@@ -116,6 +117,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetPublicEventContractMarkets` | GET | `public/event-contract/markets` | 1 |
 | `publicGetPublicEventContractSeries` | GET | `public/event-contract/series` | 1 |
 | `publicGetPublicVipInterestRateLoanQuota` | GET | `public/vip-interest-rate-loan-quota` | 10 |
+| `publicGetPublicMmInstrumentTypes` | GET | `public/mm-instrument-types` | 4 |
+| `publicGetPublicDeltaHedgeCurrencies` | GET | `public/delta-hedge-currencies` | 1 |
 | `publicGetRubikStatTradingDataSupportCoin` | GET | `rubik/stat/trading-data/support-coin` | 4 |
 | `publicGetRubikStatContractsOpenInterestHistory` | GET | `rubik/stat/contracts/open-interest-history` | 2 |
 | `publicGetRubikStatTakerVolume` | GET | `rubik/stat/taker-volume` | 4 |
@@ -310,6 +313,18 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetFinanceFlexibleLoanLoanInfo` | GET | `finance/flexible-loan/loan-info` | 4 |
 | `privateGetFinanceFlexibleLoanLoanHistory` | GET | `finance/flexible-loan/loan-history` | 4 |
 | `privateGetFinanceFlexibleLoanInterestAccrued` | GET | `finance/flexible-loan/interest-accrued` | 4 |
+| `privateGetFinanceFlexibleLoanEmodeInfo` | GET | `finance/flexible-loan/emode-info` | 4 |
+| `privateGetFinanceOkusdLimits` | GET | `finance/okusd/limits` | 10 |
+| `privateGetFinanceOkusdAccount` | GET | `finance/okusd/account` | 10 |
+| `privateGetFinanceOkusdSubscribeHistory` | GET | `finance/okusd/subscribe/history` | 4 |
+| `privateGetFinanceOkusdRedeemHistory` | GET | `finance/okusd/redeem/history` | 4 |
+| `privateGetFinanceOkusdRewardsHistory` | GET | `finance/okusd/rewards/history` | 4 |
+| `privateGetFinanceOkusdRateHistory` | GET | `finance/okusd/rate/history` | 4 |
+| `privateGetFinanceStableRewardsProductInfo` | GET | `finance/stable-rewards/product-info` | 4 |
+| `privateGetFinanceStableRewardsBalance` | GET | `finance/stable-rewards/balance` | 4 |
+| `privateGetFinanceStableRewardsApyHistory` | GET | `finance/stable-rewards/apy-history` | 1.6666666666666667 |
+| `privateGetUsersGlpTodayperformance` | GET | `users/glp/todayperformance` | 4 |
+| `privateGetUsersGlpHistoricalperformance` | GET | `users/glp/historicalperformance` | 4 |
 | `privateGetCopytradingCurrentSubpositions` | GET | `copytrading/current-subpositions` | 1 |
 | `privateGetCopytradingSubpositionsHistory` | GET | `copytrading/subpositions-history` | 1 |
 | `privateGetCopytradingInstruments` | GET | `copytrading/instruments` | 4 |
@@ -342,6 +357,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetFinanceSfpDcdOrderStatus` | GET | `finance/sfp/dcd/order-status` | 2 |
 | `privateGetFinanceSfpDcdOrderHistory` | GET | `finance/sfp/dcd/order-history` | 2 |
 | `privateGetAffiliateInviteeDetail` | GET | `affiliate/invitee/detail` | 1 |
+| `privateGetAffiliatePerformanceSummary` | GET | `affiliate/performance/summary` | 3.3333333333333335 |
+| `privateGetAffiliateInviteeList` | GET | `affiliate/invitee/list` | 3.3333333333333335 |
+| `privateGetAffiliateLinkList` | GET | `affiliate/link/list` | 3.3333333333333335 |
+| `privateGetAffiliateCoInviterList` | GET | `affiliate/co-inviter/list` | 3.3333333333333335 |
+| `privateGetAffiliateSubAffiliateList` | GET | `affiliate/sub-affiliate/list` | 3.3333333333333335 |
 | `privateGetUsersPartnerIfRebate` | GET | `users/partner/if-rebate` | 1 |
 | `privateGetSupportAnnouncements` | GET | `support/announcements` | 4 |
 | `privatePostRfqCreateRfq` | POST | `rfq/create-rfq` | 4 |
@@ -484,6 +504,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostFinanceStakingDefiSolCancelRedeem` | POST | `finance/staking-defi/sol/cancel-redeem` | 5 |
 | `privatePostFinanceFlexibleLoanMaxLoan` | POST | `finance/flexible-loan/max-loan` | 4 |
 | `privatePostFinanceFlexibleLoanAdjustCollateral` | POST | `finance/flexible-loan/adjust-collateral` | 4 |
+| `privatePostFinanceFlexibleLoanBorrow` | POST | `finance/flexible-loan/borrow` | 10 |
+| `privatePostFinanceFlexibleLoanRepay` | POST | `finance/flexible-loan/repay` | 10 |
+| `privatePostFinanceOkusdSubscribe` | POST | `finance/okusd/subscribe` | 20 |
+| `privatePostFinanceOkusdRedeem` | POST | `finance/okusd/redeem` | 20 |
 | `privatePostCopytradingAlgoOrder` | POST | `copytrading/algo-order` | 1 |
 | `privatePostCopytradingCloseSubposition` | POST | `copytrading/close-subposition` | 1 |
 | `privatePostCopytradingSetInstruments` | POST | `copytrading/set-instruments` | 4 |

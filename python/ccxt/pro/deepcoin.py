@@ -83,6 +83,14 @@ class deepcoin(ccxt.async_support.deepcoin):
             },
             'streaming': {
                 'ping': self.ping,
+                # the public stream drops the connection after 20 s without a
+                # text 'ping' from the client(https://www.deepcoin.com/docs/publicWS/public),
+                # and the base default of 30 s only sends the first one at
+                # 30 s. raw probes: no ping and a 20 s or 25 s cadence all
+                # died at 20.7 s with close 1000 'heartbeat timeout', a 10 s
+                # and a 15 s cadence stayed up. 15 s leaves the widest window
+                # that still fits under the 20 s cut-off
+                'keepAlive': 15000,
             },
         })
 
@@ -141,7 +149,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if existingSubscription is None:
             raise BadRequest(self.id + ' no subscription for ' + messageHash)
         subId = self.safe_integer(existingSubscription, 'id')
-        request = self.create_public_request(market, subId, topicID, suffix, True)  # unsubscribe message uses the same id original subscribe message
+        request = self.create_public_request(market, subId, topicID, suffix, True)  # unsubscribe message uses the same id as the original subscribe message
         unsubHash = 'unsubscribe::' + messageHash
         subscription = self.extend(subscription, {
             'subHash': messageHash,
@@ -160,16 +168,10 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.check_required_credentials()
         time = self.milliseconds()
         # single-flight leader election on a never-dialed client, see
-        # https://github.com/ccxt/ccxt/issues/29393: the key rides the private
-        # ws url query string, so racing acquires mint several keys, the last
-        # write wins the cache and every loser dials a stream keyed to an
-        # orphaned credential that never delivers.
-        # the whole check-then-fetch is the critical section here: the
-        # acquire-vs-extend branch reads the very key and expiry the leader
-        # rewrites. the flight IS the entry in client.futures - registered
-        # before the first fetch and settled through client.resolve /
-        # client.reject, so every mutation of that registry happens inside the
-        # client, which is what keeps the go port's map access under one lock
+        # https://github.com/ccxt/ccxt/issues/29393: the key rides the private ws url query string, so racing
+        # acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
+        # check-then-fetch(acquire vs extend) is the critical section; the flight IS the client.futures entry,
+        # settled through client.resolve / client.reject so the registry is only mutated inside the client(one lock in go)
         messageHash = 'authenticate'
         client = self.client('authenticationFlights')
         if messageHash in client.futures:
@@ -332,7 +334,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         ask = self.safe_number(ticker, 'AP1')
         baseVolume = self.safe_number(ticker, 'V')
         quoteVolume = self.safe_number(ticker, 'T')
-        if self.safe_bool(market, 'inverse'):
+        if self.safe_bool(market, 'inverse') is True:
             temp = baseVolume
             baseVolume = quoteVolume
             quoteVolume = temp
@@ -521,7 +523,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -545,7 +547,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str [timeframe]: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -637,13 +639,15 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.aggregation]: price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook' + '::' + market['symbol']
-        suffix = '_0.1'
+        suffix = None
+        suffix, params = self.order_book_suffix(market, 'watchOrderBook', params)
         orderbook = await self.watch_public(market, messageHash, '25', params, suffix)
         return orderbook.limit()
 
@@ -655,17 +659,42 @@ class deepcoin(ccxt.async_support.deepcoin):
 
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.aggregation]: price aggregation level the book was subscribed with, defaults to the market's price tick size
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook' + '::' + market['symbol']
-        suffix = '_0.1'
+        suffix = None
+        suffix, params = self.order_book_suffix(market, 'unWatchOrderBook', params)
         subscription = {
             'topic': 'orderbook',
         }
         return await self.un_watch_public(market, messageHash, '25', params, subscription, suffix)
+
+    def order_book_suffix(self, market: Market, methodName: str, params: dict = {}) -> list:
+        # the 25-level book is published per price-aggregation level and the
+        # level is part of the FilterValue('DeepCoin_BTC/USDT_0.1'). the
+        # venue only serves the levels that exist for that market, from the
+        # tick size up to a few coarser steps: subscribing to a level the
+        # market does not have is answered with 'orderbook does not exist:
+        # XRP/USDT_0.1, no available orderbook data' and nothing is
+        # streamed. a fixed '_0.1' therefore only worked for markets whose
+        # tick happens to be 0.1 or finer by a step or two(23 of the first
+        # 120 spot markets, 52 of 120 swaps in a live probe); the tick size
+        # itself was accepted on 116 and 117 of them, and the handful whose
+        # tick was rejected accepted the next coarser level
+        symbol = self.safe_string(market, 'symbol')
+        aggregation = None
+        aggregation, params = self.handle_option_and_params(params, methodName, 'aggregation')
+        if aggregation is None:
+            precision = self.safe_dict(market, 'precision', {})
+            tickSize = self.safe_number(precision, 'price')
+            if tickSize is None:
+                raise BadRequest(self.id + ' ' + methodName + '() requires a params["aggregation"] price level for ' + symbol + ' because the market has no price precision')
+            aggregation = self.number_to_string(tickSize)
+        return ['_' + aggregation, params]
 
     def handle_order_book(self, client: Client, message: object):
         #

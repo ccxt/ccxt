@@ -168,11 +168,15 @@ class coinbaseexchange extends Exchange {
                         'time' => array( 'cost' => 1 ),
                         'products/spark-lines' => array( 'cost' => 1 ),
                         'products/volume-summary' => array( 'cost' => 1 ),
+                        'wrapped-assets' => array( 'cost' => 1 ),
+                        'wrapped-assets/{wrapped_asset_id}' => array( 'cost' => 1 ),
+                        'wrapped-assets/{wrapped_asset_id}/conversion-rate' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         'address-book' => array( 'cost' => 1 ),
+                        'address-book/counterparty' => array( 'cost' => 1 ),
                         'accounts' => array( 'cost' => 1 ),
                         'accounts/{id}' => array( 'cost' => 1 ),
                         'accounts/{id}/holds' => array( 'cost' => 1 ),
@@ -202,9 +206,11 @@ class coinbaseexchange extends Exchange {
                         'reports/{report_id}' => array( 'cost' => 1 ),
                         'transfers' => array( 'cost' => 1 ),
                         'transfers/{transfer_id}' => array( 'cost' => 1 ),
+                        'travel-rules' => array( 'cost' => 1 ),
                         'users/self/exchange-limits' => array( 'cost' => 1 ),
                         'users/self/hold-balances' => array( 'cost' => 1 ),
                         'users/self/trailing-volume' => array( 'cost' => 1 ),
+                        'users/{user_id}/trading-volumes' => array( 'cost' => 1 ),
                         'withdrawals/fee-estimate' => array( 'cost' => 1 ),
                         'conversions/{conversion_id}' => array( 'cost' => 1 ),
                         'conversions' => array( 'cost' => 1 ),
@@ -220,12 +226,18 @@ class coinbaseexchange extends Exchange {
                         'loans/interest' => array( 'cost' => 1 ),
                         'loans/assets' => array( 'cost' => 1 ),
                         'loans' => array( 'cost' => 1 ),
+                        'loans/options' => array( 'cost' => 1 ),
+                        'wrapped-assets/redeem' => array( 'cost' => 1 ),
+                        'wrapped-assets/redeem/{redeem_id}' => array( 'cost' => 1 ),
+                        'wrapped-assets/stake-wrap' => array( 'cost' => 1 ),
+                        'wrapped-assets/stake-wrap/{stake_wrap_id}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'conversions' => array( 'cost' => 1 ),
                         'deposits/coinbase-account' => array( 'cost' => 1 ),
                         'deposits/payment-method' => array( 'cost' => 1 ),
                         'coinbase-accounts/{id}/addresses' => array( 'cost' => 1 ),
+                        'address-book' => array( 'cost' => 1 ),
                         'funding/repay' => array( 'cost' => 1 ),
                         'orders' => array( 'cost' => 1 ),
                         'position/close' => array( 'cost' => 1 ),
@@ -235,8 +247,14 @@ class coinbaseexchange extends Exchange {
                         'reports' => array( 'cost' => 1 ),
                         'withdrawals/coinbase' => array( 'cost' => 1 ),
                         'withdrawals/coinbase-account' => array( 'cost' => 1 ),
+                        'withdrawals/counterparty' => array( 'cost' => 1 ),
                         'withdrawals/crypto' => array( 'cost' => 1 ),
                         'withdrawals/payment-method' => array( 'cost' => 1 ),
+                        'transfers/{transfer_id}/travel-rules' => array( 'cost' => 1 ),
+                        'travel-rules' => array( 'cost' => 1 ),
+                        'users/{user_id}/settlement-preferences' => array( 'cost' => 1 ),
+                        'wrapped-assets/redeem' => array( 'cost' => 1 ),
+                        'wrapped-assets/stake-wrap' => array( 'cost' => 1 ),
                         'loans/open' => array( 'cost' => 1 ),
                         'loans/repay-interest' => array( 'cost' => 1 ),
                         'loans/repay-principal' => array( 'cost' => 1 ),
@@ -245,10 +263,13 @@ class coinbaseexchange extends Exchange {
                         'orders' => array( 'cost' => 1 ),
                         'orders/client:{client_oid}' => array( 'cost' => 1 ),
                         'orders/{id}' => array( 'cost' => 1 ),
+                        'address-book/{id}' => array( 'cost' => 1 ),
+                        'travel-rules/{id}' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
                         'profiles/{id}/deactivate' => array( 'cost' => 1 ),
                         'profiles/{id}' => array( 'cost' => 1 ),
+                        'address-book/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1235,7 +1256,7 @@ class coinbaseexchange extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1574,7 +1595,7 @@ class coinbaseexchange extends Exchange {
             $request['time_in_force'] = $timeInForce;
         }
         $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = true;
         }
         $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));
@@ -1720,7 +1741,7 @@ class coinbaseexchange extends Exchange {
             }
             $response = $this->privatePostWithdrawalsCrypto($this->extend($request, $params));
         }
-        if (!$response) {
+        if ($response === null) {
             throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
         }
         return $this->parse_transaction($response, $currency);
@@ -1729,8 +1750,8 @@ class coinbaseexchange extends Exchange {
     public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'transfer' => 'transfer', // Funds moved between portfolios
-            'match' => 'trade',       // Funds moved result of a trade
-            'fee' => 'fee',           // Fee result of a trade
+            'match' => 'trade',       // Funds moved as a result of a trade
+            'fee' => 'fee',           // Fee as a result of a trade
             'rebate' => 'rebate',     // Fee rebate
             'conversion' => 'trade',  // Funds converted between fiat currency and a stablecoin
         );
@@ -2010,14 +2031,14 @@ class coinbaseexchange extends Exchange {
 
     public function parse_transaction_status(mixed $transaction) {
         $canceled = $this->safe_value($transaction, 'canceled_at');
-        if ($canceled) {
+        if (($canceled !== null) && ($canceled !== null)) {
             return 'canceled';
         }
         $processed = $this->safe_value($transaction, 'processed_at');
         $completed = $this->safe_value($transaction, 'completed_at');
-        if ($completed) {
+        if (($completed !== null) && ($completed !== null)) {
             return 'ok';
-        } elseif ($processed && !$completed) {
+        } elseif (($processed !== null) && ($processed !== null)) {
             return 'failed';
         } else {
             return 'pending';
@@ -2150,7 +2171,7 @@ class coinbaseexchange extends Exchange {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $request .= '?' . $this->urlencode($query);
             }
         }
@@ -2160,7 +2181,7 @@ class coinbaseexchange extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }

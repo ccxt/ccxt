@@ -149,7 +149,7 @@ class ndax(ccxt.async_support.ndax):
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: object):
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         # initial snapshot
         #
@@ -202,7 +202,7 @@ class ndax(ccxt.async_support.ndax):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         if self.markets is None:
@@ -240,7 +240,7 @@ class ndax(ccxt.async_support.ndax):
         #         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         #     }
         #
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         #     [
         #         [
@@ -284,7 +284,7 @@ class ndax(ccxt.async_support.ndax):
                 ]
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
                 length = len(stored)
-                if length and (parsed[0] == stored[length - 1][0]):
+                if (length > 0) and (parsed[0] == stored[length - 1][0]):
                     previous = stored[length - 1]
                     high = parsed[1]
                     if parsed[1] is None:
@@ -307,7 +307,7 @@ class ndax(ccxt.async_support.ndax):
                     if (marketId is not None) and (timeframe is not None):
                         updates[marketId][timeframe] = True
                 else:
-                    if length and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
+                    if (length > 0) and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
                         continue
                     else:
                         stored.append(parsed)
@@ -386,7 +386,7 @@ class ndax(ccxt.async_support.ndax):
         #         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         #     }
         #
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         #     [
         #         0,   # 0 MDUpdateId

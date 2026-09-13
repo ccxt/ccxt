@@ -141,6 +141,17 @@ public class TokocryptoApi extends Exchange
     }
 
     /**
+     * Calls the binanceGetExecutionRules endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  binanceGetExecutionRules (Object... optionalArgs)
+    {
+        return this.callAsync ("binanceGetExecutionRules", optionalArgs);
+    }
+
+    /**
      * Calls the binancePutUserDataStream endpoint.
      *
      * @param optionalArgs the request parameters
@@ -380,6 +391,17 @@ public class TokocryptoApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenV1UserDataStream", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostOpenV1UserListenToken endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenV1UserListenToken (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenV1UserListenToken", optionalArgs);
     }
 
 }

@@ -24,7 +24,7 @@ public class BequantCore extends io.github.ccxt.exchanges.Bequant
         var restInstance = new io.github.ccxt.exchanges.Bequant();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        Object extended = this.deepExtend(restDescribe, parentWsDescribe);
+        java.util.Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
             put( "id", "bequant" );
             put( "name", "Bequant" );

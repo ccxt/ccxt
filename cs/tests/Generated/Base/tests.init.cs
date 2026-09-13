@@ -29,6 +29,7 @@ public partial class BaseTest
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testMergeBalanceAccount();
             testBase58ToBinary();
             testToArray();
             testBinaryToBase58();
@@ -45,6 +46,7 @@ public partial class BaseTest
             testInArray();
             testFilterBy();
             testHandleMethods();
+            testHandleHttpStatusCode();
             testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();

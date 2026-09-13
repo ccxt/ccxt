@@ -102,6 +102,7 @@ class bitflyer extends Exchange {
                         'getboardstate' => array( 'cost' => 1 ),
                         'getchats' => array( 'cost' => 1 ),
                         'getfundingrate' => array( 'cost' => 1 ),
+                        'getfundingratehistory' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -1317,7 +1318,7 @@ class bitflyer extends Exchange {
         }
         $request .= $path;
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $request .= '?' . $this->urlencode($params);
             }
         }
@@ -1328,7 +1329,7 @@ class bitflyer extends Exchange {
             $nonce = (string) $this->nonce();
             $content = array( $nonce, $method, $request );
             $auth = implode('', $content);
-            if ($params) {
+            if (count($params) > 0) {
                 if ($method !== 'GET') {
                     $body = $this->json($params);
                     $auth .= $body;

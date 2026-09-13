@@ -72,6 +72,10 @@ function testPrecise() {
     assert(Precise.stringEquals('-0.0', '0'));
     assert(Precise.stringEquals('-0.0', '0.0'));
     assert(Precise.stringEquals('5.534000', '5.5340'));
+    // equal values whose decimal exponent falls outside a typical small-int
+    // cache range (e.g. Java's boxed Integer cache is -128..127) — guards
+    // against comparing the exponent by object identity instead of value
+    assert(Precise.stringEquals('0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001', '1e-200'));
     assert(Precise.stringMin('1.0000', '2') === '1');
     assert(Precise.stringMin('2', '1.2345') === '1.2345');
     assert(Precise.stringMin('3.1415', '-2') === '-2');
@@ -157,6 +161,18 @@ function testPrecise() {
     // large integers
     assert(Precise.stringMul('123456789012345678901234567890', '987654321') === '121932631124828532112482853211126352690');
     assert(Precise.stringAdd('123456789012345678901234567890', '123456789012345678901234567890') === '246913578024691357802469135780');
+    // alignment across a decimal-scale difference beyond the exact range of
+    // binary floats (implementations scaling by a float power of ten lose
+    // precision here — the scaling must use exact integer arithmetic)
+    assert(Precise.stringAdd('1', '1e-30') === '1.000000000000000000000000000001');
+    assert(Precise.stringAdd('1e-30', '1') === '1.000000000000000000000000000001');
+    assert(Precise.stringAdd('1e-30', '-1e-30') === '0');
+    assert(Precise.stringSub('1', '1e-30') === '0.999999999999999999999999999999');
+    assert(Precise.stringSub('1e-30', '1') === '-0.999999999999999999999999999999');
+    assert(Precise.stringGt('1e-30', '9e-31'));
+    assert(Precise.stringLt('1e-30', '1.1e-30'));
+    assert(Precise.stringAdd('1', '1e-130') === '1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001');
+    assert(Precise.stringSub('1', '1e-130') === '0.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999');
     // positive modulo
     assert(Precise.stringMod('1000000000.123', '7') === '6.123');
     assert(Precise.stringMod('7.5', '2.5') === '0');

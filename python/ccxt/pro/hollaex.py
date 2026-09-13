@@ -559,7 +559,7 @@ class hollaex(ccxt.async_support.hollaex):
         #         }
         #     }
         #
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         content = self.safe_string(message, 'message')
         if content == 'pong':

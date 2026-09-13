@@ -65,7 +65,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -76,14 +76,14 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            String messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", Helpers.add(Helpers.GetValue(market, "id"), "-orderbook") );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -112,7 +112,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //         }
         //     ]
         //
-        Object symbol = this.symbol(this.safeString(message, 0));
+        String symbol = this.symbol(this.safeString(message, 0));
         Object data = this.safeValue(message, 1, new java.util.HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(data, "last_update_at");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp);
@@ -126,7 +126,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
             orderbook = Helpers.GetValue(this.orderbooks, symbol);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         }
-        Object messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -141,7 +141,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -153,15 +153,15 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
+            String messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", Helpers.add(Helpers.GetValue(market, "id"), "-trades") );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -189,11 +189,11 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         Object first = this.safeValue(message, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object symbol = this.symbol(this.safeString(first, 2));
+        String symbol = this.symbol(this.safeString(first, 2));
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -203,7 +203,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
             Object trade = this.parseWsTrade(data);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        Object messageHash = Helpers.add("trade:", symbol);
+        String messageHash = Helpers.add("trade:", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -222,11 +222,11 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.symbol(this.safeString(trade, 2));
+        String symbol = this.symbol(this.safeString(trade, 2));
         Object timestamp = this.safeTimestamp(trade, 0);
-        Object side = this.safeString(trade, 5);
-        Object priceString = this.safeString(trade, 3);
-        Object amountString = this.safeString(trade, 4);
+        String side = this.safeString(trade, 5);
+        String priceString = this.safeString(trade, 3);
+        String amountString = this.safeString(trade, 4);
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", CoincheckCore.this.safeString(trade, 1) );
             put( "info", trade );
