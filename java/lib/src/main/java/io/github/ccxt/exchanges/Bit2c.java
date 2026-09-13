@@ -381,7 +381,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -435,7 +435,7 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -449,7 +449,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -499,7 +499,7 @@ public class Bit2c extends Bit2cApi
                 put( "asks", asks );
             }};
             return this.parseOrderBook(filtered, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -543,7 +543,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -559,7 +559,7 @@ public class Bit2c extends Bit2cApi
             }};
             java.util.Map<String, Object> response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -575,7 +575,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -627,7 +627,7 @@ public class Bit2c extends Bit2cApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -639,7 +639,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -688,7 +688,7 @@ public class Bit2c extends Bit2cApi
     }});
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.types.TradingFees::new);
 
     }
 
@@ -705,7 +705,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -743,7 +743,7 @@ public class Bit2c extends Bit2cApi
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -757,7 +757,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -769,7 +769,7 @@ public class Bit2c extends Bit2cApi
             }};
             java.util.Map<String, Object> response = (this.privatePostOrderCancelOrder(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -784,7 +784,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -810,7 +810,7 @@ public class Bit2c extends Bit2cApi
             Object asks = this.safeValue(orders, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object bids = this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -824,7 +824,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -855,7 +855,7 @@ public class Bit2c extends Bit2cApi
             //         }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1005,7 +1005,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1080,7 +1080,7 @@ public class Bit2c extends Bit2cApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1229,7 +1229,7 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1255,7 +1255,7 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 

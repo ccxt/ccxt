@@ -706,7 +706,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -736,7 +736,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "book", response );
             }}, "book", new java.util.HashMap<String, Object>() {{}});
             return this.parsePredictionTicker(tickerData, outcomeObj);
-        });
+        }).thenApply(io.github.ccxt.types.PredictionTicker::new);
 
     }
 
@@ -749,7 +749,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -814,7 +814,7 @@ public class Hyperliquid extends HyperliquidApi
                 Helpers.addElementToObject(tickers, outcomeHandle, ticker);
             }
             return tickers;
-        });
+        }).thenApply(io.github.ccxt.types.PredictionTickers::new);
 
     }
 
@@ -905,7 +905,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -951,7 +951,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "asks", asks );
             }}, this.safeString(outcomeObj, "outcome", outcome), timestamp);
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        });
+        }).thenApply(io.github.ccxt.types.PredictionOrderBook::new);
 
     }
 
@@ -968,7 +968,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {int} [params.until] end timestamp in ms
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1033,7 +1033,7 @@ public class Hyperliquid extends HyperliquidApi
                 candles = response;
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -1075,7 +1075,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.user] wallet address (defaults to this.walletAddress)
      * @returns {Balances} balance structure
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1119,7 +1119,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             return this.safeBalance(result);
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -1133,7 +1133,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1215,7 +1215,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((java.util.List<Object>)positions).add(this.parsePredictionPosition(enriched, outcomeObj));
             }
             return positions;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.PredictionPosition::new));
 
     }
 
@@ -1429,7 +1429,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1583,7 +1583,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "fee", null );
                 put( "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             }}, market);
-        });
+        }).thenApply(io.github.ccxt.types.PredictionOrder::new);
 
     }
 
@@ -1599,7 +1599,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1608,7 +1608,7 @@ public class Hyperliquid extends HyperliquidApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object orders = (this.cancelOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(outcome), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
-        });
+        }).thenApply(io.github.ccxt.types.PredictionOrder::new);
 
     }
 
@@ -1622,7 +1622,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1735,7 +1735,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((java.util.List<Object>)orders).add(this.safePredictionOrder(order));
             }
             return orders;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.PredictionOrder::new));
 
     }
 
@@ -1752,7 +1752,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1798,7 +1798,7 @@ public class Hyperliquid extends HyperliquidApi
                 outcomeHandle = this.safeString(outcomeObj, "outcome");
             }
             return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.PredictionOrder::new));
 
     }
 
@@ -1814,7 +1814,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1875,7 +1875,7 @@ public class Hyperliquid extends HyperliquidApi
                 outcomeHandle = this.safeString(outcomeObj, "outcome");
             }
             return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.PredictionOrder::new));
 
     }
 
@@ -1891,7 +1891,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1936,7 +1936,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             return parsed;
-        });
+        }).thenApply(io.github.ccxt.types.PredictionOrder::new);
 
     }
 
@@ -2083,7 +2083,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2109,7 +2109,7 @@ public class Hyperliquid extends HyperliquidApi
                 trades = this.toArray(response);
             }
             return this.parsePredictionTrades(trades, outcomeObj, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.PredictionTrade::new));
 
     }
 
@@ -2126,7 +2126,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {int} [params.until] end timestamp in ms
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2181,7 +2181,7 @@ public class Hyperliquid extends HyperliquidApi
             // requested-outcome fallback would mislabel fills whose market is no longer listed
             Object parsedTrades = this.parsePredictionTrades(fills);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.PredictionTrade::new));
 
     }
 
@@ -2277,7 +2277,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvents(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2385,7 +2385,7 @@ public class Hyperliquid extends HyperliquidApi
             // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
             // so getEvent() resolves these events by any of the three keys
             return this.applyEventFetchParams(events, parameters, queries);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.PredictionEvent::new));
 
     }
 

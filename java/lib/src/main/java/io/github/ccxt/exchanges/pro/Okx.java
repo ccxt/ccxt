@@ -207,7 +207,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -216,7 +216,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -233,7 +233,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -291,7 +291,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -435,7 +435,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -444,7 +444,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             symbol = this.symbol(symbol);
             Object fr = (this.watchFundingRates((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(fr, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.FundingRate::new);
 
     }
 
@@ -457,7 +457,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> watchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -505,7 +505,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.FundingRates::new);
 
     }
 
@@ -554,7 +554,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -569,7 +569,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             symbol = Helpers.GetValue(market, "symbol");
             Object ticker = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(ticker, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -604,7 +604,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -626,7 +626,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -640,7 +640,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchMarkPrice(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -655,7 +655,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             symbol = Helpers.GetValue(market, "symbol");
             Object ticker = (this.watchMarkPrices((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(ticker, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -669,7 +669,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -691,7 +691,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -799,7 +799,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -841,7 +841,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -914,7 +914,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -972,7 +972,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
@@ -1034,7 +1034,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1080,7 +1080,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
@@ -1248,7 +1248,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1270,7 +1270,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -1478,7 +1478,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1490,7 +1490,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1505,7 +1505,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1568,7 +1568,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object url = this.getUrl(depth, "public");
             Object orderbook = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1938,7 +1938,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1950,7 +1950,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             (this.authenticate()).join();
             return (this.subscribe("private", "account", "account", null, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -2099,7 +2099,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2163,7 +2163,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -2178,7 +2178,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2220,7 +2220,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return ((Helpers.isTrue((Helpers.isEqual(newPositions, null))))) ? new java.util.ArrayList<Object>(java.util.Arrays.asList()) : newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -2341,7 +2341,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2403,7 +2403,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2622,7 +2622,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {boolean} params.test test order, default false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrderWs(String symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrderWs(String symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2664,7 +2664,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(args)) );
             }};
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2719,7 +2719,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2753,7 +2753,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(args)) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2768,7 +2768,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.clOrdId] client order id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrderWs(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2807,7 +2807,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(Okx.this.extend(arg, finalParameters))) );
             }};
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2821,7 +2821,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrdersWs(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2864,7 +2864,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", args );
             }};
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2877,7 +2877,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2909,7 +2909,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     }}, parameters))) );
             }};
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 

@@ -83,7 +83,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrdersWs(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrdersWs(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -103,7 +103,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object data = this.safeDict(responseOjb, "data", new java.util.HashMap<String, Object>() {{}});
             Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(statuses);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -127,7 +127,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -150,7 +150,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             Object parsedOrder = Helpers.GetValue(orders, 0);
             return parsedOrder;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -174,7 +174,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -203,7 +203,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object first = this.safeDict(statuses, 0, new java.util.HashMap<String, Object>() {{}});
             Object parsedOrder = this.parseOrder(first, market);
             return parsedOrder;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -219,7 +219,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrdersWs(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -250,7 +250,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 }}));
             }
             return orders;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -266,7 +266,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrderWs(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -275,7 +275,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object orders = (this.cancelOrdersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -289,7 +289,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -314,7 +314,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -416,7 +416,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -442,7 +442,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -492,7 +492,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -536,7 +536,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 return this.filterByArrayTickers(tickers, "symbol", symbols);
             }
             return this.tickers;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -587,7 +587,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -631,7 +631,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -842,7 +842,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -872,7 +872,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1042,7 +1042,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1074,7 +1074,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -1186,7 +1186,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1238,7 +1238,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, topic, null)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -1466,7 +1466,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1516,7 +1516,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -1625,7 +1625,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1677,7 +1677,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 

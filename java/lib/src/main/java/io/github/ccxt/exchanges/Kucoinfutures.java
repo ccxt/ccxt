@@ -56,7 +56,7 @@ public class Kucoinfutures extends KucoinfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -68,7 +68,7 @@ public class Kucoinfutures extends KucoinfuturesApi
             }};
             java.util.Map<String, Object> extendedRequest = this.extend(request, parameters);
             return (this.fetchTickers((Object)(symbols), (Object)(extendedRequest))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -83,7 +83,7 @@ public class Kucoinfutures extends KucoinfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
     {
         final Object toAccount3 = toAccount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -120,7 +120,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );
             }});
-        });
+        }).thenApply(io.github.ccxt.types.TransferEntry::new);
 
     }
 

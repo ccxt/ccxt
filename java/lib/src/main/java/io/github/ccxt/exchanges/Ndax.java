@@ -618,7 +618,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchStatus(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -639,7 +639,7 @@ public class Ndax extends NdaxApi
                 put( "url", null );
                 put( "info", response );
             }};
-        });
+        }).thenApply(io.github.ccxt.types.Status::new);
 
     }
 
@@ -990,7 +990,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1034,7 +1034,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseOrderBook(response, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1134,7 +1134,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1164,7 +1164,7 @@ public class Ndax extends NdaxApi
             //
             Object tickers = this.parseTickers(response);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -1177,7 +1177,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1225,7 +1225,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -1260,7 +1260,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1314,7 +1314,7 @@ public class Ndax extends NdaxApi
                 candles = response;
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -1512,7 +1512,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1543,7 +1543,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1555,7 +1555,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchAccounts(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Account>> fetchAccounts(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1588,7 +1588,7 @@ public class Ndax extends NdaxApi
                 }});
             }
             return result;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Account::new));
 
     }
 
@@ -1626,7 +1626,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1683,7 +1683,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -1785,7 +1785,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLedger(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1836,7 +1836,7 @@ public class Ndax extends NdaxApi
                 currency = this.currency(code);
             }
             return this.parseLedger(response, currency, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.LedgerEntry::new));
 
     }
 
@@ -1969,7 +1969,7 @@ public class Ndax extends NdaxApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -2041,7 +2041,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2059,7 +2059,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
     {
         final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2115,7 +2115,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2130,7 +2130,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2211,7 +2211,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -2224,7 +2224,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2261,7 +2261,7 @@ public class Ndax extends NdaxApi
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2276,7 +2276,7 @@ public class Ndax extends NdaxApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2316,7 +2316,7 @@ public class Ndax extends NdaxApi
                 put( "id", id );
                 put( "clientOrderId", finalClientOrderId );
             }});
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2331,7 +2331,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2410,7 +2410,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2425,7 +2425,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2513,7 +2513,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2527,7 +2527,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2603,7 +2603,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2619,7 +2619,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2700,7 +2700,7 @@ public class Ndax extends NdaxApi
             java.util.Map<String, Object> grouped = this.groupBy(response, "ChangeReason");
             Object trades = this.safeList(grouped, "Trade", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -2712,7 +2712,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2748,7 +2748,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -2800,7 +2800,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2810,7 +2810,7 @@ public class Ndax extends NdaxApi
                 put( "GenerateNewKey", true );
             }};
             return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -2825,7 +2825,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2886,7 +2886,7 @@ public class Ndax extends NdaxApi
                 return this.parseTransactions(Helpers.parseJson(response), currency, since, limit);
             }
             return this.parseTransactions(response, currency, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -2901,7 +2901,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2954,7 +2954,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -3139,7 +3139,7 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3240,7 +3240,7 @@ public class Ndax extends NdaxApi
             }};
             java.util.Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, parameters))).join();
             return this.parseTransaction(response, currency);
-        });
+        }).thenApply(io.github.ccxt.types.Transaction::new);
 
     }
 

@@ -637,7 +637,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTime(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -675,7 +675,7 @@ public class Alpaca extends AlpacaApi
             Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
             return iso;
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -846,7 +846,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -926,7 +926,7 @@ public class Alpaca extends AlpacaApi
                 symbolTradesList = symbolTrades;
             }
             return this.parseTrades(symbolTradesList, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -941,7 +941,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1001,7 +1001,7 @@ public class Alpaca extends AlpacaApi
             Object rawOrderbook = this.safeDict(orderbooks, id, new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, Helpers.GetValue(market, "symbol"), timestamp, "b", "a", "p", "s");
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1023,7 +1023,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1154,7 +1154,7 @@ public class Alpaca extends AlpacaApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
             }
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -1188,7 +1188,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1201,7 +1201,7 @@ public class Alpaca extends AlpacaApi
             symbol = this.symbol(symbol);
             Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(tickers, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -1215,7 +1215,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1331,7 +1331,7 @@ public class Alpaca extends AlpacaApi
                 ((java.util.List<Object>)results).add(ticker);
             }
             return this.filterByArray(results, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -1359,7 +1359,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1373,7 +1373,7 @@ public class Alpaca extends AlpacaApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1387,7 +1387,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1401,7 +1401,7 @@ public class Alpaca extends AlpacaApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1415,7 +1415,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1429,7 +1429,7 @@ public class Alpaca extends AlpacaApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1448,7 +1448,7 @@ public class Alpaca extends AlpacaApi
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1539,7 +1539,7 @@ public class Alpaca extends AlpacaApi
             //   }
             //
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1553,7 +1553,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1571,7 +1571,7 @@ public class Alpaca extends AlpacaApi
             //   }
             //
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1584,7 +1584,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1605,7 +1605,7 @@ public class Alpaca extends AlpacaApi
         put( "info", response );
     }})));
             }
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1619,7 +1619,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1637,7 +1637,7 @@ public class Alpaca extends AlpacaApi
             String marketId = this.safeString(order, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1653,7 +1653,7 @@ public class Alpaca extends AlpacaApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1731,7 +1731,7 @@ public class Alpaca extends AlpacaApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1747,7 +1747,7 @@ public class Alpaca extends AlpacaApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1760,7 +1760,7 @@ public class Alpaca extends AlpacaApi
                 put( "status", "open" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1776,7 +1776,7 @@ public class Alpaca extends AlpacaApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1789,7 +1789,7 @@ public class Alpaca extends AlpacaApi
                 put( "status", "closed" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1810,7 +1810,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1856,7 +1856,7 @@ public class Alpaca extends AlpacaApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
             java.util.Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1988,7 +1988,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2047,7 +2047,7 @@ public class Alpaca extends AlpacaApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -2126,7 +2126,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2149,7 +2149,7 @@ public class Alpaca extends AlpacaApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -2190,7 +2190,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
     {
         final Object address3 = address2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2235,7 +2235,7 @@ public class Alpaca extends AlpacaApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        });
+        }).thenApply(io.github.ccxt.types.Transaction::new);
 
     }
 
@@ -2354,7 +2354,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositsWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2364,7 +2364,7 @@ public class Alpaca extends AlpacaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("BOTH", code, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -2379,7 +2379,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2389,7 +2389,7 @@ public class Alpaca extends AlpacaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -2404,7 +2404,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2414,7 +2414,7 @@ public class Alpaca extends AlpacaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -2581,7 +2581,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2641,7 +2641,7 @@ public class Alpaca extends AlpacaApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 

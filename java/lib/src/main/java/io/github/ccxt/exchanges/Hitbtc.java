@@ -1127,7 +1127,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code2, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1164,7 +1164,7 @@ public class Hitbtc extends HitbtcApi
                 put( "network", null );
                 put( "info", response );
             }};
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -1177,7 +1177,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code2, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1218,7 +1218,7 @@ public class Hitbtc extends HitbtcApi
                 put( "address", address );
                 put( "tag", tag );
             }};
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -1253,7 +1253,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1290,7 +1290,7 @@ public class Hitbtc extends HitbtcApi
             //     ]
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -1303,7 +1303,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1332,7 +1332,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -1345,7 +1345,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1391,7 +1391,7 @@ public class Hitbtc extends HitbtcApi
                 Helpers.addElementToObject(result, symbol, this.parseTicker(entry, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -1452,7 +1452,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1493,7 +1493,7 @@ public class Hitbtc extends HitbtcApi
                 trades = this.arrayConcat(trades, parsed);
             }
             return trades;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1512,7 +1512,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching margin trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1570,7 +1570,7 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1871,7 +1871,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositsWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1881,7 +1881,7 @@ public class Hitbtc extends HitbtcApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -1896,7 +1896,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1906,7 +1906,7 @@ public class Hitbtc extends HitbtcApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("DEPOSIT", code, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -1921,7 +1921,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1931,7 +1931,7 @@ public class Hitbtc extends HitbtcApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("WITHDRAW", code, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -1945,7 +1945,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBooks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBooks> fetchOrderBooks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1979,7 +1979,7 @@ public class Hitbtc extends HitbtcApi
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask"));
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBooks::new);
 
     }
 
@@ -1993,7 +1993,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2015,7 +2015,7 @@ public class Hitbtc extends HitbtcApi
             java.util.Map<String, Object> response = (this.publicGetPublicOrderbookSymbol(this.extend(request, parameters))).join();
             Long timestamp = this.parse8601(this.safeString(response, "timestamp"));
             return this.parseOrderBook(response, symbol, timestamp, "bid", "ask");
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -2053,7 +2053,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2085,7 +2085,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             return this.parseTradingFee(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.TradingFeeInterface::new);
 
     }
 
@@ -2098,7 +2098,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2142,7 +2142,7 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             return result;
-        });
+        }).thenApply(io.github.ccxt.types.TradingFees::new);
 
     }
 
@@ -2163,7 +2163,7 @@ public class Hitbtc extends HitbtcApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2245,7 +2245,7 @@ public class Hitbtc extends HitbtcApi
             //
             java.util.List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -2293,7 +2293,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2352,7 +2352,7 @@ public class Hitbtc extends HitbtcApi
             }
             java.util.List<Object> parsed = this.parseOrders(response, market, since, limit);
             return this.filterByArray(parsed, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("closed", "canceled")), false);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2370,7 +2370,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching a margin order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2439,7 +2439,7 @@ public class Hitbtc extends HitbtcApi
             //
             Object order = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2459,7 +2459,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching margin trades
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2548,7 +2548,7 @@ public class Hitbtc extends HitbtcApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -2567,7 +2567,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching open margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2636,7 +2636,7 @@ public class Hitbtc extends HitbtcApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2720,7 +2720,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for canceling margin orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2768,7 +2768,7 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             return this.parseOrders(response, market);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2786,7 +2786,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for canceling a margin order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2835,11 +2835,11 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol2, Object type2, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol2, Object type2, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         final Object type3 = type2;
@@ -2901,7 +2901,7 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2925,7 +2925,7 @@ public class Hitbtc extends HitbtcApi
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2961,7 +2961,7 @@ public class Hitbtc extends HitbtcApi
                 response = (this.privatePostSpotOrder(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -3194,7 +3194,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3228,7 +3228,7 @@ public class Hitbtc extends HitbtcApi
             }
             Object config = this.safeList(response, "config", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarginModes(config, symbols, "symbol");
-        });
+        }).thenApply(io.github.ccxt.types.MarginModes::new);
 
     }
 
@@ -3255,7 +3255,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -3293,7 +3293,7 @@ public class Hitbtc extends HitbtcApi
             //     ]
             //
             return this.parseTransfer(response, currency);
-        });
+        }).thenApply(io.github.ccxt.types.TransferEntry::new);
 
     }
 
@@ -3380,7 +3380,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3429,7 +3429,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        });
+        }).thenApply(io.github.ccxt.types.Transaction::new);
 
     }
 
@@ -3442,7 +3442,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3504,7 +3504,7 @@ public class Hitbtc extends HitbtcApi
                 Helpers.addElementToObject(fundingRates, symbol, fundingRate);
             }
             return this.filterByArray(fundingRates, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.FundingRates::new);
 
     }
 
@@ -3521,7 +3521,7 @@ public class Hitbtc extends HitbtcApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRateHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3601,7 +3601,7 @@ public class Hitbtc extends HitbtcApi
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingRateHistory::new));
 
     }
 
@@ -3617,7 +3617,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching spot-margin positions
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3697,7 +3697,7 @@ public class Hitbtc extends HitbtcApi
                 ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(response, i)));
             }
             return result;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -3713,7 +3713,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching a spot-margin position
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3786,7 +3786,7 @@ public class Hitbtc extends HitbtcApi
             //     ]
             //
             return this.parsePosition(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Position::new);
 
     }
 
@@ -3924,7 +3924,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3971,7 +3971,7 @@ public class Hitbtc extends HitbtcApi
                 ((java.util.List<Object>)results).add(this.parseOpenInterest(openInterest, marketInner));
             }
             return this.filterByArray(results, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.OpenInterests::new);
 
     }
 
@@ -3984,7 +3984,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4019,7 +4019,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             return this.parseOpenInterest(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.OpenInterest::new);
 
     }
 
@@ -4032,7 +4032,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4067,7 +4067,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             return this.parseFundingRate(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.FundingRate::new);
 
     }
 
@@ -4248,7 +4248,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for reducing spot-margin
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4259,7 +4259,7 @@ public class Hitbtc extends HitbtcApi
                 throw new BadRequest(Helpers.add(this.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
             }
             return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.MarginModification::new);
 
     }
 
@@ -4276,14 +4276,14 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for adding spot-margin
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.MarginModification::new);
 
     }
 
@@ -4299,7 +4299,7 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching spot-margin leverage
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4369,7 +4369,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             return this.parseLeverage(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Leverage::new);
 
     }
 
@@ -4448,7 +4448,7 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4486,7 +4486,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             return this.parseDepositWithdrawFees(response, codes);
-        });
+        }).thenApply(io.github.ccxt.types.DepositWithdrawFees::new);
 
     }
 
@@ -4562,7 +4562,7 @@ public class Hitbtc extends HitbtcApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4600,7 +4600,7 @@ public class Hitbtc extends HitbtcApi
             // }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 

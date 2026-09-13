@@ -885,7 +885,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchStatus(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -908,7 +908,7 @@ public class Kraken extends KrakenApi
                 put( "url", null );
                 put( "info", response );
             }};
-        });
+        }).thenApply(io.github.ccxt.types.Status::new);
 
     }
 
@@ -1093,7 +1093,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1140,7 +1140,7 @@ public class Kraken extends KrakenApi
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFee(result, market);
-        });
+        }).thenApply(io.github.ccxt.types.TradingFeeInterface::new);
 
     }
 
@@ -1181,7 +1181,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1231,7 +1231,7 @@ public class Kraken extends KrakenApi
                 orderbook = this.safeValue(result, wsName, orderbook);
             }
             return this.parseOrderBook(orderbook, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1296,7 +1296,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1336,7 +1336,7 @@ public class Kraken extends KrakenApi
                 Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -1349,7 +1349,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1367,7 +1367,7 @@ public class Kraken extends KrakenApi
             Object tickerResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object ticker = this.safeValue(tickerResult, Helpers.GetValue(market, "id"));
             return this.parseTicker(ticker, market);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -1402,7 +1402,7 @@ public class Kraken extends KrakenApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1462,7 +1462,7 @@ public class Kraken extends KrakenApi
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object ohlcvs = this.safeList(result, Helpers.GetValue(market, "id"), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -1552,7 +1552,7 @@ public class Kraken extends KrakenApi
      * @param {int} [params.end] timestamp in seconds of the latest ledger entry
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLedger(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1606,7 +1606,7 @@ public class Kraken extends KrakenApi
                 ((java.util.List<Object>)items).add(value);
             }
             return this.parseLedger(items, currency, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.LedgerEntry::new));
 
     }
 
@@ -1652,7 +1652,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLedgerEntry(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LedgerEntry> fetchLedgerEntry(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1661,7 +1661,7 @@ public class Kraken extends KrakenApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object items = (this.fetchLedgerEntriesByIds(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), code, parameters)).join();
             return Helpers.GetValue(items, 0);
-        });
+        }).thenApply(io.github.ccxt.types.LedgerEntry::new);
 
     }
 
@@ -1854,7 +1854,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1906,7 +1906,7 @@ public class Kraken extends KrakenApi
             ((java.util.List<Object>)lastTrade).add(lastTradeId);
             Helpers.addElementToObject(trades, Helpers.subtract(length, 1), lastTrade);
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1943,7 +1943,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1970,7 +1970,7 @@ public class Kraken extends KrakenApi
             //     }
             //
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -1985,7 +1985,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2000,7 +2000,7 @@ public class Kraken extends KrakenApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2014,7 +2014,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2025,7 +2025,7 @@ public class Kraken extends KrakenApi
                 (this.loadMarkets()).join();
             }
             return (this.createMarketOrderWithCost(symbol, (Object)("buy"), (Object)(cost), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2052,7 +2052,7 @@ public class Kraken extends KrakenApi
      * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2089,7 +2089,7 @@ public class Kraken extends KrakenApi
             // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
             // this usingCost flag is used to help the parsing but omitted from the order
             return this.parseOrder(result);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2102,7 +2102,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2178,7 +2178,7 @@ public class Kraken extends KrakenApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrders(this.safeList(result, "orders"));
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2755,7 +2755,7 @@ final Object finalId = id;
      * @param {string} [params.clientOrderId] the orders client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type2, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type2, Object side, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2824,7 +2824,7 @@ final Object finalId = id;
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2838,7 +2838,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2907,7 +2907,7 @@ final Object finalId = id;
             return this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", finalId );
             }}, Helpers.GetValue(result, id)));
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2923,7 +2923,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3012,7 +3012,7 @@ final Object finalId = id;
                 result = this.arrayConcat(result, tradesFilteredBySymbol);
             }
             return result;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -3071,7 +3071,7 @@ final Object finalId = id;
      * @param {int} [params.end] timestamp in seconds of the latest trade entry
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3139,7 +3139,7 @@ final Object finalId = id;
             }
             java.util.List<Object> tradesList = this.toArray(trades);
             return this.parseTrades(tradesList, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -3155,7 +3155,7 @@ final Object finalId = id;
      * @param {int} [params.userref] the orders user reference id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3197,7 +3197,7 @@ final Object finalId = id;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -3211,7 +3211,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3233,7 +3233,7 @@ final Object finalId = id;
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -3246,7 +3246,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3269,7 +3269,7 @@ final Object finalId = id;
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -3336,7 +3336,7 @@ final Object finalId = id;
      * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3422,7 +3422,7 @@ final Object finalId = id;
                 }}, item));
             }
             return this.parseOrders(orders, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -3440,7 +3440,7 @@ final Object finalId = id;
      * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3531,7 +3531,7 @@ final Object finalId = id;
                 }}, item));
             }
             return this.parseOrders(orders, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -3702,7 +3702,7 @@ final Object finalId = id;
      * @param {int} [params.end] timestamp in seconds of the latest transaction entry
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3750,7 +3750,7 @@ final Object finalId = id;
             //
             Object depositResult = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactionsByType("deposit", depositResult, code, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -3762,7 +3762,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTime(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3781,7 +3781,7 @@ final Object finalId = id;
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.safeTimestamp(result, "unixtime");
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -3799,7 +3799,7 @@ final Object finalId = id;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3888,7 +3888,7 @@ final Object finalId = id;
                 rawWithdrawals = result;
             }
             return this.parseTransactionsByType("withdrawal", rawWithdrawals, code, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -3915,7 +3915,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3925,7 +3925,7 @@ final Object finalId = id;
                 put( "new", "true" );
             }};
             return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -3990,7 +3990,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code2, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4062,7 +4062,7 @@ final Object finalId = id;
                 throw new InvalidAddress(Helpers.add(Helpers.add(this.id, " privatePostDepositAddresses() returned no addresses for "), code)) ;
             }
             return this.parseDepositAddress(firstResult, currency);
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -4101,7 +4101,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
     {
         final Object address3 = address2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4137,7 +4137,7 @@ final Object finalId = id;
                 return this.parseTransaction(result, currency);
             }
             throw new ExchangeError(Helpers.add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Transaction::new);
 
     }
 
@@ -4150,7 +4150,7 @@ final Object finalId = id;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4215,7 +4215,7 @@ final Object finalId = id;
             Object result = this.safeList(response, "result");
             Object results = this.parsePositions(result, symbols);
             return this.filterByArrayPositions(results, "symbol", symbols, false);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -4313,7 +4313,7 @@ final Object finalId = id;
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4353,7 +4353,7 @@ final Object finalId = id;
                 put( "fromAccount", finalFromAccountParsed );
                 put( "toAccount", toAccountParsed );
             }});
-        });
+        }).thenApply(io.github.ccxt.types.TransferEntry::new);
 
     }
 

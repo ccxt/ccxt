@@ -792,7 +792,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTime(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -808,7 +808,7 @@ public class Tokocrypto extends TokocryptoApi
             // }
             //
             return this.safeInteger(response, "timestamp");
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1004,7 +1004,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1065,7 +1065,7 @@ public class Tokocrypto extends TokocryptoApi
             Object orderbook = this.parseOrderBook(data, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "lastUpdateId"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1240,7 +1240,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1349,7 +1349,7 @@ public class Tokocrypto extends TokocryptoApi
             //
             java.util.List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1453,7 +1453,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1476,7 +1476,7 @@ public class Tokocrypto extends TokocryptoApi
                 return this.parseTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(response)), symbols);
             }
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -1525,7 +1525,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1550,7 +1550,7 @@ public class Tokocrypto extends TokocryptoApi
                 return this.parseTicker(firstTicker, market);
             }
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -1563,7 +1563,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1576,7 +1576,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             java.util.List<Object> response = (this.binanceGetTickerBookTicker(parameters)).join();
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -1634,7 +1634,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1735,7 +1735,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
             }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -1750,7 +1750,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1791,7 +1791,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             return this.parseBalanceCustom(response, type, marginMode);
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -2031,7 +2031,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -2239,7 +2239,7 @@ public class Tokocrypto extends TokocryptoApi
             //
             Object rawOrder = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2253,7 +2253,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2298,7 +2298,7 @@ public class Tokocrypto extends TokocryptoApi
             Object list = this.safeValue(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawOrder = this.safeDict(list, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2313,7 +2313,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2379,7 +2379,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2394,7 +2394,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2407,7 +2407,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "type", 1 );
             }}; // -1 = all, 1 = open, 2 = closed
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2422,7 +2422,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2435,7 +2435,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "type", 2 );
             }}; // -1 = all, 1 = open, 2 = closed
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -2449,7 +2449,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2489,7 +2489,7 @@ public class Tokocrypto extends TokocryptoApi
             //
             Object rawOrder = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -2504,7 +2504,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2568,7 +2568,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object trades = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -2581,7 +2581,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2637,7 +2637,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "address", address );
                 put( "tag", finalTag );
             }};
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -2653,7 +2653,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2716,7 +2716,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object deposits = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -2731,7 +2731,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2790,7 +2790,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object withdrawals = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -2961,7 +2961,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3006,7 +3006,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        });
+        }).thenApply(io.github.ccxt.types.Transaction::new);
 
     }
 

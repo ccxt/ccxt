@@ -381,7 +381,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.price] "mark" to fetch mark price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -457,7 +457,7 @@ public class Mudrex extends MudrexApi
             Object assetTicks = this.safeDict(data, "asset_ticks", new java.util.HashMap<String, Object>() {{}});
             Object ohlcvs = this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -473,7 +473,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkOHLCV(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchMarkOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -485,7 +485,7 @@ public class Mudrex extends MudrexApi
             return (this.fetchOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "price", "mark" );
             }})))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -498,7 +498,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -516,7 +516,7 @@ public class Mudrex extends MudrexApi
             java.util.Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -529,7 +529,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -562,7 +562,7 @@ public class Mudrex extends MudrexApi
                 Helpers.addElementToObject(resultTickers, symbol, this.parseTicker(t, m));
             }
             return this.filterByArrayTickers(resultTickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -752,7 +752,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency to query the balance for
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -796,7 +796,7 @@ public class Mudrex extends MudrexApi
             }
             Helpers.addElementToObject(response, "currency", currency);
             return this.parseBalance(response);
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -833,7 +833,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -857,7 +857,7 @@ public class Mudrex extends MudrexApi
                 put( "longLeverage", Mudrex.this.safeNumber(data, "leverage") );
                 put( "shortLeverage", Mudrex.this.safeNumber(data, "leverage") );
             }};
-        });
+        }).thenApply(io.github.ccxt.types.Leverage::new);
 
     }
 
@@ -925,7 +925,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1010,7 +1010,7 @@ public class Mudrex extends MudrexApi
             Object order = this.parseOrder(merged, market);
             Helpers.addElementToObject(order, "info", data);
             return order;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1028,7 +1028,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1059,7 +1059,7 @@ public class Mudrex extends MudrexApi
             java.util.Map<String, Object> response = (this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1173,7 +1173,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1195,7 +1195,7 @@ public class Mudrex extends MudrexApi
             java.util.Map<String, Object> response = (this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1209,7 +1209,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1231,7 +1231,7 @@ public class Mudrex extends MudrexApi
             java.util.Map<String, Object> response = (this.privateGetFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1302,7 +1302,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1312,7 +1312,7 @@ public class Mudrex extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("closed", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1327,7 +1327,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1337,7 +1337,7 @@ public class Mudrex extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("open", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1352,7 +1352,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1362,7 +1362,7 @@ public class Mudrex extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("closed", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -1376,7 +1376,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency to query positions for
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1405,7 +1405,7 @@ public class Mudrex extends MudrexApi
                 ((java.util.List<Object>)outPos).add(pos);
             }
             return this.filterByArrayPositions(outPos, "symbol", symbols, false);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -1421,7 +1421,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency to filter positions by
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1465,7 +1465,7 @@ public class Mudrex extends MudrexApi
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(data, symbols);
             return this.filterBySinceLimit(positions, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -1544,7 +1544,7 @@ public class Mudrex extends MudrexApi
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1600,7 +1600,7 @@ public class Mudrex extends MudrexApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
             Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
             return response;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -1615,7 +1615,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1651,7 +1651,7 @@ public class Mudrex extends MudrexApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
             Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
             return response;
-        });
+        }).thenApply(io.github.ccxt.types.MarginModification::new);
 
     }
 
@@ -1665,14 +1665,14 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.addMargin(symbol, (Object)(Helpers.opNeg(amount)), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.MarginModification::new);
 
     }
 
@@ -1689,7 +1689,7 @@ public class Mudrex extends MudrexApi
      * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1802,7 +1802,7 @@ public class Mudrex extends MudrexApi
                 }
             }
             return this.parseTrades(rows, market, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1893,7 +1893,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1948,7 +1948,7 @@ public class Mudrex extends MudrexApi
                 put( "toAccount", tw );
                 put( "status", "ok" );
             }};
-        });
+        }).thenApply(io.github.ccxt.types.TransferEntry::new);
 
     }
 }

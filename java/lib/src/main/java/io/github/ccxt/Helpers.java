@@ -56,7 +56,7 @@ public class Helpers {
      * the original typed exception (preserving class, message, stack trace,
      * and any subclass-specific fields).
      */
-    public static Object joinUnwrapped(CompletableFuture<Object> future) {
+    public static <T> T joinUnwrapped(CompletableFuture<T> future) {
         try {
             return future.join();
         } catch (CompletionException ce) {

@@ -21,6 +21,7 @@ import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./
 import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
+import { typeCoreReturns, typedReturnTable } from "./javaTypedCore.js";
 
 ansi.nice
 
@@ -2311,6 +2312,7 @@ class NewTranspiler {
             // BaseExchange output (keeping BaseExchange's closing brace).
             let baseMethods = parts[1];
             baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
+            baseMethods = typeCoreReturns(baseMethods, typedReturnTable('rest'));
             log.magenta('→', (javaExchangeBase as any).yellow)
             replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + baseMethods.trim() + '\n')
         }
@@ -2324,6 +2326,7 @@ class NewTranspiler {
             // drop the transpiled CompletableFuture version to avoid a redundant overload.
             exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
             exchangeBody = this.redirectToAsyncOnJoin(exchangeBody);
+            exchangeBody = typeCoreReturns(exchangeBody, typedReturnTable('rest'));
             log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
             this.replaceInFileLiteral(EXCHANGE_METHODS_FILE, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + exchangeBody.trim() + '\n}\n');
         }
@@ -2396,6 +2399,7 @@ class NewTranspiler {
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
             let merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
             merged = this.redirectToAsyncOnJoin(merged, true);
+            merged = typeCoreReturns(merged, typedReturnTable('prediction'));
             log.magenta('→', (javaPredictionBase as any).yellow)
             this.replaceInFileLiteral(javaPredictionBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + merged);
         }
@@ -4084,6 +4088,7 @@ class NewTranspiler {
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
         javaSource = routeWhitelistedInternalCallsToVarargs(javaSource)
         javaSource = this.redirectToAsyncOnJoin(javaSource, prediction)
+        javaSource = typeCoreReturns(javaSource, typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest'))
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';

@@ -397,7 +397,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidations(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidations(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -406,7 +406,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             return (this.watchLiquidationsForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
@@ -422,7 +422,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -489,7 +489,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
@@ -657,7 +657,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyLiquidations(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchMyLiquidations(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -666,7 +666,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             return (this.watchMyLiquidationsForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
@@ -682,7 +682,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -730,7 +730,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
@@ -817,7 +817,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -830,7 +830,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -851,7 +851,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -934,7 +934,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object orderbook = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1051,7 +1051,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBookWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBookWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1096,7 +1096,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             Helpers.addElementToObject(orderbook, "symbol", Helpers.GetValue(market, "symbol"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
 
@@ -1453,7 +1453,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1543,7 +1543,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1693,7 +1693,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1703,7 +1703,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -1928,7 +1928,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1958,7 +1958,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -2305,7 +2305,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.returnRateLimits] return the rate limits for the exchange
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickerWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTickerWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2349,7 +2349,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object ticker = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return ticker;
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -2369,7 +2369,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {string} params.timeZone default=0 (UTC)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCVWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCVWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2425,7 +2425,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleFetchOHLCV");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -2486,7 +2486,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2502,7 +2502,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "callerMethodName", "watchTicker" );
             }})))).join();
             return Helpers.GetValue(tickers, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -2516,7 +2516,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrice(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchMarkPrice(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2532,7 +2532,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "callerMethodName", "watchMarkPrice" );
             }})))).join();
             return Helpers.GetValue(tickers, symbol);
-        });
+        }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
 
@@ -2546,7 +2546,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2566,7 +2566,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -2586,7 +2586,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.stock] set to true to use the stocks price stream
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2625,7 +2625,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -2772,7 +2772,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.stock] set to true to use stocks quote streams
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2816,7 +2816,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
@@ -3998,7 +3998,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBalanceWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalanceWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4039,7 +4039,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", ((Helpers.isTrue((Helpers.isEqual(finalMethod, "account.status"))))) ? "handleAccountStatusWs" : "handleBalanceWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -4126,14 +4126,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchPositionsWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -4149,7 +4149,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {string|undefined} [params.method] method to use. Can be account.position or v2/account.position
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4207,7 +4207,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object result = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -4266,7 +4266,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4331,7 +4331,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object messageHash = Helpers.add(type, ":balance");
             Object message = null;
             return (this.watch(url, messageHash, message, type, null)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -4554,7 +4554,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} params.returnRateLimits set to true to return rate limit information, default false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4622,7 +4622,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleOrderWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -4742,7 +4742,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4788,7 +4788,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleEditOrderWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -4921,7 +4921,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.trigger] set to true if you would like to cancel a conditional order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrderWs(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4988,7 +4988,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleOrderWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -5001,7 +5001,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5045,7 +5045,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleOrdersWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -5061,7 +5061,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderWs(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5113,7 +5113,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleOrderWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
@@ -5132,7 +5132,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5179,7 +5179,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object orders = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -5194,7 +5194,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5214,7 +5214,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             }
             return closedOrders;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -5229,7 +5229,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrdersWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrdersWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5274,7 +5274,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object orders = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -5296,7 +5296,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5417,7 +5417,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -6015,7 +6015,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6097,7 +6097,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
 
@@ -6375,7 +6375,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {int} [params.fromId] first trade Id to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTradesWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTradesWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6435,7 +6435,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object trades = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -6453,7 +6453,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradesWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTradesWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6498,7 +6498,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object trades = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySinceLimit(trades, since, limit);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 
@@ -6566,7 +6566,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6649,7 +6649,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
 

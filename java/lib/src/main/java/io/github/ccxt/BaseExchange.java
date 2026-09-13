@@ -4839,18 +4839,18 @@ public Object describe()
         }};
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchAccounts(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Account>> fetchAccounts(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchAccounts() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Account::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidations(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidations(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4863,11 +4863,11 @@ public Object describe()
                 return (this.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
             }
             throw new NotSupported(Helpers.add(this.id, " watchLiquidations() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchLiquidationsForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchLiquidationsForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4876,11 +4876,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchLiquidationsForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMyLiquidations(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchMyLiquidations(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4893,11 +4893,11 @@ public Object describe()
                 return this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
             }
             throw new NotSupported(Helpers.add(this.id, " watchMyLiquidations() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMyLiquidationsForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> watchMyLiquidationsForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4906,7 +4906,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
@@ -5025,7 +5025,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddresses(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5033,11 +5033,11 @@ public Object describe()
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositAddresses() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.DepositAddress::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5051,11 +5051,11 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarginMode() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.MarginMode::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5063,7 +5063,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMarginModes () is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginModes::new);
 
     }
 
@@ -5078,14 +5078,14 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTime(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTime() is not supported yet")) ;
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -5189,25 +5189,25 @@ public Object describe()
         throw new NotSupported(Helpers.add(this.id, " parseOrder() is not supported yet")) ;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.CrossBorrowRates> fetchCrossBorrowRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchCrossBorrowRates() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.CrossBorrowRates::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.IsolatedBorrowRates> fetchIsolatedBorrowRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchIsolatedBorrowRates() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.IsolatedBorrowRates::new);
 
     }
 
@@ -5217,7 +5217,7 @@ public Object describe()
         throw new NotSupported(Helpers.add(this.id, " parseMarketLeverageTiers() is not supported yet")) ;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverageTiers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5225,7 +5225,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLeverageTiers() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.LeverageTiers::new);
 
     }
 
@@ -5277,7 +5277,7 @@ public Object describe()
         return this.parseOHLCV(ohlcv, market);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5285,11 +5285,11 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchFundingRates() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.FundingRates::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingIntervals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingIntervals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5297,22 +5297,22 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchFundingIntervals() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.FundingRates::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> watchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchFundingRate() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.FundingRate::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRates(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> watchFundingRates(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5320,7 +5320,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchFundingRates() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.FundingRates::new);
 
     }
 
@@ -5336,29 +5336,29 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRatesForSymbols(Object symbols, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> watchFundingRatesForSymbols(Object symbols, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.watchFundingRates(symbols, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.FundingRates::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " transfer() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.TransferEntry::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5366,18 +5366,18 @@ public Object describe()
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " withdraw() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Transaction::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createDepositAddress() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -5393,7 +5393,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5407,11 +5407,11 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchLeverage() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.Leverage::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverages(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5419,7 +5419,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLeverages() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Leverages::new);
 
     }
 
@@ -5435,40 +5435,40 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " addMargin() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginModification::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " reduceMargin() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginModification::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " setMargin() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginModification::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLongShortRatio(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LongShortRatio> fetchLongShortRatio(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5476,11 +5476,11 @@ public Object describe()
             Object timeframe = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLongShortRatio() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.LongShortRatio::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLongShortRatioHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LongShortRatio>> fetchLongShortRatioHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5491,11 +5491,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLongShortRatioHistory() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.LongShortRatio::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginAdjustmentHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.MarginModification>> fetchMarginAdjustmentHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5506,7 +5506,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.MarginModification::new));
 
     }
 
@@ -5533,7 +5533,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OpenInterest>> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5543,11 +5543,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOpenInterestHistory() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OpenInterest::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5555,7 +5555,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOpenInterests() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.OpenInterests::new);
 
     }
 
@@ -7395,51 +7395,51 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginLoan> repayCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " repayCrossMargin is not support yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginLoan::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " repayIsolatedMargin is not support yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginLoan::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginLoan> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " borrowCrossMargin is not support yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginLoan::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " borrowIsolatedMargin is not support yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginLoan::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> borrowMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginLoan> borrowMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7447,11 +7447,11 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginLoan::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> repayMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginLoan> repayMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7459,11 +7459,11 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")) ;
-        });
+        }).thenApply(io.github.ccxt.types.MarginLoan::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7478,11 +7478,11 @@ public Object describe()
                 message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
             }
             throw new NotSupported(Helpers.add(Helpers.add(this.id, " fetchOHLCV() is not supported yet"), message)) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchSpotOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchSpotOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7492,11 +7492,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchSpotOHLCV() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchContractOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchContractOHLCV(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7506,11 +7506,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchContractOHLCV() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCVWs(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCVWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7525,11 +7525,11 @@ public Object describe()
                 message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
             }
             throw new NotSupported(Helpers.add(Helpers.add(this.id, " fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead."), message)) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7539,7 +7539,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOHLCV() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -8842,7 +8842,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadAccounts(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Account>> loadAccounts(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8864,7 +8864,7 @@ public Object describe()
             }
             this.accountsById = this.indexBy(this.accounts, "id");
             return this.accounts;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Account::new));
 
     }
 
@@ -8952,7 +8952,7 @@ public Object describe()
         return this.parseOHLCVs(result, market, timeframe, since, limit);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBorrowInterest(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.BorrowInterest>> fetchBorrowInterest(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8963,11 +8963,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBorrowInterest() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.BorrowInterest::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLedger(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8977,11 +8977,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLedger() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.LedgerEntry::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLedgerEntry(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LedgerEntry> fetchLedgerEntry(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8989,7 +8989,7 @@ public Object describe()
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLedgerEntry() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.LedgerEntry::new);
 
     }
 
@@ -9173,25 +9173,25 @@ public Object describe()
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBalance() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBalanceWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalanceWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBalanceWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
@@ -9200,18 +9200,18 @@ public Object describe()
         throw new NotSupported(Helpers.add(this.id, " parseBalance() is not supported yet")) ;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchBalance() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPartialBalance(Object part, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balance> fetchPartialBalance(Object part, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9219,51 +9219,51 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object balance = (this.fetchBalance(parameters)).join();
             return Helpers.GetValue(balance, part);
-        });
+        }).thenApply(io.github.ccxt.types.Balance::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFreeBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balance> fetchFreeBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("free", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Balance::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchUsedBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balance> fetchUsedBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("used", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Balance::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTotalBalance(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balance> fetchTotalBalance(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("total", parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.types.Balance::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchStatus(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchStatus() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Status::new);
 
     }
 
@@ -9294,7 +9294,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9302,11 +9302,11 @@ public Object describe()
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositWithdrawFees() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.DepositWithdrawFees::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFee> fetchDepositWithdrawFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9318,7 +9318,7 @@ public Object describe()
             }
             Object fees = (this.fetchDepositWithdrawFees(new java.util.ArrayList<Object>(java.util.Arrays.asList(code)), parameters)).join();
             return this.safeValue(fees, code);
-        });
+        }).thenApply(io.github.ccxt.types.DepositWithdrawFee::new);
 
     }
 
@@ -9334,7 +9334,7 @@ public Object describe()
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.CrossBorrowRate> fetchCrossBorrowRate(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9352,11 +9352,11 @@ public Object describe()
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchCrossBorrowRate() could not find the borrow rate for currency code "), code)) ;
             }
             return rate;
-        });
+        }).thenApply(io.github.ccxt.types.CrossBorrowRate::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRate(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9374,7 +9374,7 @@ public Object describe()
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol "), symbol)) ;
             }
             return rate;
-        });
+        }).thenApply(io.github.ccxt.types.IsolatedBorrowRate::new);
 
     }
 
@@ -9614,7 +9614,7 @@ public Object describe()
         return this.safeValue(config, "cost", 1);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchSpotTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchSpotTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9622,11 +9622,11 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchSpotTickers() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchContractTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchContractTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9634,11 +9634,11 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchContractTickers() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Tickers::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBooks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBooks> fetchOrderBooks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9647,7 +9647,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderBooks() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.OrderBooks::new);
 
     }
 
@@ -9674,18 +9674,18 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTwapOrder(String symbol, Object side, Object amount, Object duration, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTwapOrder(String symbol, Object side, Object amount, Object duration, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createTwapOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9693,11 +9693,11 @@ public Object describe()
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createConvertTrade() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Conversion::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertTrade(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Conversion> fetchConvertTrade(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9705,11 +9705,11 @@ public Object describe()
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchConvertTrade() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Conversion::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertTradeHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Conversion>> fetchConvertTradeHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9719,11 +9719,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchConvertTradeHistory() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Conversion::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionMode(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PositionModeInfo> fetchPositionMode(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9731,22 +9731,22 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionMode() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.PositionModeInfo::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchADLRank(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.ADL> fetchADLRank(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchADLRank() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.ADL::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsADLRank(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.ADL>> fetchPositionsADLRank(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9754,11 +9754,11 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsADLRank() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.ADL::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionADLRank(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.ADL> fetchPositionADLRank(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9782,7 +9782,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchPositionsADLRank() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.ADL::new);
 
     }
 
@@ -9854,29 +9854,29 @@ public Object describe()
         return parameters;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createSpotOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createSpotOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createSpotOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createContractOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createContractOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createContractOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelSpotOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelSpotOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9884,11 +9884,11 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelSpotOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelContractOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelContractOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9896,11 +9896,11 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelContractOrder() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Order::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelAllSpotOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllSpotOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9908,11 +9908,11 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllSpotOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelAllContractOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllContractOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9920,7 +9920,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllContractOrders() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
@@ -9935,18 +9935,18 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelOrdersForSymbols(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrdersForSymbols(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrdersForSymbols() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMyLiquidations(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> fetchMyLiquidations(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9956,11 +9956,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMyLiquidations() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> fetchLiquidations(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9969,18 +9969,18 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLiquidations() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Liquidation::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Greeks> fetchGreeks(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchGreeks() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Greeks::new);
 
     }
 
@@ -9996,29 +9996,29 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OptionChain> fetchOptionChain(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOptionChain() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.OptionChain::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOption(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Option> fetchOption(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOption() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Option::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10026,11 +10026,11 @@ public Object describe()
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchConvertQuote() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Conversion::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositsWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10040,11 +10040,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositsWithdrawals() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposits(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10054,11 +10054,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDeposits() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawals(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10068,11 +10068,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchWithdrawals() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositsWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDepositsWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10082,11 +10082,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositsWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawalsWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawalsWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10096,11 +10096,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchWithdrawalsWs() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRateHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10110,11 +10110,11 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchFundingRateHistory() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingRateHistory::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingHistory>> fetchFundingHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10124,7 +10124,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingHistory::new));
 
     }
 
@@ -10134,7 +10134,7 @@ public Object describe()
         throw new NotSupported(Helpers.add(this.id, " parseLastPrice() is not supported yet")) ;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10169,18 +10169,18 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchDepositAddress() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchContractDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchContractDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchContractDepositAddress() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.DepositAddress::new);
 
     }
 
@@ -10555,7 +10555,7 @@ public Object describe()
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LeverageTier>> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10574,7 +10574,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarketLeverageTiers() is not supported yet")) ;
             }
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.LeverageTier::new));
 
     }
 
@@ -11031,7 +11031,7 @@ public Object describe()
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(false, parameters));
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11039,40 +11039,40 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLastPrices() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.LastPrices::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradingFees() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.TradingFees::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFeesWs(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFeesWs(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradingFeesWs() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.TradingFees::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertCurrencies(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Currencies> fetchConvertCurrencies(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchConvertCurrencies() is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Currencies::new);
 
     }
 
@@ -11115,7 +11115,7 @@ public Object describe()
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingRate(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11143,11 +11143,11 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchFundingRate () is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.FundingRate::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingInterval(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingInterval(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11175,11 +11175,11 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchFundingInterval() is not supported yet")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.types.FundingRate::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkOHLCV(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchMarkOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11209,11 +11209,11 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarkOHLCV () is not supported yet")) ;
             }
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchIndexOHLCV(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchIndexOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11243,11 +11243,11 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchIndexOHLCV () is not supported yet")) ;
             }
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPremiumIndexOHLCV(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchPremiumIndexOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11277,7 +11277,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchPremiumIndexOHLCV () is not supported yet")) ;
             }
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
     }
 
@@ -11535,7 +11535,7 @@ public Object describe()
         return results;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchTransactions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11562,7 +11562,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchTransactions () is not supported yet")) ;
             }
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
     }
 
@@ -12563,7 +12563,7 @@ public Object describe()
         return marginModifications;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransfer(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> fetchTransfer(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12571,11 +12571,11 @@ public Object describe()
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTransfer () is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.TransferEntry::new);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransfers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.TransferEntry>> fetchTransfers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12585,7 +12585,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTransfers () is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.TransferEntry::new));
 
     }
 
@@ -12601,7 +12601,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> withdrawWs(String code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdrawWs(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12609,7 +12609,7 @@ public Object describe()
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " withdrawWs () is not supported yet")) ;
-        });
+        }).thenApply(io.github.ccxt.types.Transaction::new);
 
     }
 
@@ -12625,7 +12625,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrdersByStatusWs(Object status, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrdersByStatusWs(Object status, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12635,7 +12635,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrdersByStatusWs () is not supported yet")) ;
-        });
+        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
