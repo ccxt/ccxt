@@ -12546,12 +12546,9 @@ final Object finalMarket = market;
         }
         if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
         {
-            String brokerId = this.safeString(this.options, "brokerId");
-            if (Helpers.isTrue(!Helpers.isEqual(brokerId, null)))
-            {
-                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new HashMap<String, Object>() {{}} : headers;
-                Helpers.addElementToObject(headers, "Referer", brokerId);
-            }
+            String brokerId = this.safeString(this.options, "brokerId", "CCXT");
+            headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new HashMap<String, Object>() {{}} : headers;
+            Helpers.addElementToObject(headers, "Referer", brokerId);
         }
         final Object finalUrl = url;
         final Object finalMethod = method;
