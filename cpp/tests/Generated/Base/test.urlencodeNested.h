@@ -14,7 +14,7 @@ void testUrlencodeNested() {
   });
   // todo: add nulls
   // todo: add key sort (for different langs)
-  std::any dict2 = ccxt::dict{
+  ccxt::any dict2 = ccxt::dict{
       {std::string("b"),
        ccxt::dict{
            {std::string("c"), 2},
@@ -22,11 +22,11 @@ void testUrlencodeNested() {
        }},
       {std::string("d"), ccxt::list{1, 2}},
   };
-  std::any expected2a = std::string("b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2");
-  std::any expected2c = std::string("b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2");
-  std::any expected2b = std::string("d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26");
-  std::any expected2d = std::string("d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2");
-  std::any result2 = exchange.urlencodeNested(dict2);
+  ccxt::any expected2a = std::string("b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2");
+  ccxt::any expected2c = std::string("b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2");
+  ccxt::any expected2b = std::string("d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26");
+  ccxt::any expected2d = std::string("d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2");
+  ccxt::any result2 = exchange.urlencodeNested(dict2);
   assertTrue(
       isTrue(isTrue(isTrue(isEqual(result2, expected2a)) ||
                     isTrue(isEqual(result2, expected2b))) ||

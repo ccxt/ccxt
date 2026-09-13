@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bithumb(std::any config) {
+std::shared_ptr<ExchangeBase> create_bithumb(ccxt::any config) {
   return newExchange<bithumb>(config);
 }
 

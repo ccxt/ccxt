@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitmex(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitmex(ccxt::any config) {
   return newExchange<bitmex>(config);
 }
 

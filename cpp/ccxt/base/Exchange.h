@@ -29,7 +29,7 @@ public:
     // descriptor for every derived exchange (no id, no api block, no exceptions).
     // Construction is therefore two-phase; use ccxt::newExchange<T>() rather than
     // calling this and forgetting init().
-    explicit Exchange (std::any config) : pendingConfig (config) {
+    explicit Exchange (ccxt::any config) : pendingConfig (config) {
         // Applied here so a plain `ccxt::Exchange(config)` -- which the base tests
         // construct directly, and where Exchange IS the most-derived type -- is usable
         // straight away. For a DERIVED exchange this only ever runs the base
@@ -37,7 +37,7 @@ public:
         this->initialiseDefaults (config);
     }
 
-    std::any pendingConfig;
+    ccxt::any pendingConfig;
 
     // Re-applies describe() now that the object is fully constructed, so the virtual
     // call reaches the most-derived override. Idempotent: an exchange's describe()
@@ -47,39 +47,39 @@ public:
 
     // Applies describe() and then the caller's overrides, mirroring what the TS
     // constructor does above the transpile delimiter.
-    void initialiseDefaults (const std::any& config) {
+    void initialiseDefaults (const ccxt::any& config) {
         // TS constructor scalar defaults (ts/src/base/Exchange.ts:560-640) that gate
         // behaviour in transpiled code paths. substituteCommonCurrencyCodes gates the
         // XBT->BTC style mapping; reduceFees gates fee aggregation in safeTrade/safeOrder;
         // quoteJsonNumbers mirrors the TS default even though the C++ parser handles
         // precision separately.
-        this->substituteCommonCurrencyCodes = std::any (true);
-        this->reduceFees = std::any (true);
-        this->quoteJsonNumbers = std::any (true);
-        this->minFundingAddressLength = std::any (1);
+        this->substituteCommonCurrencyCodes = ccxt::any (true);
+        this->reduceFees = ccxt::any (true);
+        this->quoteJsonNumbers = ccxt::any (true);
+        this->minFundingAddressLength = ccxt::any (1);
         // ws accumulator caches seed to empty dicts (TS constructor, Exchange.ts:578-589):
-        // watch handlers setValue into them directly, and a set into an empty std::any
+        // watch handlers setValue into them directly, and a set into an empty ccxt::any
         // is a silent no-op, which dropped every ticker/trade/ohlcv/book update
-        this->balance = std::any (ccxt::dict {});
-        this->bidsasks = std::any (ccxt::dict {});
-        this->orderbooks = std::any (ccxt::dict {});
-        this->tickers = std::any (ccxt::dict {});
-        this->trades = std::any (ccxt::dict {});
-        this->ohlcvs = std::any (ccxt::dict {});
+        this->balance = ccxt::any (ccxt::dict {});
+        this->bidsasks = ccxt::any (ccxt::dict {});
+        this->orderbooks = ccxt::any (ccxt::dict {});
+        this->tickers = ccxt::any (ccxt::dict {});
+        this->trades = ccxt::any (ccxt::dict {});
+        this->ohlcvs = ccxt::any (ccxt::dict {});
         // TS seeds options from getDefaultOptions() before describe() merges over it
         // (ts/src/base/Exchange.ts:557). These are not cosmetic defaults:
         // defaultNetworkCodeReplacements lives there, and without it
         // prioritizedNetworkAliases() finds nothing and networkIdToCode() hands back the
         // raw alias -- binance reported the ETH chain as ERC20 instead of ETH.
         this->options = this->getDefaultOptions ();
-        const std::any described = this->describe ();
+        const ccxt::any described = this->describe ();
         if (isDict (described)) {
-            for (const auto& kv : std::any_cast<dict> (described).entries ()) {
+            for (const auto& kv : ccxt::any_cast<dict> (described).entries ()) {
                 this->assign (kv.first, kv.second);
             }
         }
         if (isDict (config)) {
-            for (const auto& kv : std::any_cast<dict> (config).entries ()) {
+            for (const auto& kv : ccxt::any_cast<dict> (config).entries ()) {
                 this->assign (kv.first, kv.second);
             }
         }
@@ -91,9 +91,9 @@ public:
         this->afterConstruct ();
         // ws tier: options.newUpdates gates watch resolution (TS Exchange.ts:631).
         // Pro describe() blocks can set it; the default is true.
-        this->newUpdates = std::any (true);
+        this->newUpdates = ccxt::any (true);
         if (isDict (this->options)) {
-            const auto& opts = std::any_cast<dict> (this->options);
+            const auto& opts = ccxt::any_cast<dict> (this->options);
             if (opts.has (std::string ("newUpdates"))) {
                 this->newUpdates = opts.get (std::string ("newUpdates"));
             }
@@ -102,7 +102,7 @@ public:
 
     // describe() returns a flat map of settings; route the ones that are real members
     // to their fields and keep the rest reachable through options.
-    void assign (const std::string& key, const std::any& value) {
+    void assign (const std::string& key, const ccxt::any& value) {
         if (key == "id")                 { this->id = value; return; }
         if (key == "name")               { this->name = value; return; }
         if (key == "alias")              { this->alias = value; return; }
@@ -150,9 +150,9 @@ public:
         // (htx account-id, coinbase deposit addresses) try a live prefetch
         if (key == "accounts")           { this->accounts = value; return; }
         if (!isDict (this->options)) {
-            this->options = std::any (dict {});
+            this->options = ccxt::any (dict {});
         }
-        std::any_cast<dict> (this->options).set (key, value);
+        ccxt::any_cast<dict> (this->options).set (key, value);
     }
 
     // Every endpoint in the `api` block becomes an implicit method on the generated
@@ -166,21 +166,21 @@ public:
         if (!isDict (this->endpointRegistry)) {
             this->defineRestApi ();
         }
-        return ::getValue (this->endpointRegistry, std::any (name)).has_value ();
+        return ::getValue (this->endpointRegistry, ccxt::any (name)).has_value ();
     }
-    virtual std::shared_future<std::any> callEndpoint (std::any name, std::any params = std::any {}) {
-        return std::async (std::launch::deferred, [this, name, params] () -> std::any {
+    virtual std::shared_future<ccxt::any> callEndpoint (ccxt::any name, ccxt::any params = ccxt::any {}) {
+        return std::async (std::launch::deferred, [this, name, params] () -> ccxt::any {
             if (!isDict (this->endpointRegistry)) {
                 this->defineRestApi ();
             }
-            const std::any endpoint = ::getValue (this->endpointRegistry, name);
+            const ccxt::any endpoint = ::getValue (this->endpointRegistry, name);
             if (!endpoint.has_value ()) {
                 throw NotSupported (str (this->id) + " has no endpoint " + str (name));
             }
             return awaitValue (this->request (::getValue (endpoint, std::string ("path")),
                                               ::getValue (endpoint, std::string ("api")),
                                               ::getValue (endpoint, std::string ("method")),
-                                              params, std::any {}, std::any {},
+                                              params, ccxt::any {}, ccxt::any {},
                                               ::getValue (endpoint, std::string ("config"))));
         }).share ();
     }
@@ -189,46 +189,46 @@ public:
     // describe().api tree. TS attaches a closure per endpoint in defineRestApi(); C++
     // cannot add members at runtime, so the same walk fills a lookup table that
     // callEndpoint() reads instead.
-    std::any endpointRegistry;
+    ccxt::any endpointRegistry;
 
     void defineRestApi () {
-        this->endpointRegistry = std::any (dict {});
+        this->endpointRegistry = ccxt::any (dict {});
         this->defineRestApiTree (this->api, list {});
     }
 
-    void defineRestApiTree (const std::any& node, const list& paths) {
+    void defineRestApiTree (const ccxt::any& node, const list& paths) {
         if (!isDict (node)) {
             return;
         }
-        const dict branch = std::any_cast<dict> (node);
+        const dict branch = ccxt::any_cast<dict> (node);
         for (const auto& kv : branch.entries ()) {
             const std::string key = kv.first;
-            const std::string lower = str (toLowerCase (std::any (key)));
+            const std::string lower = str (toLowerCase (ccxt::any (key)));
             const bool isHttpVerb = (lower == "get") || (lower == "post") || (lower == "put")
                 || (lower == "delete") || (lower == "head") || (lower == "patch");
             if (isList (kv.second)) {
                 // the array form lists bare paths under an http verb
-                for (const auto& item : std::any_cast<list> (kv.second).items ()) {
-                    this->defineRestApiEndpoint (paths, lower, str (trim (item)), std::any (dict {}));
+                for (const auto& item : ccxt::any_cast<list> (kv.second).items ()) {
+                    this->defineRestApiEndpoint (paths, lower, str (trim (item)), ccxt::any (dict {}));
                 }
             } else if (isHttpVerb && isDict (kv.second)) {
-                for (const auto& endpoint : std::any_cast<dict> (kv.second).entries ()) {
+                for (const auto& endpoint : ccxt::any_cast<dict> (kv.second).entries ()) {
                     // the leaf is either a cost number or a per-endpoint config object
-                    const std::any config = isDict (endpoint.second)
+                    const ccxt::any config = isDict (endpoint.second)
                         ? endpoint.second
-                        : std::any (dict { { std::string ("cost"), endpoint.second } });
+                        : ccxt::any (dict { { std::string ("cost"), endpoint.second } });
                     this->defineRestApiEndpoint (paths, lower, endpoint.first, config);
                 }
             } else {
                 list deeper (paths.items ());
-                deeper.push (std::any (key));
+                deeper.push (ccxt::any (key));
                 this->defineRestApiTree (kv.second, deeper);
             }
         }
     }
 
     void defineRestApiEndpoint (const list& paths, const std::string& httpMethod,
-                                const std::string& path, const std::any& config) {
+                                const std::string& path, const ccxt::any& config) {
         // suffix: the path split on every non-alphanumeric run, each part capitalised
         std::string suffix;
         std::string part;
@@ -237,27 +237,27 @@ public:
             if (alnum) {
                 part += c;
             } else {
-                suffix += str (this->capitalize (std::any (part)));
+                suffix += str (this->capitalize (ccxt::any (part)));
                 part.clear ();
             }
         }
-        suffix += str (this->capitalize (std::any (part)));
+        suffix += str (this->capitalize (ccxt::any (part)));
         // prefix: the api tier(s) this endpoint sits under, first one lower-cased
         std::string prefix;
-        const std::vector<std::any>& tiers = paths.items ();
+        const std::vector<ccxt::any>& tiers = paths.items ();
         for (std::size_t i = 0; i < tiers.size (); i++) {
             prefix += (i == 0) ? str (tiers[i]) : str (this->capitalize (tiers[i]));
         }
-        const std::string name = prefix + str (this->capitalize (std::any (httpMethod)))
-            + str (this->capitalize (std::any (suffix)));
+        const std::string name = prefix + str (this->capitalize (ccxt::any (httpMethod)))
+            + str (this->capitalize (ccxt::any (suffix)));
         // TS passes the whole tier list when nested, otherwise the single tier name
-        const std::any apiArgument = (tiers.size () > 1)
-            ? std::any (paths)
-            : (tiers.empty () ? std::any (std::string ("public")) : tiers[0]);
-        std::any_cast<dict> (this->endpointRegistry).set (name, std::any (dict {
-            { std::string ("path"),   std::any (path) },
+        const ccxt::any apiArgument = (tiers.size () > 1)
+            ? ccxt::any (paths)
+            : (tiers.empty () ? ccxt::any (std::string ("public")) : tiers[0]);
+        ccxt::any_cast<dict> (this->endpointRegistry).set (name, ccxt::any (dict {
+            { std::string ("path"),   ccxt::any (path) },
             { std::string ("api"),    apiArgument },
-            { std::string ("method"), toUpperCase (std::any (httpMethod)) },
+            { std::string ("method"), toUpperCase (ccxt::any (httpMethod)) },
             { std::string ("config"), config },
         }));
     }
@@ -276,7 +276,7 @@ public:
 //     auto exchange = ccxt::newExchange<ccxt::binance> ();
 //
 template <class T>
-std::shared_ptr<T> newExchange (std::any config = std::any {}) {
+std::shared_ptr<T> newExchange (ccxt::any config = ccxt::any {}) {
     auto exchange = std::make_shared<T> (config);
     exchange->init ();
     return exchange;

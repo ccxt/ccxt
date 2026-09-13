@@ -16,295 +16,295 @@ namespace prediction {
 class limitlessApi : public PredictionExchange {
 public:
     limitlessApi () = default;
-    explicit limitlessApi (std::any config) : PredictionExchange (config) {}
+    explicit limitlessApi (ccxt::any config) : PredictionExchange (config) {}
 
     // Calls the limitlessPublicGetMarketsActive endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsActive (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsActive (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsActive"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsActiveCategoryId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsActiveCategoryId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsActiveCategoryId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsActiveCategoryId"), parameters);
     }
 
     // Calls the limitlessPublicGetCategories endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> limitlessPublicGetCategories (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetCategories (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetCategories"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsAddressOrSlug endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsAddressOrSlug (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsAddressOrSlug (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsAddressOrSlug"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsCategoriesCount endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsCategoriesCount (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsCategoriesCount (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsCategoriesCount"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsActiveSlugs endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsActiveSlugs (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsActiveSlugs (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsActiveSlugs"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsSearch endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsSearch (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsSearch (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsSearch"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsSlugOrderbook endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsSlugOrderbook (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsSlugOrderbook (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsSlugOrderbook"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsSlugHistoricalPrice endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsSlugHistoricalPrice (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsSlugHistoricalPrice (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsSlugHistoricalPrice"), parameters);
     }
 
     // Calls the limitlessPublicGetAuthSigningMessage endpoint. Returns a JSON scalar.
-    virtual std::shared_future<std::any> limitlessPublicGetAuthSigningMessage (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetAuthSigningMessage (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetAuthSigningMessage"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsAddressOrSlugOracleCandles endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsAddressOrSlugOracleCandles (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsAddressOrSlugOracleCandles (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsAddressOrSlugOracleCandles"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsSlugGetFeedEvents endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsSlugGetFeedEvents (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsSlugGetFeedEvents (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsSlugGetFeedEvents"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsSlugEvents endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsSlugEvents (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsSlugEvents (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsSlugEvents"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsTimeline endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsTimeline (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsTimeline (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsTimeline"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketsSlugTimeline endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketsSlugTimeline (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketsSlugTimeline (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketsSlugTimeline"), parameters);
     }
 
     // Calls the limitlessPublicGetNavigation endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> limitlessPublicGetNavigation (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetNavigation (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetNavigation"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketPagesByPath endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketPagesByPath (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketPagesByPath (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketPagesByPath"), parameters);
     }
 
     // Calls the limitlessPublicGetMarketPagesIdMarkets endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetMarketPagesIdMarkets (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetMarketPagesIdMarkets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetMarketPagesIdMarkets"), parameters);
     }
 
     // Calls the limitlessPublicGetPropertyKeys endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> limitlessPublicGetPropertyKeys (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetPropertyKeys (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetPropertyKeys"), parameters);
     }
 
     // Calls the limitlessPublicGetPropertyKeysId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetPropertyKeysId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetPropertyKeysId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetPropertyKeysId"), parameters);
     }
 
     // Calls the limitlessPublicGetPropertyKeysIdOptions endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> limitlessPublicGetPropertyKeysIdOptions (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetPropertyKeysIdOptions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetPropertyKeysIdOptions"), parameters);
     }
 
     // Calls the limitlessPublicGetPortfolioAccountTradedVolume endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetPortfolioAccountTradedVolume (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetPortfolioAccountTradedVolume (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetPortfolioAccountTradedVolume"), parameters);
     }
 
     // Calls the limitlessPublicGetPortfolioAccountPositions endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetPortfolioAccountPositions (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetPortfolioAccountPositions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetPortfolioAccountPositions"), parameters);
     }
 
     // Calls the limitlessPublicGetPortfolioAccountPnlChart endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPublicGetPortfolioAccountPnlChart (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPublicGetPortfolioAccountPnlChart (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPublicGetPortfolioAccountPnlChart"), parameters);
     }
 
     // Calls the limitlessPrivateGetAuthApiKeys endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetAuthApiKeys (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetAuthApiKeys (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetAuthApiKeys"), parameters);
     }
 
     // Calls the limitlessPrivateGetProfilesPartnerAccounts endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetProfilesPartnerAccounts (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetProfilesPartnerAccounts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetProfilesPartnerAccounts"), parameters);
     }
 
     // Calls the limitlessPrivateGetMarketsSlugUserOrders endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> limitlessPrivateGetMarketsSlugUserOrders (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetMarketsSlugUserOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetMarketsSlugUserOrders"), parameters);
     }
 
     // Calls the limitlessPrivateGetPortfolioPositions endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetPortfolioPositions (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetPortfolioPositions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetPortfolioPositions"), parameters);
     }
 
     // Calls the limitlessPrivateGetPortfolioTrades endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetPortfolioTrades (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetPortfolioTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetPortfolioTrades"), parameters);
     }
 
     // Calls the limitlessPrivateGetMarketsSlugLockedBalance endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetMarketsSlugLockedBalance (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetMarketsSlugLockedBalance (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetMarketsSlugLockedBalance"), parameters);
     }
 
     // Calls the limitlessPrivateGetProfilesMe endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetProfilesMe (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetProfilesMe (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetProfilesMe"), parameters);
     }
 
     // Calls the limitlessPrivateGetProfilesAccount endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetProfilesAccount (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetProfilesAccount (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetProfilesAccount"), parameters);
     }
 
     // Calls the limitlessPrivateGetPortfolioPnlChart endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetPortfolioPnlChart (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetPortfolioPnlChart (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetPortfolioPnlChart"), parameters);
     }
 
     // Calls the limitlessPrivateGetPortfolioHistory endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetPortfolioHistory (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetPortfolioHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetPortfolioHistory"), parameters);
     }
 
     // Calls the limitlessPrivateGetPortfolioPoints endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetPortfolioPoints (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetPortfolioPoints (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetPortfolioPoints"), parameters);
     }
 
     // Calls the limitlessPrivateGetPortfolioTradingAllowance endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetPortfolioTradingAllowance (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetPortfolioTradingAllowance (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetPortfolioTradingAllowance"), parameters);
     }
 
     // Calls the limitlessPrivateGetAuthApiTokensCapabilities endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetAuthApiTokensCapabilities (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetAuthApiTokensCapabilities (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetAuthApiTokensCapabilities"), parameters);
     }
 
     // Calls the limitlessPrivateGetAuthApiTokens endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> limitlessPrivateGetAuthApiTokens (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetAuthApiTokens (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetAuthApiTokens"), parameters);
     }
 
     // Calls the limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances"), parameters);
     }
 
     // Calls the limitlessPrivatePostAuthLogout endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostAuthLogout (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostAuthLogout (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostAuthLogout"), parameters);
     }
 
     // Calls the limitlessPrivatePostAuthApiKeys endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostAuthApiKeys (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostAuthApiKeys (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostAuthApiKeys"), parameters);
     }
 
     // Calls the limitlessPrivatePostAuthLogin endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostAuthLogin (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostAuthLogin (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostAuthLogin"), parameters);
     }
 
     // Calls the limitlessPrivatePostOrders endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostOrders (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostOrders"), parameters);
     }
 
     // Calls the limitlessPrivatePostOrdersCancel endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostOrdersCancel (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostOrdersCancel (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostOrdersCancel"), parameters);
     }
 
     // Calls the limitlessPrivatePostOrdersCancelBatch endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostOrdersCancelBatch (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostOrdersCancelBatch (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostOrdersCancelBatch"), parameters);
     }
 
     // Calls the limitlessPrivatePostOrdersBatchCancel endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostOrdersBatchCancel (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostOrdersBatchCancel (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostOrdersBatchCancel"), parameters);
     }
 
     // Calls the limitlessPrivatePostOrdersStatusBatch endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostOrdersStatusBatch (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostOrdersStatusBatch (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostOrdersStatusBatch"), parameters);
     }
 
     // Calls the limitlessPrivatePostPortfolioRedeem endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostPortfolioRedeem (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostPortfolioRedeem (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostPortfolioRedeem"), parameters);
     }
 
     // Calls the limitlessPrivatePostPortfolioWithdraw endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostPortfolioWithdraw (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostPortfolioWithdraw (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostPortfolioWithdraw"), parameters);
     }
 
     // Calls the limitlessPrivatePostPortfolioWithdrawalAddresses endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostPortfolioWithdrawalAddresses (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostPortfolioWithdrawalAddresses (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostPortfolioWithdrawalAddresses"), parameters);
     }
 
     // Calls the limitlessPrivatePostAuthApiTokensDerive endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostAuthApiTokensDerive (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostAuthApiTokensDerive (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostAuthApiTokensDerive"), parameters);
     }
 
     // Calls the limitlessPrivatePostProfilesPartnerAccounts endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostProfilesPartnerAccounts (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostProfilesPartnerAccounts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostProfilesPartnerAccounts"), parameters);
     }
 
     // Calls the limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry"), parameters);
     }
 
     // Calls the limitlessPrivateDeleteAuthApiKeys endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateDeleteAuthApiKeys (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateDeleteAuthApiKeys (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateDeleteAuthApiKeys"), parameters);
     }
 
     // Calls the limitlessPrivateDeleteOrdersOrderId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateDeleteOrdersOrderId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateDeleteOrdersOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateDeleteOrdersOrderId"), parameters);
     }
 
     // Calls the limitlessPrivateDeleteOrdersAllSlug endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateDeleteOrdersAllSlug (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateDeleteOrdersAllSlug (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateDeleteOrdersAllSlug"), parameters);
     }
 
     // Calls the limitlessPrivateDeleteAuthApiTokensTokenId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateDeleteAuthApiTokensTokenId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateDeleteAuthApiTokensTokenId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateDeleteAuthApiTokensTokenId"), parameters);
     }
 
     // Calls the limitlessPrivateDeletePortfolioWithdrawalAddressesAddress endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("limitlessPrivateDeletePortfolioWithdrawalAddressesAddress"), parameters);
     }
 

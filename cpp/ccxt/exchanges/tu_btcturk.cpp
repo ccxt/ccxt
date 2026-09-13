@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_btcturk(std::any config) {
+std::shared_ptr<ExchangeBase> create_btcturk(ccxt::any config) {
   return newExchange<btcturk>(config);
 }
 

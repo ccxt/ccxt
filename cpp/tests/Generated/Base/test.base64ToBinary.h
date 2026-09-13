@@ -14,47 +14,48 @@ void testBase64ToBinary() {
   });
   // @SKIP_START_GO
   // Test 1: Simple base64
-  std::any b64_1 = std::string("aGVsbG8="); // hello
-  std::any binary1 = exchange.base64ToBinary(b64_1);
+  ccxt::any b64_1 = std::string("aGVsbG8="); // hello
+  ccxt::any binary1 = exchange.base64ToBinary(b64_1);
   assertTrue(isEqual(exchange.binaryToBase64(binary1), b64_1));
   // Test 2: Binary with space in original
-  std::any b64_2 = std::string("aGVsbG8gd29ybGQ="); // hello world
-  std::any binary2 = exchange.base64ToBinary(b64_2);
+  ccxt::any b64_2 = std::string("aGVsbG8gd29ybGQ="); // hello world
+  ccxt::any binary2 = exchange.base64ToBinary(b64_2);
   assertTrue(isEqual(exchange.binaryToBase64(binary2), b64_2));
   // Test 3: Short binary
-  std::any b64_3 = std::string("dGVzdA=="); // test
-  std::any binary3 = exchange.base64ToBinary(b64_3);
+  ccxt::any b64_3 = std::string("dGVzdA=="); // test
+  ccxt::any binary3 = exchange.base64ToBinary(b64_3);
   assertTrue(isEqual(exchange.binaryToBase64(binary3), b64_3));
   // Test 4: Empty binary
-  std::any b64_4 = std::string("");
-  std::any binary4 = exchange.base64ToBinary(b64_4);
+  ccxt::any b64_4 = std::string("");
+  ccxt::any binary4 = exchange.base64ToBinary(b64_4);
   assertTrue(isEqual(exchange.binaryToBase64(binary4), b64_4));
   // Test 5: Single byte
-  std::any b64_5 = std::string("YQ=="); // a
-  std::any binary5 = exchange.base64ToBinary(b64_5);
+  ccxt::any b64_5 = std::string("YQ=="); // a
+  ccxt::any binary5 = exchange.base64ToBinary(b64_5);
   assertTrue(isEqual(exchange.binaryToBase64(binary5), b64_5));
   // Test 6: Two bytes
-  std::any b64_6 = std::string("YWI="); // ab
-  std::any binary6 = exchange.base64ToBinary(b64_6);
+  ccxt::any b64_6 = std::string("YWI="); // ab
+  ccxt::any binary6 = exchange.base64ToBinary(b64_6);
   assertTrue(isEqual(exchange.binaryToBase64(binary6), b64_6));
   // Test 7: Three bytes (no padding)
-  std::any b64_7 = std::string("YWJj"); // abc
-  std::any binary7 = exchange.base64ToBinary(b64_7);
+  ccxt::any b64_7 = std::string("YWJj"); // abc
+  ccxt::any binary7 = exchange.base64ToBinary(b64_7);
   assertTrue(isEqual(exchange.binaryToBase64(binary7), b64_7));
   // Test 8: JSON-like binary
-  std::any b64_8 = std::string("eyJrZXkiOiJ2YWx1ZSJ9"); // {"key":"value"}
-  std::any binary8 = exchange.base64ToBinary(b64_8);
+  ccxt::any b64_8 = std::string("eyJrZXkiOiJ2YWx1ZSJ9"); // {"key":"value"}
+  ccxt::any binary8 = exchange.base64ToBinary(b64_8);
   assertTrue(isEqual(exchange.binaryToBase64(binary8), b64_8));
   // Test 9: Numbers as binary
-  std::any b64_9 = std::string("MTIzNDU2"); // 123456
-  std::any binary9 = exchange.base64ToBinary(b64_9);
+  ccxt::any b64_9 = std::string("MTIzNDU2"); // 123456
+  ccxt::any binary9 = exchange.base64ToBinary(b64_9);
   assertTrue(isEqual(exchange.binaryToBase64(binary9), b64_9));
   // Test 10: Special characters
-  std::any b64_10 = std::string("aGVsbG8rd29ybGQvdGVzdA=="); // hello+world/test
-  std::any binary10 = exchange.base64ToBinary(b64_10);
+  ccxt::any b64_10 =
+      std::string("aGVsbG8rd29ybGQvdGVzdA=="); // hello+world/test
+  ccxt::any binary10 = exchange.base64ToBinary(b64_10);
   assertTrue(isEqual(exchange.binaryToBase64(binary10), b64_10));
   // @SKIP_END_GO
-  assertTrue(
-      isEqual(exchange.safeString(std::any{}, std::string("key")), std::any{}),
-      std::string("GO_WORKAROUND"));
+  assertTrue(isEqual(exchange.safeString(ccxt::any{}, std::string("key")),
+                     ccxt::any{}),
+             std::string("GO_WORKAROUND"));
 }

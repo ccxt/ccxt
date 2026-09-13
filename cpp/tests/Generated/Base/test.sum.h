@@ -14,8 +14,8 @@ void testSum() {
   });
   // assertDeepEqual (exchange, undefined, 'testSum', exchange.sum (),
   // undefined); // todo: bugs in py
-  assertDeepEqual(exchange, std::any{}, std::string("testSum"), exchange.sum(2),
-                  2);
-  assertDeepEqual(exchange, std::any{}, std::string("testSum"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testSum"),
+                  exchange.sum(2), 2);
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testSum"),
                   exchange.sum(2, 30, 400), 432);
 }

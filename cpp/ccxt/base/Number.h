@@ -21,15 +21,15 @@ namespace ccxt {
 
 // JS Number#toString: the shortest representation that round-trips, with any
 // scientific notation expanded so an amount never reaches an exchange as "7.8e-7".
-std::string numberToText (const std::any& value);
+std::string numberToText (const ccxt::any& value);
 
 // TS truncate_to_string: cut to `precision` decimals without rounding.
-std::string truncateToString (const std::any& value, int precision);
+std::string truncateToString (const ccxt::any& value, int precision);
 
 int precisionFromText (const std::string& value);
 
-std::string decimalToPrecisionText (const std::any& x, int roundingMode,
-                                    const std::any& numPrecisionDigits,
+std::string decimalToPrecisionText (const ccxt::any& x, int roundingMode,
+                                    const ccxt::any& numPrecisionDigits,
                                     int countingMode, int paddingMode);
 
 } // namespace ccxt

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_blockchaincom(std::any config) {
+std::shared_ptr<ExchangeBase> create_blockchaincom(ccxt::any config) {
   return newExchange<blockchaincom>(config);
 }
 

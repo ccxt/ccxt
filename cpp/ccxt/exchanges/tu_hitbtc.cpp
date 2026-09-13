@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_hitbtc(std::any config) {
+std::shared_ptr<ExchangeBase> create_hitbtc(ccxt::any config) {
   return newExchange<hitbtc>(config);
 }
 

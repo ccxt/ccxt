@@ -12,12 +12,12 @@ namespace ws {
 void WsOrderBook::refreshDatetime () {
     Impl& s = *this->impl;
     if (!isNum (s.timestamp)) {
-        s.datetime = std::any {};
+        s.datetime = ccxt::any {};
         return;
     }
     const long long ms = toLong (s.timestamp);
     if (ms < 0 || ms > 8640000000000000LL) {
-        s.datetime = std::any {};
+        s.datetime = ccxt::any {};
         return;
     }
     const std::time_t whole = static_cast<std::time_t> (ms / 1000);
@@ -27,7 +27,7 @@ void WsOrderBook::refreshDatetime () {
     std::snprintf (buffer, sizeof (buffer), "%04d-%02d-%02dT%02d:%02d:%02d.%03lldZ",
                    utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday,
                    utc.tm_hour, utc.tm_min, utc.tm_sec, ms % 1000);
-    s.datetime = std::any (std::string (buffer));
+    s.datetime = ccxt::any (std::string (buffer));
 }
 
 } // namespace ws

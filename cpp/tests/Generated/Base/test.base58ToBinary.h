@@ -15,34 +15,34 @@ void testBase58ToBinary() {
   // todo: can be implemented stringToBinary in future
   // @SKIP_START_GO
   // Test 1: Simple base58
-  std::any b58_1 = std::string("Cn8eVZg"); // hello
-  std::any binary1 = exchange.base58ToBinary(b58_1);
+  ccxt::any b58_1 = std::string("Cn8eVZg"); // hello
+  ccxt::any binary1 = exchange.base58ToBinary(b58_1);
   assertTrue(isEqual(exchange.binaryToBase58(binary1), b58_1));
   // Test 2: String with space in original
-  std::any b58_2 = std::string("StV1DL6CwTryKyV"); // hello world
-  std::any binary2 = exchange.base58ToBinary(b58_2);
+  ccxt::any b58_2 = std::string("StV1DL6CwTryKyV"); // hello world
+  ccxt::any binary2 = exchange.base58ToBinary(b58_2);
   assertTrue(isEqual(exchange.binaryToBase58(binary2), b58_2));
   // Test 3: Short string
-  std::any b58_3 = std::string("3yZe7d"); // test
-  std::any binary3 = exchange.base58ToBinary(b58_3);
+  ccxt::any b58_3 = std::string("3yZe7d"); // test
+  ccxt::any binary3 = exchange.base58ToBinary(b58_3);
   assertTrue(isEqual(exchange.binaryToBase58(binary3), b58_3));
   // Test 4: Single byte
-  std::any b58_4 = std::string("2g"); // a
-  std::any binary4 = exchange.base58ToBinary(b58_4);
+  ccxt::any b58_4 = std::string("2g"); // a
+  ccxt::any binary4 = exchange.base58ToBinary(b58_4);
   assertTrue(isEqual(exchange.binaryToBase58(binary4), b58_4));
   // Test 5: Two bytes
-  std::any b58_5 = std::string("8Qq"); // ab
-  std::any binary5 = exchange.base58ToBinary(b58_5);
+  ccxt::any b58_5 = std::string("8Qq"); // ab
+  ccxt::any binary5 = exchange.base58ToBinary(b58_5);
   assertTrue(isEqual(exchange.binaryToBase58(binary5), b58_5));
   // Test 6: Three bytes
-  std::any b58_6 = std::string("ZiCa"); // abc
-  std::any binary6 = exchange.base58ToBinary(b58_6);
+  ccxt::any b58_6 = std::string("ZiCa"); // abc
+  ccxt::any binary6 = exchange.base58ToBinary(b58_6);
   assertTrue(isEqual(exchange.binaryToBase58(binary6), b58_6));
   // Test 7: JSON-like binary
-  std::any b58_7 = std::string("4SoiMiEYtTt5tPdi81Fik"); // {"key":"value"}
-  std::any binary7 = exchange.base58ToBinary(b58_7);
+  ccxt::any b58_7 = std::string("4SoiMiEYtTt5tPdi81Fik"); // {"key":"value"}
+  ccxt::any binary7 = exchange.base58ToBinary(b58_7);
   assertTrue(isEqual(exchange.binaryToBase58(binary7), b58_7));
   // @SKIP_END_GO
-  assertTrue(isEqual(exchange.parseNumber(std::any{}), std::any{}),
+  assertTrue(isEqual(exchange.parseNumber(ccxt::any{}), ccxt::any{}),
              std::string("GO skip trick"));
 }

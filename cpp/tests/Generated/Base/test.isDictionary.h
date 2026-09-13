@@ -23,7 +23,7 @@ void testIsDictionary() {
   // null check matters, see https://github.com/ccxt/ccxt/pull/29704
   assertTrue(isEqual(exchange.isDictionary(null), false));
   // undefined is not a dict
-  assertTrue(isEqual(exchange.isDictionary(std::any{}), false));
+  assertTrue(isEqual(exchange.isDictionary(ccxt::any{}), false));
   // scalars are not dicts
   assertTrue(isEqual(exchange.isDictionary(std::string("str")), false));
   assertTrue(isEqual(exchange.isDictionary(5), false));

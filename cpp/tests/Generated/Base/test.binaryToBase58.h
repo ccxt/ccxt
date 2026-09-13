@@ -6,40 +6,40 @@
 #include "../../BaseTest.Bridge.h"
 
 // forward declarations - TS hoists function declarations, C++ does not
-std::any helperStrToBinary5(std::any exchange, std::any str);
+ccxt::any helperStrToBinary5(ccxt::any exchange, ccxt::any str);
 void testBinaryToBase58();
 
-std::any helperStrToBinary5(std::any exchange, std::any str) {
+ccxt::any helperStrToBinary5(ccxt::any exchange, ccxt::any str) {
   return exchange.base64ToBinary(exchange.stringToBase64(str));
 }
 void testBinaryToBase58() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  assertTrue(isEqual(exchange.parseNumber(std::any{}), std::any{}),
+  assertTrue(isEqual(exchange.parseNumber(ccxt::any{}), ccxt::any{}),
              std::string("GO skip trick"));
   // @SKIP_START_GO
   // Test 1: Simple string
-  std::any binary1 = helperStrToBinary5(exchange, std::string("hello"));
+  ccxt::any binary1 = helperStrToBinary5(exchange, std::string("hello"));
   assertTrue(isEqual(exchange.binaryToBase58(binary1), std::string("Cn8eVZg")));
   // Test 2: String with space
-  std::any binary2 = helperStrToBinary5(exchange, std::string("hello world"));
+  ccxt::any binary2 = helperStrToBinary5(exchange, std::string("hello world"));
   assertTrue(isEqual(exchange.binaryToBase58(binary2),
                      std::string("StV1DL6CwTryKyV")));
   // Test 3: Short string
-  std::any binary3 = helperStrToBinary5(exchange, std::string("test"));
+  ccxt::any binary3 = helperStrToBinary5(exchange, std::string("test"));
   assertTrue(isEqual(exchange.binaryToBase58(binary3), std::string("3yZe7d")));
   // Test 4: Single byte
-  std::any binary4 = helperStrToBinary5(exchange, std::string("a"));
+  ccxt::any binary4 = helperStrToBinary5(exchange, std::string("a"));
   assertTrue(isEqual(exchange.binaryToBase58(binary4), std::string("2g")));
   // Test 5: Two bytes
-  std::any binary5 = helperStrToBinary5(exchange, std::string("ab"));
+  ccxt::any binary5 = helperStrToBinary5(exchange, std::string("ab"));
   assertTrue(isEqual(exchange.binaryToBase58(binary5), std::string("8Qq")));
   // Test 6: Three bytes
-  std::any binary6 = helperStrToBinary5(exchange, std::string("abc"));
+  ccxt::any binary6 = helperStrToBinary5(exchange, std::string("abc"));
   assertTrue(isEqual(exchange.binaryToBase58(binary6), std::string("ZiCa")));
   // Test 7: JSON-like binary
-  std::any binary7 =
+  ccxt::any binary7 =
       helperStrToBinary5(exchange, std::string("{\"key\":\"value\"}"));
   assertTrue(isEqual(exchange.binaryToBase58(binary7),
                      std::string("4SoiMiEYtTt5tPdi81Fik")));

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitbns(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitbns(ccxt::any config) {
   return newExchange<bitbns>(config);
 }
 

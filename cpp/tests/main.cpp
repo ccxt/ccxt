@@ -162,17 +162,17 @@ const std::vector<std::pair<const char*, const char*>> STAGED = {
 // plus logTemplate's getProperty over the exchange any.
 void testAssertDeepEqual () {
     ccxt::testMainClass testClass;
-    const std::any exchange = std::any (std::make_shared<ccxt::ExchangeBase> ());
-    const std::any skipped = ccxt::dict {};
-    const std::any method = std::string ("test");
-    const std::any a = ccxt::dict {{std::string ("x"), 1},
-                                   {std::string ("y"), ccxt::list {2.5, std::any {}}}};
-    const std::any b = ccxt::dict {{std::string ("x"), 1},
-                                   {std::string ("y"), ccxt::list {2.5, std::any {}}}};
+    const ccxt::any exchange = ccxt::any (std::make_shared<ccxt::ExchangeBase> ());
+    const ccxt::any skipped = ccxt::dict {};
+    const ccxt::any method = std::string ("test");
+    const ccxt::any a = ccxt::dict {{std::string ("x"), 1},
+                                   {std::string ("y"), ccxt::list {2.5, ccxt::any {}}}};
+    const ccxt::any b = ccxt::dict {{std::string ("x"), 1},
+                                   {std::string ("y"), ccxt::list {2.5, ccxt::any {}}}};
     testClass.assertDeepEqual (exchange, skipped, method, a, b);
     bool threw = false;
     try {
-        const std::any c = ccxt::dict {{std::string ("x"), 2}};
+        const ccxt::any c = ccxt::dict {{std::string ("x"), 2}};
         testClass.assertDeepEqual (exchange, skipped, method, a, c);
     } catch (...) {
         threw = true;
@@ -245,8 +245,8 @@ int main (int argc, char** argv) {
     }
     // mirror Program.cs InitOptions: the second positional is a symbol when it
     // contains '/', otherwise a method name
-    std::any symbolArgv = std::any {};
-    std::any methodArgv = std::any {};
+    ccxt::any symbolArgv = ccxt::any {};
+    ccxt::any methodArgv = ccxt::any {};
     if (!arg2.empty ()) {
         if (arg2.find ('/') != std::string::npos) {
             symbolArgv = std::string (arg2);

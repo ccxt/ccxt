@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_independentreserve(std::any config) {
+std::shared_ptr<ExchangeBase> create_independentreserve(ccxt::any config) {
   return newExchange<independentreserve>(config);
 }
 

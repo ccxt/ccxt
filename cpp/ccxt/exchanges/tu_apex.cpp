@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_apex(std::any config) {
+std::shared_ptr<ExchangeBase> create_apex(ccxt::any config) {
   return newExchange<apex>(config);
 }
 

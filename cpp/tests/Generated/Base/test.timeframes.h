@@ -14,8 +14,8 @@ void testRoundTimeframe() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any testDate = exchange.parse8601(std::string("2019-08-12 13:22:08"));
-  if (isTrue(isEqual(testDate, std::any{}))) {
+  ccxt::any testDate = exchange.parse8601(std::string("2019-08-12 13:22:08"));
+  if (isTrue(isEqual(testDate, ccxt::any{}))) {
     return;
   }
   assertTrue(

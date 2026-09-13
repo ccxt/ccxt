@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitbank(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitbank(ccxt::any config) {
   return newExchange<bitbank>(config);
 }
 

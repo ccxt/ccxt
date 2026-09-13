@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitopro(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitopro(ccxt::any config) {
   return newExchange<bitopro>(config);
 }
 

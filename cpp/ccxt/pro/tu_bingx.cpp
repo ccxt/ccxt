@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bingx(std::any config) {
+std::shared_ptr<ExchangeBase> create_bingx(ccxt::any config) {
   return newExchange<ccxt::pro::bingx>(config);
 }
 

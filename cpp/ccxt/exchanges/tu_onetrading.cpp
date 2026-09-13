@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_onetrading(std::any config) {
+std::shared_ptr<ExchangeBase> create_onetrading(ccxt::any config) {
   return newExchange<onetrading>(config);
 }
 

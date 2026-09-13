@@ -9,7 +9,7 @@ namespace prediction {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_myriad(std::any config) {
+std::shared_ptr<ExchangeBase> create_myriad(ccxt::any config) {
   return newExchange<ccxt::prediction::myriad>(config);
 }
 

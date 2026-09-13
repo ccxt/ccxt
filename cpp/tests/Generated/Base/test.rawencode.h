@@ -14,14 +14,14 @@ void testRawencode() {
   });
   // todo: add sort
   // todo: add nulls
-  std::any dict2 = ccxt::dict{
+  ccxt::any dict2 = ccxt::dict{
       {std::string("a"), 1},
       {std::string("b"), std::string("+&")},
   };
   // as key-order not preserved, expect mixed orde
-  std::any expected2a = std::string("a=1&b=+&");
-  std::any expected2b = std::string("b=+&&a=1");
-  std::any result2 = exchange.rawencode(dict2);
+  ccxt::any expected2a = std::string("a=1&b=+&");
+  ccxt::any expected2b = std::string("b=+&&a=1");
+  ccxt::any result2 = exchange.rawencode(dict2);
   assertTrue(
       isTrue(isEqual(result2, expected2a)) ||
           isTrue(isEqual(result2, expected2b)),

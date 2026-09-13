@@ -54,7 +54,7 @@ public:
         bool liveConnected = false;
         // live sends need the json TEXT of an outgoing frame: the exchange
         // installs its serializer at connect time
-        std::function<std::string (const std::any&)> serializer;
+        std::function<std::string (const ccxt::any&)> serializer;
         std::string lastLiveError;
         bool wsTestCompleted = false;
         int64_t lastPong = 0;
@@ -75,14 +75,14 @@ public:
         std::lock_guard<std::mutex> lock (impl->mutex);
         Future f;
         if (impl->futures.has (messageHash)) {
-            f = std::any_cast<Future> (impl->futures.get (messageHash));
+            f = ccxt::any_cast<Future> (impl->futures.get (messageHash));
         } else {
             f = Future ();
-            impl->futures.set (messageHash, std::any (f));
+            impl->futures.set (messageHash, ccxt::any (f));
         }
         // deliver a rejection that arrived before the future existed
         if (impl->rejections.has (messageHash)) {
-            std::any reason = impl->rejections.get (messageHash);
+            ccxt::any reason = impl->rejections.get (messageHash);
             impl->rejections.erase (messageHash);
             f.reject (reasonToException (reason));
         }
@@ -95,7 +95,7 @@ public:
     }
 
     // settle the future for a message hash (JS client.resolve)
-    void resolve (const std::any& result, const std::string& messageHash) {
+    void resolve (const ccxt::any& result, const std::string& messageHash) {
         Future f;
         {
             std::lock_guard<std::mutex> lock (impl->mutex);
@@ -107,7 +107,7 @@ public:
             if (!impl->futures.has (messageHash)) {
                 return;
             }
-            f = std::any_cast<Future> (impl->futures.get (messageHash));
+            f = ccxt::any_cast<Future> (impl->futures.get (messageHash));
             impl->futures.erase (messageHash);
         }
         // settle OUTSIDE the impl lock: subscribers can re-enter any Client
@@ -116,7 +116,7 @@ public:
     }
 
     // reject one (or, with empty hash, every) pending future (JS client.reject)
-    void reject (const std::any& reason, const std::string& messageHash = "") {
+    void reject (const ccxt::any& reason, const std::string& messageHash = "") {
         std::vector<Future> toReject;
         {
             std::lock_guard<std::mutex> lock (impl->mutex);
@@ -126,7 +126,7 @@ public:
                     keys.push_back (kv.first);
                 }
                 for (const auto& k : keys) {
-                    toReject.push_back (std::any_cast<Future> (impl->futures.get (k)));
+                    toReject.push_back (ccxt::any_cast<Future> (impl->futures.get (k)));
                     impl->futures.erase (k);
                 }
             } else {
@@ -134,7 +134,7 @@ public:
                     impl->rejections.set (messageHash, reason);
                     return;
                 }
-                toReject.push_back (std::any_cast<Future> (impl->futures.get (messageHash)));
+                toReject.push_back (ccxt::any_cast<Future> (impl->futures.get (messageHash)));
                 impl->futures.erase (messageHash);
             }
         }
@@ -161,14 +161,14 @@ public:
         return impl->subscriptions.has (subscribeHash);
     }
 
-    void setSubscription (const std::string& subscribeHash, const std::any& subscription) {
+    void setSubscription (const std::string& subscribeHash, const ccxt::any& subscription) {
         std::lock_guard<std::mutex> lock (impl->mutex);
         impl->subscriptions.set (subscribeHash, subscription);
     }
 
-    std::any subscription (const std::string& subscribeHash) {
+    ccxt::any subscription (const std::string& subscribeHash) {
         std::lock_guard<std::mutex> lock (impl->mutex);
-        return impl->subscriptions.has (subscribeHash) ? impl->subscriptions.get (subscribeHash) : std::any {};
+        return impl->subscriptions.has (subscribeHash) ? impl->subscriptions.get (subscribeHash) : ccxt::any {};
     }
 
     void deleteSubscription (const std::string& subscribeHash) {
@@ -196,8 +196,8 @@ public:
     // receive thread routes TEXT frames to onMessage (the exchange parses and
     // dispatches them). serialize converts outgoing frames to json text.
     void connect (const std::string& url,
-                  const std::function<void (const std::any&)>& onMessage,
-                  const std::function<std::string (const std::any&)>& serialize) {
+                  const std::function<void (const ccxt::any&)>& onMessage,
+                  const std::function<std::string (const ccxt::any&)>& serialize) {
         std::shared_ptr<Transport> transport;
         {
             std::lock_guard<std::mutex> lock (impl->mutex);
@@ -213,7 +213,7 @@ public:
         transport->connect (
             url,
             [onMessage] (const std::string& text) {
-                onMessage (std::any (text));
+                onMessage (ccxt::any (text));
             },
             [impl = impl] (const std::string& err) {
                 // JS client.reset(error): a socket error must settle EVERY pending
@@ -225,12 +225,12 @@ public:
                     impl->lastLiveError = err;
                     impl->liveConnected = false;
                     for (const auto& kv : impl->futures.entries ()) {
-                        pending.push_back ({ kv.first, std::any_cast<Future> (kv.second) });
+                        pending.push_back ({ kv.first, ccxt::any_cast<Future> (kv.second) });
                     }
                     impl->futures = ccxt::dict {};
                 }
                 for (auto& p : pending) {
-                    p.second.reject (Client::reasonToException (std::any (err)));
+                    p.second.reject (Client::reasonToException (ccxt::any (err)));
                 }
             });
         {
@@ -258,7 +258,7 @@ public:
     // live socket when connected (JS client.send semantics). The socket write
     // happens OUTSIDE the impl mutex: a stalled peer blocks on TCP backpressure
     // and must not freeze resolve/reject/subscription bookkeeping.
-    void send (const std::any& message) {
+    void send (const ccxt::any& message) {
         std::shared_ptr<Transport> transport;
         std::string text;
         {
@@ -296,7 +296,7 @@ public:
         impl->lastPong = ms;
     }
 
-    // live views for getValue/setValue on the generated client.std::any: return
+    // live views for getValue/setValue on the generated client.ccxt::any: return
     // copies (dict/list are reference-semantic handles, so mutations propagate)
     ccxt::dict futuresView () {
         std::lock_guard<std::mutex> lock (impl->mutex);
@@ -319,28 +319,28 @@ public:
     }
 
     // extraction from the any-based world: a client travels through generated
-    // code as a std::any holding a Client handle
-    static Client of (const std::any& v) {
-        return std::any_cast<Client> (v);
+    // code as a ccxt::any holding a Client handle
+    static Client of (const ccxt::any& v) {
+        return ccxt::any_cast<Client> (v);
     }
 
     // converts a rejection reason (any) into a rethrowable exception_ptr; used
     // by the wsFutureReject free helper as well
-    static std::exception_ptr reasonToException (const std::any& reason) {
+    static std::exception_ptr reasonToException (const ccxt::any& reason) {
         if (reason.type () == typeid (std::exception_ptr)) {
-            return std::any_cast<std::exception_ptr> (reason);
+            return ccxt::any_cast<std::exception_ptr> (reason);
         }
         try {
             if (reason.type () == typeid (std::string)) {
-                throw std::runtime_error (std::any_cast<std::string> (reason));
+                throw std::runtime_error (ccxt::any_cast<std::string> (reason));
             }
             if (reason.type () == typeid (std::shared_ptr<ccxt::BaseError>)) {
-                throw *std::any_cast<std::shared_ptr<ccxt::BaseError>> (reason);
+                throw *ccxt::any_cast<std::shared_ptr<ccxt::BaseError>> (reason);
             }
             if (reason.type () == typeid (const std::exception*)) {
                 // a caught-and-stored pointer: rethrow its object so the dynamic
                 // type survives (BaseError/ExchangeError subclasses included)
-                const auto* e = std::any_cast<const std::exception*> (reason);
+                const auto* e = ccxt::any_cast<const std::exception*> (reason);
                 throw *e;
             }
             throw std::runtime_error ("ws future rejected");

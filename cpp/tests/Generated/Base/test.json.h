@@ -13,13 +13,13 @@ void testJson() {
       {std::string("id"), std::string("regirock")},
   });
   // Test: object
-  std::any obj = ccxt::dict{
+  ccxt::any obj = ccxt::dict{
       {std::string("k"), std::string("v")},
   };
-  std::any objJson = exchange.json(obj);
+  ccxt::any objJson = exchange.json(obj);
   assertTrue(isEqual(objJson, std::string("{\"k\":\"v\"}")));
   // Test: list
-  std::any list = ccxt::list{1, 2};
-  std::any listJson = exchange.json(list);
+  ccxt::any list = ccxt::list{1, 2};
+  ccxt::any listJson = exchange.json(list);
   assertTrue(isEqual(listJson, std::string("[1,2]")));
 }

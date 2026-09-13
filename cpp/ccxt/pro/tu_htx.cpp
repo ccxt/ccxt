@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_htx(std::any config) {
+std::shared_ptr<ExchangeBase> create_htx(ccxt::any config) {
   return newExchange<ccxt::pro::htx>(config);
 }
 

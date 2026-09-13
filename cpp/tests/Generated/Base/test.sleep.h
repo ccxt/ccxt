@@ -6,25 +6,25 @@
 #include "../../BaseTest.Bridge.h"
 
 // forward declarations - TS hoists function declarations, C++ does not
-std::shared_future<std::any> testSleep();
+std::shared_future<ccxt::any> testSleep();
 
-std::shared_future<std::any> testSleep() {
+std::shared_future<ccxt::any> testSleep() {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
                    {std::string("id"), std::string("sampleexchange")},
                });
-               std::any start = exchange.milliseconds();
-               std::any sleepAmount = 100; // milliseconds
+               ccxt::any start = exchange.milliseconds();
+               ccxt::any sleepAmount = 100; // milliseconds
                awaitValue(exchange.sleep(sleepAmount));
-               std::any end = exchange.milliseconds();
-               std::any elapsed = subtract(end, start);
+               ccxt::any end = exchange.milliseconds();
+               ccxt::any elapsed = subtract(end, start);
                // Allow a small margin of error due to execution time and timer
                // jitter (some runtimes, e.g. .NET Task.Delay, may return a few
                // ms early)
-               std::any marginOfError = 20;
-               std::any minElapsed = subtract(sleepAmount, marginOfError);
+               ccxt::any marginOfError = 20;
+               ccxt::any minElapsed = subtract(sleepAmount, marginOfError);
                // The ceiling is deliberately far looser than the floor. sleep
                // () promises a MINIMUM delay in every language, never a
                // maximum: the OS is free to reschedule late, so a busy machine
@@ -34,11 +34,11 @@ std::shared_future<std::any> testSleep() {
                // load. Keep a ceiling only to catch a sleep that is genuinely
                // broken — a seconds/milliseconds mix-up, or one that never
                // returns.
-               std::any maxOvershoot = 2000;
-               std::any maxElapsed = add(sleepAmount, maxOvershoot);
-               std::any elapsedBiggerThanSleep =
+               ccxt::any maxOvershoot = 2000;
+               ccxt::any maxElapsed = add(sleepAmount, maxOvershoot);
+               ccxt::any elapsedBiggerThanSleep =
                    isGreaterThanOrEqual(elapsed, minElapsed);
-               std::any elapsedLessThanMax =
+               ccxt::any elapsedLessThanMax =
                    isLessThanOrEqual(elapsed, maxElapsed);
                assertTrue(
                    elapsedBiggerThanSleep,

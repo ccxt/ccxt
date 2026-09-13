@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_foxbit(std::any config) {
+std::shared_ptr<ExchangeBase> create_foxbit(ccxt::any config) {
   return newExchange<foxbit>(config);
 }
 

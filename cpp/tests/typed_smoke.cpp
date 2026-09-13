@@ -1,5 +1,5 @@
 // Typed-layer gate: the user-facing typed API (Types.h structs + Exchange.TypedApi.inc
-// PascalCase methods) over the dynamic std::any core.
+// PascalCase methods) over the dynamic ccxt::any core.
 //
 // Offline by default: struct conversion from canned unified structures and typed calls
 // through an offline binance (parseTicker path). `--live` adds real public HTTP calls
@@ -40,7 +40,7 @@ int main (int argc, char** argv) {
     const bool live = (argc > 1) && (std::string (argv[1]) == "--live");
     try {
         // -- struct conversion from canned unified structures --------------------------
-        const std::any rawTicker = ccxt::dict {
+        const ccxt::any rawTicker = ccxt::dict {
             { std::string ("symbol"),     std::string ("BTC/USDT") },
             { std::string ("timestamp"),  1700003600000LL },
             { std::string ("datetime"),   std::string ("2023-11-14T22:33:20.000Z") },
@@ -61,7 +61,7 @@ int main (int argc, char** argv) {
         check (ccxt::isDict (ticker.info), "Ticker.info preserved");
 
         // string-typed numerics coerce like the C# SafeFloat path
-        const std::any rawTrade = ccxt::dict {
+        const ccxt::any rawTrade = ccxt::dict {
             { std::string ("id"),        std::string ("12345") },
             { std::string ("price"),     std::string ("20000.5") },
             { std::string ("amount"),    0.25 },
@@ -79,7 +79,7 @@ int main (int argc, char** argv) {
         check (trade.fee->currency.has_value () && *trade.fee->currency == "USDT", "Trade.fee.currency");
 
         // OHLCV rides as a list, not a dict
-        const std::any rawCandle = ccxt::list {
+        const ccxt::any rawCandle = ccxt::list {
             1700000000000LL, 100.0, 110.0, 90.0, 105.0, 42.0,
         };
         const ccxt::OHLCV candle (rawCandle);
@@ -88,7 +88,7 @@ int main (int argc, char** argv) {
         check (candle.volume.has_value () && *candle.volume == 42.0, "OHLCV.volume");
 
         // order book: [price, amount] rows to vector<vector<double>>
-        const std::any rawBook = ccxt::dict {
+        const ccxt::any rawBook = ccxt::dict {
             { std::string ("symbol"), std::string ("BTC/USDT") },
             { std::string ("bids"), ccxt::list {
                 ccxt::list { 19999.0, 1.5 },
@@ -105,7 +105,7 @@ int main (int argc, char** argv) {
         check (book.nonce.has_value () && *book.nonce == 7, "OrderBook.nonce");
 
         // balances: per-code map + free/used/total
-        const std::any rawBalances = ccxt::dict {
+        const ccxt::any rawBalances = ccxt::dict {
             { std::string ("info"), ccxt::dict {} },
             { std::string ("timestamp"), 1700000000000LL },
             { std::string ("BTC"), ccxt::dict {
@@ -124,7 +124,7 @@ int main (int argc, char** argv) {
         check (balances.timestamp.has_value (), "Balances.timestamp");
 
         // tickers dictionary wrapper
-        const std::any rawTickers = ccxt::dict {
+        const ccxt::any rawTickers = ccxt::dict {
             { std::string ("BTC/USDT"), rawTicker },
             { std::string ("info"), ccxt::dict {} },
         };
@@ -136,14 +136,14 @@ int main (int argc, char** argv) {
         auto exchangePtr = ccxt::newExchange<ccxt::binance> ();
         ccxt::binance& exchange = *exchangePtr;
 
-        const std::any rawExchangeTicker = ccxt::dict {
+        const ccxt::any rawExchangeTicker = ccxt::dict {
             { std::string ("symbol"),    std::string ("BTCUSDT") },
             { std::string ("lastPrice"), std::string ("20000.0") },
             { std::string ("highPrice"), std::string ("20500.0") },
             { std::string ("lowPrice"),  std::string ("19800.0") },
             { std::string ("closeTime"), 1700003600000LL },
         };
-        const ccxt::Ticker parsed (exchange.parseTicker (rawExchangeTicker, std::any {}));
+        const ccxt::Ticker parsed (exchange.parseTicker (rawExchangeTicker, ccxt::any {}));
         check (parsed.last.has_value () && *parsed.last == 20000.0, "parseTicker -> Ticker.last");
         check (parsed.high.has_value () && *parsed.high == 20500.0, "parseTicker -> Ticker.high");
         check (parsed.timestamp.has_value () && *parsed.timestamp == 1700003600000LL, "parseTicker -> Ticker.timestamp");
@@ -158,19 +158,19 @@ int main (int argc, char** argv) {
             auto proPtr = ccxt::newExchange<ccxt::pro::bitvavo> ();
             auto& pro = *proPtr;
             // offline markets: bitvavo's watch chain loads markets before subscribing
-            const std::any markets = pro.parseJson (ccxt::testutils::readFile (
+            const ccxt::any markets = pro.parseJson (ccxt::testutils::readFile (
                 ccxt::testutils::rootDir () + "ts/src/test/static/markets/bitvavo.json"));
             pro.setMarkets (markets);
             const std::string url = "wss://ws.bitvavo.com/v2";
-            ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (pro.client (url));
+            ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (pro.client (url));
             client.mockConnect ();
             // fixture frames + the expected first resolution
-            const std::any fixture = pro.parseJson (ccxt::testutils::readFile (
+            const ccxt::any fixture = pro.parseJson (ccxt::testutils::readFile (
                 ccxt::testutils::rootDir () + "ts/src/test/static/ws/bitvavo.json"));
-            const std::any entry = ::getValue (
+            const ccxt::any entry = ::getValue (
                 ::getValue (::getValue (fixture, std::string ("methods")), std::string ("watchTicker")), 0);
-            const ccxt::list frames = std::any_cast<ccxt::list> (::getValue (entry, std::string ("messages")));
-            const std::any expected = std::any_cast<ccxt::list> (::getValue (entry, std::string ("parsedResponses"))).get (0);
+            const ccxt::list frames = ccxt::any_cast<ccxt::list> (::getValue (entry, std::string ("messages")));
+            const ccxt::any expected = ccxt::any_cast<ccxt::list> (::getValue (entry, std::string ("parsedResponses"))).get (0);
             const double expLast = std::stod (::str (::getValue (expected, std::string ("last"))));
             const std::string expSymbol = ::str (::getValue (expected, std::string ("symbol")));
 
@@ -194,9 +194,9 @@ int main (int argc, char** argv) {
                         const bool pendingBefore = client.hasPendingFutures ();
                         // fixture messages arrive ALREADY json-parsed (dicts) --
                         // re-parsing them yields garbage and the router sees no event
-                        const std::any frame = ::getValue (frames, i);
+                        const ccxt::any frame = ::getValue (frames, i);
                         const std::string ev = ::str (::getValue (frame, std::string ("event")));
-                        pro.handleMessage (std::any (client), frame);
+                        pro.handleMessage (ccxt::any (client), frame);
                         int settled = 0;
                         while (client.hasPendingFutures () && settled < 500) {
                             std::this_thread::sleep_for (20ms);
@@ -208,9 +208,9 @@ int main (int argc, char** argv) {
                             + " pendingAfter=" + (client.hasPendingFutures () ? "1" : "0")
                             + " waited=" + std::to_string (waited) + "ms keys=[";
                         {
-                            const std::any fut = ::getValue (std::any (client), std::string ("futures"));
+                            const ccxt::any fut = ::getValue (ccxt::any (client), std::string ("futures"));
                             if (ccxt::isDict (fut)) {
-                                for (const auto& kv : std::any_cast<ccxt::dict> (fut).entries ()) {
+                                for (const auto& kv : ccxt::any_cast<ccxt::dict> (fut).entries ()) {
                                     injectorLog += kv.first + " ";
                                 }
                             }
@@ -219,7 +219,7 @@ int main (int argc, char** argv) {
                     }
                     // rejection backstop: a stuck watch must fail the gate, not hang it
                     for (int w = 0; w < 600 && !watchDone.load (); w++) {
-                        client.reject (std::any (std::string ("ExchangeError")), "");
+                        client.reject (ccxt::any (std::string ("ExchangeError")), "");
                         std::this_thread::sleep_for (50ms);
                     }
                 } catch (const std::exception& e) {
@@ -244,11 +244,11 @@ int main (int argc, char** argv) {
                 // future never registers (a registration bug is exactly what the
                 // rejection backstop cannot catch), main would otherwise block
                 // forever with nothing left to unblock it
-                // NOTE: the lambda returns std::any on purpose -- a
+                // NOTE: the lambda returns ccxt::any on purpose -- a
                 // std::future<ccxt::Ticker> fails to compile because the
-                // namespace-scope ccxt::operator!(const std::any&) poisons
+                // namespace-scope ccxt::operator!(const ccxt::any&) poisons
                 // ADL for std::future's is_array/is_function static_asserts
-                auto watchTask = std::async (std::launch::async, [&] () -> std::any {
+                auto watchTask = std::async (std::launch::async, [&] () -> ccxt::any {
                     return pro.WatchTicker ("BTC/EUR");
                 });
                 if (watchTask.wait_for (45s) != std::future_status::ready) {
@@ -257,12 +257,15 @@ int main (int argc, char** argv) {
                     // destructor would join it, hanging the gate on the way out
                     std::_Exit (1);
                 }
-                const ccxt::Ticker wsTicker = std::any_cast<ccxt::Ticker> (watchTask.get ());
+                const ccxt::any rawTicker = watchTask.get ();
+                const ccxt::Ticker wsTicker = ccxt::any_cast<ccxt::Ticker> (rawTicker);
                 watchDone.store (true);
                 injector.join ();
                 check (injectorError.empty (), "ws injector ran clean (" + injectorError + ")");
                 check (wsTicker.symbol.has_value () && *wsTicker.symbol == expSymbol,
-                       "typed WatchTicker symbol == " + expSymbol);
+                       "typed WatchTicker symbol == " + expSymbol
+                           + " | raw: " + ::str (pro.json (rawTicker))
+                           + " | " + injectorLog);
                 check (wsTicker.last.has_value () && *wsTicker.last == expLast,
                        "typed WatchTicker last == " + d2s (expLast));
             } catch (const std::exception& e) {

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_myokx(std::any config) {
+std::shared_ptr<ExchangeBase> create_myokx(ccxt::any config) {
   return newExchange<myokx>(config);
 }
 

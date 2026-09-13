@@ -9,11 +9,11 @@
 void testPrecise();
 
 void testPrecise() {
-  std::any w = std::string("-1.123e-6");
-  std::any x = std::string("0.00000002");
-  std::any y = std::string("69696900000");
-  std::any z = std::string("0");
-  std::any a = std::string("1e8");
+  ccxt::any w = std::string("-1.123e-6");
+  ccxt::any x = std::string("0.00000002");
+  ccxt::any y = std::string("69696900000");
+  ccxt::any z = std::string("0");
+  ccxt::any a = std::string("1e8");
   assertTrue(isEqual(ccxt::Precise::stringMul(x, y), std::string("1393.938")));
   assertTrue(isEqual(ccxt::Precise::stringMul(y, x), std::string("1393.938")));
   assertTrue(isEqual(ccxt::Precise::stringAdd(x, y),
@@ -218,10 +218,10 @@ void testPrecise() {
   // zero divisor
   assertTrue(
       isEqual(ccxt::Precise::stringDiv(std::string("1"), std::string("0")),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(
       isEqual(ccxt::Precise::stringDiv(std::string("0"), std::string("0")),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(
       isEqual(ccxt::Precise::stringDiv(std::string("0"), std::string("5")),
               std::string("0")));
@@ -381,86 +381,86 @@ void testPrecise() {
       isEqual(ccxt::Precise::stringMod(std::string("7.5"), std::string("2.5")),
               std::string("0")));
   // with undefined arguments
-  assertTrue(isEqual(ccxt::Precise::stringMul(std::any{}, std::string("1")),
-                     std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringMul(std::string("1"), std::any{}),
-                     std::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringMul(ccxt::any{}, std::string("1")),
+                     ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringMul(std::string("1"), ccxt::any{}),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(ccxt::Precise::stringMul(std::any{}, std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringDiv(std::any{}, std::string("1")),
-                     std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringDiv(std::string("1"), std::any{}),
-                     std::any{}));
+      isEqual(ccxt::Precise::stringMul(ccxt::any{}, ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringDiv(ccxt::any{}, std::string("1")),
+                     ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringDiv(std::string("1"), ccxt::any{}),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(ccxt::Precise::stringDiv(std::any{}, std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringAdd(std::any{}, std::string("1")),
-                     std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringAdd(std::string("1"), std::any{}),
-                     std::any{}));
+      isEqual(ccxt::Precise::stringDiv(ccxt::any{}, ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringAdd(ccxt::any{}, std::string("1")),
+                     ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringAdd(std::string("1"), ccxt::any{}),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(ccxt::Precise::stringAdd(std::any{}, std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringSub(std::any{}, std::string("1")),
-                     std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringSub(std::string("1"), std::any{}),
-                     std::any{}));
+      isEqual(ccxt::Precise::stringAdd(ccxt::any{}, ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringSub(ccxt::any{}, std::string("1")),
+                     ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringSub(std::string("1"), ccxt::any{}),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(ccxt::Precise::stringSub(std::any{}, std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringAbs(std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringNeg(std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringMod(std::any{}, std::string("1")),
-                     std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringMod(std::string("1"), std::any{}),
-                     std::any{}));
+      isEqual(ccxt::Precise::stringSub(ccxt::any{}, ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringAbs(ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringNeg(ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringMod(ccxt::any{}, std::string("1")),
+                     ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringMod(std::string("1"), ccxt::any{}),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(ccxt::Precise::stringMod(std::any{}, std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringOr(std::any{}, std::string("1")),
-                     std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringOr(std::string("1"), std::any{}),
-                     std::any{}));
+      isEqual(ccxt::Precise::stringMod(ccxt::any{}, ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringOr(ccxt::any{}, std::string("1")),
+                     ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringOr(std::string("1"), ccxt::any{}),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(ccxt::Precise::stringOr(std::any{}, std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringMin(std::any{}, std::string("1")),
-                     std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringMin(std::string("1"), std::any{}),
-                     std::any{}));
+      isEqual(ccxt::Precise::stringOr(ccxt::any{}, ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringMin(ccxt::any{}, std::string("1")),
+                     ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringMin(std::string("1"), ccxt::any{}),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(ccxt::Precise::stringMin(std::any{}, std::any{}), std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringMax(std::any{}, std::string("1")),
-                     std::any{}));
-  assertTrue(isEqual(ccxt::Precise::stringMax(std::string("1"), std::any{}),
-                     std::any{}));
+      isEqual(ccxt::Precise::stringMin(ccxt::any{}, ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringMax(ccxt::any{}, std::string("1")),
+                     ccxt::any{}));
+  assertTrue(isEqual(ccxt::Precise::stringMax(std::string("1"), ccxt::any{}),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(ccxt::Precise::stringMax(std::any{}, std::any{}), std::any{}));
+      isEqual(ccxt::Precise::stringMax(ccxt::any{}, ccxt::any{}), ccxt::any{}));
   // bool false
-  assertTrue(isEqual(ccxt::Precise::stringEquals(std::any{}, std::string("1")),
+  assertTrue(isEqual(ccxt::Precise::stringEquals(ccxt::any{}, std::string("1")),
                      false));
-  assertTrue(isEqual(ccxt::Precise::stringEquals(std::string("1"), std::any{}),
+  assertTrue(isEqual(ccxt::Precise::stringEquals(std::string("1"), ccxt::any{}),
                      false));
   assertTrue(
-      isEqual(ccxt::Precise::stringEquals(std::any{}, std::any{}), false));
+      isEqual(ccxt::Precise::stringEquals(ccxt::any{}, ccxt::any{}), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringEq(std::any{}, std::string("1")), false));
+      isEqual(ccxt::Precise::stringEq(ccxt::any{}, std::string("1")), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringEq(std::string("1"), std::any{}), false));
-  assertTrue(isEqual(ccxt::Precise::stringEq(std::any{}, std::any{}), false));
+      isEqual(ccxt::Precise::stringEq(std::string("1"), ccxt::any{}), false));
+  assertTrue(isEqual(ccxt::Precise::stringEq(ccxt::any{}, ccxt::any{}), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringGt(std::any{}, std::string("1")), false));
+      isEqual(ccxt::Precise::stringGt(ccxt::any{}, std::string("1")), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringGt(std::string("1"), std::any{}), false));
-  assertTrue(isEqual(ccxt::Precise::stringGt(std::any{}, std::any{}), false));
+      isEqual(ccxt::Precise::stringGt(std::string("1"), ccxt::any{}), false));
+  assertTrue(isEqual(ccxt::Precise::stringGt(ccxt::any{}, ccxt::any{}), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringGe(std::any{}, std::string("1")), false));
+      isEqual(ccxt::Precise::stringGe(ccxt::any{}, std::string("1")), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringGe(std::string("1"), std::any{}), false));
-  assertTrue(isEqual(ccxt::Precise::stringGe(std::any{}, std::any{}), false));
+      isEqual(ccxt::Precise::stringGe(std::string("1"), ccxt::any{}), false));
+  assertTrue(isEqual(ccxt::Precise::stringGe(ccxt::any{}, ccxt::any{}), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringLt(std::any{}, std::string("1")), false));
+      isEqual(ccxt::Precise::stringLt(ccxt::any{}, std::string("1")), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringLt(std::string("1"), std::any{}), false));
-  assertTrue(isEqual(ccxt::Precise::stringLt(std::any{}, std::any{}), false));
+      isEqual(ccxt::Precise::stringLt(std::string("1"), ccxt::any{}), false));
+  assertTrue(isEqual(ccxt::Precise::stringLt(ccxt::any{}, ccxt::any{}), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringLe(std::any{}, std::string("1")), false));
+      isEqual(ccxt::Precise::stringLe(ccxt::any{}, std::string("1")), false));
   assertTrue(
-      isEqual(ccxt::Precise::stringLe(std::string("1"), std::any{}), false));
-  assertTrue(isEqual(ccxt::Precise::stringLe(std::any{}, std::any{}), false));
+      isEqual(ccxt::Precise::stringLe(std::string("1"), ccxt::any{}), false));
+  assertTrue(isEqual(ccxt::Precise::stringLe(ccxt::any{}, ccxt::any{}), false));
 }

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_mercado(std::any config) {
+std::shared_ptr<ExchangeBase> create_mercado(ccxt::any config) {
   return newExchange<mercado>(config);
 }
 

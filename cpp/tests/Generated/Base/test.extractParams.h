@@ -13,65 +13,65 @@ void testExtractParams() {
       {std::string("id"), std::string("sampleexchange")},
   });
   // Test 1: Single param
-  std::any result1 = exchange.extractParams(std::string("/users/{id}"));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  ccxt::any result1 = exchange.extractParams(std::string("/users/{id}"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result1, ccxt::list{std::string("id")});
   // Test 2: Multiple params
-  std::any result2 =
+  ccxt::any result2 =
       exchange.extractParams(std::string("/users/{user_id}/orders/{order_id}"));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result2,
                   ccxt::list{std::string("user_id"), std::string("order_id")});
   // Test 3: No params
-  std::any result3 = exchange.extractParams(std::string("/api/health"));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  ccxt::any result3 = exchange.extractParams(std::string("/api/health"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result3, ccxt::list{});
   // Test 4: Params with hyphens
-  std::any result4 =
+  ccxt::any result4 =
       exchange.extractParams(std::string("/api/{resource-name}/{resource-id}"));
   assertDeepEqual(
-      exchange, std::any{}, std::string("testExtractParams"), result4,
+      exchange, ccxt::any{}, std::string("testExtractParams"), result4,
       ccxt::list{std::string("resource-name"), std::string("resource-id")});
   // Test 5: Mixed path and params
-  std::any result5 = exchange.extractParams(
+  ccxt::any result5 = exchange.extractParams(
       std::string("/v1/{version}/users/{user_id}/profile"));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result5,
                   ccxt::list{std::string("version"), std::string("user_id")});
   // Test 6: Empty string
-  std::any result6 = exchange.extractParams(std::string(""));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  ccxt::any result6 = exchange.extractParams(std::string(""));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result6, ccxt::list{});
   // Test 7: Multiple params in longer URL
-  std::any result7 = exchange.extractParams(std::string(
+  ccxt::any result7 = exchange.extractParams(std::string(
       "/api/{org}/{repo}/pulls/{pull_number}/comments/{comment_id}"));
   assertDeepEqual(
-      exchange, std::any{}, std::string("testExtractParams"), result7,
+      exchange, ccxt::any{}, std::string("testExtractParams"), result7,
       ccxt::list{std::string("org"), std::string("repo"),
                  std::string("pull_number"), std::string("comment_id")});
   // Test 8: Param at start and end
-  std::any result8 =
+  ccxt::any result8 =
       exchange.extractParams(std::string("{start}/middle/{end}"));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result8,
                   ccxt::list{std::string("start"), std::string("end")});
   // Test 9: Adjacent params
-  std::any result9 = exchange.extractParams(std::string("{a}{b}{c}"));
+  ccxt::any result9 = exchange.extractParams(std::string("{a}{b}{c}"));
   assertDeepEqual(
-      exchange, std::any{}, std::string("testExtractParams"), result9,
+      exchange, ccxt::any{}, std::string("testExtractParams"), result9,
       ccxt::list{std::string("a"), std::string("b"), std::string("c")});
   // Test 10: Param with underscores
-  std::any result10 =
+  ccxt::any result10 =
       exchange.extractParams(std::string("/api/{my_param_name}"));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result10, ccxt::list{std::string("my_param_name")});
   // Test 11: Single character param
-  std::any result11 = exchange.extractParams(std::string("/api/{x}"));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  ccxt::any result11 = exchange.extractParams(std::string("/api/{x}"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result11, ccxt::list{std::string("x")});
   // Test 12: Only static path
-  std::any result12 =
+  ccxt::any result12 =
       exchange.extractParams(std::string("/api/v1/users/orders/items"));
-  assertDeepEqual(exchange, std::any{}, std::string("testExtractParams"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testExtractParams"),
                   result12, ccxt::list{});
 }

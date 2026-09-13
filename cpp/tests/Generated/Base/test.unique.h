@@ -15,14 +15,14 @@ void testUnique() {
   // in different langs, the order (sort) is not guaranteed, so we sort the
   // results before comparing them todo: `unique` is primarily meant for strings
   // atm, add numeric support
-  assertDeepEqual(exchange, std::any{}, std::string("testUnique"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testUnique"),
                   exchange.unique(ccxt::list{}), ccxt::list{});
   // assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort
   // (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]); assertDeepEqual (exchange,
   // undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1
   // ])), [ 1, 2, 3, 4 ]);
   assertDeepEqual(
-      exchange, std::any{}, std::string("testUnique"),
+      exchange, ccxt::any{}, std::string("testUnique"),
       exchange.sort(exchange.unique(
           ccxt::list{std::string("a"), std::string("a"), std::string("b"),
                      std::string("c"), std::string("a"), std::string("c")})),
