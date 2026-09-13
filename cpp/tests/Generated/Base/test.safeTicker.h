@@ -6,12 +6,12 @@
 #include "../../BaseTest.Bridge.h"
 
 // forward declarations - TS hoists function declarations, C++ does not
-std::any preciseEqualStr(std::any exchange, std::any result, std::any key,
-                         std::any expected);
+ccxt::any preciseEqualStr(ccxt::any exchange, ccxt::any result, ccxt::any key,
+                          ccxt::any expected);
 void testSafeTicker();
 
-std::any preciseEqualStr(std::any exchange, std::any result, std::any key,
-                         std::any expected) {
+ccxt::any preciseEqualStr(ccxt::any exchange, ccxt::any result, ccxt::any key,
+                          ccxt::any expected) {
   return ccxt::Precise::stringEq(exchange.safeString(result, key), expected);
 }
 void testSafeTicker() {
@@ -19,11 +19,11 @@ void testSafeTicker() {
       {std::string("id"), std::string("sampleexchange")},
   });
   // CASE 1 - by open
-  std::any ticker1 = ccxt::dict{
+  ccxt::any ticker1 = ccxt::dict{
       {std::string("open"), 5},
       {std::string("change"), 1},
   };
-  std::any result1 = exchange.safeTicker(ticker1);
+  ccxt::any result1 = exchange.safeTicker(ticker1);
   assertTrue(preciseEqualStr(exchange, result1, std::string("percentage"),
                              std::string("20.0")));
   assertTrue(preciseEqualStr(exchange, result1, std::string("average"),
@@ -33,11 +33,11 @@ void testSafeTicker() {
   assertTrue(preciseEqualStr(exchange, result1, std::string("last"),
                              std::string("6.0")));
   // CASE 2 - by open
-  std::any ticker2 = ccxt::dict{
+  ccxt::any ticker2 = ccxt::dict{
       {std::string("open"), 5},
       {std::string("percentage"), 20},
   };
-  std::any result2 = exchange.safeTicker(ticker2);
+  ccxt::any result2 = exchange.safeTicker(ticker2);
   assertTrue(preciseEqualStr(exchange, result2, std::string("change"),
                              std::string("1.0")));
   assertTrue(preciseEqualStr(exchange, result2, std::string("average"),
@@ -47,11 +47,11 @@ void testSafeTicker() {
   assertTrue(preciseEqualStr(exchange, result2, std::string("last"),
                              std::string("6.0")));
   // CASE 3 - by close
-  std::any ticker3 = ccxt::dict{
+  ccxt::any ticker3 = ccxt::dict{
       {std::string("close"), 6},
       {std::string("change"), 1},
   };
-  std::any result3 = exchange.safeTicker(ticker3);
+  ccxt::any result3 = exchange.safeTicker(ticker3);
   assertTrue(preciseEqualStr(exchange, result3, std::string("open"),
                              std::string("5.0")));
   assertTrue(preciseEqualStr(exchange, result3, std::string("percentage"),
@@ -61,11 +61,11 @@ void testSafeTicker() {
   assertTrue(preciseEqualStr(exchange, result3, std::string("last"),
                              std::string("6.0")));
   // CASE 4 - by close
-  std::any ticker4 = ccxt::dict{
+  ccxt::any ticker4 = ccxt::dict{
       {std::string("close"), 6},
       {std::string("percentage"), 20},
   };
-  std::any result4 = exchange.safeTicker(ticker4);
+  ccxt::any result4 = exchange.safeTicker(ticker4);
   assertTrue(preciseEqualStr(exchange, result4, std::string("open"),
                              std::string("5.0")));
   assertTrue(preciseEqualStr(exchange, result4, std::string("change"),
@@ -75,11 +75,11 @@ void testSafeTicker() {
   assertTrue(preciseEqualStr(exchange, result4, std::string("last"),
                              std::string("6.0")));
   // CASE 5 - by average
-  std::any ticker5 = ccxt::dict{
+  ccxt::any ticker5 = ccxt::dict{
       {std::string("average"), 5.5},
       {std::string("percentage"), 20},
   };
-  std::any result5 = exchange.safeTicker(ticker5);
+  ccxt::any result5 = exchange.safeTicker(ticker5);
   assertTrue(preciseEqualStr(exchange, result5, std::string("open"),
                              std::string("5.0")));
   assertTrue(preciseEqualStr(exchange, result5, std::string("change"),
@@ -89,11 +89,11 @@ void testSafeTicker() {
   assertTrue(preciseEqualStr(exchange, result5, std::string("last"),
                              std::string("6.0")));
   // CASE 6
-  std::any ticker6 = ccxt::dict{
+  ccxt::any ticker6 = ccxt::dict{
       {std::string("average"), 5.5},
       {std::string("change"), 1},
   };
-  std::any result6 = exchange.safeTicker(ticker6);
+  ccxt::any result6 = exchange.safeTicker(ticker6);
   assertTrue(preciseEqualStr(exchange, result6, std::string("open"),
                              std::string("5.0")));
   assertTrue(preciseEqualStr(exchange, result6, std::string("percentage"),
@@ -103,11 +103,11 @@ void testSafeTicker() {
   assertTrue(preciseEqualStr(exchange, result6, std::string("last"),
                              std::string("6.0")));
   // CASE 7 - by open and close
-  std::any ticker7 = ccxt::dict{
+  ccxt::any ticker7 = ccxt::dict{
       {std::string("open"), 5},
       {std::string("close"), 6},
   };
-  std::any result7 = exchange.safeTicker(ticker7);
+  ccxt::any result7 = exchange.safeTicker(ticker7);
   assertTrue(preciseEqualStr(exchange, result7, std::string("change"),
                              std::string("1.0")));
   assertTrue(preciseEqualStr(exchange, result7, std::string("percentage"),
@@ -117,7 +117,7 @@ void testSafeTicker() {
   assertTrue(preciseEqualStr(exchange, result7, std::string("last"),
                              std::string("6.0")));
   // CASE 8 - full ticker
-  std::any ticker8 = ccxt::dict{
+  ccxt::any ticker8 = ccxt::dict{
       {std::string("open"), 5},
       {std::string("close"), 6},
       {std::string("last"), 6},
@@ -138,7 +138,7 @@ void testSafeTicker() {
       {std::string("markPrice"), 5.9},
       {std::string("info"), ccxt::dict{}},
   };
-  std::any result8 = exchange.safeTicker(ticker8);
+  ccxt::any result8 = exchange.safeTicker(ticker8);
   assertTrue(preciseEqualStr(exchange, result8, std::string("open"),
                              std::string("5.0")));
   assertTrue(preciseEqualStr(exchange, result8, std::string("high"),
@@ -175,15 +175,15 @@ void testSafeTicker() {
                              std::string("5.8")));
   assertTrue(preciseEqualStr(exchange, result8, std::string("markPrice"),
                              std::string("5.9")));
-  assertTrue(!isEqual(::getValue(result8, std::string("info")), std::any{}));
+  assertTrue(!isEqual(::getValue(result8, std::string("info")), ccxt::any{}));
   // CASE 9 - flat day, a legitimate zero change must be preserved, see
   // https://github.com/ccxt/ccxt/issues/25971
-  std::any ticker9 = ccxt::dict{
+  ccxt::any ticker9 = ccxt::dict{
       {std::string("open"), 6},       {std::string("close"), 6},
       {std::string("last"), 6},       {std::string("change"), 0},
       {std::string("percentage"), 0},
   };
-  std::any result9 = exchange.safeTicker(ticker9);
+  ccxt::any result9 = exchange.safeTicker(ticker9);
   assertTrue(preciseEqualStr(exchange, result9, std::string("change"),
                              std::string("0")));
   assertTrue(preciseEqualStr(exchange, result9, std::string("percentage"),

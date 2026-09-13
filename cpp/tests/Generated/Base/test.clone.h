@@ -12,14 +12,14 @@ void testClone() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any obj1 = ccxt::dict{
+  ccxt::any obj1 = ccxt::dict{
       {std::string("a"), 1},
       {std::string("b"), ccxt::list{1, 2, 3}},
       {std::string("c"), ccxt::list{ccxt::dict{
                              {std::string("test1"), 1},
                              {std::string("test2"), 1},
                          }}},
-      {std::string("d"), std::any{}},
+      {std::string("d"), ccxt::any{}},
       {std::string("e"), std::string("not_undefined")},
       {std::string("sub"),
        ccxt::dict{
@@ -29,13 +29,13 @@ void testClone() {
                                   {std::string("test1"), 1},
                                   {std::string("test2"), 2},
                               }}},
-           {std::string("d"), std::any{}},
+           {std::string("d"), ccxt::any{}},
            {std::string("e"), std::string("not_undefined")},
            {std::string("other1"), std::string("x")},
        }},
       {std::string("other1"), std::string("x")},
   };
-  std::any obj2 = ccxt::dict{
+  ccxt::any obj2 = ccxt::dict{
       {std::string("a"), 2},
       {std::string("b"), ccxt::list{3, 4}},
       {std::string("c"), ccxt::list{ccxt::dict{
@@ -43,7 +43,7 @@ void testClone() {
                              {std::string("test3"), 3},
                          }}},
       {std::string("d"), std::string("not_undefined")},
-      {std::string("e"), std::any{}},
+      {std::string("e"), ccxt::any{}},
       {std::string("sub"),
        ccxt::dict{
            {std::string("a"), 2},
@@ -53,14 +53,14 @@ void testClone() {
                                   {std::string("test3"), 3},
                               }}},
            {std::string("d"), std::string("not_undefined")},
-           {std::string("e"), std::any{}},
+           {std::string("e"), ccxt::any{}},
            {std::string("other2"), std::string("y")},
        }},
       {std::string("other2"), std::string("y")},
   };
   // deepExtend
-  std::any deepExtended = exchange.deepExtend(obj1, obj2);
-  std::any compareTo = ccxt::dict{
+  ccxt::any deepExtended = exchange.deepExtend(obj1, obj2);
+  ccxt::any compareTo = ccxt::dict{
       {std::string("a"), 2},
       {std::string("b"), ccxt::list{3, 4}},
       {std::string("c"), ccxt::list{ccxt::dict{
@@ -68,7 +68,7 @@ void testClone() {
                              {std::string("test3"), 3},
                          }}},
       {std::string("d"), std::string("not_undefined")},
-      {std::string("e"), std::any{}},
+      {std::string("e"), ccxt::any{}},
       {std::string("sub"),
        ccxt::dict{
            {std::string("a"), 2},
@@ -78,7 +78,7 @@ void testClone() {
                                   {std::string("test3"), 3},
                               }}},
            {std::string("d"), std::string("not_undefined")},
-           {std::string("e"), std::any{}},
+           {std::string("e"), ccxt::any{}},
            {std::string("other1"), std::string("x")},
            {std::string("other2"), std::string("y")},
        }},
@@ -88,25 +88,25 @@ void testClone() {
   // todo: results are different across langs.
   // to avoid delay to this PR, I comment out this now, but will return to this
   // after this PR merged
-  assertDeepEqual(exchange, std::any{}, std::string("testDeepExtend"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testDeepExtend"),
                   deepExtended, compareTo);
   // -------------------------------------------------------------------------
   // test immutability / no cross-mutation between clone and original
   // -------------------------------------------------------------------------
   // --- test A: shallow-object clone – mutating the clone must not affect
   // original ---
-  std::any simpleOrig = ccxt::dict{
+  ccxt::any simpleOrig = ccxt::dict{
       {std::string("x"), 1},
       {std::string("y"), std::string("hello")},
-      {std::string("z"), std::any{}},
+      {std::string("z"), ccxt::any{}},
   };
-  std::any simpleClone = exchange.clone(simpleOrig);
+  ccxt::any simpleClone = exchange.clone(simpleOrig);
   assertTrue(isEqual(::getValue(simpleClone, std::string("x")), 1),
              std::string("clone A: x"));
   assertTrue(
       isEqual(::getValue(simpleClone, std::string("y")), std::string("hello")),
       std::string("clone A: y"));
-  assertTrue(isEqual(::getValue(simpleClone, std::string("z")), std::any{}),
+  assertTrue(isEqual(::getValue(simpleClone, std::string("z")), ccxt::any{}),
              std::string("clone A: z"));
   ::setValue(simpleClone, std::string("x"), 999);
   ::setValue(simpleClone, std::string("y"), std::string("mutated"));
@@ -122,7 +122,7 @@ void testClone() {
   // -------------------------------------------------------------------------
   // --- test B: nested object – verify clone is a shallow copy (top-level keys
   // independent) ---
-  std::any nestedOrig = ccxt::dict{
+  ccxt::any nestedOrig = ccxt::dict{
       {std::string("top"), std::string("original")},
       {std::string("arr"), ccxt::list{10, 20, 30}},
       {std::string("sub"),
@@ -130,7 +130,7 @@ void testClone() {
            {std::string("inner"), std::string("original")},
        }},
   };
-  std::any nestedClone = exchange.clone(nestedOrig);
+  ccxt::any nestedClone = exchange.clone(nestedOrig);
   // top-level scalar: independent
   ::setValue(nestedClone, std::string("top"), std::string("cloned"));
   assertTrue(
@@ -149,7 +149,7 @@ void testClone() {
       std::string("clone B: changing original top must not affect clone"));
   // -------------------------------------------------------------------------
   // --- test C: cloning an empty object ---
-  std::any emptyClone = exchange.clone(ccxt::dict{});
+  ccxt::any emptyClone = exchange.clone(ccxt::dict{});
   assertTrue(isEqual(getArrayLength(getObjectKeys(emptyClone)), 0),
              std::string("clone C: cloning empty object gives empty object"));
   ::setValue(emptyClone, std::string("newKey"), std::string("injected"));
@@ -160,11 +160,11 @@ void testClone() {
   // -------------------------------------------------------------------------
   // --- test D: cloning an object with undefined values preserves those keys
   // ---
-  std::any withUndef = ccxt::dict{
+  ccxt::any withUndef = ccxt::dict{
       {std::string("present"), std::string("yes")},
-      {std::string("absent"), std::any{}},
+      {std::string("absent"), ccxt::any{}},
   };
-  std::any undefClone = exchange.clone(withUndef);
+  ccxt::any undefClone = exchange.clone(withUndef);
   assertTrue(inOp(undefClone, std::string("present")),
              std::string("clone D: present key must exist in clone"));
   assertTrue(isEqual(::getValue(undefClone, std::string("present")),
@@ -172,8 +172,9 @@ void testClone() {
              std::string("clone D: present value preserved"));
   assertTrue(inOp(undefClone, std::string("absent")),
              std::string("clone D: undefined key must still exist in clone"));
-  assertTrue(isEqual(::getValue(undefClone, std::string("absent")), std::any{}),
-             std::string("clone D: undefined value preserved"));
+  assertTrue(
+      isEqual(::getValue(undefClone, std::string("absent")), ccxt::any{}),
+      std::string("clone D: undefined value preserved"));
   // mutate clone – original untouched
   ::setValue(undefClone, std::string("present"), std::string("no"));
   assertTrue(isEqual(::getValue(withUndef, std::string("present")),
@@ -182,12 +183,12 @@ void testClone() {
   // -------------------------------------------------------------------------
   // --- test E: multi-step: clone → mutate clone → re-clone original → compare
   // ---
-  std::any masterOrig = ccxt::dict{
+  ccxt::any masterOrig = ccxt::dict{
       {std::string("a"), 1},
       {std::string("b"), 2},
       {std::string("c"), 3},
   };
-  std::any clone1 = exchange.clone(masterOrig);
+  ccxt::any clone1 = exchange.clone(masterOrig);
   ::setValue(clone1, std::string("a"), 100);
   ::setValue(clone1, std::string("d"), 999); // add extra key
   // original still pristine
@@ -197,7 +198,7 @@ void testClone() {
   assertTrue(!isTrue((inOp(masterOrig, std::string("d")))),
              std::string("clone E: extra key must not appear in original"));
   // second independent clone from the still-pristine original
-  std::any clone2 = exchange.clone(masterOrig);
+  ccxt::any clone2 = exchange.clone(masterOrig);
   assertTrue(isEqual(::getValue(clone2, std::string("a")), 1),
              std::string("clone E: clone2 starts from pristine original"));
   assertTrue(!isTrue((inOp(clone2, std::string("d")))),

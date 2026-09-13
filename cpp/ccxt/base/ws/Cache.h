@@ -5,7 +5,7 @@
 // one store (shared_ptr Impl), because the pro layer relies on the exchange, the
 // client and the consumer all mutating the same live cache.
 //
-// Rows are ccxt::dict / ccxt::list handles stored in an std::vector<std::any>; keyed
+// Rows are ccxt::dict / ccxt::list handles stored in an std::vector<ccxt::any>; keyed
 // updates MERGE into the stored row (JS `for (prop in item) reference[prop] = ...`),
 // so consumers holding a row see live updates, exactly as in JS.
 //
@@ -33,7 +33,7 @@ namespace ws {
 class ArrayCache {
 public:
     struct Impl {
-        std::vector<std::any> rows;
+        std::vector<ccxt::any> rows;
         long long maxSize = 0;                       // 0 = unbounded
         // getLimit () bookkeeping (see Cache.ts)
         std::map<std::string, long long> newUpdatesBySymbol;
@@ -51,7 +51,7 @@ public:
     };
     std::shared_ptr<Impl> impl;
 
-    explicit ArrayCache (const std::any& maxSize = std::any {})
+    explicit ArrayCache (const ccxt::any& maxSize = ccxt::any {})
         : impl (std::make_shared<Impl> ()) {
         if (isNum (maxSize)) {
             this->impl->maxSize = toLong (maxSize);
@@ -59,9 +59,9 @@ public:
     }
 
     std::size_t size () const { return this->impl->rows.size (); }
-    std::any get (long i) const {
+    ccxt::any get (long i) const {
         if (i < 0 || static_cast<std::size_t> (i) >= this->impl->rows.size ()) {
-            return std::any {};
+            return ccxt::any {};
         }
         return this->impl->rows[static_cast<std::size_t> (i)];
     }
@@ -85,7 +85,7 @@ public:
 
     // ArrayCache.getLimit — virtual: ArrayCacheByTimestamp replaces the counting
     // scheme entirely, and callers hold base references
-    virtual std::any getLimit (const std::any& symbol, const std::any& limit) {
+    virtual ccxt::any getLimit (const ccxt::any& symbol, const ccxt::any& limit) {
         Impl& s = *this->impl;
         bool haveValue = false;
         long long newUpdatesValue = 0;
@@ -107,12 +107,12 @@ public:
         }
         if (limit.has_value ()) {
             const long long lim = toLong (limit);
-            return std::any (newUpdatesValue < lim ? newUpdatesValue : lim);
+            return ccxt::any (newUpdatesValue < lim ? newUpdatesValue : lim);
         }
-        return std::any (newUpdatesValue);
+        return ccxt::any (newUpdatesValue);
     }
 
-    virtual void append (const std::any& item) {
+    virtual void append (const ccxt::any& item) {
         Impl& s = *this->impl;
         if (s.maxSize && static_cast<long long> (s.rows.size ()) == s.maxSize) {
             s.rows.erase (s.rows.begin ());
@@ -136,13 +136,13 @@ public:
 
 protected:
     // shared by the keyed subclasses: the string form of a row key/id
-    static std::string keyOf (const std::any& v) { return str (v); }
+    static std::string keyOf (const ccxt::any& v) { return str (v); }
 
     // JS `for (prop in item) reference[prop] = item[prop]` — merge INto the stored row
-    static void mergeInto (const std::any& reference, const std::any& item) {
+    static void mergeInto (const ccxt::any& reference, const ccxt::any& item) {
         if (isDict (reference) && isDict (item)) {
-            for (const auto& kv : std::any_cast<dict> (item).entries ()) {
-                std::any_cast<dict> (reference).set (kv.first, kv.second);
+            for (const auto& kv : ccxt::any_cast<dict> (item).entries ()) {
+                ccxt::any_cast<dict> (reference).set (kv.first, kv.second);
             }
         }
     }
@@ -154,35 +154,35 @@ protected:
 
 class ArrayCacheByTimestamp : public ArrayCache {
 public:
-    explicit ArrayCacheByTimestamp (const std::any& maxSize = std::any {})
+    explicit ArrayCacheByTimestamp (const ccxt::any& maxSize = ccxt::any {})
         : ArrayCache (maxSize) {}
 
-    std::any getLimit (const std::any& /*symbol*/, const std::any& limit) override {
+    ccxt::any getLimit (const ccxt::any& /*symbol*/, const ccxt::any& limit) override {
         Impl& s = *this->impl;
         s.clearUpdates = true;
         if (!limit.has_value ()) {
-            return std::any (s.newUpdates);
+            return ccxt::any (s.newUpdates);
         }
         const long long lim = toLong (limit);
-        return std::any (s.newUpdates < lim ? s.newUpdates : lim);
+        return ccxt::any (s.newUpdates < lim ? s.newUpdates : lim);
     }
 
-    void append (const std::any& item) override {
+    void append (const ccxt::any& item) override {
         Impl& s = *this->impl;
         const std::string ts = keyOf (::getValue (item, 0));
         if (s.hashmap.has (ts)) {
-            const std::any reference = s.hashmap.get (ts);
-            if (isList (reference) && isList (item) && !std::any_cast<list> (reference).sameAs (std::any_cast<list> (item))) {
+            const ccxt::any reference = s.hashmap.get (ts);
+            if (isList (reference) && isList (item) && !ccxt::any_cast<list> (reference).sameAs (ccxt::any_cast<list> (item))) {
                 // iterate the incoming row and drop whatever it does not cover — a
                 // shorter update must not leave the previous row's tail in place
-                list ref = std::any_cast<list> (reference);
-                const list& incoming = std::any_cast<list> (item);
+                list ref = ccxt::any_cast<list> (reference);
+                const list& incoming = ccxt::any_cast<list> (item);
                 ref.items ().assign (incoming.items ().begin (), incoming.items ().end ());
             }
         } else {
             s.hashmap.set (ts, item);
             if (s.maxSize && static_cast<long long> (s.rows.size ()) == s.maxSize) {
-                const std::any evicted = s.rows.front ();
+                const ccxt::any evicted = s.rows.front ();
                 s.rows.erase (s.rows.begin ());
                 s.hashmap.erase (keyOf (::getValue (evicted, 0)));
             }
@@ -203,20 +203,20 @@ public:
 
 class ArrayCacheBySymbolById : public ArrayCache {
 public:
-    explicit ArrayCacheBySymbolById (const std::any& maxSize = std::any {})
+    explicit ArrayCacheBySymbolById (const ccxt::any& maxSize = ccxt::any {})
         : ArrayCache (maxSize) {}
 
-    void append (const std::any& item) override {
+    void append (const ccxt::any& item) override {
         Impl& s = *this->impl;
-        std::any stored = item;
+        ccxt::any stored = item;
         const std::string key = str (::getValue (item, std::string (s.keyField)));
         const std::string id = keyOf (::getValue (item, std::string ("id")));
         if (!isDict (s.hashmap.get (key))) {
-            s.hashmap.set (key, std::any (dict {}));
+            s.hashmap.set (key, ccxt::any (dict {}));
         }
-        dict byId = std::any_cast<dict> (s.hashmap.get (key));
+        dict byId = ccxt::any_cast<dict> (s.hashmap.get (key));
         if (byId.has (id)) {
-            const std::any reference = byId.get (id);
+            const ccxt::any reference = byId.get (id);
             if (!sameDict (reference, stored)) {
                 mergeInto (reference, stored);
             }
@@ -224,7 +224,7 @@ public:
             // move the row to the end, matching on BOTH the key field and the id —
             // different symbols can share an order id
             for (std::size_t i = 0; i < s.rows.size (); i++) {
-                const std::any& existing = s.rows[i];
+                const ccxt::any& existing = s.rows[i];
                 if (isEqual (::getValue (existing, std::string ("id")), ::getValue (stored, std::string ("id")))
                     && isEqual (::getValue (existing, std::string (s.keyField)), ::getValue (stored, std::string (s.keyField)))) {
                     s.rows.erase (s.rows.begin () + static_cast<long> (i));
@@ -235,12 +235,12 @@ public:
             byId.set (id, stored);
         }
         if (s.maxSize && static_cast<long long> (s.rows.size ()) == s.maxSize) {
-            const std::any evicted = s.rows.front ();
+            const ccxt::any evicted = s.rows.front ();
             s.rows.erase (s.rows.begin ());
             const std::string deleteKey = str (::getValue (evicted, std::string (s.keyField)));
             const std::string deleteId = keyOf (::getValue (evicted, std::string ("id")));
             if (isDict (s.hashmap.get (deleteKey))) {
-                dict bucket = std::any_cast<dict> (s.hashmap.get (deleteKey));
+                dict bucket = ccxt::any_cast<dict> (s.hashmap.get (deleteKey));
                 bucket.erase (deleteId);
                 // drop the emptied outer bucket, or short-lived symbols leak forever
                 if (bucket.size () == 0) {
@@ -290,15 +290,15 @@ public:
     }
 
 protected:
-    static bool sameDict (const std::any& a, const std::any& b) {
-        return isDict (a) && isDict (b) && std::any_cast<dict> (a).sameAs (std::any_cast<dict> (b));
+    static bool sameDict (const ccxt::any& a, const ccxt::any& b) {
+        return isDict (a) && isDict (b) && ccxt::any_cast<dict> (a).sameAs (ccxt::any_cast<dict> (b));
     }
 };
 
 // prediction markets: the first nesting level is the outcome handle, not the symbol
 class ArrayCacheByOutcomeById : public ArrayCacheBySymbolById {
 public:
-    explicit ArrayCacheByOutcomeById (const std::any& maxSize = std::any {})
+    explicit ArrayCacheByOutcomeById (const ccxt::any& maxSize = ccxt::any {})
         : ArrayCacheBySymbolById (maxSize) {
         this->impl->keyField = "outcome";
     }
@@ -310,26 +310,26 @@ public:
 
 class ArrayCacheBySymbolBySide : public ArrayCache {
 public:
-    ArrayCacheBySymbolBySide () : ArrayCache (std::any {}) {}
+    ArrayCacheBySymbolBySide () : ArrayCache (ccxt::any {}) {}
 
-    void append (const std::any& item) override {
+    void append (const ccxt::any& item) override {
         Impl& s = *this->impl;
-        std::any stored = item;
+        ccxt::any stored = item;
         const std::string key = str (::getValue (item, std::string ("symbol")));
         const std::string side = keyOf (::getValue (item, std::string ("side")));
         if (!isDict (s.hashmap.get (key))) {
-            s.hashmap.set (key, std::any (dict {}));
+            s.hashmap.set (key, ccxt::any (dict {}));
         }
-        dict bySide = std::any_cast<dict> (s.hashmap.get (key));
+        dict bySide = ccxt::any_cast<dict> (s.hashmap.get (key));
         if (bySide.has (side)) {
-            const std::any reference = bySide.get (side);
+            const ccxt::any reference = bySide.get (side);
             if (!(isDict (reference) && isDict (stored)
-                  && std::any_cast<dict> (reference).sameAs (std::any_cast<dict> (stored)))) {
+                  && ccxt::any_cast<dict> (reference).sameAs (ccxt::any_cast<dict> (stored)))) {
                 mergeInto (reference, stored);
             }
             stored = reference;
             for (std::size_t i = 0; i < s.rows.size (); i++) {
-                const std::any& existing = s.rows[i];
+                const ccxt::any& existing = s.rows[i];
                 if (isEqual (::getValue (existing, std::string ("symbol")), ::getValue (stored, std::string ("symbol")))
                     && isEqual (::getValue (existing, std::string ("side")), ::getValue (stored, std::string ("side")))) {
                     s.rows.erase (s.rows.begin () + static_cast<long> (i));

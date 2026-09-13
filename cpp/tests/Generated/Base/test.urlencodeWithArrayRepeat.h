@@ -12,14 +12,14 @@ void testUrlencodeWithArrayRepeat() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any dict2 = ccxt::dict{
+  ccxt::any dict2 = ccxt::dict{
       {std::string("a"), 1},
       {std::string("product_ids"),
        ccxt::list{std::string("AA"), std::string("BB")}},
   };
-  std::any expected2a = std::string("a=1&product_ids=AA&product_ids=BB");
-  std::any expected2b = std::string("product_ids=AA&product_ids=BB&a=1");
-  std::any result2 = exchange.urlencodeWithArrayRepeat(dict2);
+  ccxt::any expected2a = std::string("a=1&product_ids=AA&product_ids=BB");
+  ccxt::any expected2b = std::string("product_ids=AA&product_ids=BB&a=1");
+  ccxt::any result2 = exchange.urlencodeWithArrayRepeat(dict2);
   assertTrue(
       isTrue(isEqual(result2, expected2a)) ||
           isTrue(isEqual(result2, expected2b)),

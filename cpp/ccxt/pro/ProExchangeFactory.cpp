@@ -21,7 +21,7 @@ void registerProExchange (const std::string& id, Creator creator) {
     proRegistry ()[id] = std::move (creator);
 }
 
-std::shared_ptr<ExchangeBase> createProExchange (const std::string& id, std::any config) {
+std::shared_ptr<ExchangeBase> createProExchange (const std::string& id, ccxt::any config) {
     const auto it = proRegistry ().find (id);
     if (it == proRegistry ().end ()) {
         throw ccxt::NotSupported ("pro exchange " + id + " not found");

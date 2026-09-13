@@ -23,8 +23,8 @@ void check (bool condition, const std::string& what) {
     }
 }
 
-std::string text (const std::any& v) {
-    return v.has_value () ? std::any_cast<std::string> (toString (v)) : std::string ("<undefined>");
+std::string text (const ccxt::any& v) {
+    return v.has_value () ? ccxt::any_cast<std::string> (toString (v)) : std::string ("<undefined>");
 }
 
 } // namespace
@@ -45,14 +45,14 @@ int main () {
 
         // exceptions carry error CLASS NAMES as values (see D3b) -- the transpiler
         // rewrites the class to its name and the registry re-materialises it
-        const std::any exact = ::getValue (exchange.exceptions, std::string ("exact"));
+        const ccxt::any exact = ::getValue (exchange.exceptions, std::string ("exact"));
         check (ccxt::isDict (exact), "exceptions.exact is a dict");
 
         // -- parseTicker against a canned response -------------------------------------
         //
         // Shape taken from binance's /api/v3/ticker/24hr, trimmed to the fields
         // parseTicker reads.
-        const std::any raw = ccxt::dict {
+        const ccxt::any raw = ccxt::dict {
             { std::string ("symbol"),             std::string ("BTCUSDT") },
             { std::string ("priceChange"),        std::string ("100.0") },
             { std::string ("priceChangePercent"), std::string ("0.5") },
@@ -72,7 +72,7 @@ int main () {
             { std::string ("openTime"),           1700000000000LL },
             { std::string ("closeTime"),          1700003600000LL },
         };
-        const std::any ticker = exchange.parseTicker (raw, std::any {});
+        const ccxt::any ticker = exchange.parseTicker (raw, ccxt::any {});
         check (ccxt::isDict (ticker), "parseTicker returns a dict");
         check (ccxt::toDouble (::getValue (ticker, std::string ("high"))) == 20500.0,
                "ticker.high is 20500, got " + text (::getValue (ticker, std::string ("high"))));

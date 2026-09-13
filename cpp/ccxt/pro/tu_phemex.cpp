@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_phemex(std::any config) {
+std::shared_ptr<ExchangeBase> create_phemex(ccxt::any config) {
   return newExchange<ccxt::pro::phemex>(config);
 }
 

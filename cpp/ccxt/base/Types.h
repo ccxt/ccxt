@@ -3,7 +3,7 @@
 
 #pragma once
 
-// Typed unified structures over the dynamic std::any value model — the layer the
+// Typed unified structures over the dynamic ccxt::any value model — the layer the
 // user consumes. Generated from ts/src/base/types.ts; regenerate with
 // `npm run transpile-types` (or `npx tsx build/transpileTypes.ts --lang cpp`).
 
@@ -106,17 +106,17 @@ namespace typedsupport {
 
 // key lookup over the dynamic dict — deliberately self-contained (Value.h only), so
 // Types.h can be included anywhere without dragging in the helpers layer
-inline std::any getAny (const std::any& d, const char* key) {
-    if (!isDict (d)) { return std::any {}; }
-    return std::any_cast<dict> (d).get (std::string (key));
+inline ccxt::any getAny (const ccxt::any& d, const char* key) {
+    if (!isDict (d)) { return ccxt::any {}; }
+    return ccxt::any_cast<dict> (d).get (std::string (key));
 }
 
-inline std::optional<double> anyNum (const std::any& v) {
+inline std::optional<double> anyNum (const ccxt::any& v) {
     if (isNum (v)) {
         return toDouble (v);
     }
     if (isStr (v)) {
-        const std::string& s = std::any_cast<const std::string&> (v);
+        const std::string& s = ccxt::any_cast<const std::string&> (v);
         if (s.empty ()) { return std::nullopt; }
         char* end = nullptr;
         const double parsed = std::strtod (s.c_str (), &end);
@@ -125,7 +125,7 @@ inline std::optional<double> anyNum (const std::any& v) {
     return std::nullopt;
 }
 
-inline std::optional<int64_t> anyInt (const std::any& v) {
+inline std::optional<int64_t> anyInt (const ccxt::any& v) {
     if (isInt (v)) {
         return static_cast<int64_t> (toLong (v));
     }
@@ -133,7 +133,7 @@ inline std::optional<int64_t> anyInt (const std::any& v) {
         return static_cast<int64_t> (toDouble (v));
     }
     if (isStr (v)) {
-        const std::string& s = std::any_cast<const std::string&> (v);
+        const std::string& s = ccxt::any_cast<const std::string&> (v);
         if (s.empty ()) { return std::nullopt; }
         char* end = nullptr;
         const long long parsed = std::strtoll (s.c_str (), &end, 10);
@@ -142,43 +142,43 @@ inline std::optional<int64_t> anyInt (const std::any& v) {
     return std::nullopt;
 }
 
-inline std::optional<std::string> anyStr (const std::any& v) {
+inline std::optional<std::string> anyStr (const ccxt::any& v) {
     if (isStr (v)) {
-        return std::any_cast<std::string> (v);
+        return ccxt::any_cast<std::string> (v);
     }
     return std::nullopt;
 }
 
-inline std::optional<bool> anyBool (const std::any& v) {
+inline std::optional<bool> anyBool (const ccxt::any& v) {
     if (isBoolean (v)) {
-        return std::any_cast<bool> (v);
+        return ccxt::any_cast<bool> (v);
     }
     return std::nullopt;
 }
 
-inline std::optional<double> optNum (const std::any& d, const char* key) { return anyNum (getAny (d, key)); }
-inline std::optional<int64_t> optInt (const std::any& d, const char* key) { return anyInt (getAny (d, key)); }
-inline std::optional<std::string> optStr (const std::any& d, const char* key) { return anyStr (getAny (d, key)); }
-inline std::optional<bool> optBool (const std::any& d, const char* key) { return anyBool (getAny (d, key)); }
+inline std::optional<double> optNum (const ccxt::any& d, const char* key) { return anyNum (getAny (d, key)); }
+inline std::optional<int64_t> optInt (const ccxt::any& d, const char* key) { return anyInt (getAny (d, key)); }
+inline std::optional<std::string> optStr (const ccxt::any& d, const char* key) { return anyStr (getAny (d, key)); }
+inline std::optional<bool> optBool (const ccxt::any& d, const char* key) { return anyBool (getAny (d, key)); }
 
-inline dict dictOrEmpty (const std::any& d, const char* key) {
-    const std::any v = getAny (d, key);
-    return isDict (v) ? std::any_cast<dict> (v) : dict {};
+inline dict dictOrEmpty (const ccxt::any& d, const char* key) {
+    const ccxt::any v = getAny (d, key);
+    return isDict (v) ? ccxt::any_cast<dict> (v) : dict {};
 }
 
 template <class T>
-std::optional<T> optStruct (const std::any& d, const char* key) {
-    const std::any v = getAny (d, key);
+std::optional<T> optStruct (const ccxt::any& d, const char* key) {
+    const ccxt::any v = getAny (d, key);
     if (isDict (v)) { return T (v); }
     return std::nullopt;
 }
 
 template <class T>
-std::vector<T> structList (const std::any& d, const char* key) {
+std::vector<T> structList (const ccxt::any& d, const char* key) {
     std::vector<T> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             out.push_back (T (item));
         }
     }
@@ -186,36 +186,36 @@ std::vector<T> structList (const std::any& d, const char* key) {
 }
 
 template <class T>
-std::map<std::string, T> structMap (const std::any& d, const char* key) {
+std::map<std::string, T> structMap (const ccxt::any& d, const char* key) {
     std::map<std::string, T> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isDict (v)) {
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             out.emplace (kv.first, T (kv.second));
         }
     }
     return out;
 }
 
-inline std::vector<std::string> stringList (const std::any& d, const char* key) {
+inline std::vector<std::string> stringList (const ccxt::any& d, const char* key) {
     std::vector<std::string> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
-            if (isStr (item)) { out.push_back (std::any_cast<std::string> (item)); }
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
+            if (isStr (item)) { out.push_back (ccxt::any_cast<std::string> (item)); }
         }
     }
     return out;
 }
 
-inline std::vector<std::vector<double>> numberRows (const std::any& d, const char* key) {
+inline std::vector<std::vector<double>> numberRows (const ccxt::any& d, const char* key) {
     std::vector<std::vector<double>> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isList (v)) {
-        for (const auto& row : std::any_cast<list> (v).items ()) {
+        for (const auto& row : ccxt::any_cast<list> (v).items ()) {
             std::vector<double> cells;
             if (isList (row)) {
-                for (const auto& cell : std::any_cast<list> (row).items ()) {
+                for (const auto& cell : ccxt::any_cast<list> (row).items ()) {
                     const auto n = anyNum (cell);
                     if (n.has_value ()) { cells.push_back (*n); }
                 }
@@ -226,11 +226,11 @@ inline std::vector<std::vector<double>> numberRows (const std::any& d, const cha
     return out;
 }
 
-inline std::map<std::string, double> numberMap (const std::any& d, const char* key) {
+inline std::map<std::string, double> numberMap (const ccxt::any& d, const char* key) {
     std::map<std::string, double> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isDict (v)) {
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             const auto n = anyNum (kv.second);
             if (n.has_value ()) { out.emplace (kv.first, *n); }
         }
@@ -243,7 +243,7 @@ inline std::map<std::string, double> numberMap (const std::any& d, const char* k
 struct NestedDictionary {
 
     NestedDictionary () = default;
-    explicit NestedDictionary (const std::any& raw) {
+    explicit NestedDictionary (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
     }
 };
@@ -253,7 +253,7 @@ struct MinMax {
     std::optional<double> max;
 
     MinMax () = default;
-    explicit MinMax (const std::any& raw) {
+    explicit MinMax (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->min = typedsupport::optNum (raw, "min");
         this->max = typedsupport::optNum (raw, "max");
@@ -266,7 +266,7 @@ struct Fee {
     std::optional<double> rate;
 
     Fee () = default;
-    explicit Fee (const std::any& raw) {
+    explicit Fee (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->currency = typedsupport::optStr (raw, "currency");
         this->cost = typedsupport::optNum (raw, "cost");
@@ -275,7 +275,7 @@ struct Fee {
 };
 
 struct TradingFee {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<double> maker;
     std::optional<double> taker;
@@ -283,7 +283,7 @@ struct TradingFee {
     std::optional<bool> tierBased;
 
     TradingFee () = default;
-    explicit TradingFee (const std::any& raw) {
+    explicit TradingFee (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -299,7 +299,7 @@ struct MarketMarginModes {
     std::optional<bool> cross;
 
     MarketMarginModes () = default;
-    explicit MarketMarginModes (const std::any& raw) {
+    explicit MarketMarginModes (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->isolated = typedsupport::optBool (raw, "isolated");
         this->cross = typedsupport::optBool (raw, "cross");
@@ -312,7 +312,7 @@ struct Precision {
     std::optional<double> cost;
 
     Precision () = default;
-    explicit Precision (const std::any& raw) {
+    explicit Precision (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->amount = typedsupport::optNum (raw, "amount");
         this->price = typedsupport::optNum (raw, "price");
@@ -328,7 +328,7 @@ struct Limits {
     std::optional<MinMax> market;
 
     Limits () = default;
-    explicit Limits (const std::any& raw) {
+    explicit Limits (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->amount = typedsupport::optStruct<MinMax> (raw, "amount");
         this->cost = typedsupport::optStruct<MinMax> (raw, "cost");
@@ -378,11 +378,11 @@ struct Market {
     std::optional<MarketMarginModes> marginModes;
     std::optional<Limits> limits;
     std::optional<int64_t> created;
-    std::any info;
+    ccxt::any info;
     std::vector<PredictionOutcome> outcomes;
 
     Market () = default;
-    explicit Market (const std::any& raw) {
+    explicit Market (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->id = typedsupport::optStr (raw, "id");
         this->numericId = typedsupport::optNum (raw, "numericId");
@@ -433,7 +433,7 @@ struct PredictionFees {
     std::optional<double> resolution;
 
     PredictionFees () = default;
-    explicit PredictionFees (const std::any& raw) {
+    explicit PredictionFees (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->trading = typedsupport::optNum (raw, "trading");
         this->resolution = typedsupport::optNum (raw, "resolution");
@@ -441,7 +441,7 @@ struct PredictionFees {
 };
 
 struct PredictionEvent {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> id;
     std::optional<std::string> event;
     std::optional<std::string> title;
@@ -463,7 +463,7 @@ struct PredictionEvent {
     std::optional<std::string> url;
 
     PredictionEvent () = default;
-    explicit PredictionEvent (const std::any& raw) {
+    explicit PredictionEvent (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->id = typedsupport::optStr (raw, "id");
@@ -489,7 +489,7 @@ struct PredictionEvent {
 };
 
 struct PredictionMarket {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> id;
     std::optional<std::string> market;
     std::optional<std::string> event;
@@ -516,13 +516,13 @@ struct PredictionMarket {
     std::optional<double> liquidity;
     std::optional<double> openInterest;
     std::optional<double> tickSize;
-    std::any limits;
+    ccxt::any limits;
     std::optional<PredictionFees> fees;
     std::optional<std::string> resolutionSource;
     std::optional<std::string> image;
 
     PredictionMarket () = default;
-    explicit PredictionMarket (const std::any& raw) {
+    explicit PredictionMarket (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->id = typedsupport::optStr (raw, "id");
@@ -559,7 +559,7 @@ struct PredictionMarket {
 };
 
 struct PredictionOutcome {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> outcome;
     std::optional<std::string> outcomeId;
     std::optional<std::string> label;
@@ -575,7 +575,7 @@ struct PredictionOutcome {
     std::optional<Precision> precision;
 
     PredictionOutcome () = default;
-    explicit PredictionOutcome (const std::any& raw) {
+    explicit PredictionOutcome (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->outcome = typedsupport::optStr (raw, "outcome");
@@ -614,7 +614,7 @@ struct PredictionOrder {
     std::optional<Fee> fee;
     std::optional<bool> reduceOnly;
     std::optional<bool> postOnly;
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> outcome;
     std::optional<std::string> outcomeId;
     std::optional<std::string> label;
@@ -623,7 +623,7 @@ struct PredictionOrder {
     std::vector<PredictionTrade> trades;
 
     PredictionOrder () = default;
-    explicit PredictionOrder (const std::any& raw) {
+    explicit PredictionOrder (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->id = typedsupport::optStr (raw, "id");
         this->clientOrderId = typedsupport::optStr (raw, "clientOrderId");
@@ -655,7 +655,7 @@ struct PredictionOrder {
 };
 
 struct PredictionTrade {
-    std::any info;
+    ccxt::any info;
     std::optional<double> amount;
     std::optional<std::string> datetime;
     std::optional<std::string> id;
@@ -674,7 +674,7 @@ struct PredictionTrade {
     std::optional<double> realizedPnl;
 
     PredictionTrade () = default;
-    explicit PredictionTrade (const std::any& raw) {
+    explicit PredictionTrade (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->amount = typedsupport::optNum (raw, "amount");
@@ -698,7 +698,7 @@ struct PredictionTrade {
 
 struct PredictionPosition {
     std::optional<std::string> id;
-    std::any info;
+    ccxt::any info;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
     std::optional<double> contracts;
@@ -723,7 +723,7 @@ struct PredictionPosition {
     std::optional<double> payout;
 
     PredictionPosition () = default;
-    explicit PredictionPosition (const std::any& raw) {
+    explicit PredictionPosition (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->id = typedsupport::optStr (raw, "id");
         this->info = typedsupport::getAny (raw, "info");
@@ -753,7 +753,7 @@ struct PredictionPosition {
 };
 
 struct PredictionTicker {
-    std::any info;
+    ccxt::any info;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
     std::optional<double> high;
@@ -778,7 +778,7 @@ struct PredictionTicker {
     std::optional<double> openInterest;
 
     PredictionTicker () = default;
-    explicit PredictionTicker (const std::any& raw) {
+    explicit PredictionTicker (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->timestamp = typedsupport::optInt (raw, "timestamp");
@@ -817,7 +817,7 @@ struct PredictionOrderBook {
     std::optional<std::string> market;
 
     PredictionOrderBook () = default;
-    explicit PredictionOrderBook (const std::any& raw) {
+    explicit PredictionOrderBook (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->asks = typedsupport::numberRows (raw, "asks");
         this->bids = typedsupport::numberRows (raw, "bids");
@@ -832,13 +832,13 @@ struct PredictionOrderBook {
 
 struct PredictionTickers {
     std::map<std::string, PredictionTicker> predictionTickers;
-    std::any info;
+    ccxt::any info;
 
     PredictionTickers () = default;
-    explicit PredictionTickers (const std::any& raw) {
+    explicit PredictionTickers (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->predictionTickers.emplace (kv.first, PredictionTicker (kv.second));
         }
@@ -850,7 +850,7 @@ struct PredictionTickers {
 };
 
 struct PredictionTradingFee {
-    std::any info;
+    ccxt::any info;
     std::optional<double> maker;
     std::optional<double> taker;
     std::optional<bool> percentage;
@@ -860,7 +860,7 @@ struct PredictionTradingFee {
     std::optional<std::string> market;
 
     PredictionTradingFee () = default;
-    explicit PredictionTradingFee (const std::any& raw) {
+    explicit PredictionTradingFee (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->maker = typedsupport::optNum (raw, "maker");
@@ -878,13 +878,13 @@ struct PredictionOpenInterest {
     std::optional<double> openInterestValue;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> outcome;
     std::optional<std::string> outcomeId;
     std::optional<std::string> market;
 
     PredictionOpenInterest () = default;
-    explicit PredictionOpenInterest (const std::any& raw) {
+    explicit PredictionOpenInterest (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->openInterestAmount = typedsupport::optNum (raw, "openInterestAmount");
         this->openInterestValue = typedsupport::optNum (raw, "openInterestValue");
@@ -898,7 +898,7 @@ struct PredictionOpenInterest {
 };
 
 struct PredictionSettlement {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> id;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
@@ -915,7 +915,7 @@ struct PredictionSettlement {
     std::optional<double> pnl;
 
     PredictionSettlement () = default;
-    explicit PredictionSettlement (const std::any& raw) {
+    explicit PredictionSettlement (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->id = typedsupport::optStr (raw, "id");
@@ -947,7 +947,7 @@ struct fetchEventsParams {
     std::optional<std::string> slug;
 
     fetchEventsParams () = default;
-    explicit fetchEventsParams (const std::any& raw) {
+    explicit fetchEventsParams (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->query = typedsupport::optStr (raw, "query");
         this->queries = typedsupport::stringList (raw, "queries");
@@ -962,7 +962,7 @@ struct fetchEventsParams {
 };
 
 struct Trade {
-    std::any info;
+    ccxt::any info;
     std::optional<double> amount;
     std::optional<std::string> datetime;
     std::optional<std::string> id;
@@ -979,7 +979,7 @@ struct Trade {
     std::optional<std::string> orderId;   // kraken/bybit/woo/hashkey/toobit/apex raw venue order id
 
     Trade () = default;
-    explicit Trade (const std::any& raw) {
+    explicit Trade (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->amount = typedsupport::optNum (raw, "amount");
@@ -1025,7 +1025,7 @@ struct Order {
     std::optional<Fee> fee;
     std::optional<bool> reduceOnly;
     std::optional<bool> postOnly;
-    std::any info;
+    ccxt::any info;
     std::vector<Fee> fees;   // safeOrder() always sets a fees list next to fee
     std::optional<bool> hedged;   // poloniex
     std::optional<double> leverage;   // poloniex
@@ -1035,7 +1035,7 @@ struct Order {
     std::optional<bool> trigger;   // okx
 
     Order () = default;
-    explicit Order (const std::any& raw) {
+    explicit Order (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->id = typedsupport::optStr (raw, "id");
         this->clientOrderId = typedsupport::optStr (raw, "clientOrderId");
@@ -1082,7 +1082,7 @@ struct OrderBook {
     std::optional<std::string> symbol;
 
     OrderBook () = default;
-    explicit OrderBook (const std::any& raw) {
+    explicit OrderBook (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->asks = typedsupport::numberRows (raw, "asks");
         this->bids = typedsupport::numberRows (raw, "bids");
@@ -1095,13 +1095,13 @@ struct OrderBook {
 
 struct OrderBooks {
     std::map<std::string, OrderBook> orderBooks;
-    std::any info;
+    ccxt::any info;
 
     OrderBooks () = default;
-    explicit OrderBooks (const std::any& raw) {
+    explicit OrderBooks (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->orderBooks.emplace (kv.first, OrderBook (kv.second));
         }
@@ -1114,7 +1114,7 @@ struct OrderBooks {
 
 struct Ticker {
     std::optional<std::string> symbol;
-    std::any info;
+    ccxt::any info;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
     std::optional<double> high;
@@ -1138,7 +1138,7 @@ struct Ticker {
     std::optional<std::string> id;   // poloniex raw venue market id next to symbol
 
     Ticker () = default;
-    explicit Ticker (const std::any& raw) {
+    explicit Ticker (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->symbol = typedsupport::optStr (raw, "symbol");
         this->info = typedsupport::getAny (raw, "info");
@@ -1167,7 +1167,7 @@ struct Ticker {
 };
 
 struct Transaction {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> id;
     std::optional<std::string> txid;
     std::optional<int64_t> timestamp;
@@ -1190,7 +1190,7 @@ struct Transaction {
     std::optional<std::string> tokenSide;   // C# parity
 
     Transaction () = default;
-    explicit Transaction (const std::any& raw) {
+    explicit Transaction (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->id = typedsupport::optStr (raw, "id");
@@ -1218,13 +1218,13 @@ struct Transaction {
 
 struct Tickers {
     std::map<std::string, Ticker> tickers;
-    std::any info;
+    ccxt::any info;
 
     Tickers () = default;
-    explicit Tickers (const std::any& raw) {
+    explicit Tickers (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->tickers.emplace (kv.first, Ticker (kv.second));
         }
@@ -1240,7 +1240,7 @@ struct CurrencyLimits {
     std::optional<MinMax> withdraw;
 
     CurrencyLimits () = default;
-    explicit CurrencyLimits (const std::any& raw) {
+    explicit CurrencyLimits (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->amount = typedsupport::optStruct<MinMax> (raw, "amount");
         this->withdraw = typedsupport::optStruct<MinMax> (raw, "withdraw");
@@ -1261,10 +1261,10 @@ struct Currency {
     std::optional<double> fee;
     std::optional<CurrencyLimits> limits;
     dict networks;
-    std::any info;
+    ccxt::any info;
 
     Currency () = default;
-    explicit Currency (const std::any& raw) {
+    explicit Currency (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->id = typedsupport::optStr (raw, "id");
         this->code = typedsupport::optStr (raw, "code");
@@ -1290,7 +1290,7 @@ struct Balance {
     std::optional<double> debt;
 
     Balance () = default;
-    explicit Balance (const std::any& raw) {
+    explicit Balance (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->free = typedsupport::optNum (raw, "free");
         this->used = typedsupport::optNum (raw, "used");
@@ -1305,10 +1305,10 @@ struct BalanceAccount {
     std::optional<std::string> total;
     std::optional<std::string> debt;
     std::optional<std::string> frozen;
-    std::any info;
+    ccxt::any info;
 
     BalanceAccount () = default;
-    explicit BalanceAccount (const std::any& raw) {
+    explicit BalanceAccount (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->free = typedsupport::optStr (raw, "free");
         this->used = typedsupport::optStr (raw, "used");
@@ -1323,11 +1323,11 @@ struct Account {
     std::optional<std::string> id;
     std::optional<std::string> type;
     std::optional<std::string> code;
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> name;   // several venues name accounts
 
     Account () = default;
-    explicit Account (const std::any& raw) {
+    explicit Account (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->id = typedsupport::optStr (raw, "id");
         this->type = typedsupport::optStr (raw, "type");
@@ -1338,20 +1338,20 @@ struct Account {
 };
 
 struct PartialBalances {
-    std::map<std::string, std::any> partialBalances;
-    std::any info;
+    std::map<std::string, ccxt::any> partialBalances;
+    ccxt::any info;
 
     PartialBalances () = default;
-    explicit PartialBalances (const std::any& raw) {
+    explicit PartialBalances (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->partialBalances.emplace (kv.first, kv.second);
         }
     }
 
-    const std::any& operator[] (const std::string& key) const { return this->partialBalances.at (key); }
+    const ccxt::any& operator[] (const std::string& key) const { return this->partialBalances.at (key); }
     bool has (const std::string& key) const { return this->partialBalances.count (key) > 0; }
     std::size_t size () const { return this->partialBalances.size (); }
 };
@@ -1361,12 +1361,12 @@ struct Balances {
     std::map<std::string, double> free;
     std::map<std::string, double> used;
     std::map<std::string, double> total;
-    std::any info;
+    ccxt::any info;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
 
     Balances () = default;
-    explicit Balances (const std::any& raw) {
+    explicit Balances (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->timestamp = typedsupport::optInt (raw, "timestamp");
@@ -1374,7 +1374,7 @@ struct Balances {
         this->free = typedsupport::numberMap (raw, "free");
         this->used = typedsupport::numberMap (raw, "used");
         this->total = typedsupport::numberMap (raw, "total");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info" || kv.first == "free" || kv.first == "used" || kv.first == "total"
                 || kv.first == "timestamp" || kv.first == "datetime" || kv.first == "debt") { continue; }
             this->balances.emplace (kv.first, Balance (kv.second));
@@ -1387,14 +1387,14 @@ struct Balances {
 };
 
 struct DepositAddress {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> currency;
     std::optional<std::string> network;
     std::optional<std::string> address;
     std::optional<std::string> tag;
 
     DepositAddress () = default;
-    explicit DepositAddress (const std::any& raw) {
+    explicit DepositAddress (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->currency = typedsupport::optStr (raw, "currency");
@@ -1405,11 +1405,11 @@ struct DepositAddress {
 };
 
 struct WithdrawalResponse {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> id;
 
     WithdrawalResponse () = default;
-    explicit WithdrawalResponse (const std::any& raw) {
+    explicit WithdrawalResponse (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->id = typedsupport::optStr (raw, "id");
@@ -1418,7 +1418,7 @@ struct WithdrawalResponse {
 
 struct FundingRate {
     std::optional<std::string> symbol;
-    std::any info;
+    ccxt::any info;
     std::optional<double> timestamp;
     std::optional<double> fundingRate;
     std::optional<std::string> datetime;
@@ -1437,7 +1437,7 @@ struct FundingRate {
     std::optional<std::string> interval;
 
     FundingRate () = default;
-    explicit FundingRate (const std::any& raw) {
+    explicit FundingRate (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->symbol = typedsupport::optStr (raw, "symbol");
         this->info = typedsupport::getAny (raw, "info");
@@ -1462,13 +1462,13 @@ struct FundingRate {
 
 struct FundingRates {
     std::map<std::string, FundingRate> fundingRates;
-    std::any info;
+    ccxt::any info;
 
     FundingRates () = default;
-    explicit FundingRates (const std::any& raw) {
+    explicit FundingRates (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->fundingRates.emplace (kv.first, FundingRate (kv.second));
         }
@@ -1482,7 +1482,7 @@ struct FundingRates {
 struct Position {
     std::optional<std::string> symbol;
     std::optional<std::string> id;
-    std::any info;
+    ccxt::any info;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
     std::optional<double> contracts;
@@ -1513,7 +1513,7 @@ struct Position {
     std::optional<std::string> marginType;   // raw venue spelling next to marginMode
 
     Position () = default;
-    explicit Position (const std::any& raw) {
+    explicit Position (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->symbol = typedsupport::optStr (raw, "symbol");
         this->id = typedsupport::optStr (raw, "id");
@@ -1550,7 +1550,7 @@ struct Position {
 };
 
 struct BorrowInterest {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<std::string> currency;
     std::optional<double> interest;
@@ -1561,7 +1561,7 @@ struct BorrowInterest {
     std::optional<std::string> datetime;
 
     BorrowInterest () = default;
-    explicit BorrowInterest (const std::any& raw) {
+    explicit BorrowInterest (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -1583,10 +1583,10 @@ struct LeverageTier {
     std::optional<double> maxNotional;
     std::optional<double> maintenanceMarginRate;
     std::optional<double> maxLeverage;
-    std::any info;
+    ccxt::any info;
 
     LeverageTier () = default;
-    explicit LeverageTier (const std::any& raw) {
+    explicit LeverageTier (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->tier = typedsupport::optNum (raw, "tier");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -1600,7 +1600,7 @@ struct LeverageTier {
 };
 
 struct LedgerEntry {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> id;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
@@ -1617,7 +1617,7 @@ struct LedgerEntry {
     std::optional<Fee> fee;
 
     LedgerEntry () = default;
-    explicit LedgerEntry (const std::any& raw) {
+    explicit LedgerEntry (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->id = typedsupport::optStr (raw, "id");
@@ -1642,7 +1642,7 @@ struct DepositWithdrawFeeNetwork {
     std::optional<bool> percentage;
 
     DepositWithdrawFeeNetwork () = default;
-    explicit DepositWithdrawFeeNetwork (const std::any& raw) {
+    explicit DepositWithdrawFeeNetwork (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->fee = typedsupport::optNum (raw, "fee");
         this->percentage = typedsupport::optBool (raw, "percentage");
@@ -1650,13 +1650,13 @@ struct DepositWithdrawFeeNetwork {
 };
 
 struct DepositWithdrawFee {
-    std::any info;
+    ccxt::any info;
     std::optional<DepositWithdrawFeeNetwork> withdraw;
     std::optional<DepositWithdrawFeeNetwork> deposit;
     std::map<std::string, DepositWithdrawFeeNetwork> networks;
 
     DepositWithdrawFee () = default;
-    explicit DepositWithdrawFee (const std::any& raw) {
+    explicit DepositWithdrawFee (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->withdraw = typedsupport::optStruct<DepositWithdrawFeeNetwork> (raw, "withdraw");
@@ -1667,13 +1667,13 @@ struct DepositWithdrawFee {
 
 struct DepositWithdrawFees {
     std::map<std::string, DepositWithdrawFee> depositWithdrawFees;
-    std::any info;
+    ccxt::any info;
 
     DepositWithdrawFees () = default;
-    explicit DepositWithdrawFees (const std::any& raw) {
+    explicit DepositWithdrawFees (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->depositWithdrawFees.emplace (kv.first, DepositWithdrawFee (kv.second));
         }
@@ -1685,7 +1685,7 @@ struct DepositWithdrawFees {
 };
 
 struct TransferEntry {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> id;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
@@ -1696,7 +1696,7 @@ struct TransferEntry {
     std::optional<std::string> status;
 
     TransferEntry () = default;
-    explicit TransferEntry (const std::any& raw) {
+    explicit TransferEntry (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->id = typedsupport::optStr (raw, "id");
@@ -1711,7 +1711,7 @@ struct TransferEntry {
 };
 
 struct CrossBorrowRate {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> currency;
     std::optional<double> rate;
     std::optional<double> period;
@@ -1719,7 +1719,7 @@ struct CrossBorrowRate {
     std::optional<std::string> datetime;
 
     CrossBorrowRate () = default;
-    explicit CrossBorrowRate (const std::any& raw) {
+    explicit CrossBorrowRate (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->currency = typedsupport::optStr (raw, "currency");
@@ -1731,7 +1731,7 @@ struct CrossBorrowRate {
 };
 
 struct IsolatedBorrowRate {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<std::string> base;
     std::optional<double> baseRate;
@@ -1742,7 +1742,7 @@ struct IsolatedBorrowRate {
     std::optional<std::string> datetime;
 
     IsolatedBorrowRate () = default;
-    explicit IsolatedBorrowRate (const std::any& raw) {
+    explicit IsolatedBorrowRate (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -1757,7 +1757,7 @@ struct IsolatedBorrowRate {
 };
 
 struct FundingRateHistory {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<double> fundingRate;
     std::optional<int64_t> timestamp;
@@ -1776,7 +1776,7 @@ struct FundingRateHistory {
     std::optional<std::string> previousFundingDatetime;   // ditto
 
     FundingRateHistory () = default;
-    explicit FundingRateHistory (const std::any& raw) {
+    explicit FundingRateHistory (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -1806,10 +1806,10 @@ struct OpenInterest {
     std::optional<double> quoteVolume;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
-    std::any info;
+    ccxt::any info;
 
     OpenInterest () = default;
-    explicit OpenInterest (const std::any& raw) {
+    explicit OpenInterest (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->symbol = typedsupport::optStr (raw, "symbol");
         this->openInterestAmount = typedsupport::optNum (raw, "openInterestAmount");
@@ -1824,13 +1824,13 @@ struct OpenInterest {
 
 struct OpenInterests {
     std::map<std::string, OpenInterest> openInterests;
-    std::any info;
+    ccxt::any info;
 
     OpenInterests () = default;
-    explicit OpenInterests (const std::any& raw) {
+    explicit OpenInterests (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->openInterests.emplace (kv.first, OpenInterest (kv.second));
         }
@@ -1842,7 +1842,7 @@ struct OpenInterests {
 };
 
 struct Liquidation {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
@@ -1854,7 +1854,7 @@ struct Liquidation {
     std::optional<std::string> side;
 
     Liquidation () = default;
-    explicit Liquidation (const std::any& raw) {
+    explicit Liquidation (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -1875,10 +1875,10 @@ struct OrderRequest {
     std::optional<std::string> side;
     std::optional<double> amount;
     std::optional<double> price;
-    std::any params;
+    ccxt::any params;
 
     OrderRequest () = default;
-    explicit OrderRequest (const std::any& raw) {
+    explicit OrderRequest (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->symbol = typedsupport::optStr (raw, "symbol");
         this->type = typedsupport::optStr (raw, "type");
@@ -1888,15 +1888,15 @@ struct OrderRequest {
         this->params = typedsupport::getAny (raw, "params");
     }
 
-    std::any toAny () const {
+    ccxt::any toAny () const {
         dict d;
-        if (this->symbol.has_value ()) { d.set ("symbol", std::any (*this->symbol)); }
-        if (this->type.has_value ()) { d.set ("type", std::any (*this->type)); }
-        if (this->side.has_value ()) { d.set ("side", std::any (*this->side)); }
-        if (this->amount.has_value ()) { d.set ("amount", std::any (*this->amount)); }
-        if (this->price.has_value ()) { d.set ("price", std::any (*this->price)); }
+        if (this->symbol.has_value ()) { d.set ("symbol", ccxt::any (*this->symbol)); }
+        if (this->type.has_value ()) { d.set ("type", ccxt::any (*this->type)); }
+        if (this->side.has_value ()) { d.set ("side", ccxt::any (*this->side)); }
+        if (this->amount.has_value ()) { d.set ("amount", ccxt::any (*this->amount)); }
+        if (this->price.has_value ()) { d.set ("price", ccxt::any (*this->price)); }
         if (this->params.has_value ()) { d.set ("params", this->params); }
-        return std::any (d);
+        return ccxt::any (d);
     }
 };
 
@@ -1906,10 +1906,10 @@ struct PredictionOrderRequest {
     std::optional<std::string> side;
     std::optional<double> amount;
     std::optional<double> price;
-    std::any params;
+    ccxt::any params;
 
     PredictionOrderRequest () = default;
-    explicit PredictionOrderRequest (const std::any& raw) {
+    explicit PredictionOrderRequest (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->outcome = typedsupport::optStr (raw, "outcome");
         this->type = typedsupport::optStr (raw, "type");
@@ -1926,24 +1926,24 @@ struct CancellationRequest {
     std::optional<std::string> symbol;
 
     CancellationRequest () = default;
-    explicit CancellationRequest (const std::any& raw) {
+    explicit CancellationRequest (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->id = typedsupport::optStr (raw, "id");
         this->clientOrderId = typedsupport::optStr (raw, "clientOrderId");
         this->symbol = typedsupport::optStr (raw, "symbol");
     }
 
-    std::any toAny () const {
+    ccxt::any toAny () const {
         dict d;
-        if (this->id.has_value ()) { d.set ("id", std::any (*this->id)); }
-        if (this->clientOrderId.has_value ()) { d.set ("clientOrderId", std::any (*this->clientOrderId)); }
-        if (this->symbol.has_value ()) { d.set ("symbol", std::any (*this->symbol)); }
-        return std::any (d);
+        if (this->id.has_value ()) { d.set ("id", ccxt::any (*this->id)); }
+        if (this->clientOrderId.has_value ()) { d.set ("clientOrderId", ccxt::any (*this->clientOrderId)); }
+        if (this->symbol.has_value ()) { d.set ("symbol", ccxt::any (*this->symbol)); }
+        return ccxt::any (d);
     }
 };
 
 struct FundingHistory {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<std::string> code;
     std::optional<int64_t> timestamp;
@@ -1954,7 +1954,7 @@ struct FundingHistory {
     std::optional<std::string> type;   // 2 fixtures
 
     FundingHistory () = default;
-    explicit FundingHistory (const std::any& raw) {
+    explicit FundingHistory (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -1969,12 +1969,12 @@ struct FundingHistory {
 };
 
 struct MarginMode {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<std::string> marginMode;
 
     MarginMode () = default;
-    explicit MarginMode (const std::any& raw) {
+    explicit MarginMode (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -2004,10 +2004,10 @@ struct Greeks {
     std::optional<double> markPrice;
     std::optional<double> lastPrice;
     std::optional<double> underlyingPrice;
-    std::any info;
+    ccxt::any info;
 
     Greeks () = default;
-    explicit Greeks (const std::any& raw) {
+    explicit Greeks (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->symbol = typedsupport::optStr (raw, "symbol");
         this->timestamp = typedsupport::optInt (raw, "timestamp");
@@ -2035,7 +2035,7 @@ struct Greeks {
 };
 
 struct Conversion {
-    std::any info;
+    ccxt::any info;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
     std::optional<std::string> id;
@@ -2047,7 +2047,7 @@ struct Conversion {
     std::optional<double> fee;
 
     Conversion () = default;
-    explicit Conversion (const std::any& raw) {
+    explicit Conversion (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->timestamp = typedsupport::optInt (raw, "timestamp");
@@ -2063,7 +2063,7 @@ struct Conversion {
 };
 
 struct Option {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> currency;
     std::optional<std::string> symbol;
     std::optional<int64_t> timestamp;
@@ -2082,7 +2082,7 @@ struct Option {
     std::optional<double> quoteVolume;
 
     Option () = default;
-    explicit Option (const std::any& raw) {
+    explicit Option (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->currency = typedsupport::optStr (raw, "currency");
@@ -2110,10 +2110,10 @@ struct LastPrice {
     std::optional<std::string> datetime;
     std::optional<double> price;
     std::optional<std::string> side;
-    std::any info;
+    ccxt::any info;
 
     LastPrice () = default;
-    explicit LastPrice (const std::any& raw) {
+    explicit LastPrice (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->symbol = typedsupport::optStr (raw, "symbol");
         this->timestamp = typedsupport::optInt (raw, "timestamp");
@@ -2125,7 +2125,7 @@ struct LastPrice {
 };
 
 struct Leverage {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<std::string> marginMode;
     std::optional<double> longLeverage;
@@ -2133,7 +2133,7 @@ struct Leverage {
     std::optional<int64_t> leverage;   // single-sided venues emit one leverage number
 
     Leverage () = default;
-    explicit Leverage (const std::any& raw) {
+    explicit Leverage (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -2145,7 +2145,7 @@ struct Leverage {
 };
 
 struct LongShortRatio {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
@@ -2153,7 +2153,7 @@ struct LongShortRatio {
     std::optional<double> longShortRatio;
 
     LongShortRatio () = default;
-    explicit LongShortRatio (const std::any& raw) {
+    explicit LongShortRatio (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -2165,7 +2165,7 @@ struct LongShortRatio {
 };
 
 struct ADL {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<int64_t> rank;
     std::optional<std::string> rating;
@@ -2174,7 +2174,7 @@ struct ADL {
     std::optional<std::string> datetime;
 
     ADL () = default;
-    explicit ADL (const std::any& raw) {
+    explicit ADL (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -2187,7 +2187,7 @@ struct ADL {
 };
 
 struct MarginModification {
-    std::any info;
+    ccxt::any info;
     std::optional<std::string> symbol;
     std::optional<std::string> type;
     std::optional<std::string> marginMode;
@@ -2199,7 +2199,7 @@ struct MarginModification {
     std::optional<std::string> datetime;
 
     MarginModification () = default;
-    explicit MarginModification (const std::any& raw) {
+    explicit MarginModification (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->symbol = typedsupport::optStr (raw, "symbol");
@@ -2221,10 +2221,10 @@ struct MarginLoan {
     std::optional<std::string> symbol;
     std::optional<int64_t> timestamp;
     std::optional<std::string> datetime;
-    std::any info;
+    ccxt::any info;
 
     MarginLoan () = default;
-    explicit MarginLoan (const std::any& raw) {
+    explicit MarginLoan (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->id = typedsupport::optStr (raw, "id");
         this->currency = typedsupport::optStr (raw, "currency");
@@ -2241,10 +2241,10 @@ struct Status {
     std::optional<int64_t> updated;
     std::optional<int64_t> eta;
     std::optional<std::string> url;
-    std::any info;
+    ccxt::any info;
 
     Status () = default;
-    explicit Status (const std::any& raw) {
+    explicit Status (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->status = typedsupport::optStr (raw, "status");
         this->updated = typedsupport::optInt (raw, "updated");
@@ -2255,11 +2255,11 @@ struct Status {
 };
 
 struct PositionModeInfo {
-    std::any info;
+    ccxt::any info;
     std::optional<bool> hedged;
 
     PositionModeInfo () = default;
-    explicit PositionModeInfo (const std::any& raw) {
+    explicit PositionModeInfo (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
         this->hedged = typedsupport::optBool (raw, "hedged");
@@ -2268,13 +2268,13 @@ struct PositionModeInfo {
 
 struct Leverages {
     std::map<std::string, Leverage> leverages;
-    std::any info;
+    ccxt::any info;
 
     Leverages () = default;
-    explicit Leverages (const std::any& raw) {
+    explicit Leverages (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->leverages.emplace (kv.first, Leverage (kv.second));
         }
@@ -2287,13 +2287,13 @@ struct Leverages {
 
 struct LastPrices {
     std::map<std::string, LastPrice> lastPrices;
-    std::any info;
+    ccxt::any info;
 
     LastPrices () = default;
-    explicit LastPrices (const std::any& raw) {
+    explicit LastPrices (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->lastPrices.emplace (kv.first, LastPrice (kv.second));
         }
@@ -2306,13 +2306,13 @@ struct LastPrices {
 
 struct Currencies {
     std::map<std::string, Currency> currencies;
-    std::any info;
+    ccxt::any info;
 
     Currencies () = default;
-    explicit Currencies (const std::any& raw) {
+    explicit Currencies (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->currencies.emplace (kv.first, Currency (kv.second));
         }
@@ -2325,13 +2325,13 @@ struct Currencies {
 
 struct TradingFees {
     std::map<std::string, TradingFee> tradingFees;
-    std::any info;
+    ccxt::any info;
 
     TradingFees () = default;
-    explicit TradingFees (const std::any& raw) {
+    explicit TradingFees (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->tradingFees.emplace (kv.first, TradingFee (kv.second));
         }
@@ -2344,13 +2344,13 @@ struct TradingFees {
 
 struct MarginModes {
     std::map<std::string, MarginMode> marginModes;
-    std::any info;
+    ccxt::any info;
 
     MarginModes () = default;
-    explicit MarginModes (const std::any& raw) {
+    explicit MarginModes (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->marginModes.emplace (kv.first, MarginMode (kv.second));
         }
@@ -2363,13 +2363,13 @@ struct MarginModes {
 
 struct OptionChain {
     std::map<std::string, Option> optionChain;
-    std::any info;
+    ccxt::any info;
 
     OptionChain () = default;
-    explicit OptionChain (const std::any& raw) {
+    explicit OptionChain (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->optionChain.emplace (kv.first, Option (kv.second));
         }
@@ -2382,13 +2382,13 @@ struct OptionChain {
 
 struct IsolatedBorrowRates {
     std::map<std::string, IsolatedBorrowRate> isolatedBorrowRates;
-    std::any info;
+    ccxt::any info;
 
     IsolatedBorrowRates () = default;
-    explicit IsolatedBorrowRates (const std::any& raw) {
+    explicit IsolatedBorrowRates (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->isolatedBorrowRates.emplace (kv.first, IsolatedBorrowRate (kv.second));
         }
@@ -2401,13 +2401,13 @@ struct IsolatedBorrowRates {
 
 struct CrossBorrowRates {
     std::map<std::string, CrossBorrowRate> crossBorrowRates;
-    std::any info;
+    ccxt::any info;
 
     CrossBorrowRates () = default;
-    explicit CrossBorrowRates (const std::any& raw) {
+    explicit CrossBorrowRates (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             this->crossBorrowRates.emplace (kv.first, CrossBorrowRate (kv.second));
         }
@@ -2420,17 +2420,17 @@ struct CrossBorrowRates {
 
 struct LeverageTiers {
     std::map<std::string, std::vector<LeverageTier>> leverageTiers;
-    std::any info;
+    ccxt::any info;
 
     LeverageTiers () = default;
-    explicit LeverageTiers (const std::any& raw) {
+    explicit LeverageTiers (const ccxt::any& raw) {
         if (!isDict (raw)) { return; }
         this->info = typedsupport::getAny (raw, "info");
-        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
             if (kv.first == "info") { continue; }
             std::vector<LeverageTier> items;
             if (isList (kv.second)) {
-                for (const auto& item : std::any_cast<list> (kv.second).items ()) {
+                for (const auto& item : ccxt::any_cast<list> (kv.second).items ()) {
                     items.push_back (LeverageTier (item));
                 }
             }
@@ -2452,9 +2452,9 @@ struct OHLCV {
     std::optional<double> volume;
 
     OHLCV () = default;
-    explicit OHLCV (const std::any& raw) {
+    explicit OHLCV (const ccxt::any& raw) {
         if (!isList (raw)) { return; }
-        const auto& items = std::any_cast<list> (raw).items ();
+        const auto& items = ccxt::any_cast<list> (raw).items ();
         if (items.size () > 0) { this->timestamp = typedsupport::anyInt (items[0]); }
         if (items.size () > 1) { this->open = typedsupport::anyNum (items[1]); }
         if (items.size () > 2) { this->high = typedsupport::anyNum (items[2]); }
@@ -2474,9 +2474,9 @@ struct OHLCVC {
     std::optional<double> cost;
 
     OHLCVC () = default;
-    explicit OHLCVC (const std::any& raw) {
+    explicit OHLCVC (const ccxt::any& raw) {
         if (!isList (raw)) { return; }
-        const auto& items = std::any_cast<list> (raw).items ();
+        const auto& items = ccxt::any_cast<list> (raw).items ();
         if (items.size () > 0) { this->timestamp = typedsupport::anyInt (items[0]); }
         if (items.size () > 1) { this->open = typedsupport::anyNum (items[1]); }
         if (items.size () > 2) { this->high = typedsupport::anyNum (items[2]); }
@@ -2492,30 +2492,30 @@ struct OHLCVC {
 // argument conversion for the typed API (Exchange.TypedApi.inc)
 // ---------------------------------------------------------------------------
 
-inline std::any typedAny (const std::string& v) { return std::any (v); }
-inline std::any typedAny (const char* v) { return std::any (std::string (v)); }
-inline std::any typedAny (double v) { return std::any (v); }
-inline std::any typedAny (bool v) { return std::any (v); }
-inline std::any typedAny (const dict& v) { return std::any (v); }
-inline std::any typedAny (const list& v) { return std::any (v); }
-inline std::any typedAny (const std::any& v) { return v; }
-inline std::any typedAny (const std::optional<int64_t>& v) { return v.has_value () ? std::any (static_cast<long long> (*v)) : std::any {}; }
-inline std::any typedAny (const std::optional<double>& v) { return v.has_value () ? std::any (*v) : std::any {}; }
-inline std::any typedAny (const std::optional<std::string>& v) { return v.has_value () ? std::any (*v) : std::any {}; }
-inline std::any typedAny (const std::optional<bool>& v) { return v.has_value () ? std::any (*v) : std::any {}; }
+inline ccxt::any typedAny (const std::string& v) { return ccxt::any (v); }
+inline ccxt::any typedAny (const char* v) { return ccxt::any (std::string (v)); }
+inline ccxt::any typedAny (double v) { return ccxt::any (v); }
+inline ccxt::any typedAny (bool v) { return ccxt::any (v); }
+inline ccxt::any typedAny (const dict& v) { return ccxt::any (v); }
+inline ccxt::any typedAny (const list& v) { return ccxt::any (v); }
+inline ccxt::any typedAny (const ccxt::any& v) { return v; }
+inline ccxt::any typedAny (const std::optional<int64_t>& v) { return v.has_value () ? ccxt::any (static_cast<long long> (*v)) : ccxt::any {}; }
+inline ccxt::any typedAny (const std::optional<double>& v) { return v.has_value () ? ccxt::any (*v) : ccxt::any {}; }
+inline ccxt::any typedAny (const std::optional<std::string>& v) { return v.has_value () ? ccxt::any (*v) : ccxt::any {}; }
+inline ccxt::any typedAny (const std::optional<bool>& v) { return v.has_value () ? ccxt::any (*v) : ccxt::any {}; }
 // empty vector rides as undefined: unified semantics treat absent symbol lists as "all"
-inline std::any typedAny (const std::vector<std::string>& v) {
-    if (v.empty ()) { return std::any {}; }
+inline ccxt::any typedAny (const std::vector<std::string>& v) {
+    if (v.empty ()) { return ccxt::any {}; }
     list out;
-    for (const auto& s : v) { out.push (std::any (s)); }
-    return std::any (out);
+    for (const auto& s : v) { out.push (ccxt::any (s)); }
+    return ccxt::any (out);
 }
 
 template <class T>
-std::vector<T> typedVector (const std::any& v) {
+std::vector<T> typedVector (const ccxt::any& v) {
     std::vector<T> out;
     if (isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             out.push_back (T (item));
         }
     }
@@ -2523,10 +2523,10 @@ std::vector<T> typedVector (const std::any& v) {
 }
 
 template <class T>
-std::map<std::string, T> typedMap (const std::any& v) {
+std::map<std::string, T> typedMap (const ccxt::any& v) {
     std::map<std::string, T> out;
     if (isDict (v)) {
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             if (kv.first == "info") { continue; }
             out.emplace (kv.first, T (kv.second));
         }
@@ -2534,11 +2534,11 @@ std::map<std::string, T> typedMap (const std::any& v) {
     return out;
 }
 
-inline std::vector<std::string> typedStringVector (const std::any& v) {
+inline std::vector<std::string> typedStringVector (const ccxt::any& v) {
     std::vector<std::string> out;
     if (isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
-            if (isStr (item)) { out.push_back (std::any_cast<std::string> (item)); }
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
+            if (isStr (item)) { out.push_back (ccxt::any_cast<std::string> (item)); }
         }
     }
     return out;
@@ -2546,10 +2546,10 @@ inline std::vector<std::string> typedStringVector (const std::any& v) {
 
 // vector of request structs (OrderRequest / CancellationRequest) -> dynamic list
 template <class T>
-std::any typedAnyList (const std::vector<T>& v) {
+ccxt::any typedAnyList (const std::vector<T>& v) {
     list out;
     for (const auto& item : v) { out.push (item.toAny ()); }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
 } // namespace ccxt

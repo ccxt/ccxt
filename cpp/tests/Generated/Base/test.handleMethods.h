@@ -23,75 +23,75 @@ void helperTestHandleMarketTypeAndParams() {
             }},
        }},
   });
-  std::any initialParams = ccxt::dict{
+  ccxt::any initialParams = ccxt::dict{
       {std::string("defaultType"), std::string("valueFromParam")},
   };
-  std::any market = exchange.safeMarket(std::string("TEST1/TEST2"));
+  ccxt::any market = exchange.safeMarket(std::string("TEST1/TEST2"));
   ::setValue(market, std::string("type"), std::string("spot"));
   //
   // ########### test different variations ###########
   //
   // case #1, should prevail: param
   //
-  std::any marketType1params1Variable = exchange.handleMarketTypeAndParams(
+  ccxt::any marketType1params1Variable = exchange.handleMarketTypeAndParams(
       std::string("fetchX"), market, initialParams,
       std::string("valueDefault"));
-  std::any marketType1 = ::getValue(marketType1params1Variable, 0);
-  std::any params1 = ::getValue(marketType1params1Variable, 1);
+  ccxt::any marketType1 = ::getValue(marketType1params1Variable, 0);
+  ccxt::any params1 = ::getValue(marketType1params1Variable, 1);
   assertTrue(inOp(initialParams, std::string("defaultType")));
   assertTrue(!isTrue((inOp(params1, std::string("defaultType")))));
   assertTrue(isEqual(marketType1, std::string("valueFromParam")));
   //
   // case #2, should prevail: market.type
   //
-  std::any marketType2params2Variable = exchange.handleMarketTypeAndParams(
+  ccxt::any marketType2params2Variable = exchange.handleMarketTypeAndParams(
       std::string("fetchX"), market, ccxt::dict{}, std::string("valueDefault"));
-  std::any marketType2 = ::getValue(marketType2params2Variable, 0);
-  std::any params2 = ::getValue(marketType2params2Variable, 1);
+  ccxt::any marketType2 = ::getValue(marketType2params2Variable, 0);
+  ccxt::any params2 = ::getValue(marketType2params2Variable, 1);
   assertTrue(isEqual(marketType2, std::string("spot")));
   //
   // case #3, should prevail: valueDefault
   //
-  std::any marketType3params3Variable = exchange.handleMarketTypeAndParams(
-      std::string("fetchX"), std::any{}, ccxt::dict{},
+  ccxt::any marketType3params3Variable = exchange.handleMarketTypeAndParams(
+      std::string("fetchX"), ccxt::any{}, ccxt::dict{},
       std::string("valueDefault"));
-  std::any marketType3 = ::getValue(marketType3params3Variable, 0);
-  std::any params3 = ::getValue(marketType3params3Variable, 1);
+  ccxt::any marketType3 = ::getValue(marketType3params3Variable, 0);
+  ccxt::any params3 = ::getValue(marketType3params3Variable, 1);
   assertTrue(isEqual(marketType3, std::string("valueDefault")));
   //
   // case #4, should prevail: method options
   //
-  std::any marketType4params4Variable = exchange.handleMarketTypeAndParams(
-      std::string("fetchX"), std::any{}, ccxt::dict{});
-  std::any marketType4 = ::getValue(marketType4params4Variable, 0);
-  std::any params4 = ::getValue(marketType4params4Variable, 1);
+  ccxt::any marketType4params4Variable = exchange.handleMarketTypeAndParams(
+      std::string("fetchX"), ccxt::any{}, ccxt::dict{});
+  ccxt::any marketType4 = ::getValue(marketType4params4Variable, 0);
+  ccxt::any params4 = ::getValue(marketType4params4Variable, 1);
   assertTrue(isEqual(marketType4, std::string("valueFromMethodOptions")));
   //
   // case #5, should prevail: options
   //
-  std::any marketType5params5Variable = exchange.handleMarketTypeAndParams(
-      std::string("fetchY"), std::any{}, ccxt::dict{}, std::any{});
-  std::any marketType5 = ::getValue(marketType5params5Variable, 0);
-  std::any params5 = ::getValue(marketType5params5Variable, 1);
+  ccxt::any marketType5params5Variable = exchange.handleMarketTypeAndParams(
+      std::string("fetchY"), ccxt::any{}, ccxt::dict{}, ccxt::any{});
+  ccxt::any marketType5 = ::getValue(marketType5params5Variable, 0);
+  ccxt::any params5 = ::getValue(marketType5params5Variable, 1);
   assertTrue(isEqual(marketType5, std::string("valueFromOptions")));
   //
   // case #6, should prevail: spot (because hardcoded in base)
   //
   ::setValue(::getValue(exchange, std::string("options")),
-             std::string("defaultType"), std::any{});
-  std::any marketType6params6Variable = exchange.handleMarketTypeAndParams(
-      std::string("fetchY"), std::any{}, ccxt::dict{}, std::any{});
-  std::any marketType6 = ::getValue(marketType6params6Variable, 0);
-  std::any params6 = ::getValue(marketType6params6Variable, 1);
+             std::string("defaultType"), ccxt::any{});
+  ccxt::any marketType6params6Variable = exchange.handleMarketTypeAndParams(
+      std::string("fetchY"), ccxt::any{}, ccxt::dict{}, ccxt::any{});
+  ccxt::any marketType6 = ::getValue(marketType6params6Variable, 0);
+  ccxt::any params6 = ::getValue(marketType6params6Variable, 1);
   assertTrue(isEqual(marketType6, std::string("spot")));
   // fake assertion to avoid unused vars
   assertTrue(
-      isTrue(isTrue(isTrue(isTrue(isTrue(!isEqual(params1, std::any{})) ||
-                                  isTrue(!isEqual(params2, std::any{}))) ||
-                           isTrue(!isEqual(params3, std::any{}))) ||
-                    isTrue(!isEqual(params4, std::any{}))) ||
-             isTrue(!isEqual(params5, std::any{}))) ||
-      isTrue(!isEqual(params6, std::any{})));
+      isTrue(isTrue(isTrue(isTrue(isTrue(!isEqual(params1, ccxt::any{})) ||
+                                  isTrue(!isEqual(params2, ccxt::any{}))) ||
+                           isTrue(!isEqual(params3, ccxt::any{}))) ||
+                    isTrue(!isEqual(params4, ccxt::any{}))) ||
+             isTrue(!isEqual(params5, ccxt::any{}))) ||
+      isTrue(!isEqual(params6, ccxt::any{})));
 }
 void helperTestHandleNetworkRequest() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
@@ -106,16 +106,16 @@ void helperTestHandleNetworkRequest() {
   });
   ::getValue(exchange, std::string("currencies")) =
       exchange.createSafeDictionary(); // todo: initialize in C# base files
-  std::any currencyCode =
+  ccxt::any currencyCode =
       std::string("ETH"); // todo: in future with complex cases
   // no-case
-  std::any request1params1Variable = exchange.handleRequestNetwork(
+  ccxt::any request1params1Variable = exchange.handleRequestNetwork(
       ccxt::dict{
           {std::string("network"), std::string("XYZ")},
       },
       ccxt::dict{}, std::string("chain_id"), currencyCode, false);
-  std::any request1 = ::getValue(request1params1Variable, 0);
-  std::any params1 = ::getValue(request1params1Variable, 1);
+  ccxt::any request1 = ::getValue(request1params1Variable, 0);
+  ccxt::any params1 = ::getValue(request1params1Variable, 1);
   assertTrue(!isTrue((inOp(params1, std::string("network")))));
   assertTrue(inOp(request1, std::string("chain_id")));
   assertTrue(isEqual(::getValue(request1, std::string("chain_id")),

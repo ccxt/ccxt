@@ -7,1021 +7,1021 @@
 
     // typed facade over loadMarkets
     std::map<std::string, Market> LoadMarkets (bool reload = false, const dict& params = dict {}) {
-        return typedMap<Market> (awaitValue (std::any (this->loadMarkets (typedAny (reload), typedAny (params)))));
+        return typedMap<Market> (awaitValue (ccxt::any (this->loadMarkets (typedAny (reload), typedAny (params)))));
     }
 
     // typed facade over fetchCurrencies
     Currencies FetchCurrencies (const dict& params = dict {}) {
-        return Currencies (awaitValue (std::any (this->fetchCurrencies (typedAny (params)))));
+        return Currencies (awaitValue (ccxt::any (this->fetchCurrencies (typedAny (params)))));
     }
 
     // typed facade over fetchCurrenciesWs
     Currencies FetchCurrenciesWs (const dict& params = dict {}) {
-        return Currencies (awaitValue (std::any (this->fetchCurrenciesWs (typedAny (params)))));
+        return Currencies (awaitValue (ccxt::any (this->fetchCurrenciesWs (typedAny (params)))));
     }
 
     // typed facade over fetchMarkets
     std::vector<Market> FetchMarkets (const dict& params = dict {}) {
-        return typedVector<Market> (awaitValue (std::any (this->fetchMarkets (typedAny (params)))));
+        return typedVector<Market> (awaitValue (ccxt::any (this->fetchMarkets (typedAny (params)))));
     }
 
     // typed facade over fetchMarketsWs
     std::vector<Market> FetchMarketsWs (const dict& params = dict {}) {
-        return typedVector<Market> (awaitValue (std::any (this->fetchMarketsWs (typedAny (params)))));
+        return typedVector<Market> (awaitValue (ccxt::any (this->fetchMarketsWs (typedAny (params)))));
     }
 
     // typed facade over fetchAccounts
     std::vector<Account> FetchAccounts (const dict& params = dict {}) {
-        return typedVector<Account> (awaitValue (std::any (this->fetchAccounts (typedAny (params)))));
+        return typedVector<Account> (awaitValue (ccxt::any (this->fetchAccounts (typedAny (params)))));
     }
 
     // typed facade over watchLiquidations
     std::vector<Liquidation> WatchLiquidations (const std::string& symbol, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Liquidation> (awaitValue (std::any (this->watchLiquidations (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Liquidation> (awaitValue (ccxt::any (this->watchLiquidations (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchLiquidationsForSymbols
     std::vector<Liquidation> WatchLiquidationsForSymbols (const std::vector<std::string>& symbols, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Liquidation> (awaitValue (std::any (this->watchLiquidationsForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Liquidation> (awaitValue (ccxt::any (this->watchLiquidationsForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchMyLiquidations
     std::vector<Liquidation> WatchMyLiquidations (const std::string& symbol, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Liquidation> (awaitValue (std::any (this->watchMyLiquidations (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Liquidation> (awaitValue (ccxt::any (this->watchMyLiquidations (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchMyLiquidationsForSymbols
     std::vector<Liquidation> WatchMyLiquidationsForSymbols (const std::vector<std::string>& symbols, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Liquidation> (awaitValue (std::any (this->watchMyLiquidationsForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Liquidation> (awaitValue (ccxt::any (this->watchMyLiquidationsForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchDepositAddresses
     std::vector<DepositAddress> FetchDepositAddresses (const std::vector<std::string>& codes = {}, const dict& params = dict {}) {
-        return typedVector<DepositAddress> (awaitValue (std::any (this->fetchDepositAddresses (typedAny (codes), typedAny (params)))));
+        return typedVector<DepositAddress> (awaitValue (ccxt::any (this->fetchDepositAddresses (typedAny (codes), typedAny (params)))));
     }
 
     // typed facade over fetchMarginMode
     MarginMode FetchMarginMode (const std::string& symbol, const dict& params = dict {}) {
-        return MarginMode (awaitValue (std::any (this->fetchMarginMode (typedAny (symbol), typedAny (params)))));
+        return MarginMode (awaitValue (ccxt::any (this->fetchMarginMode (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchMarginModes
     MarginModes FetchMarginModes (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return MarginModes (awaitValue (std::any (this->fetchMarginModes (typedAny (symbols), typedAny (params)))));
+        return MarginModes (awaitValue (ccxt::any (this->fetchMarginModes (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchTime
     std::optional<int64_t> FetchTime (const dict& params = dict {}) {
-        return typedsupport::anyInt (awaitValue (std::any (this->fetchTime (typedAny (params)))));
+        return typedsupport::anyInt (awaitValue (ccxt::any (this->fetchTime (typedAny (params)))));
     }
 
     // typed facade over fetchCrossBorrowRates
     CrossBorrowRates FetchCrossBorrowRates (const dict& params = dict {}) {
-        return CrossBorrowRates (awaitValue (std::any (this->fetchCrossBorrowRates (typedAny (params)))));
+        return CrossBorrowRates (awaitValue (ccxt::any (this->fetchCrossBorrowRates (typedAny (params)))));
     }
 
     // typed facade over fetchIsolatedBorrowRates
     IsolatedBorrowRates FetchIsolatedBorrowRates (const dict& params = dict {}) {
-        return IsolatedBorrowRates (awaitValue (std::any (this->fetchIsolatedBorrowRates (typedAny (params)))));
+        return IsolatedBorrowRates (awaitValue (ccxt::any (this->fetchIsolatedBorrowRates (typedAny (params)))));
     }
 
     // typed facade over fetchLeverageTiers
     LeverageTiers FetchLeverageTiers (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return LeverageTiers (awaitValue (std::any (this->fetchLeverageTiers (typedAny (symbols), typedAny (params)))));
+        return LeverageTiers (awaitValue (ccxt::any (this->fetchLeverageTiers (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchFundingRates
     FundingRates FetchFundingRates (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return FundingRates (awaitValue (std::any (this->fetchFundingRates (typedAny (symbols), typedAny (params)))));
+        return FundingRates (awaitValue (ccxt::any (this->fetchFundingRates (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchFundingIntervals
     FundingRates FetchFundingIntervals (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return FundingRates (awaitValue (std::any (this->fetchFundingIntervals (typedAny (symbols), typedAny (params)))));
+        return FundingRates (awaitValue (ccxt::any (this->fetchFundingIntervals (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over watchFundingRate
     FundingRate WatchFundingRate (const std::string& symbol, const dict& params = dict {}) {
-        return FundingRate (awaitValue (std::any (this->watchFundingRate (typedAny (symbol), typedAny (params)))));
+        return FundingRate (awaitValue (ccxt::any (this->watchFundingRate (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over watchFundingRates
     FundingRates WatchFundingRates (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return FundingRates (awaitValue (std::any (this->watchFundingRates (typedAny (symbols), typedAny (params)))));
+        return FundingRates (awaitValue (ccxt::any (this->watchFundingRates (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over watchFundingRatesForSymbols
     FundingRates WatchFundingRatesForSymbols (const std::vector<std::string>& symbols, const dict& params = dict {}) {
-        return FundingRates (awaitValue (std::any (this->watchFundingRatesForSymbols (typedAny (symbols), typedAny (params)))));
+        return FundingRates (awaitValue (ccxt::any (this->watchFundingRatesForSymbols (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over transfer
     TransferEntry Transfer (const std::string& code, double amount, const std::string& fromAccount, const std::string& toAccount, const dict& params = dict {}) {
-        return TransferEntry (awaitValue (std::any (this->transfer (typedAny (code), typedAny (amount), typedAny (fromAccount), typedAny (toAccount), typedAny (params)))));
+        return TransferEntry (awaitValue (ccxt::any (this->transfer (typedAny (code), typedAny (amount), typedAny (fromAccount), typedAny (toAccount), typedAny (params)))));
     }
 
     // typed facade over withdraw
     Transaction Withdraw (const std::string& code, double amount, const std::string& address, const std::optional<std::string>& tag = std::nullopt, const dict& params = dict {}) {
-        return Transaction (awaitValue (std::any (this->withdraw (typedAny (code), typedAny (amount), typedAny (address), typedAny (tag), typedAny (params)))));
+        return Transaction (awaitValue (ccxt::any (this->withdraw (typedAny (code), typedAny (amount), typedAny (address), typedAny (tag), typedAny (params)))));
     }
 
     // typed facade over createDepositAddress
     DepositAddress CreateDepositAddress (const std::string& code, const dict& params = dict {}) {
-        return DepositAddress (awaitValue (std::any (this->createDepositAddress (typedAny (code), typedAny (params)))));
+        return DepositAddress (awaitValue (ccxt::any (this->createDepositAddress (typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchLeverage
     Leverage FetchLeverage (const std::string& symbol, const dict& params = dict {}) {
-        return Leverage (awaitValue (std::any (this->fetchLeverage (typedAny (symbol), typedAny (params)))));
+        return Leverage (awaitValue (ccxt::any (this->fetchLeverage (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchLeverages
     Leverages FetchLeverages (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Leverages (awaitValue (std::any (this->fetchLeverages (typedAny (symbols), typedAny (params)))));
+        return Leverages (awaitValue (ccxt::any (this->fetchLeverages (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over addMargin
     MarginModification AddMargin (const std::string& symbol, double amount, const dict& params = dict {}) {
-        return MarginModification (awaitValue (std::any (this->addMargin (typedAny (symbol), typedAny (amount), typedAny (params)))));
+        return MarginModification (awaitValue (ccxt::any (this->addMargin (typedAny (symbol), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over reduceMargin
     MarginModification ReduceMargin (const std::string& symbol, double amount, const dict& params = dict {}) {
-        return MarginModification (awaitValue (std::any (this->reduceMargin (typedAny (symbol), typedAny (amount), typedAny (params)))));
+        return MarginModification (awaitValue (ccxt::any (this->reduceMargin (typedAny (symbol), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over setMargin
     MarginModification SetMargin (const std::string& symbol, double amount, const dict& params = dict {}) {
-        return MarginModification (awaitValue (std::any (this->setMargin (typedAny (symbol), typedAny (amount), typedAny (params)))));
+        return MarginModification (awaitValue (ccxt::any (this->setMargin (typedAny (symbol), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over fetchLongShortRatio
     LongShortRatio FetchLongShortRatio (const std::string& symbol, const std::optional<std::string>& timeframe = std::nullopt, const dict& params = dict {}) {
-        return LongShortRatio (awaitValue (std::any (this->fetchLongShortRatio (typedAny (symbol), typedAny (timeframe), typedAny (params)))));
+        return LongShortRatio (awaitValue (ccxt::any (this->fetchLongShortRatio (typedAny (symbol), typedAny (timeframe), typedAny (params)))));
     }
 
     // typed facade over fetchLongShortRatioHistory
     std::vector<LongShortRatio> FetchLongShortRatioHistory (const std::optional<std::string>& symbol = std::nullopt, const std::optional<std::string>& timeframe = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<LongShortRatio> (awaitValue (std::any (this->fetchLongShortRatioHistory (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<LongShortRatio> (awaitValue (ccxt::any (this->fetchLongShortRatioHistory (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchMarginAdjustmentHistory
     std::vector<MarginModification> FetchMarginAdjustmentHistory (const std::optional<std::string>& symbol = std::nullopt, const std::optional<std::string>& type = std::nullopt, std::optional<double> since = std::nullopt, std::optional<double> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<MarginModification> (awaitValue (std::any (this->fetchMarginAdjustmentHistory (typedAny (symbol), typedAny (type), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<MarginModification> (awaitValue (ccxt::any (this->fetchMarginAdjustmentHistory (typedAny (symbol), typedAny (type), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchDepositAddressesByNetwork
     std::vector<DepositAddress> FetchDepositAddressesByNetwork (const std::string& code, const dict& params = dict {}) {
-        return typedVector<DepositAddress> (awaitValue (std::any (this->fetchDepositAddressesByNetwork (typedAny (code), typedAny (params)))));
+        return typedVector<DepositAddress> (awaitValue (ccxt::any (this->fetchDepositAddressesByNetwork (typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchOpenInterestHistory
     std::vector<OpenInterest> FetchOpenInterestHistory (const std::string& symbol, const std::string& timeframe = "1h", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OpenInterest> (awaitValue (std::any (this->fetchOpenInterestHistory (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OpenInterest> (awaitValue (ccxt::any (this->fetchOpenInterestHistory (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOpenInterests
     OpenInterests FetchOpenInterests (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return OpenInterests (awaitValue (std::any (this->fetchOpenInterests (typedAny (symbols), typedAny (params)))));
+        return OpenInterests (awaitValue (ccxt::any (this->fetchOpenInterests (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over repayCrossMargin
     MarginLoan RepayCrossMargin (const std::string& code, double amount, const dict& params = dict {}) {
-        return MarginLoan (awaitValue (std::any (this->repayCrossMargin (typedAny (code), typedAny (amount), typedAny (params)))));
+        return MarginLoan (awaitValue (ccxt::any (this->repayCrossMargin (typedAny (code), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over repayIsolatedMargin
     MarginLoan RepayIsolatedMargin (const std::string& symbol, const std::string& code, double amount, const dict& params = dict {}) {
-        return MarginLoan (awaitValue (std::any (this->repayIsolatedMargin (typedAny (symbol), typedAny (code), typedAny (amount), typedAny (params)))));
+        return MarginLoan (awaitValue (ccxt::any (this->repayIsolatedMargin (typedAny (symbol), typedAny (code), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over borrowCrossMargin
     MarginLoan BorrowCrossMargin (const std::string& code, double amount, const dict& params = dict {}) {
-        return MarginLoan (awaitValue (std::any (this->borrowCrossMargin (typedAny (code), typedAny (amount), typedAny (params)))));
+        return MarginLoan (awaitValue (ccxt::any (this->borrowCrossMargin (typedAny (code), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over borrowIsolatedMargin
     MarginLoan BorrowIsolatedMargin (const std::string& symbol, const std::string& code, double amount, const dict& params = dict {}) {
-        return MarginLoan (awaitValue (std::any (this->borrowIsolatedMargin (typedAny (symbol), typedAny (code), typedAny (amount), typedAny (params)))));
+        return MarginLoan (awaitValue (ccxt::any (this->borrowIsolatedMargin (typedAny (symbol), typedAny (code), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over borrowMargin
     MarginLoan BorrowMargin (const std::string& code, double amount, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return MarginLoan (awaitValue (std::any (this->borrowMargin (typedAny (code), typedAny (amount), typedAny (symbol), typedAny (params)))));
+        return MarginLoan (awaitValue (ccxt::any (this->borrowMargin (typedAny (code), typedAny (amount), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over repayMargin
     MarginLoan RepayMargin (const std::string& code, double amount, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return MarginLoan (awaitValue (std::any (this->repayMargin (typedAny (code), typedAny (amount), typedAny (symbol), typedAny (params)))));
+        return MarginLoan (awaitValue (ccxt::any (this->repayMargin (typedAny (code), typedAny (amount), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchOHLCV
     std::vector<OHLCV> FetchOHLCV (const std::string& symbol, const std::string& timeframe = "1m", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OHLCV> (awaitValue (std::any (this->fetchOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OHLCV> (awaitValue (ccxt::any (this->fetchOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchSpotOHLCV
     std::vector<OHLCV> FetchSpotOHLCV (const std::string& symbol, const std::string& timeframe = "1m", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OHLCV> (awaitValue (std::any (this->fetchSpotOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OHLCV> (awaitValue (ccxt::any (this->fetchSpotOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchContractOHLCV
     std::vector<OHLCV> FetchContractOHLCV (const std::string& symbol, const std::string& timeframe = "1m", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OHLCV> (awaitValue (std::any (this->fetchContractOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OHLCV> (awaitValue (ccxt::any (this->fetchContractOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOHLCVWs
     std::vector<OHLCV> FetchOHLCVWs (const std::string& symbol, const std::string& timeframe = "1m", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OHLCV> (awaitValue (std::any (this->fetchOHLCVWs (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OHLCV> (awaitValue (ccxt::any (this->fetchOHLCVWs (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchOHLCV
     std::vector<OHLCV> WatchOHLCV (const std::string& symbol, const std::string& timeframe = "1m", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OHLCV> (awaitValue (std::any (this->watchOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OHLCV> (awaitValue (ccxt::any (this->watchOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchBorrowInterest
     std::vector<BorrowInterest> FetchBorrowInterest (const std::optional<std::string>& code = std::nullopt, const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<BorrowInterest> (awaitValue (std::any (this->fetchBorrowInterest (typedAny (code), typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<BorrowInterest> (awaitValue (ccxt::any (this->fetchBorrowInterest (typedAny (code), typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchLedger
     std::vector<LedgerEntry> FetchLedger (const std::optional<std::string>& code = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<LedgerEntry> (awaitValue (std::any (this->fetchLedger (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<LedgerEntry> (awaitValue (ccxt::any (this->fetchLedger (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchLedgerEntry
     LedgerEntry FetchLedgerEntry (const std::string& id, const std::optional<std::string>& code = std::nullopt, const dict& params = dict {}) {
-        return LedgerEntry (awaitValue (std::any (this->fetchLedgerEntry (typedAny (id), typedAny (code), typedAny (params)))));
+        return LedgerEntry (awaitValue (ccxt::any (this->fetchLedgerEntry (typedAny (id), typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchBalance
     Balances FetchBalance (const dict& params = dict {}) {
-        return Balances (awaitValue (std::any (this->fetchBalance (typedAny (params)))));
+        return Balances (awaitValue (ccxt::any (this->fetchBalance (typedAny (params)))));
     }
 
     // typed facade over fetchBalanceWs
     Balances FetchBalanceWs (const dict& params = dict {}) {
-        return Balances (awaitValue (std::any (this->fetchBalanceWs (typedAny (params)))));
+        return Balances (awaitValue (ccxt::any (this->fetchBalanceWs (typedAny (params)))));
     }
 
     // typed facade over watchBalance
     Balances WatchBalance (const dict& params = dict {}) {
-        return Balances (awaitValue (std::any (this->watchBalance (typedAny (params)))));
+        return Balances (awaitValue (ccxt::any (this->watchBalance (typedAny (params)))));
     }
 
     // typed facade over fetchFreeBalance
     Balance FetchFreeBalance (const dict& params = dict {}) {
-        return Balance (awaitValue (std::any (this->fetchFreeBalance (typedAny (params)))));
+        return Balance (awaitValue (ccxt::any (this->fetchFreeBalance (typedAny (params)))));
     }
 
     // typed facade over fetchUsedBalance
     Balance FetchUsedBalance (const dict& params = dict {}) {
-        return Balance (awaitValue (std::any (this->fetchUsedBalance (typedAny (params)))));
+        return Balance (awaitValue (ccxt::any (this->fetchUsedBalance (typedAny (params)))));
     }
 
     // typed facade over fetchTotalBalance
     Balance FetchTotalBalance (const dict& params = dict {}) {
-        return Balance (awaitValue (std::any (this->fetchTotalBalance (typedAny (params)))));
+        return Balance (awaitValue (ccxt::any (this->fetchTotalBalance (typedAny (params)))));
     }
 
     // typed facade over fetchStatus
     Status FetchStatus (const dict& params = dict {}) {
-        return Status (awaitValue (std::any (this->fetchStatus (typedAny (params)))));
+        return Status (awaitValue (ccxt::any (this->fetchStatus (typedAny (params)))));
     }
 
     // typed facade over fetchDepositWithdrawFees
     DepositWithdrawFees FetchDepositWithdrawFees (const std::vector<std::string>& codes = {}, const dict& params = dict {}) {
-        return DepositWithdrawFees (awaitValue (std::any (this->fetchDepositWithdrawFees (typedAny (codes), typedAny (params)))));
+        return DepositWithdrawFees (awaitValue (ccxt::any (this->fetchDepositWithdrawFees (typedAny (codes), typedAny (params)))));
     }
 
     // typed facade over fetchDepositWithdrawFee
     DepositWithdrawFee FetchDepositWithdrawFee (const std::string& code, const dict& params = dict {}) {
-        return DepositWithdrawFee (awaitValue (std::any (this->fetchDepositWithdrawFee (typedAny (code), typedAny (params)))));
+        return DepositWithdrawFee (awaitValue (ccxt::any (this->fetchDepositWithdrawFee (typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchCrossBorrowRate
     CrossBorrowRate FetchCrossBorrowRate (const std::string& code, const dict& params = dict {}) {
-        return CrossBorrowRate (awaitValue (std::any (this->fetchCrossBorrowRate (typedAny (code), typedAny (params)))));
+        return CrossBorrowRate (awaitValue (ccxt::any (this->fetchCrossBorrowRate (typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchIsolatedBorrowRate
     IsolatedBorrowRate FetchIsolatedBorrowRate (const std::string& symbol, const dict& params = dict {}) {
-        return IsolatedBorrowRate (awaitValue (std::any (this->fetchIsolatedBorrowRate (typedAny (symbol), typedAny (params)))));
+        return IsolatedBorrowRate (awaitValue (ccxt::any (this->fetchIsolatedBorrowRate (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchSpotTickers
     Tickers FetchSpotTickers (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->fetchSpotTickers (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->fetchSpotTickers (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchContractTickers
     Tickers FetchContractTickers (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->fetchContractTickers (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->fetchContractTickers (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchOrderBooks
     OrderBooks FetchOrderBooks (const std::vector<std::string>& symbols = {}, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return OrderBooks (awaitValue (std::any (this->fetchOrderBooks (typedAny (symbols), typedAny (limit), typedAny (params)))));
+        return OrderBooks (awaitValue (ccxt::any (this->fetchOrderBooks (typedAny (symbols), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over createTwapOrder
     Order CreateTwapOrder (const std::string& symbol, const std::string& side, double amount, double duration, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTwapOrder (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (duration), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTwapOrder (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (duration), typedAny (params)))));
     }
 
     // typed facade over createConvertTrade
     Conversion CreateConvertTrade (const std::string& id, const std::string& fromCode, const std::string& toCode, std::optional<double> amount = std::nullopt, const dict& params = dict {}) {
-        return Conversion (awaitValue (std::any (this->createConvertTrade (typedAny (id), typedAny (fromCode), typedAny (toCode), typedAny (amount), typedAny (params)))));
+        return Conversion (awaitValue (ccxt::any (this->createConvertTrade (typedAny (id), typedAny (fromCode), typedAny (toCode), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over fetchConvertTrade
     Conversion FetchConvertTrade (const std::string& id, const std::optional<std::string>& code = std::nullopt, const dict& params = dict {}) {
-        return Conversion (awaitValue (std::any (this->fetchConvertTrade (typedAny (id), typedAny (code), typedAny (params)))));
+        return Conversion (awaitValue (ccxt::any (this->fetchConvertTrade (typedAny (id), typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchConvertTradeHistory
     std::vector<Conversion> FetchConvertTradeHistory (const std::optional<std::string>& code = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Conversion> (awaitValue (std::any (this->fetchConvertTradeHistory (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Conversion> (awaitValue (ccxt::any (this->fetchConvertTradeHistory (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchPositionMode
     PositionModeInfo FetchPositionMode (const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return PositionModeInfo (awaitValue (std::any (this->fetchPositionMode (typedAny (symbol), typedAny (params)))));
+        return PositionModeInfo (awaitValue (ccxt::any (this->fetchPositionMode (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchADLRank
     ADL FetchADLRank (const std::string& symbol, const dict& params = dict {}) {
-        return ADL (awaitValue (std::any (this->fetchADLRank (typedAny (symbol), typedAny (params)))));
+        return ADL (awaitValue (ccxt::any (this->fetchADLRank (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchPositionsADLRank
     std::vector<ADL> FetchPositionsADLRank (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return typedVector<ADL> (awaitValue (std::any (this->fetchPositionsADLRank (typedAny (symbols), typedAny (params)))));
+        return typedVector<ADL> (awaitValue (ccxt::any (this->fetchPositionsADLRank (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchPositionADLRank
     ADL FetchPositionADLRank (const std::string& symbol, const dict& params = dict {}) {
-        return ADL (awaitValue (std::any (this->fetchPositionADLRank (typedAny (symbol), typedAny (params)))));
+        return ADL (awaitValue (ccxt::any (this->fetchPositionADLRank (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over createSpotOrders
     std::vector<Order> CreateSpotOrders (const std::vector<OrderRequest>& orders, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->createSpotOrders (typedAnyList (orders), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->createSpotOrders (typedAnyList (orders), typedAny (params)))));
     }
 
     // typed facade over createContractOrders
     std::vector<Order> CreateContractOrders (const std::vector<OrderRequest>& orders, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->createContractOrders (typedAnyList (orders), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->createContractOrders (typedAnyList (orders), typedAny (params)))));
     }
 
     // typed facade over cancelSpotOrder
     Order CancelSpotOrder (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->cancelSpotOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->cancelSpotOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelContractOrder
     Order CancelContractOrder (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->cancelContractOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->cancelContractOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelAllSpotOrders
     std::vector<Order> CancelAllSpotOrders (const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->cancelAllSpotOrders (typedAny (symbol), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->cancelAllSpotOrders (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelAllContractOrders
     std::vector<Order> CancelAllContractOrders (const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->cancelAllContractOrders (typedAny (symbol), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->cancelAllContractOrders (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelOrdersForSymbols
     std::vector<Order> CancelOrdersForSymbols (const std::vector<CancellationRequest>& orders, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->cancelOrdersForSymbols (typedAnyList (orders), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->cancelOrdersForSymbols (typedAnyList (orders), typedAny (params)))));
     }
 
     // typed facade over fetchMyLiquidations
     std::vector<Liquidation> FetchMyLiquidations (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Liquidation> (awaitValue (std::any (this->fetchMyLiquidations (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Liquidation> (awaitValue (ccxt::any (this->fetchMyLiquidations (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchLiquidations
     std::vector<Liquidation> FetchLiquidations (const std::string& symbol, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Liquidation> (awaitValue (std::any (this->fetchLiquidations (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Liquidation> (awaitValue (ccxt::any (this->fetchLiquidations (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchGreeks
     Greeks FetchGreeks (const std::string& symbol, const dict& params = dict {}) {
-        return Greeks (awaitValue (std::any (this->fetchGreeks (typedAny (symbol), typedAny (params)))));
+        return Greeks (awaitValue (ccxt::any (this->fetchGreeks (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchAllGreeks
     std::vector<Greeks> FetchAllGreeks (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return typedVector<Greeks> (awaitValue (std::any (this->fetchAllGreeks (typedAny (symbols), typedAny (params)))));
+        return typedVector<Greeks> (awaitValue (ccxt::any (this->fetchAllGreeks (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchOptionChain
     OptionChain FetchOptionChain (const std::string& code, const dict& params = dict {}) {
-        return OptionChain (awaitValue (std::any (this->fetchOptionChain (typedAny (code), typedAny (params)))));
+        return OptionChain (awaitValue (ccxt::any (this->fetchOptionChain (typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchOption
     Option FetchOption (const std::string& symbol, const dict& params = dict {}) {
-        return Option (awaitValue (std::any (this->fetchOption (typedAny (symbol), typedAny (params)))));
+        return Option (awaitValue (ccxt::any (this->fetchOption (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchConvertQuote
     Conversion FetchConvertQuote (const std::string& fromCode, const std::string& toCode, std::optional<double> amount = std::nullopt, const dict& params = dict {}) {
-        return Conversion (awaitValue (std::any (this->fetchConvertQuote (typedAny (fromCode), typedAny (toCode), typedAny (amount), typedAny (params)))));
+        return Conversion (awaitValue (ccxt::any (this->fetchConvertQuote (typedAny (fromCode), typedAny (toCode), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over fetchDepositsWithdrawals
     std::vector<Transaction> FetchDepositsWithdrawals (const std::optional<std::string>& code = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Transaction> (awaitValue (std::any (this->fetchDepositsWithdrawals (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Transaction> (awaitValue (ccxt::any (this->fetchDepositsWithdrawals (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchDeposits
     std::vector<Transaction> FetchDeposits (const std::optional<std::string>& code = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Transaction> (awaitValue (std::any (this->fetchDeposits (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Transaction> (awaitValue (ccxt::any (this->fetchDeposits (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchWithdrawals
     std::vector<Transaction> FetchWithdrawals (const std::optional<std::string>& code = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Transaction> (awaitValue (std::any (this->fetchWithdrawals (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Transaction> (awaitValue (ccxt::any (this->fetchWithdrawals (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchDepositsWs
     std::vector<Transaction> FetchDepositsWs (const std::optional<std::string>& code = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Transaction> (awaitValue (std::any (this->fetchDepositsWs (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Transaction> (awaitValue (ccxt::any (this->fetchDepositsWs (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchWithdrawalsWs
     std::vector<Transaction> FetchWithdrawalsWs (const std::optional<std::string>& code = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Transaction> (awaitValue (std::any (this->fetchWithdrawalsWs (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Transaction> (awaitValue (ccxt::any (this->fetchWithdrawalsWs (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchFundingRateHistory
     std::vector<FundingRateHistory> FetchFundingRateHistory (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<FundingRateHistory> (awaitValue (std::any (this->fetchFundingRateHistory (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<FundingRateHistory> (awaitValue (ccxt::any (this->fetchFundingRateHistory (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchFundingHistory
     std::vector<FundingHistory> FetchFundingHistory (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<FundingHistory> (awaitValue (std::any (this->fetchFundingHistory (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<FundingHistory> (awaitValue (ccxt::any (this->fetchFundingHistory (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchDepositAddress
     DepositAddress FetchDepositAddress (const std::string& code, const dict& params = dict {}) {
-        return DepositAddress (awaitValue (std::any (this->fetchDepositAddress (typedAny (code), typedAny (params)))));
+        return DepositAddress (awaitValue (ccxt::any (this->fetchDepositAddress (typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchContractDepositAddress
     DepositAddress FetchContractDepositAddress (const std::string& code, const dict& params = dict {}) {
-        return DepositAddress (awaitValue (std::any (this->fetchContractDepositAddress (typedAny (code), typedAny (params)))));
+        return DepositAddress (awaitValue (ccxt::any (this->fetchContractDepositAddress (typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchMarketLeverageTiers
     std::vector<LeverageTier> FetchMarketLeverageTiers (const std::string& symbol, const dict& params = dict {}) {
-        return typedVector<LeverageTier> (awaitValue (std::any (this->fetchMarketLeverageTiers (typedAny (symbol), typedAny (params)))));
+        return typedVector<LeverageTier> (awaitValue (ccxt::any (this->fetchMarketLeverageTiers (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchLastPrices
     LastPrices FetchLastPrices (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return LastPrices (awaitValue (std::any (this->fetchLastPrices (typedAny (symbols), typedAny (params)))));
+        return LastPrices (awaitValue (ccxt::any (this->fetchLastPrices (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchTradingFees
     TradingFees FetchTradingFees (const dict& params = dict {}) {
-        return TradingFees (awaitValue (std::any (this->fetchTradingFees (typedAny (params)))));
+        return TradingFees (awaitValue (ccxt::any (this->fetchTradingFees (typedAny (params)))));
     }
 
     // typed facade over fetchTradingFeesWs
     TradingFees FetchTradingFeesWs (const dict& params = dict {}) {
-        return TradingFees (awaitValue (std::any (this->fetchTradingFeesWs (typedAny (params)))));
+        return TradingFees (awaitValue (ccxt::any (this->fetchTradingFeesWs (typedAny (params)))));
     }
 
     // typed facade over fetchConvertCurrencies
     Currencies FetchConvertCurrencies (const dict& params = dict {}) {
-        return Currencies (awaitValue (std::any (this->fetchConvertCurrencies (typedAny (params)))));
+        return Currencies (awaitValue (ccxt::any (this->fetchConvertCurrencies (typedAny (params)))));
     }
 
     // typed facade over fetchFundingRate
     FundingRate FetchFundingRate (const std::string& symbol, const dict& params = dict {}) {
-        return FundingRate (awaitValue (std::any (this->fetchFundingRate (typedAny (symbol), typedAny (params)))));
+        return FundingRate (awaitValue (ccxt::any (this->fetchFundingRate (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchFundingInterval
     FundingRate FetchFundingInterval (const std::string& symbol, const dict& params = dict {}) {
-        return FundingRate (awaitValue (std::any (this->fetchFundingInterval (typedAny (symbol), typedAny (params)))));
+        return FundingRate (awaitValue (ccxt::any (this->fetchFundingInterval (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchMarkOHLCV
     std::vector<OHLCV> FetchMarkOHLCV (const std::string& symbol, const std::string& timeframe = "1m", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OHLCV> (awaitValue (std::any (this->fetchMarkOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OHLCV> (awaitValue (ccxt::any (this->fetchMarkOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchIndexOHLCV
     std::vector<OHLCV> FetchIndexOHLCV (const std::string& symbol, const std::string& timeframe = "1m", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OHLCV> (awaitValue (std::any (this->fetchIndexOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OHLCV> (awaitValue (ccxt::any (this->fetchIndexOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchPremiumIndexOHLCV
     std::vector<OHLCV> FetchPremiumIndexOHLCV (const std::string& symbol, const std::string& timeframe = "1m", std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<OHLCV> (awaitValue (std::any (this->fetchPremiumIndexOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<OHLCV> (awaitValue (ccxt::any (this->fetchPremiumIndexOHLCV (typedAny (symbol), typedAny (timeframe), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchTransfer
     TransferEntry FetchTransfer (const std::string& id, const std::optional<std::string>& code = std::nullopt, const dict& params = dict {}) {
-        return TransferEntry (awaitValue (std::any (this->fetchTransfer (typedAny (id), typedAny (code), typedAny (params)))));
+        return TransferEntry (awaitValue (ccxt::any (this->fetchTransfer (typedAny (id), typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchTransfers
     std::vector<TransferEntry> FetchTransfers (const std::optional<std::string>& code = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<TransferEntry> (awaitValue (std::any (this->fetchTransfers (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<TransferEntry> (awaitValue (ccxt::any (this->fetchTransfers (typedAny (code), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over withdrawWs
     Transaction WithdrawWs (const std::string& code, double amount, const std::string& address, const std::optional<std::string>& tag = std::nullopt, const dict& params = dict {}) {
-        return Transaction (awaitValue (std::any (this->withdrawWs (typedAny (code), typedAny (amount), typedAny (address), typedAny (tag), typedAny (params)))));
+        return Transaction (awaitValue (ccxt::any (this->withdrawWs (typedAny (code), typedAny (amount), typedAny (address), typedAny (tag), typedAny (params)))));
     }
 
     // typed facade over fetchOrdersByStatusWs
     std::vector<Order> FetchOrdersByStatusWs (const std::string& status, const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchOrdersByStatusWs (typedAny (status), typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchOrdersByStatusWs (typedAny (status), typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over closePosition
     Order ClosePosition (const std::string& symbol, const std::optional<std::string>& side = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->closePosition (typedAny (symbol), typedAny (side), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->closePosition (typedAny (symbol), typedAny (side), typedAny (params)))));
     }
 
     // typed facade over closeAllPositions
     std::vector<Position> CloseAllPositions (const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->closeAllPositions (typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->closeAllPositions (typedAny (params)))));
     }
 
     // typed facade over editOrders
     std::vector<Order> EditOrders (const std::vector<OrderRequest>& orders, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->editOrders (typedAnyList (orders), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->editOrders (typedAnyList (orders), typedAny (params)))));
     }
 
     // typed facade over fetchCanceledAndClosedOrders
     std::vector<Order> FetchCanceledAndClosedOrders (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchCanceledAndClosedOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchCanceledAndClosedOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchPositionHistory
     std::vector<Position> FetchPositionHistory (const std::string& symbol, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->fetchPositionHistory (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->fetchPositionHistory (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchPositionsHistory
     std::vector<Position> FetchPositionsHistory (const std::vector<std::string>& symbols = {}, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->fetchPositionsHistory (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->fetchPositionsHistory (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchPositionsRisk
     std::vector<Position> FetchPositionsRisk (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->fetchPositionsRisk (typedAny (symbols), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->fetchPositionsRisk (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchPositionsForSymbol
     std::vector<Position> FetchPositionsForSymbol (const std::string& symbol, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->fetchPositionsForSymbol (typedAny (symbol), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->fetchPositionsForSymbol (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchPositionsForSymbolWs
     std::vector<Position> FetchPositionsForSymbolWs (const std::string& symbol, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->fetchPositionsForSymbolWs (typedAny (symbol), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->fetchPositionsForSymbolWs (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over watchPosition
     Position WatchPosition (const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return Position (awaitValue (std::any (this->watchPosition (typedAny (symbol), typedAny (params)))));
+        return Position (awaitValue (ccxt::any (this->watchPosition (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over watchMyTradesForSymbols
     std::vector<Trade> WatchMyTradesForSymbols (const std::vector<std::string>& symbols, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->watchMyTradesForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->watchMyTradesForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchTradesForSymbols
     std::vector<Trade> WatchTradesForSymbols (const std::vector<std::string>& symbols, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->watchTradesForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->watchTradesForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchBidsAsks
     Tickers FetchBidsAsks (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->fetchBidsAsks (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->fetchBidsAsks (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchMarkPrice
     Ticker FetchMarkPrice (const std::string& symbol, const dict& params = dict {}) {
-        return Ticker (awaitValue (std::any (this->fetchMarkPrice (typedAny (symbol), typedAny (params)))));
+        return Ticker (awaitValue (ccxt::any (this->fetchMarkPrice (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchMarkPrices
     Tickers FetchMarkPrices (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->fetchMarkPrices (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->fetchMarkPrices (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over watchBidsAsks
     Tickers WatchBidsAsks (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->watchBidsAsks (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->watchBidsAsks (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over watchMarkPrice
     Ticker WatchMarkPrice (const std::string& symbol, const dict& params = dict {}) {
-        return Ticker (awaitValue (std::any (this->watchMarkPrice (typedAny (symbol), typedAny (params)))));
+        return Ticker (awaitValue (ccxt::any (this->watchMarkPrice (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over watchMarkPrices
     Tickers WatchMarkPrices (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->watchMarkPrices (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->watchMarkPrices (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchL3OrderBook
     OrderBook FetchL3OrderBook (const std::string& symbol, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return OrderBook (awaitValue (std::any (this->fetchL3OrderBook (typedAny (symbol), typedAny (limit), typedAny (params)))));
+        return OrderBook (awaitValue (ccxt::any (this->fetchL3OrderBook (typedAny (symbol), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchOrderBookForSymbols
     OrderBook WatchOrderBookForSymbols (const std::vector<std::string>& symbols, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return OrderBook (awaitValue (std::any (this->watchOrderBookForSymbols (typedAny (symbols), typedAny (limit), typedAny (params)))));
+        return OrderBook (awaitValue (ccxt::any (this->watchOrderBookForSymbols (typedAny (symbols), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchOrdersForSymbols
     std::vector<Order> WatchOrdersForSymbols (const std::vector<std::string>& symbols, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->watchOrdersForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->watchOrdersForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over cancelAllOrdersWs
     std::vector<Order> CancelAllOrdersWs (const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->cancelAllOrdersWs (typedAny (symbol), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->cancelAllOrdersWs (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelOrderWs
     Order CancelOrderWs (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->cancelOrderWs (typedAny (id), typedAny (symbol), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->cancelOrderWs (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelOrdersWs
     std::vector<Order> CancelOrdersWs (const std::vector<std::string>& ids, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->cancelOrdersWs (typedAny (ids), typedAny (symbol), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->cancelOrdersWs (typedAny (ids), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over createLimitBuyOrderWs
     Order CreateLimitBuyOrderWs (const std::string& symbol, double amount, double price, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createLimitBuyOrderWs (typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createLimitBuyOrderWs (typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createLimitOrderWs
     Order CreateLimitOrderWs (const std::string& symbol, const std::string& side, double amount, double price, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createLimitOrderWs (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createLimitOrderWs (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createLimitSellOrderWs
     Order CreateLimitSellOrderWs (const std::string& symbol, double amount, double price, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createLimitSellOrderWs (typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createLimitSellOrderWs (typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createMarketBuyOrderWs
     Order CreateMarketBuyOrderWs (const std::string& symbol, double amount, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createMarketBuyOrderWs (typedAny (symbol), typedAny (amount), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createMarketBuyOrderWs (typedAny (symbol), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over createMarketOrderWs
     Order CreateMarketOrderWs (const std::string& symbol, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createMarketOrderWs (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createMarketOrderWs (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createMarketSellOrderWs
     Order CreateMarketSellOrderWs (const std::string& symbol, double amount, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createMarketSellOrderWs (typedAny (symbol), typedAny (amount), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createMarketSellOrderWs (typedAny (symbol), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over createOrderWithTakeProfitAndStopLossWs
     Order CreateOrderWithTakeProfitAndStopLossWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> takeProfit = std::nullopt, std::optional<double> stopLoss = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createOrderWithTakeProfitAndStopLossWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (takeProfit), typedAny (stopLoss), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createOrderWithTakeProfitAndStopLossWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (takeProfit), typedAny (stopLoss), typedAny (params)))));
     }
 
     // typed facade over createOrderWs
     Order CreateOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createOrdersWs
     std::vector<Order> CreateOrdersWs (const std::vector<OrderRequest>& orders, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->createOrdersWs (typedAnyList (orders), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->createOrdersWs (typedAnyList (orders), typedAny (params)))));
     }
 
     // typed facade over createStopLossOrderWs
     Order CreateStopLossOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> stopLossPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createStopLossOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (stopLossPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createStopLossOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (stopLossPrice), typedAny (params)))));
     }
 
     // typed facade over createTakeProfitOrderWs
     Order CreateTakeProfitOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> takeProfitPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTakeProfitOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (takeProfitPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTakeProfitOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (takeProfitPrice), typedAny (params)))));
     }
 
     // typed facade over createTrailingAmountOrderWs
     Order CreateTrailingAmountOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> trailingAmount = std::nullopt, std::optional<double> trailingTriggerPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTrailingAmountOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingAmount), typedAny (trailingTriggerPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTrailingAmountOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingAmount), typedAny (trailingTriggerPrice), typedAny (params)))));
     }
 
     // typed facade over createTrailingPercentOrderWs
     Order CreateTrailingPercentOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> trailingPercent = std::nullopt, std::optional<double> trailingTriggerPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTrailingPercentOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingPercent), typedAny (trailingTriggerPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTrailingPercentOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingPercent), typedAny (trailingTriggerPrice), typedAny (params)))));
     }
 
     // typed facade over createTriggerOrderWs
     Order CreateTriggerOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> triggerPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTriggerOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (triggerPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTriggerOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (triggerPrice), typedAny (params)))));
     }
 
     // typed facade over editOrderWs
     Order EditOrderWs (const std::string& id, const std::string& symbol, const std::string& type, const std::string& side, std::optional<double> amount = std::nullopt, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->editOrderWs (typedAny (id), typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->editOrderWs (typedAny (id), typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over fetchClosedOrdersWs
     std::vector<Order> FetchClosedOrdersWs (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchClosedOrdersWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchClosedOrdersWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchMyTradesWs
     std::vector<Trade> FetchMyTradesWs (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->fetchMyTradesWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->fetchMyTradesWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOpenOrdersWs
     std::vector<Order> FetchOpenOrdersWs (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchOpenOrdersWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchOpenOrdersWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOrderBookWs
     OrderBook FetchOrderBookWs (const std::string& symbol, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return OrderBook (awaitValue (std::any (this->fetchOrderBookWs (typedAny (symbol), typedAny (limit), typedAny (params)))));
+        return OrderBook (awaitValue (ccxt::any (this->fetchOrderBookWs (typedAny (symbol), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOrderWs
     Order FetchOrderWs (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->fetchOrderWs (typedAny (id), typedAny (symbol), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->fetchOrderWs (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchOrdersWs
     std::vector<Order> FetchOrdersWs (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchOrdersWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchOrdersWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchPositionWs
     std::vector<Position> FetchPositionWs (const std::string& symbol, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->fetchPositionWs (typedAny (symbol), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->fetchPositionWs (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchPositionsWs
     std::vector<Position> FetchPositionsWs (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->fetchPositionsWs (typedAny (symbols), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->fetchPositionsWs (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchTickerWs
     Ticker FetchTickerWs (const std::string& symbol, const dict& params = dict {}) {
-        return Ticker (awaitValue (std::any (this->fetchTickerWs (typedAny (symbol), typedAny (params)))));
+        return Ticker (awaitValue (ccxt::any (this->fetchTickerWs (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchTickersWs
     Tickers FetchTickersWs (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->fetchTickersWs (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->fetchTickersWs (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchTradesWs
     std::vector<Trade> FetchTradesWs (const std::string& symbol, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->fetchTradesWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->fetchTradesWs (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchTrades
     std::vector<Trade> FetchTrades (const std::string& symbol, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->fetchTrades (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->fetchTrades (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchTrades
     std::vector<Trade> WatchTrades (const std::string& symbol, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->watchTrades (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->watchTrades (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOrderBook
     OrderBook FetchOrderBook (const std::string& symbol, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return OrderBook (awaitValue (std::any (this->fetchOrderBook (typedAny (symbol), typedAny (limit), typedAny (params)))));
+        return OrderBook (awaitValue (ccxt::any (this->fetchOrderBook (typedAny (symbol), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchOrderBook
     OrderBook WatchOrderBook (const std::string& symbol, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return OrderBook (awaitValue (std::any (this->watchOrderBook (typedAny (symbol), typedAny (limit), typedAny (params)))));
+        return OrderBook (awaitValue (ccxt::any (this->watchOrderBook (typedAny (symbol), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOpenInterest
     OpenInterest FetchOpenInterest (const std::string& symbol, const dict& params = dict {}) {
-        return OpenInterest (awaitValue (std::any (this->fetchOpenInterest (typedAny (symbol), typedAny (params)))));
+        return OpenInterest (awaitValue (ccxt::any (this->fetchOpenInterest (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over editOrder
     Order EditOrder (const std::string& id, const std::string& symbol, const std::string& type, const std::string& side, std::optional<double> amount = std::nullopt, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->editOrder (typedAny (id), typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->editOrder (typedAny (id), typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over editOrderWithClientOrderId
     Order EditOrderWithClientOrderId (const std::string& clientOrderId, const std::string& symbol, const std::string& type, const std::string& side, std::optional<double> amount = std::nullopt, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->editOrderWithClientOrderId (typedAny (clientOrderId), typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->editOrderWithClientOrderId (typedAny (clientOrderId), typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over fetchPosition
     Position FetchPosition (const std::string& symbol, const dict& params = dict {}) {
-        return Position (awaitValue (std::any (this->fetchPosition (typedAny (symbol), typedAny (params)))));
+        return Position (awaitValue (ccxt::any (this->fetchPosition (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over watchPositions
     std::vector<Position> WatchPositions (const std::vector<std::string>& symbols = {}, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->watchPositions (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->watchPositions (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchPositionForSymbols
     std::vector<Position> WatchPositionForSymbols (const std::vector<std::string>& symbols = {}, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->watchPositionForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->watchPositionForSymbols (typedAny (symbols), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchPositions
     std::vector<Position> FetchPositions (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return typedVector<Position> (awaitValue (std::any (this->fetchPositions (typedAny (symbols), typedAny (params)))));
+        return typedVector<Position> (awaitValue (ccxt::any (this->fetchPositions (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchTicker
     Ticker FetchTicker (const std::string& symbol, const dict& params = dict {}) {
-        return Ticker (awaitValue (std::any (this->fetchTicker (typedAny (symbol), typedAny (params)))));
+        return Ticker (awaitValue (ccxt::any (this->fetchTicker (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over watchTicker
     Ticker WatchTicker (const std::string& symbol, const dict& params = dict {}) {
-        return Ticker (awaitValue (std::any (this->watchTicker (typedAny (symbol), typedAny (params)))));
+        return Ticker (awaitValue (ccxt::any (this->watchTicker (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchTickers
     Tickers FetchTickers (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->fetchTickers (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->fetchTickers (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over watchTickers
     Tickers WatchTickers (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return Tickers (awaitValue (std::any (this->watchTickers (typedAny (symbols), typedAny (params)))));
+        return Tickers (awaitValue (ccxt::any (this->watchTickers (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchOrder
     Order FetchOrder (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->fetchOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->fetchOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchOrderStatus
     std::optional<std::string> FetchOrderStatus (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return typedsupport::anyStr (awaitValue (std::any (this->fetchOrderStatus (typedAny (id), typedAny (symbol), typedAny (params)))));
+        return typedsupport::anyStr (awaitValue (ccxt::any (this->fetchOrderStatus (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over createOrder
     Order CreateOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createTrailingAmountOrder
     Order CreateTrailingAmountOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> trailingAmount = std::nullopt, std::optional<double> trailingTriggerPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTrailingAmountOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingAmount), typedAny (trailingTriggerPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTrailingAmountOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingAmount), typedAny (trailingTriggerPrice), typedAny (params)))));
     }
 
     // typed facade over createTrailingPercentOrder
     Order CreateTrailingPercentOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> trailingPercent = std::nullopt, std::optional<double> trailingTriggerPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTrailingPercentOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingPercent), typedAny (trailingTriggerPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTrailingPercentOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingPercent), typedAny (trailingTriggerPrice), typedAny (params)))));
     }
 
     // typed facade over createMarketBuyOrderWithCost
     Order CreateMarketBuyOrderWithCost (const std::string& symbol, double cost, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createMarketBuyOrderWithCost (typedAny (symbol), typedAny (cost), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createMarketBuyOrderWithCost (typedAny (symbol), typedAny (cost), typedAny (params)))));
     }
 
     // typed facade over createMarketSellOrderWithCost
     Order CreateMarketSellOrderWithCost (const std::string& symbol, double cost, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createMarketSellOrderWithCost (typedAny (symbol), typedAny (cost), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createMarketSellOrderWithCost (typedAny (symbol), typedAny (cost), typedAny (params)))));
     }
 
     // typed facade over createTriggerOrder
     Order CreateTriggerOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> triggerPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTriggerOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (triggerPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTriggerOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (triggerPrice), typedAny (params)))));
     }
 
     // typed facade over createStopLossOrder
     Order CreateStopLossOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> stopLossPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createStopLossOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (stopLossPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createStopLossOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (stopLossPrice), typedAny (params)))));
     }
 
     // typed facade over createTakeProfitOrder
     Order CreateTakeProfitOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> takeProfitPrice = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createTakeProfitOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (takeProfitPrice), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createTakeProfitOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (takeProfitPrice), typedAny (params)))));
     }
 
     // typed facade over createOrderWithTakeProfitAndStopLoss
     Order CreateOrderWithTakeProfitAndStopLoss (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> takeProfit = std::nullopt, std::optional<double> stopLoss = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createOrderWithTakeProfitAndStopLoss (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (takeProfit), typedAny (stopLoss), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createOrderWithTakeProfitAndStopLoss (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (takeProfit), typedAny (stopLoss), typedAny (params)))));
     }
 
     // typed facade over createOrders
     std::vector<Order> CreateOrders (const std::vector<OrderRequest>& orders, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->createOrders (typedAnyList (orders), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->createOrders (typedAnyList (orders), typedAny (params)))));
     }
 
     // typed facade over cancelOrder
     Order CancelOrder (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->cancelOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->cancelOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelOrders
     std::vector<Order> CancelOrders (const std::vector<std::string>& ids, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->cancelOrders (typedAny (ids), typedAny (symbol), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->cancelOrders (typedAny (ids), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelAllOrders
     std::vector<Order> CancelAllOrders (const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->cancelAllOrders (typedAny (symbol), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->cancelAllOrders (typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over fetchOrders
     std::vector<Order> FetchOrders (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOrderTrades
     std::vector<Trade> FetchOrderTrades (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->fetchOrderTrades (typedAny (id), typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->fetchOrderTrades (typedAny (id), typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchOrders
     std::vector<Order> WatchOrders (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->watchOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->watchOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchOpenOrders
     std::vector<Order> FetchOpenOrders (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchOpenOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchOpenOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchClosedOrders
     std::vector<Order> FetchClosedOrders (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchClosedOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchClosedOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchCanceledOrders
     std::vector<Order> FetchCanceledOrders (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Order> (awaitValue (std::any (this->fetchCanceledOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Order> (awaitValue (ccxt::any (this->fetchCanceledOrders (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over fetchMyTrades
     std::vector<Trade> FetchMyTrades (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->fetchMyTrades (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->fetchMyTrades (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over watchMyTrades
     std::vector<Trade> WatchMyTrades (const std::optional<std::string>& symbol = std::nullopt, std::optional<int64_t> since = std::nullopt, std::optional<int64_t> limit = std::nullopt, const dict& params = dict {}) {
-        return typedVector<Trade> (awaitValue (std::any (this->watchMyTrades (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
+        return typedVector<Trade> (awaitValue (ccxt::any (this->watchMyTrades (typedAny (symbol), typedAny (since), typedAny (limit), typedAny (params)))));
     }
 
     // typed facade over createLimitOrder
     Order CreateLimitOrder (const std::string& symbol, const std::string& side, double amount, double price, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createLimitOrder (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createLimitOrder (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createMarketOrder
     Order CreateMarketOrder (const std::string& symbol, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createMarketOrder (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createMarketOrder (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createLimitBuyOrder
     Order CreateLimitBuyOrder (const std::string& symbol, double amount, double price, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createLimitBuyOrder (typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createLimitBuyOrder (typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createLimitSellOrder
     Order CreateLimitSellOrder (const std::string& symbol, double amount, double price, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createLimitSellOrder (typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createLimitSellOrder (typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
     }
 
     // typed facade over createMarketBuyOrder
     Order CreateMarketBuyOrder (const std::string& symbol, double amount, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createMarketBuyOrder (typedAny (symbol), typedAny (amount), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createMarketBuyOrder (typedAny (symbol), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over createMarketSellOrder
     Order CreateMarketSellOrder (const std::string& symbol, double amount, const dict& params = dict {}) {
-        return Order (awaitValue (std::any (this->createMarketSellOrder (typedAny (symbol), typedAny (amount), typedAny (params)))));
+        return Order (awaitValue (ccxt::any (this->createMarketSellOrder (typedAny (symbol), typedAny (amount), typedAny (params)))));
     }
 
     // typed facade over fetchTradingFee
     TradingFee FetchTradingFee (const std::string& symbol, const dict& params = dict {}) {
-        return TradingFee (awaitValue (std::any (this->fetchTradingFee (typedAny (symbol), typedAny (params)))));
+        return TradingFee (awaitValue (ccxt::any (this->fetchTradingFee (typedAny (symbol), typedAny (params)))));
     }
 

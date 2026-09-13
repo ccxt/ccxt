@@ -12,7 +12,7 @@ void testIsEmpty() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  assertTrue(isEqual(exchange.isEmpty(std::any{}), true),
+  assertTrue(isEqual(exchange.isEmpty(ccxt::any{}), true),
              std::string("undefined should be empty"));
   assertTrue(isEqual(exchange.isEmpty(null), true),
              std::string("null should be empty"));

@@ -9,7 +9,7 @@ namespace prediction {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_limitless(std::any config) {
+std::shared_ptr<ExchangeBase> create_limitless(ccxt::any config) {
   return newExchange<ccxt::prediction::limitless>(config);
 }
 

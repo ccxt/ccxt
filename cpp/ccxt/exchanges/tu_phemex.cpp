@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_phemex(std::any config) {
+std::shared_ptr<ExchangeBase> create_phemex(ccxt::any config) {
   return newExchange<phemex>(config);
 }
 

@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitget(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitget(ccxt::any config) {
   return newExchange<ccxt::pro::bitget>(config);
 }
 

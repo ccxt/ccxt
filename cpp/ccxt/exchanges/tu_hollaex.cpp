@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_hollaex(std::any config) {
+std::shared_ptr<ExchangeBase> create_hollaex(ccxt::any config) {
   return newExchange<hollaex>(config);
 }
 

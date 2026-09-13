@@ -27,7 +27,7 @@ public:
     enum class Mode { plain, counted, indexed };
 
     struct Impl {
-        std::vector<std::any> rows;            // any(list) per level
+        std::vector<ccxt::any> rows;            // any(list) per level
         std::vector<double> index;             // sort keys, ascending
         std::map<std::string, double> idmap;   // indexed mode: id -> sort key
         double depth = 0;                      // 0 = unbounded
@@ -37,7 +37,7 @@ public:
     std::shared_ptr<Impl> impl;
 
     OrderBookSide () : impl (std::make_shared<Impl> ()) {}
-    OrderBookSide (bool isBids, Mode mode, const std::any& deltas = std::any {}, const std::any& depth = std::any {})
+    OrderBookSide (bool isBids, Mode mode, const ccxt::any& deltas = ccxt::any {}, const ccxt::any& depth = ccxt::any {})
         : impl (std::make_shared<Impl> ()) {
         this->impl->isBids = isBids;
         this->impl->mode = mode;
@@ -45,7 +45,7 @@ public:
             this->impl->depth = toDouble (depth);
         }
         if (isList (deltas)) {
-            for (const auto& row : std::any_cast<list> (deltas).items ()) {
+            for (const auto& row : ccxt::any_cast<list> (deltas).items ()) {
                 // slice: store a copy, the caller's row must not alias the book
                 this->storeArray (copyRow (row));
             }
@@ -53,20 +53,20 @@ public:
     }
 
     std::size_t size () const { return this->impl->rows.size (); }
-    std::any get (long i) const {
+    ccxt::any get (long i) const {
         if (i < 0 || static_cast<std::size_t> (i) >= this->impl->rows.size ()) {
-            return std::any {};
+            return ccxt::any {};
         }
         return this->impl->rows[static_cast<std::size_t> (i)];
     }
     list rows () const { return list (this->impl->rows); }
     bool sameAs (const OrderBookSide& other) const { return this->impl == other.impl; }
 
-    void store (const std::any& price, const std::any& size) {
-        this->storeArray (std::any (list { price, size }));
+    void store (const ccxt::any& price, const ccxt::any& size) {
+        this->storeArray (ccxt::any (list { price, size }));
     }
 
-    void storeArray (const std::any& delta) {
+    void storeArray (const ccxt::any& delta) {
         switch (this->impl->mode) {
             case Mode::plain:   this->storePlain (delta); break;
             case Mode::counted: this->storeCounted (delta); break;
@@ -91,9 +91,9 @@ public:
     }
 
 private:
-    static std::any copyRow (const std::any& row) {
+    static ccxt::any copyRow (const ccxt::any& row) {
         if (isList (row)) {
-            return std::any (list (std::any_cast<list> (row).items ()));
+            return ccxt::any (list (ccxt::any_cast<list> (row).items ()));
         }
         return row;
     }
@@ -105,7 +105,7 @@ private:
         return static_cast<std::size_t> (std::lower_bound (index.begin (), index.end (), x) - index.begin ());
     }
 
-    void insertAt (std::size_t i, double key, const std::any& row) {
+    void insertAt (std::size_t i, double key, const ccxt::any& row) {
         Impl& s = *this->impl;
         s.index.insert (s.index.begin () + static_cast<long> (i), key);
         s.rows.insert (s.rows.begin () + static_cast<long> (i), row);
@@ -117,7 +117,7 @@ private:
         s.rows.erase (s.rows.begin () + static_cast<long> (i));
     }
 
-    void storePlain (const std::any& delta) {
+    void storePlain (const ccxt::any& delta) {
         Impl& s = *this->impl;
         const double price = toDouble (::getValue (delta, 0));
         const double size = numOrZero (::getValue (delta, 1));
@@ -125,7 +125,7 @@ private:
         const std::size_t i = this->bisectLeft (key);
         if (size != 0) {
             if (i < s.index.size () && s.index[i] == key) {
-                setValue (s.rows[i], std::any (1), ::getValue (delta, 1));
+                setValue (s.rows[i], ccxt::any (1), ::getValue (delta, 1));
             } else {
                 this->insertAt (i, key, delta);
             }
@@ -134,7 +134,7 @@ private:
         }
     }
 
-    void storeCounted (const std::any& delta) {
+    void storeCounted (const ccxt::any& delta) {
         Impl& s = *this->impl;
         const double price = toDouble (::getValue (delta, 0));
         const double size = numOrZero (::getValue (delta, 1));
@@ -143,8 +143,8 @@ private:
         const std::size_t i = this->bisectLeft (key);
         if (size != 0 && count != 0) {
             if (i < s.index.size () && s.index[i] == key) {
-                setValue (s.rows[i], std::any (1), ::getValue (delta, 1));
-                setValue (s.rows[i], std::any (2), ::getValue (delta, 2));
+                setValue (s.rows[i], ccxt::any (1), ::getValue (delta, 1));
+                setValue (s.rows[i], ccxt::any (2), ::getValue (delta, 2));
             } else {
                 this->insertAt (i, key, delta);
             }
@@ -153,9 +153,9 @@ private:
         }
     }
 
-    void storeIndexed (const std::any& delta) {
+    void storeIndexed (const ccxt::any& delta) {
         Impl& s = *this->impl;
-        const std::any priceAny = ::getValue (delta, 0);
+        const ccxt::any priceAny = ::getValue (delta, 0);
         const double size = numOrZero (::getValue (delta, 1));
         const std::string id = str (::getValue (delta, 2));
         if (size != 0) {
@@ -174,7 +174,7 @@ private:
                     key = oldKey;
                     haveKey = true;
                     // in case price is not sent, restore it from the stored key
-                    setValue (delta, std::any (0), std::any (std::fabs (oldKey)));
+                    setValue (delta, ccxt::any (0), ccxt::any (std::fabs (oldKey)));
                 }
                 if (key == oldKey) {
                     // same price level: update the row in place, bounded scan by id —
@@ -223,12 +223,12 @@ private:
         }
     }
 
-    static double numOrZero (const std::any& v) {
+    static double numOrZero (const ccxt::any& v) {
         return isNum (v) ? toDouble (v) : 0.0;
     }
 
     // JS `<` over ids: numeric when both are numbers, lexicographic otherwise
-    static bool idLess (const std::any& a, const std::any& b) {
+    static bool idLess (const ccxt::any& a, const ccxt::any& b) {
         if (isNum (a) && isNum (b)) {
             return toDouble (a) < toDouble (b);
         }

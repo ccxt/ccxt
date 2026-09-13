@@ -12,7 +12,7 @@ void testInArray() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("regirock")},
   });
-  std::any array = ccxt::list{1, 2, 3};
+  ccxt::any array = ccxt::list{1, 2, 3};
   assertTrue(isEqual(exchange.inArray(1, array), true));
   assertTrue(isEqual(exchange.inArray(2, array), true));
   assertTrue(isEqual(exchange.inArray(3, array), true));

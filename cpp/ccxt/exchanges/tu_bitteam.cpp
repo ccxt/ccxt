@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitteam(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitteam(ccxt::any config) {
   return newExchange<bitteam>(config);
 }
 

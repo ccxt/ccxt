@@ -14,7 +14,7 @@ namespace pro {
 class kucoinfutures : public ccxt::pro::kucoin {
 public:
   using ccxt::pro::kucoin::kucoin;
-  std::any describe() override {
+  ccxt::any describe() override {
     return this->deepExtend(
         ccxt::pro::kucoin::describe(),
         ccxt::dict{
@@ -33,12 +33,12 @@ public:
              }},
             {std::string("has"),
              ccxt::dict{
-                 {std::string("CORS"), std::any{}},
+                 {std::string("CORS"), ccxt::any{}},
                  {std::string("spot"), false},
                  {std::string("margin"), false},
                  {std::string("swap"), true},
                  {std::string("future"), true},
-                 {std::string("option"), std::any{}},
+                 {std::string("option"), ccxt::any{}},
                  {std::string("fetchBidsAsks"), true},
              }},
             {std::string("options"),
@@ -67,12 +67,12 @@ public:
    * @returns {object} a dictionary of [ticker structures]{@link
    * https://docs.ccxt.com/?id=ticker-structure}
    */
-  std::shared_future<std::any>
-  fetchBidsAsks(std::any symbols = std::any{},
-                std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  fetchBidsAsks(ccxt::any symbols = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
-                        std::any request = ccxt::dict{
+                      [=]() mutable -> ccxt::any {
+                        ccxt::any request = ccxt::dict{
                             {std::string("method"),
                              std::string("futuresPublicGetAllTickers")},
                         };
@@ -96,25 +96,25 @@ public:
    * @returns {object} a [transfer structure]{@link
    * https://docs.ccxt.com/?id=transfer-structure}
    */
-  std::shared_future<std::any>
-  transfer(std::any code, std::any amount, std::any fromAccount,
-           std::any toAccount, std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  transfer(ccxt::any code, ccxt::any amount, ccxt::any fromAccount,
+           ccxt::any toAccount, ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any currency = this->currency(code);
-                 std::any amountToPrecision =
+                 ccxt::any currency = this->currency(code);
+                 ccxt::any amountToPrecision =
                      this->currencyToPrecision(code, amount);
-                 std::any request = ccxt::dict{
+                 ccxt::any request = ccxt::dict{
                      {std::string("currency"),
                       this->safeString(currency, std::string("id"))},
                      {std::string("amount"), amountToPrecision},
                  };
-                 std::any toAccountString = this->parseTransferType(toAccount);
-                 std::any response = std::any{};
+                 ccxt::any toAccountString = this->parseTransferType(toAccount);
+                 ccxt::any response = ccxt::any{};
                  if (isTrue(isTrue(isEqual(toAccountString,
                                            std::string("TRADE"))) ||
                             isTrue(isEqual(toAccountString,
@@ -141,7 +141,7 @@ public:
                                " transfer() only supports transfers between "
                                "future/swap, spot and funding accounts"))));
                  }
-                 std::any data = this->safeDict(response, std::string("data"),
+                 ccxt::any data = this->safeDict(response, std::string("data"),
                                                 ccxt::dict{});
                  return this->extend(
                      this->parseTransfer(data, currency),
@@ -155,8 +155,8 @@ public:
         .share();
   }
 
-  virtual std::any parseTransferType(std::any transferType) {
-    std::any transferTypes = ccxt::dict{
+  virtual ccxt::any parseTransferType(ccxt::any transferType) {
+    ccxt::any transferTypes = ccxt::dict{
         {std::string("spot"), std::string("TRADE")},
         {std::string("funding"), std::string("MAIN")},
     };
@@ -164,13 +164,13 @@ public:
   }
   // GENERATED dispatch table - see createDispatchTable in
   // build/cppTranspiler.ts
-  virtual std::any callMethod(std::any name, std::any args) override {
+  virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
     const std::string which = ::toString(name).has_value()
-                                  ? std::any_cast<std::string>(::toString(name))
+                                  ? ccxt::any_cast<std::string>(::toString(name))
                                   : std::string();
     const long count =
         ccxt::isList(args)
-            ? static_cast<long>(std::any_cast<ccxt::list>(args).size())
+            ? static_cast<long>(ccxt::any_cast<ccxt::list>(args).size())
             : 0;
     if (which == "describe") {
       if (true)
@@ -202,13 +202,13 @@ public:
     if (which == "cleanRestData") {
       if (true) {
         this->cleanRestData();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "cleanWsData") {
       if (true) {
         this->cleanWsData();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "safeBoolN") {
@@ -281,41 +281,41 @@ public:
       if (true) {
         this->storeByKey(::getValue(args, 0), ::getValue(args, 1),
                          ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleDeltas") {
       if (true) {
         this->handleDeltas(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleDeltasWithKeys") {
       if (count <= 2) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count == 3) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                    ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count == 4) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                    ::getValue(args, 2), ::getValue(args, 3));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count >= 5) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                    ::getValue(args, 2), ::getValue(args, 3),
                                    ::getValue(args, 4));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "getCacheIndex") {
@@ -375,7 +375,7 @@ public:
     if (which == "checkConflictingProxies") {
       if (true) {
         this->checkConflictingProxies(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "checkAddress") {
@@ -447,13 +447,13 @@ public:
     if (which == "setSandboxMode") {
       if (true) {
         this->setSandboxMode(::getValue(args, 0));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "enableDemoTrading") {
       if (true) {
         this->enableDemoTrading(::getValue(args, 0));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "sign") {
@@ -740,19 +740,19 @@ public:
     if (which == "afterConstruct") {
       if (true) {
         this->afterConstruct();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "initRestRateLimiter") {
       if (true) {
         this->initRestRateLimiter();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "featuresGenerator") {
       if (true) {
         this->featuresGenerator();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "featuresMapper") {
@@ -797,7 +797,7 @@ public:
     if (which == "createNetworksByIdObject") {
       if (true) {
         this->createNetworksByIdObject();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "getDefaultOptions") {
@@ -1619,14 +1619,14 @@ public:
       if (true) {
         this->throwExactlyMatchedException(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "throwBroadlyMatchedException") {
       if (true) {
         this->throwBroadlyMatchedException(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "findBroadlyMatchedKey") {
@@ -2078,19 +2078,19 @@ public:
       if (count <= 3) {
         this->checkRequiredArgument(::getValue(args, 0), ::getValue(args, 1),
                                     ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count >= 4) {
         this->checkRequiredArgument(::getValue(args, 0), ::getValue(args, 1),
                                     ::getValue(args, 2), ::getValue(args, 3));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "checkRequiredMarginArgument") {
       if (true) {
         this->checkRequiredMarginArgument(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "parseDepositWithdrawFees") {
@@ -2507,18 +2507,18 @@ public:
       if (count <= 3) {
         this->cleanUnsubscription(::getValue(args, 0), ::getValue(args, 1),
                                   ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count >= 4) {
         this->cleanUnsubscription(::getValue(args, 0), ::getValue(args, 1),
                                   ::getValue(args, 2), ::getValue(args, 3));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "cleanCache") {
       if (true) {
         this->cleanCache(::getValue(args, 0));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "timeframeFromMilliseconds") {

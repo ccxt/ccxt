@@ -9,7 +9,7 @@ namespace prediction {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_polymarket(std::any config) {
+std::shared_ptr<ExchangeBase> create_polymarket(ccxt::any config) {
   return newExchange<ccxt::prediction::polymarket>(config);
 }
 

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bydfi(std::any config) {
+std::shared_ptr<ExchangeBase> create_bydfi(ccxt::any config) {
   return newExchange<bydfi>(config);
 }
 

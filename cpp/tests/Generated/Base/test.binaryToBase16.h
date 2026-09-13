@@ -12,41 +12,41 @@ void testBinaryToBase16() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  assertTrue(isEqual(exchange.parseNumber(std::any{}), std::any{}),
+  assertTrue(isEqual(exchange.parseNumber(ccxt::any{}), ccxt::any{}),
              std::string("GO_WORKAROUND"));
   // @SKIP_START_GO
   // Test 1: simple known bytes
   // 'ff' => [255]
-  std::any binary1 = exchange.base16ToBinary(std::string("ff"));
+  ccxt::any binary1 = exchange.base16ToBinary(std::string("ff"));
   assertTrue(isEqual(exchange.binaryToBase16(binary1), std::string("ff")));
   // Test 2: all zeros
   // '0000' => [0, 0]
-  std::any binary2 = exchange.base16ToBinary(std::string("0000"));
+  ccxt::any binary2 = exchange.base16ToBinary(std::string("0000"));
   assertTrue(isEqual(exchange.binaryToBase16(binary2), std::string("0000")));
   // Test 3: ascending bytes 01 02 03 04
-  std::any binary3 = exchange.base16ToBinary(std::string("01020304"));
+  ccxt::any binary3 = exchange.base16ToBinary(std::string("01020304"));
   assertTrue(
       isEqual(exchange.binaryToBase16(binary3), std::string("01020304")));
   // Test 4: single byte zero
-  std::any binary4 = exchange.base16ToBinary(std::string("00"));
+  ccxt::any binary4 = exchange.base16ToBinary(std::string("00"));
   assertTrue(isEqual(exchange.binaryToBase16(binary4), std::string("00")));
   // Test 5: single byte max
-  std::any binary5 = exchange.base16ToBinary(std::string("ff"));
+  ccxt::any binary5 = exchange.base16ToBinary(std::string("ff"));
   assertTrue(isEqual(exchange.binaryLength(binary5), 1));
   assertTrue(exchange.isBinaryMessage(binary5));
   // Test 6: 8 bytes (like a timestamp encoding)
   // 00 00 00 00 49 96 02 d2 = 1234567890
-  std::any binary6 = exchange.base16ToBinary(std::string("00000000499602d2"));
+  ccxt::any binary6 = exchange.base16ToBinary(std::string("00000000499602d2"));
   assertTrue(isEqual(exchange.binaryToBase16(binary6),
                      std::string("00000000499602d2")));
   assertTrue(isEqual(exchange.binaryLength(binary6), 8));
   // Test 7: roundtrip with deadbeef
-  std::any binary7 = exchange.base16ToBinary(std::string("deadbeef"));
+  ccxt::any binary7 = exchange.base16ToBinary(std::string("deadbeef"));
   assertTrue(
       isEqual(exchange.binaryToBase16(binary7), std::string("deadbeef")));
   assertTrue(isEqual(exchange.binaryLength(binary7), 4));
   // Test 8: roundtrip binaryToBase16 -> base16ToBinary
-  std::any hex8 = std::string("cafebabe");
-  std::any binary8 = exchange.base16ToBinary(hex8);
+  ccxt::any hex8 = std::string("cafebabe");
+  ccxt::any binary8 = exchange.base16ToBinary(hex8);
   assertTrue(isEqual(exchange.binaryToBase16(binary8), hex8));
 }

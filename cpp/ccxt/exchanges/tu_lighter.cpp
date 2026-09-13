@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_lighter(std::any config) {
+std::shared_ptr<ExchangeBase> create_lighter(ccxt::any config) {
   return newExchange<lighter>(config);
 }
 

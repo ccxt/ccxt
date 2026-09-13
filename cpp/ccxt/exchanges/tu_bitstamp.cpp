@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitstamp(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitstamp(ccxt::any config) {
   return newExchange<bitstamp>(config);
 }
 

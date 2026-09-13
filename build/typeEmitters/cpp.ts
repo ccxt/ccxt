@@ -3,7 +3,7 @@
 // Unlike the C# emitter, which splices generated blocks into a pre-existing hand-written
 // file, the C++ typed layer is fully generated: every exported declaration of
 // ts/src/base/types.ts (minus the prediction tier, which the C++ port does not carry yet)
-// becomes a struct with std::optional fields and an `explicit T (const std::any&)`
+// becomes a struct with std::optional fields and an `explicit T (const ccxt::any&)`
 // converting constructor over the dynamic value model (ccxt::dict / ccxt::list).
 //
 // Mapping rules (documented here because they ARE the public C++ API contract):
@@ -11,7 +11,7 @@
 //   * Num / number         -> std::optional<double>      (optNum: numeric or numeric string)
 //   * Str / string / union-of-literals -> std::optional<std::string> (optStr)
 //   * Bool / boolean       -> std::optional<bool>        (optBool)
-//   * any                  -> std::any (raw, lossless)
+//   * any                  -> ccxt::any (raw, lossless)
 //   * T (another struct)   -> std::optional<T>
 //   * T[]                  -> std::vector<T>
 //   * [Num, Num][]         -> std::vector<std::vector<double>> (order-book rows)
@@ -263,7 +263,7 @@ function declFor (plan: FieldPlan, name: string): string | undefined {
         case 'num':     return 'std::optional<double> ' + m + ';';
         case 'str':     return 'std::optional<std::string> ' + m + ';';
         case 'bool':    return 'std::optional<bool> ' + m + ';';
-        case 'any':     return 'std::any ' + m + ';';
+        case 'any':     return 'ccxt::any ' + m + ';';
         case 'obj':     return 'std::optional<' + plan.name + '> ' + m + ';';
         case 'objList': return 'std::vector<' + plan.name + '> ' + m + ';';
         case 'strList': return 'std::vector<std::string> ' + m + ';';
@@ -342,7 +342,7 @@ function renderInterfaceStruct (ir: TypesIR, type: IRType, out: string[]): void 
     }
     out.push ('');
     out.push ('    ' + name + ' () = default;');
-    out.push ('    explicit ' + name + ' (const std::any& raw) {');
+    out.push ('    explicit ' + name + ' (const ccxt::any& raw) {');
     out.push ('        if (!isDict (raw)) { return; }');
     for (const read of reads) {
         out.push ('        ' + read);
@@ -369,7 +369,7 @@ function renderDictionaryStruct (ir: TypesIR, type: IRType, out: string[]): void
     }
     const mapMember = memberName (lowerFirst (name));
     const valueType = elemName === undefined
-        ? 'std::any'
+        ? 'ccxt::any'
         : (elemIsList ? 'std::vector<' + elemName + '>' : elemName);
     // declared extra fields on the dictionary interface (Balances: info/timestamp/datetime)
     const skipKeys = new Set<string> ([ 'info' ]);
@@ -390,19 +390,19 @@ function renderDictionaryStruct (ir: TypesIR, type: IRType, out: string[]): void
     }
     out.push ('struct ' + name + ' {');
     out.push ('    std::map<std::string, ' + valueType + '> ' + mapMember + ';');
-    out.push ('    std::any info;');
+    out.push ('    ccxt::any info;');
     for (const decl of extraDecls) {
         out.push ('    ' + decl);
     }
     out.push ('');
     out.push ('    ' + name + ' () = default;');
-    out.push ('    explicit ' + name + ' (const std::any& raw) {');
+    out.push ('    explicit ' + name + ' (const ccxt::any& raw) {');
     out.push ('        if (!isDict (raw)) { return; }');
     out.push ('        this->info = typedsupport::getAny (raw, "info");');
     for (const read of extraReads) {
         out.push ('        ' + read);
     }
-    out.push ('        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {');
+    out.push ('        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {');
     const keyGuards = Array.from (skipKeys).map ((k) => 'kv.first == "' + k + '"').join (' || ');
     out.push ('            if (' + keyGuards + ') { continue; }');
     if (elemName === undefined) {
@@ -410,7 +410,7 @@ function renderDictionaryStruct (ir: TypesIR, type: IRType, out: string[]): void
     } else if (elemIsList) {
         out.push ('            std::vector<' + elemName + '> items;');
         out.push ('            if (isList (kv.second)) {');
-        out.push ('                for (const auto& item : std::any_cast<list> (kv.second).items ()) {');
+        out.push ('                for (const auto& item : ccxt::any_cast<list> (kv.second).items ()) {');
         out.push ('                    items.push_back (' + elemName + ' (item));');
         out.push ('                }');
         out.push ('            }');
@@ -444,9 +444,9 @@ function renderTupleStruct (type: IRType, out: string[]): void {
     }
     out.push ('');
     out.push ('    ' + name + ' () = default;');
-    out.push ('    explicit ' + name + ' (const std::any& raw) {');
+    out.push ('    explicit ' + name + ' (const ccxt::any& raw) {');
     out.push ('        if (!isList (raw)) { return; }');
-    out.push ('        const auto& items = std::any_cast<list> (raw).items ();');
+    out.push ('        const auto& items = ccxt::any_cast<list> (raw).items ();');
     for (let i = 0; i < fields.length; i++) {
         if (i === 0) {
             out.push ('        if (items.size () > 0) { this->timestamp = typedsupport::anyInt (items[0]); }');
@@ -467,12 +467,12 @@ function renderBalances (out: string[]): void {
     out.push ('    std::map<std::string, double> free;');
     out.push ('    std::map<std::string, double> used;');
     out.push ('    std::map<std::string, double> total;');
-    out.push ('    std::any info;');
+    out.push ('    ccxt::any info;');
     out.push ('    std::optional<int64_t> timestamp;');
     out.push ('    std::optional<std::string> datetime;');
     out.push ('');
     out.push ('    Balances () = default;');
-    out.push ('    explicit Balances (const std::any& raw) {');
+    out.push ('    explicit Balances (const ccxt::any& raw) {');
     out.push ('        if (!isDict (raw)) { return; }');
     out.push ('        this->info = typedsupport::getAny (raw, "info");');
     out.push ('        this->timestamp = typedsupport::optInt (raw, "timestamp");');
@@ -480,7 +480,7 @@ function renderBalances (out: string[]): void {
     out.push ('        this->free = typedsupport::numberMap (raw, "free");');
     out.push ('        this->used = typedsupport::numberMap (raw, "used");');
     out.push ('        this->total = typedsupport::numberMap (raw, "total");');
-    out.push ('        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {');
+    out.push ('        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {');
     out.push ('            if (kv.first == "info" || kv.first == "free" || kv.first == "used" || kv.first == "total"');
     out.push ('                || kv.first == "timestamp" || kv.first == "datetime" || kv.first == "debt") { continue; }');
     out.push ('            this->balances.emplace (kv.first, Balance (kv.second));');
@@ -504,7 +504,7 @@ function renderToAny (ir: TypesIR, type: IRType, out: string[]): void {
         out.pop ();
     }
     out.push ('');
-    out.push ('    std::any toAny () const {');
+    out.push ('    ccxt::any toAny () const {');
     out.push ('        dict d;');
     for (const field of type.fields) {
         const fieldName = unquote (field.name);
@@ -512,16 +512,16 @@ function renderToAny (ir: TypesIR, type: IRType, out: string[]): void {
         const m = memberName (fieldName);
         switch (plan.t) {
             case 'str':
-                out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", std::any (*this->' + m + ')); }');
+                out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", ccxt::any (*this->' + m + ')); }');
                 break;
             case 'num':
-                out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", std::any (*this->' + m + ')); }');
+                out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", ccxt::any (*this->' + m + ')); }');
                 break;
             case 'int':
-                out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", std::any (static_cast<long long> (*this->' + m + '))); }');
+                out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", ccxt::any (static_cast<long long> (*this->' + m + '))); }');
                 break;
             case 'bool':
-                out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", std::any (*this->' + m + ')); }');
+                out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", ccxt::any (*this->' + m + ')); }');
                 break;
             case 'any':
                 out.push ('        if (this->' + m + '.has_value ()) { d.set ("' + fieldName + '", this->' + m + '); }');
@@ -530,7 +530,7 @@ function renderToAny (ir: TypesIR, type: IRType, out: string[]): void {
                 break;
         }
     }
-    out.push ('        return std::any (d);');
+    out.push ('        return ccxt::any (d);');
     out.push ('    }');
     out.push ('};');
     out.push ('');
@@ -545,17 +545,17 @@ namespace typedsupport {
 
 // key lookup over the dynamic dict — deliberately self-contained (Value.h only), so
 // Types.h can be included anywhere without dragging in the helpers layer
-inline std::any getAny (const std::any& d, const char* key) {
-    if (!isDict (d)) { return std::any {}; }
-    return std::any_cast<dict> (d).get (std::string (key));
+inline ccxt::any getAny (const ccxt::any& d, const char* key) {
+    if (!isDict (d)) { return ccxt::any {}; }
+    return ccxt::any_cast<dict> (d).get (std::string (key));
 }
 
-inline std::optional<double> anyNum (const std::any& v) {
+inline std::optional<double> anyNum (const ccxt::any& v) {
     if (isNum (v)) {
         return toDouble (v);
     }
     if (isStr (v)) {
-        const std::string& s = std::any_cast<const std::string&> (v);
+        const std::string& s = ccxt::any_cast<const std::string&> (v);
         if (s.empty ()) { return std::nullopt; }
         char* end = nullptr;
         const double parsed = std::strtod (s.c_str (), &end);
@@ -564,7 +564,7 @@ inline std::optional<double> anyNum (const std::any& v) {
     return std::nullopt;
 }
 
-inline std::optional<int64_t> anyInt (const std::any& v) {
+inline std::optional<int64_t> anyInt (const ccxt::any& v) {
     if (isInt (v)) {
         return static_cast<int64_t> (toLong (v));
     }
@@ -572,7 +572,7 @@ inline std::optional<int64_t> anyInt (const std::any& v) {
         return static_cast<int64_t> (toDouble (v));
     }
     if (isStr (v)) {
-        const std::string& s = std::any_cast<const std::string&> (v);
+        const std::string& s = ccxt::any_cast<const std::string&> (v);
         if (s.empty ()) { return std::nullopt; }
         char* end = nullptr;
         const long long parsed = std::strtoll (s.c_str (), &end, 10);
@@ -581,43 +581,43 @@ inline std::optional<int64_t> anyInt (const std::any& v) {
     return std::nullopt;
 }
 
-inline std::optional<std::string> anyStr (const std::any& v) {
+inline std::optional<std::string> anyStr (const ccxt::any& v) {
     if (isStr (v)) {
-        return std::any_cast<std::string> (v);
+        return ccxt::any_cast<std::string> (v);
     }
     return std::nullopt;
 }
 
-inline std::optional<bool> anyBool (const std::any& v) {
+inline std::optional<bool> anyBool (const ccxt::any& v) {
     if (isBoolean (v)) {
-        return std::any_cast<bool> (v);
+        return ccxt::any_cast<bool> (v);
     }
     return std::nullopt;
 }
 
-inline std::optional<double> optNum (const std::any& d, const char* key) { return anyNum (getAny (d, key)); }
-inline std::optional<int64_t> optInt (const std::any& d, const char* key) { return anyInt (getAny (d, key)); }
-inline std::optional<std::string> optStr (const std::any& d, const char* key) { return anyStr (getAny (d, key)); }
-inline std::optional<bool> optBool (const std::any& d, const char* key) { return anyBool (getAny (d, key)); }
+inline std::optional<double> optNum (const ccxt::any& d, const char* key) { return anyNum (getAny (d, key)); }
+inline std::optional<int64_t> optInt (const ccxt::any& d, const char* key) { return anyInt (getAny (d, key)); }
+inline std::optional<std::string> optStr (const ccxt::any& d, const char* key) { return anyStr (getAny (d, key)); }
+inline std::optional<bool> optBool (const ccxt::any& d, const char* key) { return anyBool (getAny (d, key)); }
 
-inline dict dictOrEmpty (const std::any& d, const char* key) {
-    const std::any v = getAny (d, key);
-    return isDict (v) ? std::any_cast<dict> (v) : dict {};
+inline dict dictOrEmpty (const ccxt::any& d, const char* key) {
+    const ccxt::any v = getAny (d, key);
+    return isDict (v) ? ccxt::any_cast<dict> (v) : dict {};
 }
 
 template <class T>
-std::optional<T> optStruct (const std::any& d, const char* key) {
-    const std::any v = getAny (d, key);
+std::optional<T> optStruct (const ccxt::any& d, const char* key) {
+    const ccxt::any v = getAny (d, key);
     if (isDict (v)) { return T (v); }
     return std::nullopt;
 }
 
 template <class T>
-std::vector<T> structList (const std::any& d, const char* key) {
+std::vector<T> structList (const ccxt::any& d, const char* key) {
     std::vector<T> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             out.push_back (T (item));
         }
     }
@@ -625,36 +625,36 @@ std::vector<T> structList (const std::any& d, const char* key) {
 }
 
 template <class T>
-std::map<std::string, T> structMap (const std::any& d, const char* key) {
+std::map<std::string, T> structMap (const ccxt::any& d, const char* key) {
     std::map<std::string, T> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isDict (v)) {
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             out.emplace (kv.first, T (kv.second));
         }
     }
     return out;
 }
 
-inline std::vector<std::string> stringList (const std::any& d, const char* key) {
+inline std::vector<std::string> stringList (const ccxt::any& d, const char* key) {
     std::vector<std::string> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
-            if (isStr (item)) { out.push_back (std::any_cast<std::string> (item)); }
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
+            if (isStr (item)) { out.push_back (ccxt::any_cast<std::string> (item)); }
         }
     }
     return out;
 }
 
-inline std::vector<std::vector<double>> numberRows (const std::any& d, const char* key) {
+inline std::vector<std::vector<double>> numberRows (const ccxt::any& d, const char* key) {
     std::vector<std::vector<double>> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isList (v)) {
-        for (const auto& row : std::any_cast<list> (v).items ()) {
+        for (const auto& row : ccxt::any_cast<list> (v).items ()) {
             std::vector<double> cells;
             if (isList (row)) {
-                for (const auto& cell : std::any_cast<list> (row).items ()) {
+                for (const auto& cell : ccxt::any_cast<list> (row).items ()) {
                     const auto n = anyNum (cell);
                     if (n.has_value ()) { cells.push_back (*n); }
                 }
@@ -665,11 +665,11 @@ inline std::vector<std::vector<double>> numberRows (const std::any& d, const cha
     return out;
 }
 
-inline std::map<std::string, double> numberMap (const std::any& d, const char* key) {
+inline std::map<std::string, double> numberMap (const ccxt::any& d, const char* key) {
     std::map<std::string, double> out;
-    const std::any v = getAny (d, key);
+    const ccxt::any v = getAny (d, key);
     if (isDict (v)) {
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             const auto n = anyNum (kv.second);
             if (n.has_value ()) { out.emplace (kv.first, *n); }
         }
@@ -685,30 +685,30 @@ const TYPED_ANY_HELPERS = `
 // argument conversion for the typed API (Exchange.TypedApi.inc)
 // ---------------------------------------------------------------------------
 
-inline std::any typedAny (const std::string& v) { return std::any (v); }
-inline std::any typedAny (const char* v) { return std::any (std::string (v)); }
-inline std::any typedAny (double v) { return std::any (v); }
-inline std::any typedAny (bool v) { return std::any (v); }
-inline std::any typedAny (const dict& v) { return std::any (v); }
-inline std::any typedAny (const list& v) { return std::any (v); }
-inline std::any typedAny (const std::any& v) { return v; }
-inline std::any typedAny (const std::optional<int64_t>& v) { return v.has_value () ? std::any (static_cast<long long> (*v)) : std::any {}; }
-inline std::any typedAny (const std::optional<double>& v) { return v.has_value () ? std::any (*v) : std::any {}; }
-inline std::any typedAny (const std::optional<std::string>& v) { return v.has_value () ? std::any (*v) : std::any {}; }
-inline std::any typedAny (const std::optional<bool>& v) { return v.has_value () ? std::any (*v) : std::any {}; }
+inline ccxt::any typedAny (const std::string& v) { return ccxt::any (v); }
+inline ccxt::any typedAny (const char* v) { return ccxt::any (std::string (v)); }
+inline ccxt::any typedAny (double v) { return ccxt::any (v); }
+inline ccxt::any typedAny (bool v) { return ccxt::any (v); }
+inline ccxt::any typedAny (const dict& v) { return ccxt::any (v); }
+inline ccxt::any typedAny (const list& v) { return ccxt::any (v); }
+inline ccxt::any typedAny (const ccxt::any& v) { return v; }
+inline ccxt::any typedAny (const std::optional<int64_t>& v) { return v.has_value () ? ccxt::any (static_cast<long long> (*v)) : ccxt::any {}; }
+inline ccxt::any typedAny (const std::optional<double>& v) { return v.has_value () ? ccxt::any (*v) : ccxt::any {}; }
+inline ccxt::any typedAny (const std::optional<std::string>& v) { return v.has_value () ? ccxt::any (*v) : ccxt::any {}; }
+inline ccxt::any typedAny (const std::optional<bool>& v) { return v.has_value () ? ccxt::any (*v) : ccxt::any {}; }
 // empty vector rides as undefined: unified semantics treat absent symbol lists as "all"
-inline std::any typedAny (const std::vector<std::string>& v) {
-    if (v.empty ()) { return std::any {}; }
+inline ccxt::any typedAny (const std::vector<std::string>& v) {
+    if (v.empty ()) { return ccxt::any {}; }
     list out;
-    for (const auto& s : v) { out.push (std::any (s)); }
-    return std::any (out);
+    for (const auto& s : v) { out.push (ccxt::any (s)); }
+    return ccxt::any (out);
 }
 
 template <class T>
-std::vector<T> typedVector (const std::any& v) {
+std::vector<T> typedVector (const ccxt::any& v) {
     std::vector<T> out;
     if (isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             out.push_back (T (item));
         }
     }
@@ -716,10 +716,10 @@ std::vector<T> typedVector (const std::any& v) {
 }
 
 template <class T>
-std::map<std::string, T> typedMap (const std::any& v) {
+std::map<std::string, T> typedMap (const ccxt::any& v) {
     std::map<std::string, T> out;
     if (isDict (v)) {
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             if (kv.first == "info") { continue; }
             out.emplace (kv.first, T (kv.second));
         }
@@ -727,11 +727,11 @@ std::map<std::string, T> typedMap (const std::any& v) {
     return out;
 }
 
-inline std::vector<std::string> typedStringVector (const std::any& v) {
+inline std::vector<std::string> typedStringVector (const ccxt::any& v) {
     std::vector<std::string> out;
     if (isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
-            if (isStr (item)) { out.push_back (std::any_cast<std::string> (item)); }
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
+            if (isStr (item)) { out.push_back (ccxt::any_cast<std::string> (item)); }
         }
     }
     return out;
@@ -739,10 +739,10 @@ inline std::vector<std::string> typedStringVector (const std::any& v) {
 
 // vector of request structs (OrderRequest / CancellationRequest) -> dynamic list
 template <class T>
-std::any typedAnyList (const std::vector<T>& v) {
+ccxt::any typedAnyList (const std::vector<T>& v) {
     list out;
     for (const auto& item : v) { out.push (item.toAny ()); }
-    return std::any (out);
+    return ccxt::any (out);
 }
 `;
 
@@ -750,7 +750,7 @@ function emitCpp (ir: TypesIR): string {
     const out: string[] = [];
     out.push ('#pragma once');
     out.push ('');
-    out.push ('// Typed unified structures over the dynamic std::any value model — the layer the');
+    out.push ('// Typed unified structures over the dynamic ccxt::any value model — the layer the');
     out.push ('// user consumes. Generated from ts/src/base/types.ts; regenerate with');
     out.push ('// `npm run transpile-types` (or `npx tsx build/transpileTypes.ts --lang cpp`).');
     out.push ('');
@@ -795,7 +795,7 @@ function emitCpp (ir: TypesIR): string {
                 out.push ('    std::optional<MinMax> market;');
                 out.push ('');
                 out.push ('    Limits () = default;');
-                out.push ('    explicit Limits (const std::any& raw) {');
+                out.push ('    explicit Limits (const ccxt::any& raw) {');
                 out.push ('        if (!isDict (raw)) { return; }');
                 out.push ('        this->amount = typedsupport::optStruct<MinMax> (raw, "amount");');
                 out.push ('        this->cost = typedsupport::optStruct<MinMax> (raw, "cost");');
@@ -812,7 +812,7 @@ function emitCpp (ir: TypesIR): string {
                 out.push ('    std::optional<MinMax> withdraw;');
                 out.push ('');
                 out.push ('    CurrencyLimits () = default;');
-                out.push ('    explicit CurrencyLimits (const std::any& raw) {');
+                out.push ('    explicit CurrencyLimits (const ccxt::any& raw) {');
                 out.push ('        if (!isDict (raw)) { return; }');
                 out.push ('        this->amount = typedsupport::optStruct<MinMax> (raw, "amount");');
                 out.push ('        this->withdraw = typedsupport::optStruct<MinMax> (raw, "withdraw");');

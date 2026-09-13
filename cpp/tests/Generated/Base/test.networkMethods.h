@@ -6,12 +6,12 @@
 #include "../../BaseTest.Bridge.h"
 
 // forward declarations - TS hoists function declarations, C++ does not
-void helperTestNetworkCodeToId(std::any networksMap);
-void helperTestNetworkIdToCode(std::any networksMap);
+void helperTestNetworkCodeToId(ccxt::any networksMap);
+void helperTestNetworkIdToCode(ccxt::any networksMap);
 void helperBatchNetworkTests();
 void testNetworkMethods();
 
-void helperTestNetworkCodeToId(std::any networksMap) {
+void helperTestNetworkCodeToId(ccxt::any networksMap) {
   // we should conduct tests with such example configuration
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
@@ -101,7 +101,7 @@ void helperTestNetworkCodeToId(std::any networksMap) {
       exchange.networkCodeToId(std::string("Xyz"), std::string("SAMPLECOIN")),
       std::string("Xyz")));
 }
-void helperTestNetworkIdToCode(std::any networksMap) {
+void helperTestNetworkIdToCode(ccxt::any networksMap) {
   // we should conduct tests with such example configuration
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
@@ -180,10 +180,10 @@ void helperBatchNetworkTests() {
   //
   // check batch
   //
-  std::any defaultNetworkCodeReplacements =
+  ccxt::any defaultNetworkCodeReplacements =
       ::getValue(::getValue(exchange, std::string("options")),
                  std::string("defaultNetworkCodeReplacements"));
-  std::any allNetworkCodes = ccxt::list{
+  ccxt::any allNetworkCodes = ccxt::list{
       std::string("ETH"),   std::string("ERC20"),    std::string("TRON"),
       std::string("TRX"),   std::string("TRC20"),    std::string("SOL"),
       std::string("BSC"),   std::string("BEP20"),    std::string("ARBITRUM"),
@@ -198,7 +198,7 @@ void helperBatchNetworkTests() {
       std::string("FTM"),   std::string("zkSync"),   std::string("EraZK"),
       std::string("KLAY"),  std::string("ACA"),      std::string("STX"),
       std::string("XTZ"),   std::string("NEO"),      std::string("METIS")};
-  std::any allCurrencyCodes =
+  ccxt::any allCurrencyCodes =
       ccxt::list{std::string("Bitcoin"),      std::string("BTC"),
                  std::string("Ethereum"),     std::string("ETH"),
                  std::string("Tether"),       std::string("USDT"),
@@ -242,25 +242,25 @@ void helperBatchNetworkTests() {
                  std::string("Ripple"),       std::string("USD"),
                  std::string("RLUSD"),        std::string("Polygon"),
                  std::string("POL")};
-  for (std::any i = 0; isLessThan(i, getArrayLength(allNetworkCodes));
+  for (ccxt::any i = 0; isLessThan(i, getArrayLength(allNetworkCodes));
        postFixIncrement(i)) {
-    std::any randomNetworkCode = ::getValue(allNetworkCodes, i);
-    for (std::any j = 0; isLessThan(j, getArrayLength(allCurrencyCodes));
+    ccxt::any randomNetworkCode = ::getValue(allNetworkCodes, i);
+    for (ccxt::any j = 0; isLessThan(j, getArrayLength(allCurrencyCodes));
          postFixIncrement(j)) {
-      std::any randomCurrencyCode = ::getValue(allCurrencyCodes, j);
-      std::any result =
+      ccxt::any randomCurrencyCode = ::getValue(allCurrencyCodes, j);
+      ccxt::any result =
           exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
-      std::any keys = getObjectKeys(defaultNetworkCodeReplacements);
-      for (std::any k = 0; isLessThan(k, getArrayLength(keys));
+      ccxt::any keys = getObjectKeys(defaultNetworkCodeReplacements);
+      for (ccxt::any k = 0; isLessThan(k, getArrayLength(keys));
            postFixIncrement(k)) {
-        std::any chainBaseCoin = ::getValue(keys, k);
-        std::any chainMapping =
+        ccxt::any chainBaseCoin = ::getValue(keys, k);
+        ccxt::any chainMapping =
             ::getValue(defaultNetworkCodeReplacements, chainBaseCoin);
-        std::any primaryNetworkCode =
+        ccxt::any primaryNetworkCode =
             ::getValue(chainMapping, std::string("primary"));
-        std::any secondaryNetworkCode =
+        ccxt::any secondaryNetworkCode =
             ::getValue(chainMapping, std::string("secondary"));
-        std::any msg =
+        ccxt::any msg =
             add(add(add(add(add(add(std::string("network protocol test failed "
                                                 "for networkCode:"),
                                     randomNetworkCode),
@@ -322,13 +322,13 @@ void helperBatchNetworkTests() {
 // }
 void testNetworkMethods() {
   // both below dicts should end with "same" results
-  std::any dict1 = ccxt::dict{
+  ccxt::any dict1 = ccxt::dict{
       {std::string("BTC"), std::string("Bitcoin")},
       {std::string("BRC20"), std::string("Brc_20")},
       {std::string("TRC20"), std::string("Tron")},
       {std::string("ETH"), std::string("Ether")},
   };
-  std::any dict2 = ccxt::dict{
+  ccxt::any dict2 = ccxt::dict{
       {std::string("BTC"), std::string("Bitcoin")},
       {std::string("BRC20"), std::string("Brc_20")},
       {std::string("TRC20"), std::string("Tron")},

@@ -6,21 +6,21 @@
 #include "../../BaseTest.Bridge.h"
 
 // forward declarations - TS hoists function declarations, C++ does not
-std::shared_future<std::any> testSetMarketsFromExchange();
+std::shared_future<ccxt::any> testSetMarketsFromExchange();
 
-std::shared_future<std::any> testSetMarketsFromExchange() {
+std::shared_future<ccxt::any> testSetMarketsFromExchange() {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                ccxt::Exchange emptyExchange = ccxt::Exchange(ccxt::dict{
                    {std::string("id"), std::string("sample0")},
                });
                // @SKIP_START_GO
-               std::any methodName = std::string("setMarketsFromExchange");
-               std::any trueClause =
-                   isEqual(emptyExchange.safeString(std::any{}, std::any{}),
-                           std::any{});
-               std::any sampleMarket = ccxt::dict{
+               ccxt::any methodName = std::string("setMarketsFromExchange");
+               ccxt::any trueClause =
+                   isEqual(emptyExchange.safeString(ccxt::any{}, ccxt::any{}),
+                           ccxt::any{});
+               ccxt::any sampleMarket = ccxt::dict{
                    {std::string("BTC/USD"),
                     ccxt::dict{
                         {std::string("id"), std::string("BtcUsd")},
@@ -43,7 +43,7 @@ std::shared_future<std::any> testSetMarketsFromExchange() {
                });
                assertTrue(isTrue((!isEqual(
                               ::getValue(exchange1, std::string("markets")),
-                              std::any{}))) &&
+                              ccxt::any{}))) &&
                               isTrue((isGreaterThan(
                                   getArrayLength(getObjectKeys(::getValue(
                                       exchange1, std::string("markets")))),
@@ -77,7 +77,7 @@ std::shared_future<std::any> testSetMarketsFromExchange() {
                // Test the new setMarketsFromExchange method
                exchange2.setMarketsFromExchange(exchange1);
                // Verify shared markets work
-               std::any neededProps =
+               ccxt::any neededProps =
                    ccxt::list{std::string("symbols"),
                               std::string("currencies"),
                               std::string("codes"),
@@ -87,7 +87,7 @@ std::shared_future<std::any> testSetMarketsFromExchange() {
                               std::string("currencies_by_id"),
                               std::string("baseCurrencies"),
                               std::string("quoteCurrencies")};
-               for (std::any i = 0; isLessThan(i, getArrayLength(neededProps));
+               for (ccxt::any i = 0; isLessThan(i, getArrayLength(neededProps));
                     postFixIncrement(i)) {
                  assertDeepEqual(emptyExchange, ccxt::dict{}, methodName,
                                  emptyExchange.getProperty(
@@ -104,17 +104,17 @@ std::shared_future<std::any> testSetMarketsFromExchange() {
                // std::string("markets")), 'Modifying exchange1 markets should
                // reflect in exchange2'); Test 2: loadMarkets on shared markets
                // should not make API call and be very fast
-               std::any startTime = emptyExchange.milliseconds();
+               ccxt::any startTime = emptyExchange.milliseconds();
                awaitValue(exchange2.loadMarkets());
-               std::any endTime = emptyExchange.milliseconds();
+               ccxt::any endTime = emptyExchange.milliseconds();
                // Should be very fast since no API call is made
-               std::any timeTaken = subtract(endTime, startTime);
+               ccxt::any timeTaken = subtract(endTime, startTime);
                assertTrue(
                    isLessThan(timeTaken, 10),
                    std::string("loadMarkets on shared markets should be fast"));
                // @SKIP_END_GO
                ::describeOf(emptyExchange); // avoid unused var
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }

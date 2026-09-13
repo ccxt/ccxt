@@ -14,7 +14,7 @@ namespace ccxt {
 
 namespace {
 
-// the mode constants, as plain ints (helpers.h exposes them boxed in std::any)
+// the mode constants, as plain ints (helpers.h exposes them boxed in ccxt::any)
 constexpr int MODE_TRUNCATE           = 0;
 constexpr int MODE_ROUND              = 1;
 constexpr int MODE_DECIMAL_PLACES     = 2;
@@ -23,7 +23,7 @@ constexpr int MODE_TICK_SIZE          = 4;
 constexpr int MODE_NO_PADDING         = 5;
 constexpr int MODE_PAD_WITH_ZERO      = 6;
 
-double toNumber (const std::any& value) {
+double toNumber (const ccxt::any& value) {
     if (isNum (value)) {
         return toDouble (value);
     }
@@ -43,15 +43,15 @@ double toNumber (const std::any& value) {
 // numberToText
 // ---------------------------------------------------------------------------
 
-std::string numberToText (const std::any& value) {
+std::string numberToText (const ccxt::any& value) {
     if (!value.has_value ()) {
         return std::string ();
     }
     if (isStr (value)) {
-        return std::any_cast<std::string> (value);
+        return ccxt::any_cast<std::string> (value);
     }
     if (isBoolean (value)) {
-        return std::any_cast<bool> (value) ? "true" : "false";
+        return ccxt::any_cast<bool> (value) ? "true" : "false";
     }
     if (isInt (value)) {
         return std::to_string (toLong (value));
@@ -138,7 +138,7 @@ int precisionFromText (const std::string& value) {
     return ((secondDot < 0) ? (lastNonZero + 1) : secondDot) - dot - 1;
 }
 
-std::string truncateToString (const std::any& value, int precision) {
+std::string truncateToString (const ccxt::any& value, int precision) {
     const std::string text = numberToText (value);
     if (precision > 0) {
         const std::size_t dot = text.find ('.');
@@ -169,8 +169,8 @@ std::string truncateToString (const std::any& value, int precision) {
 // decimalToPrecision
 // ---------------------------------------------------------------------------
 
-std::string decimalToPrecisionText (const std::any& xValue, int roundingMode,
-                                    const std::any& numPrecisionDigitsValue,
+std::string decimalToPrecisionText (const ccxt::any& xValue, int roundingMode,
+                                    const ccxt::any& numPrecisionDigitsValue,
                                     int countingMode, int paddingMode) {
     if (!numPrecisionDigitsValue.has_value ()) {
         throw BaseError ("numPrecisionDigits should not be undefined");
@@ -202,7 +202,7 @@ std::string decimalToPrecisionText (const std::any& xValue, int roundingMode,
         const double toNearest = std::pow (10.0, -numPrecisionDigits);
         if (roundingMode == MODE_ROUND) {
             const std::string inner = decimalToPrecisionText (
-                std::any (toNumber (xValue) / toNearest), roundingMode, std::any (0),
+                ccxt::any (toNumber (xValue) / toNearest), roundingMode, ccxt::any (0),
                 countingMode, paddingMode);
             double parsed = 0.0;
             try {
@@ -210,16 +210,16 @@ std::string decimalToPrecisionText (const std::any& xValue, int roundingMode,
             } catch (const std::exception&) {
                 parsed = 0.0;
             }
-            return numberToText (std::any (toNearest * parsed));
+            return numberToText (ccxt::any (toNearest * parsed));
         }
         const double x = toNumber (xValue);
-        return numberToText (std::any (x - std::fmod (x, toNearest)));
+        return numberToText (ccxt::any (x - std::fmod (x, toNearest)));
     }
 
     // -- tick size --------------------------------------------------------------------
     if (countingMode == MODE_TICK_SIZE) {
         const std::string precisionDigitsString = decimalToPrecisionText (
-            std::any (numPrecisionDigits), MODE_ROUND, std::any (22),
+            ccxt::any (numPrecisionDigits), MODE_ROUND, ccxt::any (22),
             MODE_DECIMAL_PLACES, MODE_NO_PADDING);
         const int newNumPrecisionDigits = precisionFromText (precisionDigitsString);
         if (roundingMode == MODE_TRUNCATE) {
@@ -249,24 +249,24 @@ std::string decimalToPrecisionText (const std::any& xValue, int roundingMode,
                 } catch (const std::exception&) {
                     reparsed = x;
                 }
-                return numberToText (std::any (reparsed));
+                return numberToText (ccxt::any (reparsed));
             }
-            return decimalToPrecisionText (std::any (x), MODE_ROUND,
-                                           std::any (newNumPrecisionDigits),
+            return decimalToPrecisionText (ccxt::any (x), MODE_ROUND,
+                                           ccxt::any (newNumPrecisionDigits),
                                            MODE_DECIMAL_PLACES, paddingMode);
         }
         double x = toNumber (xValue);
         double missing = std::fmod (x, numPrecisionDigits);
         const std::string missingText = decimalToPrecisionText (
-            std::any (missing), MODE_ROUND, std::any (8), MODE_DECIMAL_PLACES, MODE_NO_PADDING);
+            ccxt::any (missing), MODE_ROUND, ccxt::any (8), MODE_DECIMAL_PLACES, MODE_NO_PADDING);
         try {
             missing = std::stod (missingText);
         } catch (const std::exception&) {
             missing = 0.0;
         }
         const std::string fpError = decimalToPrecisionText (
-            std::any (missing / numPrecisionDigits), MODE_ROUND,
-            std::any (std::max (newNumPrecisionDigits, 8)), MODE_DECIMAL_PLACES, MODE_NO_PADDING);
+            ccxt::any (missing / numPrecisionDigits), MODE_ROUND,
+            ccxt::any (std::max (newNumPrecisionDigits, 8)), MODE_DECIMAL_PLACES, MODE_NO_PADDING);
         if (precisionFromText (fpError) != 0) {
             if (x > 0) {
                 x = (missing >= numPrecisionDigits / 2)
@@ -278,8 +278,8 @@ std::string decimalToPrecisionText (const std::any& xValue, int roundingMode,
                     : (x - missing - numPrecisionDigits);
             }
         }
-        return decimalToPrecisionText (std::any (x), MODE_ROUND,
-                                       std::any (newNumPrecisionDigits),
+        return decimalToPrecisionText (ccxt::any (x), MODE_ROUND,
+                                       ccxt::any (newNumPrecisionDigits),
                                        MODE_DECIMAL_PLACES, paddingMode);
     }
 

@@ -18,10 +18,10 @@ namespace ccxt {
 namespace pro {
 namespace factory {
 
-using Creator = std::function<std::shared_ptr<ExchangeBase> (std::any)>;
+using Creator = std::function<std::shared_ptr<ExchangeBase> (ccxt::any)>;
 
 void registerProExchange (const std::string& id, Creator creator);
-std::shared_ptr<ExchangeBase> createProExchange (const std::string& id, std::any config);
+std::shared_ptr<ExchangeBase> createProExchange (const std::string& id, ccxt::any config);
 
 } // namespace factory
 } // namespace pro

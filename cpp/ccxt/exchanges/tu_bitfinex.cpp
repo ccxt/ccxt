@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitfinex(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitfinex(ccxt::any config) {
   return newExchange<bitfinex>(config);
 }
 

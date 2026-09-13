@@ -7,7 +7,7 @@
 
 // forward declarations - TS hoists function declarations, C++ does not
 void helperTestInitThrottler();
-void helperTestSandboxState(std::any exchange, std::any expectEnabled = true);
+void helperTestSandboxState(ccxt::any exchange, ccxt::any expectEnabled = true);
 void helperTestInitSandbox();
 void helperTestInitMarket();
 void helperTestProperties();
@@ -19,11 +19,11 @@ void helperTestInitThrottler() {
       {std::string("rateLimit"), 10.8},
   });
   // todo: assert (exchange.MAX_VALUE !== undefined);
-  std::any tokenBucket = exchangeProp(
+  ccxt::any tokenBucket = exchangeProp(
       exchange,
       std::string("tokenBucket")); // trick for uncamelcase transpilation
-  assertTrue(!isEqual(tokenBucket, std::any{}));
-  std::any rateLimit = exchangeProp(exchange, std::string("rateLimit"));
+  assertTrue(!isEqual(tokenBucket, ccxt::any{}));
+  ccxt::any rateLimit = exchangeProp(exchange, std::string("rateLimit"));
   assertTrue(isEqual(rateLimit, 10.8));
   assertTrue(isEqual(::getValue(tokenBucket, std::string("delay")), 0.001));
   assertTrue(isEqual(::getValue(tokenBucket, std::string("refillRate")),
@@ -31,7 +31,7 @@ void helperTestInitThrottler() {
   // fix decimal/integer issues across langs
   assertTrue(exchange.inArray(::getValue(tokenBucket, std::string("capacity")),
                               ccxt::list{1, 1}));
-  std::any cost = exchange.parseToNumeric(exchange.safeString2(
+  ccxt::any cost = exchange.parseToNumeric(exchange.safeString2(
       tokenBucket, std::string("cost"),
       std::string("defaultCost"))); // python sync, todo fix
   assertTrue(exchange.inArray(cost, ccxt::list{1, 1}));
@@ -40,10 +40,11 @@ void helperTestInitThrottler() {
                  ::getValue(tokenBucket, std::string("maxCapacity")),
                  ccxt::list{1000, 1000})));
 }
-void helperTestSandboxState(std::any exchange, std::any expectEnabled = true) {
-  assertTrue(!isEqual(exchange.urls, std::any{}));
+void helperTestSandboxState(ccxt::any exchange,
+                            ccxt::any expectEnabled = true) {
+  assertTrue(!isEqual(exchange.urls, ccxt::any{}));
   assertTrue(inOp(exchange.urls, std::string("test")));
-  std::any isSandboxModeEnabled =
+  ccxt::any isSandboxModeEnabled =
       exchangeProp(exchange, std::string("isSandboxModeEnabled"));
   if (isTrue(expectEnabled)) {
     assertTrue(isEqual(isSandboxModeEnabled, true));
@@ -67,7 +68,7 @@ void helperTestSandboxState(std::any exchange, std::any expectEnabled = true) {
 }
 void helperTestInitSandbox() {
   // todo: sandbox for real exchanges
-  std::any opts = ccxt::dict{
+  ccxt::any opts = ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
       {std::string("options"),
        ccxt::dict{
@@ -104,7 +105,7 @@ void helperTestInitSandbox() {
 }
 void helperTestInitMarket() {
   // ############# markets ############# //
-  std::any sampleMarket = ccxt::dict{
+  ccxt::any sampleMarket = ccxt::dict{
       {std::string("id"), std::string("BtcUsd")},
       {std::string("symbol"), std::string("BTC/USD")},
       {std::string("base"), std::string("BTC")},
@@ -123,32 +124,32 @@ void helperTestInitMarket() {
   });
   assertTrue(
       isTrue((!isEqual(::getValue(exchange2, std::string("markets")),
-                       std::any{}))) &&
+                       ccxt::any{}))) &&
       isTrue((!isEqual(::getValue(::getValue(exchange2, std::string("markets")),
                                   std::string("BTC/USD")),
-                       std::any{}))));
+                       ccxt::any{}))));
 }
 void helperTestProperties() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{});
   //
   // userAgents
   //
-  std::any keys = ccxt::list{std::string("chrome"), std::string("chrome39"),
-                             std::string("chrome100")};
+  ccxt::any keys = ccxt::list{std::string("chrome"), std::string("chrome39"),
+                              std::string("chrome100")};
   assertTrue(
-      !isEqual(exchangeProp(exchange, std::string("userAgents")), std::any{}));
-  for (std::any i = 0; isLessThan(i, getArrayLength(keys));
+      !isEqual(exchangeProp(exchange, std::string("userAgents")), ccxt::any{}));
+  for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));
        postFixIncrement(i)) {
-    std::any key = ::getValue(keys, i);
-    std::any userAgent =
+    ccxt::any key = ::getValue(keys, i);
+    ccxt::any userAgent =
         ::getValue(exchangeProp(exchange, std::string("userAgents")), key);
-    assertTrue(!isEqual(userAgent, std::any{}));
+    assertTrue(!isEqual(userAgent, ccxt::any{}));
   }
   //
   // options
   //
   assertTrue(
-      !isEqual(::getValue(exchange, std::string("options")), std::any{}));
+      !isEqual(::getValue(exchange, std::string("options")), ccxt::any{}));
   // const defaultNetworkCodeReplacements = [
   //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
   //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
@@ -161,27 +162,28 @@ void helperTestProperties() {
   //
   // credentials
   //
-  assertTrue(isEqual(exchangeProp(exchange, std::string("apiKey")), std::any{}),
-             std::string("apiKey should be empty string"));
-  assertTrue(isEqual(exchange.secret, std::any{}),
+  assertTrue(
+      isEqual(exchangeProp(exchange, std::string("apiKey")), ccxt::any{}),
+      std::string("apiKey should be empty string"));
+  assertTrue(isEqual(exchange.secret, ccxt::any{}),
              std::string("secret should be empty string"));
-  assertTrue(isEqual(exchange.uid, std::any{}),
+  assertTrue(isEqual(exchange.uid, ccxt::any{}),
              std::string("uid should be empty string"));
-  assertTrue(isEqual(exchange.login, std::any{}),
+  assertTrue(isEqual(exchange.login, ccxt::any{}),
              std::string("login should be empty string"));
-  assertTrue(isEqual(exchange.password, std::any{}),
+  assertTrue(isEqual(exchange.password, ccxt::any{}),
              std::string("password should be empty string"));
-  assertTrue(isEqual(exchange.twofa, std::any{}),
+  assertTrue(isEqual(exchange.twofa, ccxt::any{}),
              std::string("twofa should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("privateKey")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("privateKey")), ccxt::any{}),
       std::string("privateKey should be empty string"));
-  assertTrue(
-      isEqual(exchangeProp(exchange, std::string("walletAddress")), std::any{}),
-      std::string("walletAddress should be empty string"));
-  assertTrue(isEqual(exchange.token, std::any{}),
+  assertTrue(isEqual(exchangeProp(exchange, std::string("walletAddress")),
+                     ccxt::any{}),
+             std::string("walletAddress should be empty string"));
+  assertTrue(isEqual(exchange.token, ccxt::any{}),
              std::string("token should be empty string"));
-  std::any requiredCredentials = ccxt::dict{
+  ccxt::any requiredCredentials = ccxt::dict{
       {std::string("apiKey"), true},         {std::string("secret"), true},
       {std::string("uid"), false},           {std::string("accountId"), false},
       {std::string("login"), false},         {std::string("password"), false},
@@ -194,62 +196,62 @@ void helperTestProperties() {
   //
   // proxies
   //
-  assertTrue(isEqual(exchange.proxy, std::any{}),
+  assertTrue(isEqual(exchange.proxy, ccxt::any{}),
              std::string("proxy should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("proxyUrl")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("proxyUrl")), ccxt::any{}),
       std::string("proxyUrl should be undefined"));
-  assertTrue(isEqual(exchange.proxy_url, std::any{}),
+  assertTrue(isEqual(exchange.proxy_url, ccxt::any{}),
              std::string("proxy_url should be undefined"));
   assertTrue(isEqual(exchangeProp(exchange, std::string("proxyUrlCallback")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("proxyUrlCallback should be undefined"));
-  assertTrue(isEqual(exchange.proxy_url_callback, std::any{}),
+  assertTrue(isEqual(exchange.proxy_url_callback, ccxt::any{}),
              std::string("proxy_url_callback should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("httpProxy")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("httpProxy")), ccxt::any{}),
       std::string("httpProxy should be undefined"));
-  assertTrue(isEqual(exchange.http_proxy, std::any{}),
+  assertTrue(isEqual(exchange.http_proxy, ccxt::any{}),
              std::string("http_proxy should be undefined"));
   assertTrue(isEqual(exchangeProp(exchange, std::string("httpProxyCallback")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("httpProxyCallback should be undefined"));
-  assertTrue(isEqual(exchange.http_proxy_callback, std::any{}),
+  assertTrue(isEqual(exchange.http_proxy_callback, ccxt::any{}),
              std::string("http_proxy_callback should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("httpsProxy")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("httpsProxy")), ccxt::any{}),
       std::string("httpsProxy should be undefined"));
-  assertTrue(isEqual(exchange.https_proxy, std::any{}),
+  assertTrue(isEqual(exchange.https_proxy, ccxt::any{}),
              std::string("https_proxy should be undefined"));
   assertTrue(isEqual(exchangeProp(exchange, std::string("httpsProxyCallback")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("httpsProxyCallback should be undefined"));
-  assertTrue(isEqual(exchange.https_proxy_callback, std::any{}),
+  assertTrue(isEqual(exchange.https_proxy_callback, ccxt::any{}),
              std::string("https_proxy_callback should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("socksProxy")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("socksProxy")), ccxt::any{}),
       std::string("socksProxy should be undefined"));
-  assertTrue(isEqual(exchange.socks_proxy, std::any{}),
+  assertTrue(isEqual(exchange.socks_proxy, ccxt::any{}),
              std::string("socks_proxy should be undefined"));
   assertTrue(isEqual(exchangeProp(exchange, std::string("socksProxyCallback")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("socksProxyCallback should be undefined"));
-  assertTrue(isEqual(exchange.socks_proxy_callback, std::any{}),
+  assertTrue(isEqual(exchange.socks_proxy_callback, ccxt::any{}),
              std::string("socks_proxy_callback should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("wsProxy")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("wsProxy")), ccxt::any{}),
       std::string("wsProxy should be undefined"));
-  assertTrue(isEqual(exchange.ws_proxy, std::any{}),
+  assertTrue(isEqual(exchange.ws_proxy, ccxt::any{}),
              std::string("ws_proxy should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("wssProxy")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("wssProxy")), ccxt::any{}),
       std::string("wssProxy should be undefined"));
-  assertTrue(isEqual(exchange.wss_proxy, std::any{}),
+  assertTrue(isEqual(exchange.wss_proxy, ccxt::any{}),
              std::string("wss_proxy should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("wsSocksProxy")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("wsSocksProxy")), ccxt::any{}),
       std::string("wsSocksProxy should be undefined"));
-  assertTrue(isEqual(exchange.ws_socks_proxy, std::any{}),
+  assertTrue(isEqual(exchange.ws_socks_proxy, ccxt::any{}),
              std::string("ws_socks_proxy should be undefined"));
   //
   // request-response
@@ -261,16 +263,16 @@ void helperTestProperties() {
   // assert (exchange.enableLastJsonResponse === false);
   // assert (exchange.enableLastHttpResponse === true);
   // assert (exchange.enableLastResponseHeaders === true);
-  assertTrue(isEqual(exchange.last_http_response, std::any{}),
+  assertTrue(isEqual(exchange.last_http_response, ccxt::any{}),
              std::string("last_http_response should be undefined"));
   // assert (exchange.last_json_response === undefined);
-  assertTrue(isEqual(exchange.last_response_headers, std::any{}),
+  assertTrue(isEqual(exchange.last_response_headers, ccxt::any{}),
              std::string("last_response_headers should be undefined"));
-  assertTrue(isEqual(exchange.last_request_headers, std::any{}),
+  assertTrue(isEqual(exchange.last_request_headers, ccxt::any{}),
              std::string("last_request_headers should be undefined"));
-  assertTrue(isEqual(exchange.last_request_body, std::any{}),
+  assertTrue(isEqual(exchange.last_request_body, ccxt::any{}),
              std::string("last_request_body should be undefined"));
-  assertTrue(isEqual(exchange.last_request_url, std::any{}),
+  assertTrue(isEqual(exchange.last_request_url, ccxt::any{}),
              std::string("last_request_url should be undefined"));
   // assert (exchange.last_request_path === undefined);
   assertTrue(
@@ -284,11 +286,11 @@ void helperTestProperties() {
   assertTrue(isEqual(::getValue(exchange, std::string("id")),
                      add(std::string("Exch"), std::string("ange"))),
              std::string("id should be \"Exchange\""));
-  assertTrue(!isEqual(exchange.has, std::any{}),
+  assertTrue(!isEqual(exchange.has, ccxt::any{}),
              std::string("has should not be undefined"));
-  assertTrue(isEqual(exchange.api, std::any{}),
+  assertTrue(isEqual(exchange.api, ccxt::any{}),
              std::string("api should be undefined"));
-  assertTrue(isEqual(exchange.features, std::any{}),
+  assertTrue(isEqual(exchange.features, ccxt::any{}),
              std::string("features should be undefined"));
   assertTrue(
       isGreaterThanOrEqual(
@@ -312,7 +314,7 @@ void helperTestProperties() {
   assertTrue(isEqual(exchange.pro, false), std::string("pro should be false"));
   assertTrue(isEqual(exchange.alias, false),
              std::string("alias should be false"));
-  std::any httpExceptionKeys =
+  ccxt::any httpExceptionKeys =
       ccxt::list{std::string("400"), std::string("401"), std::string("403"),
                  std::string("404"), std::string("405"), std::string("407"),
                  std::string("408"), std::string("409"), std::string("410"),
@@ -332,26 +334,26 @@ void helperTestProperties() {
              add(add(std::string("httpExceptions should have "),
                      toString((getArrayLength(httpExceptionKeys)))),
                  std::string(" keys")));
-  std::any limits = ccxt::dict{
+  ccxt::any limits = ccxt::dict{
       {std::string("leverage"),
        ccxt::dict{
-           {std::string("min"), std::any{}},
-           {std::string("max"), std::any{}},
+           {std::string("min"), ccxt::any{}},
+           {std::string("max"), ccxt::any{}},
        }},
       {std::string("amount"),
        ccxt::dict{
-           {std::string("min"), std::any{}},
-           {std::string("max"), std::any{}},
+           {std::string("min"), ccxt::any{}},
+           {std::string("max"), ccxt::any{}},
        }},
       {std::string("price"),
        ccxt::dict{
-           {std::string("min"), std::any{}},
-           {std::string("max"), std::any{}},
+           {std::string("min"), ccxt::any{}},
+           {std::string("max"), ccxt::any{}},
        }},
       {std::string("cost"),
        ccxt::dict{
-           {std::string("min"), std::any{}},
-           {std::string("max"), std::any{}},
+           {std::string("min"), ccxt::any{}},
+           {std::string("max"), ccxt::any{}},
        }},
   };
   assertDeepEqual(exchange, ccxt::dict{}, std::string("limits"),
@@ -359,32 +361,32 @@ void helperTestProperties() {
   assertTrue(
       isEqual(exchangeProp(exchange, std::string("rollingWindowSize")), 60000),
       std::string("rollingWindowSize should be 60000"));
-  assertTrue(isEqual(exchange.countries, std::any{}),
+  assertTrue(isEqual(exchange.countries, ccxt::any{}),
              std::string("countries should be undefined"));
-  std::any urls = ccxt::dict{
-      {std::string("logo"), std::any{}},
-      {std::string("api"), std::any{}},
-      {std::string("test"), std::any{}},
-      {std::string("www"), std::any{}},
-      {std::string("doc"), std::any{}},
-      {std::string("api_management"), std::any{}},
-      {std::string("fees"), std::any{}},
-      {std::string("referral"), std::any{}},
+  ccxt::any urls = ccxt::dict{
+      {std::string("logo"), ccxt::any{}},
+      {std::string("api"), ccxt::any{}},
+      {std::string("test"), ccxt::any{}},
+      {std::string("www"), ccxt::any{}},
+      {std::string("doc"), ccxt::any{}},
+      {std::string("api_management"), ccxt::any{}},
+      {std::string("fees"), ccxt::any{}},
+      {std::string("referral"), ccxt::any{}},
   };
   assertDeepEqual(exchange, ccxt::dict{}, std::string("urls"), exchange.urls,
                   urls);
-  assertTrue(isEqual(exchange.precision, std::any{}),
+  assertTrue(isEqual(exchange.precision, ccxt::any{}),
              std::string("precision should be undefined"));
-  assertTrue(isEqual(exchange.hostname, std::any{}),
+  assertTrue(isEqual(exchange.hostname, ccxt::any{}),
              std::string("hostname should be undefined"));
   assertTrue(
       isTrue(isEqual(exchangeProp(exchange, std::string("precisionMode")),
-                     std::any{})) ||
+                     ccxt::any{})) ||
           isTrue(
               isEqual(exchangeProp(exchange, std::string("precisionMode")), 4)),
       std::string("precisionMode should be undefined or 4"));
   assertTrue(isTrue(isEqual(exchangeProp(exchange, std::string("paddingMode")),
-                            std::any{})) ||
+                            ccxt::any{})) ||
                  isTrue(isEqual(
                      exchangeProp(exchange, std::string("paddingMode")), 5)),
              std::string("paddingMode should be undefined or 5"));
@@ -400,30 +402,30 @@ void helperTestProperties() {
   // false);
   assertTrue(isEqual(exchangeProp(exchange, std::string("reduceFees")), true),
              std::string("reduceFees should be true"));
-  std::any fees = ccxt::dict{
+  ccxt::any fees = ccxt::dict{
       {std::string("trading"),
        ccxt::dict{
-           {std::string("tierBased"), std::any{}},
-           {std::string("percentage"), std::any{}},
-           {std::string("taker"), std::any{}},
-           {std::string("maker"), std::any{}},
+           {std::string("tierBased"), ccxt::any{}},
+           {std::string("percentage"), ccxt::any{}},
+           {std::string("taker"), ccxt::any{}},
+           {std::string("maker"), ccxt::any{}},
        }},
       {std::string("funding"),
        ccxt::dict{
-           {std::string("tierBased"), std::any{}},
-           {std::string("percentage"), std::any{}},
+           {std::string("tierBased"), ccxt::any{}},
+           {std::string("percentage"), ccxt::any{}},
            {std::string("withdraw"), ccxt::dict{}},
            {std::string("deposit"), ccxt::dict{}},
        }},
   };
   assertDeepEqual(exchange, ccxt::dict{}, std::string("fees"), exchange.fees,
                   fees);
-  std::any status = ccxt::dict{
+  ccxt::any status = ccxt::dict{
       {std::string("status"), std::string("ok")},
-      {std::string("updated"), std::any{}},
-      {std::string("eta"), std::any{}},
-      {std::string("url"), std::any{}},
-      {std::string("info"), std::any{}},
+      {std::string("updated"), ccxt::any{}},
+      {std::string("eta"), ccxt::any{}},
+      {std::string("url"), ccxt::any{}},
+      {std::string("info"), ccxt::any{}},
   };
   assertDeepEqual(exchange, ccxt::dict{}, std::string("status"),
                   exchange.status, status);
@@ -437,16 +439,16 @@ void helperTestProperties() {
       !isEqual(exchangeProp(exchange, std::string("reloadingMarkets")), true),
       std::string("reloadingMarkets should be false"));
   assertTrue(isEqual(exchangeProp(exchange, std::string("marketsLoading")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("marketsLoading should be undefined"));
   // undefined or false
-  assertTrue(isEqual(exchange.version, std::any{}),
+  assertTrue(isEqual(exchange.version, ccxt::any{}),
              std::string("version should be undefined"));
-  assertTrue(isEqual(exchange.name, std::any{}),
+  assertTrue(isEqual(exchange.name, ccxt::any{}),
              std::string("name should be undefined"));
-  assertTrue(isEqual(exchange.exceptions, std::any{}),
+  assertTrue(isEqual(exchange.exceptions, ccxt::any{}),
              std::string("exceptions should be undefined"));
-  assertTrue(isEqual(exchange.timeframes, std::any{}),
+  assertTrue(isEqual(exchange.timeframes, ccxt::any{}),
              std::string("timeframes should be undefined"));
   // assertDeepEqual (exchange, {}, 'clients', exchangeProp (exchange,
   // 'clients'), {}); // todo WS assertDeepEqual (exchange, {}, 'streaming',
@@ -463,11 +465,11 @@ void helperTestProperties() {
                   exchange.orderbooks, exchange.createSafeDictionary(true));
   assertDeepEqual(exchange, ccxt::dict{}, std::string("tickers"),
                   exchange.tickers, exchange.createSafeDictionary(true));
-  assertTrue(isEqual(exchange.liquidations, std::any{}),
+  assertTrue(isEqual(exchange.liquidations, ccxt::any{}),
              std::string("liquidations should be undefined"));
   assertTrue(isEqual(exchangeProp(exchange, std::string("myLiquidations")),
-                     std::any{}));
-  assertTrue(isEqual(exchange.orders, std::any{}),
+                     ccxt::any{}));
+  assertTrue(isEqual(exchange.orders, ccxt::any{}),
              std::string("orders should be undefined"));
   assertDeepEqual(exchange, ccxt::dict{}, std::string("trades"),
                   exchange.trades, exchange.createSafeDictionary(true));
@@ -476,40 +478,40 @@ void helperTestProperties() {
   assertDeepEqual(exchange, ccxt::dict{}, std::string("ohlcvs"),
                   exchange.ohlcvs, exchange.createSafeDictionary(true));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("myTrades")), std::any{}));
-  assertTrue(isEqual(exchange.positions, std::any{}),
+      isEqual(exchangeProp(exchange, std::string("myTrades")), ccxt::any{}));
+  assertTrue(isEqual(exchange.positions, ccxt::any{}),
              std::string("positions should be undefined"));
   //
   // common props
   //
-  assertTrue(isEqual(::getValue(exchange, std::string("markets")), std::any{}),
+  assertTrue(isEqual(::getValue(exchange, std::string("markets")), ccxt::any{}),
              std::string("markets should be undefined"));
   assertTrue(
       isEqual(getArrayLength(::getValue(exchange, std::string("symbols"))), 0),
       std::string("symbols should be an empty array"));
   assertTrue(
-      isEqual(::getValue(exchange, std::string("markets_by_id")), std::any{}),
+      isEqual(::getValue(exchange, std::string("markets_by_id")), ccxt::any{}),
       std::string("markets_by_id should be undefined"));
-  assertTrue(isEqual(::getValue(exchange, std::string("ids")), std::any{}),
+  assertTrue(isEqual(::getValue(exchange, std::string("ids")), ccxt::any{}),
              std::string("ids should be undefined"));
   assertDeepEqual(exchange, ccxt::dict{}, std::string("currencies"),
                   ::getValue(exchange, std::string("currencies")),
                   ccxt::dict{});
   assertTrue(isEqual(exchangeProp(exchange, std::string("baseCurrencies")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("baseCurrencies should be undefined"));
   assertTrue(isEqual(exchangeProp(exchange, std::string("quoteCurrencies")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("quoteCurrencies should be undefined"));
   assertTrue(isEqual(::getValue(exchange, std::string("currencies_by_id")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("currencies_by_id should be undefined"));
-  assertTrue(isEqual(::getValue(exchange, std::string("codes")), std::any{}),
+  assertTrue(isEqual(::getValue(exchange, std::string("codes")), ccxt::any{}),
              std::string("codes should be undefined"));
-  assertTrue(isEqual(exchange.accounts, std::any{}),
+  assertTrue(isEqual(exchange.accounts, ccxt::any{}),
              std::string("accounts should be undefined"));
   assertTrue(
-      isEqual(exchangeProp(exchange, std::string("accountsById")), std::any{}),
+      isEqual(exchangeProp(exchange, std::string("accountsById")), ccxt::any{}),
       std::string("accountsById should be undefined"));
   // @SKIP_END_GO
   assertDeepEqual(exchange, ccxt::dict{}, std::string("commonCurrencies"),
@@ -519,7 +521,7 @@ void helperTestProperties() {
                       {std::string("BCHSV"), std::string("BSV")},
                   });
   // fetch history
-  std::any fetchHistoryCache = exchange.getFetchCache();
+  ccxt::any fetchHistoryCache = exchange.getFetchCache();
   assertTrue(isEqual(getArrayLength(fetchHistoryCache), 0),
              std::string("fetchHistoryCache should be an empty array"));
 }

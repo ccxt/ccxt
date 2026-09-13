@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_grvt(std::any config) {
+std::shared_ptr<ExchangeBase> create_grvt(ccxt::any config) {
   return newExchange<grvt>(config);
 }
 

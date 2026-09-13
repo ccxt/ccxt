@@ -10,7 +10,7 @@ void testWsOrderBook();
 
 // --------------------------------------------------------------------------------------------------------------------
 void testWsOrderBook() {
-  std::any orderBookInput = ccxt::dict{
+  ccxt::any orderBookInput = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10}, ccxt::list{9.1, 11}, ccxt::list{8.2, 12},
                   ccxt::list{7.3, 13}, ccxt::list{6.4, 14}, ccxt::list{4.5, 13},
@@ -21,9 +21,9 @@ void testWsOrderBook() {
                   ccxt::list{12.2, 14}, ccxt::list{11.1, 13}}},
       {std::string("timestamp"), 1574827239000},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any orderBookTarget = ccxt::dict{
+  ccxt::any orderBookTarget = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10}, ccxt::list{9.1, 11}, ccxt::list{8.2, 12},
                   ccxt::list{7.3, 13}, ccxt::list{6.4, 14}}},
@@ -34,9 +34,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any storeBid = ccxt::dict{
+  ccxt::any storeBid = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10}, ccxt::list{9.1, 11}, ccxt::list{8.2, 12},
                   ccxt::list{7.3, 13}, ccxt::list{6.4, 14}, ccxt::list{3, 4}}},
@@ -47,9 +47,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any limitedOrderBookTarget = ccxt::dict{
+  ccxt::any limitedOrderBookTarget = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10}, ccxt::list{9.1, 11}, ccxt::list{8.2, 12},
                   ccxt::list{7.3, 13}, ccxt::list{6.4, 14}}},
@@ -60,9 +60,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any limitedDeletedOrderBookTarget = ccxt::dict{
+  ccxt::any limitedDeletedOrderBookTarget = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10}, ccxt::list{9.1, 11}, ccxt::list{8.2, 12},
                   ccxt::list{7.3, 13}, ccxt::list{6.4, 14}}},
@@ -72,9 +72,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any indexedOrderBookInput = ccxt::dict{
+  ccxt::any indexedOrderBookInput = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10, std::string("1234")},
                   ccxt::list{9.1, 11, std::string("1235")},
@@ -91,9 +91,9 @@ void testWsOrderBook() {
                   ccxt::list{11.1, 13, std::string("1244")}}},
       {std::string("timestamp"), 1574827239000},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any indexedOrderBookTarget = ccxt::dict{
+  ccxt::any indexedOrderBookTarget = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10, std::string("1234")},
                   ccxt::list{9.1, 11, std::string("1235")},
@@ -110,9 +110,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any limitedIndexedOrderBookTarget = ccxt::dict{
+  ccxt::any limitedIndexedOrderBookTarget = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10, std::string("1234")},
                   ccxt::list{9.1, 11, std::string("1235")},
@@ -128,7 +128,7 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
   // const incrementalIndexedOrderBookTarget = {
   //     'bids': [ [ 10.0, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236'
@@ -172,7 +172,7 @@ void testWsOrderBook() {
   //     1574827239000, 'datetime': '2019-11-27T04:00:39.000Z', 'nonce': 69,
   //     'symbol': undefined,
   // };
-  std::any overwrite1234 = ccxt::dict{
+  ccxt::any overwrite1234 = ccxt::dict{
       {std::string("bids"), ccxt::list{ccxt::list{9.1, 11, std::string("1235")},
                                        ccxt::list{9, 3, std::string("1231")},
                                        ccxt::list{9, 1, std::string("1232")},
@@ -190,9 +190,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any overwrite1244 = ccxt::dict{
+  ccxt::any overwrite1244 = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10, std::string("1234")},
                   ccxt::list{9.1, 11, std::string("1235")},
@@ -209,9 +209,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any countedOrderBookInput = ccxt::dict{
+  ccxt::any countedOrderBookInput = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10, 1}, ccxt::list{9.1, 11, 1},
                   ccxt::list{8.2, 12, 1}, ccxt::list{7.3, 13, 1},
@@ -225,9 +225,9 @@ void testWsOrderBook() {
                   ccxt::list{11.1, 13, 12}}},
       {std::string("timestamp"), 1574827239000},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any countedOrderBookTarget = ccxt::dict{
+  ccxt::any countedOrderBookTarget = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10, 1}, ccxt::list{9.1, 11, 1},
                   ccxt::list{8.2, 12, 1}, ccxt::list{6.4, 14, 5}}},
@@ -238,9 +238,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any storedCountedOrderbookTarget = ccxt::dict{
+  ccxt::any storedCountedOrderbookTarget = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10, 1}, ccxt::list{9.1, 11, 1},
                   ccxt::list{8.2, 12, 1}, ccxt::list{6.4, 14, 5},
@@ -252,9 +252,9 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any limitedCountedOrderBookTarget = ccxt::dict{
+  ccxt::any limitedCountedOrderBookTarget = ccxt::dict{
       {std::string("bids"),
        ccxt::list{ccxt::list{10, 10, 1}, ccxt::list{9.1, 11, 1},
                   ccxt::list{8.2, 12, 1}, ccxt::list{6.4, 14, 5}}},
@@ -265,7 +265,7 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
   // const incrementalOrderBookInput = {
   //     'bids': [ [ 10.0, 1 ], [ 10.0, 2 ], [ 9.1, 0 ], [ 8.2, 1 ], [ 7.3, 1 ],
@@ -313,7 +313,7 @@ void testWsOrderBook() {
   assertTrue(equals(limited, limitedOrderBookTarget));
   ::wsLimit(orderBook);
   assertTrue(equals(orderBook, orderBookTarget));
-  std::any bids = ::getValue(orderBook, std::string("bids"));
+  ccxt::any bids = ::getValue(orderBook, std::string("bids"));
   ::wsStore(bids, 1000, 0);
   ::wsLimit(orderBook);
   assertTrue(equals(orderBook, orderBookTarget));
@@ -323,7 +323,7 @@ void testWsOrderBook() {
   ::wsStore(bids, 3, 0);
   ::wsLimit(orderBook);
   assertTrue(equals(orderBook, orderBookTarget));
-  std::any asks = ::getValue(limited, std::string("asks"));
+  ccxt::any asks = ::getValue(limited, std::string("asks"));
   ::wsStore(asks, 15.5, 0);
   ::wsLimit(limited);
   assertTrue(equals(limited, limitedDeletedOrderBookTarget));
@@ -338,7 +338,7 @@ void testWsOrderBook() {
   assertTrue(equals(limitedIndexedOrderBook, limitedIndexedOrderBookTarget));
   ::wsLimit(indexedOrderBook);
   assertTrue(equals(indexedOrderBook, indexedOrderBookTarget));
-  std::any indexedBids = ::getValue(indexedOrderBook, std::string("bids"));
+  ccxt::any indexedBids = ::getValue(indexedOrderBook, std::string("bids"));
   ::wsStoreArray(indexedBids, ccxt::list{1000, 0, std::string("12345")});
   assertTrue(equals(indexedOrderBook, indexedOrderBookTarget));
   ::wsStoreArray(indexedBids, ccxt::list{10, 0, std::string("1234")});
@@ -351,7 +351,7 @@ void testWsOrderBook() {
   ::wsLimit(indexedOrderBook);
   assertTrue(equals(indexedOrderBook, overwrite1234));
   indexedOrderBook = ccxt::ws::indexedOrderBook(indexedOrderBookInput);
-  std::any indexedAsks = ::getValue(indexedOrderBook, std::string("asks"));
+  ccxt::any indexedAsks = ::getValue(indexedOrderBook, std::string("asks"));
   ::wsStoreArray(indexedAsks, ccxt::list{13.5, 13, std::string("1244")});
   ::wsLimit(indexedOrderBook);
   assertTrue(equals(indexedOrderBook, overwrite1244));
@@ -376,11 +376,11 @@ void testWsOrderBook() {
   assertTrue(
       isEqual(getArrayLength(::getValue(noopDeltas, std::string("asks"))), 1));
   assertTrue(!isEqual(
-      ::getValue(::getValue(noopDeltas, std::string("bids")), 0), std::any{}));
+      ::getValue(::getValue(noopDeltas, std::string("bids")), 0), ccxt::any{}));
   assertTrue(!isEqual(
-      ::getValue(::getValue(noopDeltas, std::string("bids")), 1), std::any{}));
+      ::getValue(::getValue(noopDeltas, std::string("bids")), 1), ccxt::any{}));
   assertTrue(!isEqual(
-      ::getValue(::getValue(noopDeltas, std::string("asks")), 0), std::any{}));
+      ::getValue(::getValue(noopDeltas, std::string("asks")), 0), ccxt::any{}));
   ::wsLimit(noopDeltas);
   assertTrue(
       isEqual(getArrayLength(::getValue(noopDeltas, std::string("bids"))), 2));
@@ -397,7 +397,7 @@ void testWsOrderBook() {
   assertTrue(equals(limitedCountedOrderBook, limitedCountedOrderBookTarget));
   ::wsLimit(countedOrderBook);
   assertTrue(equals(countedOrderBook, countedOrderBookTarget));
-  std::any countedBids = ::getValue(countedOrderBook, std::string("bids"));
+  ccxt::any countedBids = ::getValue(countedOrderBook, std::string("bids"));
   ::wsStoreArray(countedBids, ccxt::list{5, 0, 6});
   ::wsLimit(countedOrderBook);
   assertTrue(equals(countedOrderBook, countedOrderBookTarget));
@@ -475,8 +475,8 @@ void testWsOrderBook() {
   ccxt::ws::WsOrderBook desyncBook = ccxt::ws::wsOrderBook(ccxt::dict{}, 3);
   ::resetOrderBook(desyncBook, orderBookInput);
   ::wsLimit(desyncBook);
-  std::any desyncBids = ::getValue(desyncBook, std::string("bids"));
-  std::any desyncAsks = ::getValue(desyncBook, std::string("asks"));
+  ccxt::any desyncBids = ::getValue(desyncBook, std::string("bids"));
+  ccxt::any desyncAsks = ::getValue(desyncBook, std::string("asks"));
   // a delta beyond the trimmed tail must reinsert cleanly
   ::wsStoreArray(desyncBids, ccxt::list{6.4, 14});
   // a delta on a surviving level must update that level in place
@@ -484,7 +484,7 @@ void testWsOrderBook() {
   // a delete on a surviving level must remove exactly that level
   ::wsStoreArray(desyncBids, ccxt::list{9.1, 0});
   ::wsLimit(desyncBook);
-  std::any desyncTarget = ccxt::dict{
+  ccxt::any desyncTarget = ccxt::dict{
       {std::string("bids"), ccxt::list{ccxt::list{10, 10}, ccxt::list{8.2, 12},
                                        ccxt::list{6.4, 14}}},
       {std::string("asks"),
@@ -493,22 +493,22 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 69},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
   assertTrue(equals(desyncBook, desyncTarget));
   // every row must be a well formed price and amount pair, the php
   // corruption produced rows holding only an amount
-  std::any desyncSides =
+  ccxt::any desyncSides =
       ccxt::list{::getValue(desyncBook, std::string("bids")),
                  ::getValue(desyncBook, std::string("asks"))};
-  for (std::any i = 0; isLessThan(i, getArrayLength(desyncSides));
+  for (ccxt::any i = 0; isLessThan(i, getArrayLength(desyncSides));
        postFixIncrement(i)) {
-    std::any side = ::getValue(desyncSides, i);
-    for (std::any k = 0; isLessThan(k, getArrayLength(side));
+    ccxt::any side = ::getValue(desyncSides, i);
+    for (ccxt::any k = 0; isLessThan(k, getArrayLength(side));
          postFixIncrement(k)) {
-      std::any row = ::getValue(side, k);
+      ccxt::any row = ::getValue(side, k);
       assertTrue(isGreaterThanOrEqual(getArrayLength(row), 2));
-      assertTrue(!isEqual(::getValue(row, 0), std::any{}));
+      assertTrue(!isEqual(::getValue(row, 0), ccxt::any{}));
     }
   }
   // --------------------------------------------------------------------------------------------------------------------
@@ -516,7 +516,7 @@ void testWsOrderBook() {
   // delta arriving later for a trimmed id previously threw in js and looped
   // in php while python handled it, an update of a trimmed id must reinsert
   // cleanly and a delete of a trimmed id must be a no op
-  std::any trimIndexedInput = ccxt::dict{
+  ccxt::any trimIndexedInput = ccxt::dict{
       {std::string("bids"), ccxt::list{ccxt::list{10, 1, std::string("x")},
                                        ccxt::list{9, 1, std::string("y")},
                                        ccxt::list{8, 1, std::string("z")},
@@ -529,9 +529,9 @@ void testWsOrderBook() {
                                        ccxt::list{15, 1, std::string("e")}}},
       {std::string("timestamp"), 1574827239000},
       {std::string("nonce"), 70},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
-  std::any trimIndexedTarget = ccxt::dict{
+  ccxt::any trimIndexedTarget = ccxt::dict{
       {std::string("bids"), ccxt::list{ccxt::list{10, 1, std::string("x")},
                                        ccxt::list{9, 1, std::string("y")},
                                        ccxt::list{8, 1, std::string("z")}}},
@@ -541,13 +541,13 @@ void testWsOrderBook() {
       {std::string("timestamp"), 1574827239000},
       {std::string("datetime"), std::string("2019-11-27T04:00:39.000Z")},
       {std::string("nonce"), 70},
-      {std::string("symbol"), std::any{}},
+      {std::string("symbol"), ccxt::any{}},
   };
   ccxt::ws::WsOrderBook trimIndexedBook =
       ccxt::ws::indexedOrderBook(trimIndexedInput, 3);
   ::wsLimit(trimIndexedBook);
-  std::any trimAsks = ::getValue(trimIndexedBook, std::string("asks"));
-  std::any trimBids = ::getValue(trimIndexedBook, std::string("bids"));
+  ccxt::any trimAsks = ::getValue(trimIndexedBook, std::string("asks"));
+  ccxt::any trimBids = ::getValue(trimIndexedBook, std::string("bids"));
   // update of a trimmed id reinserts cleanly
   ::wsStoreArray(trimAsks, ccxt::list{15, 2, std::string("e")});
   ::wsStoreArray(trimBids, ccxt::list{7, 2, std::string("w")});

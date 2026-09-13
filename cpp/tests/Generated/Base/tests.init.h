@@ -6,11 +6,11 @@
 #include "../../BaseTest.Bridge.h"
 
 // forward declarations - TS hoists function declarations, C++ does not
-std::shared_future<std::any> baseTestsInit();
+std::shared_future<ccxt::any> baseTestsInit();
 
-std::shared_future<std::any> baseTestsInit() {
+std::shared_future<ccxt::any> baseTestsInit() {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       awaitValue(testLanguageSpecific());
                       testConstants();
                       testAfterConstructor();

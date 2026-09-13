@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_poloniex(std::any config) {
+std::shared_ptr<ExchangeBase> create_poloniex(ccxt::any config) {
   return newExchange<poloniex>(config);
 }
 

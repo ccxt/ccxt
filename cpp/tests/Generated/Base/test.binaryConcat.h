@@ -13,20 +13,20 @@ void testBinaryConcat() {
       {std::string("id"), std::string("sampleexchange")},
   });
   // Test 1: Concat two binaries
-  std::any binary1 = exchange.stringToBinary(std::string("hello"));
-  std::any binary2 = exchange.stringToBinary(std::string(" world"));
-  std::any result1 = exchange.binaryConcat(binary1, binary2);
+  ccxt::any binary1 = exchange.stringToBinary(std::string("hello"));
+  ccxt::any binary2 = exchange.stringToBinary(std::string(" world"));
+  ccxt::any result1 = exchange.binaryConcat(binary1, binary2);
   assertTrue(
       isEqual(exchange.binaryToString(result1), std::string("hello world")));
   // Test 2: Concat three binaries
-  std::any binary3 = exchange.stringToBinary(std::string("foo"));
-  std::any binary4 = exchange.stringToBinary(std::string("bar"));
-  std::any binary5 = exchange.stringToBinary(std::string("baz"));
-  std::any result2 = exchange.binaryConcat(binary3, binary4, binary5);
+  ccxt::any binary3 = exchange.stringToBinary(std::string("foo"));
+  ccxt::any binary4 = exchange.stringToBinary(std::string("bar"));
+  ccxt::any binary5 = exchange.stringToBinary(std::string("baz"));
+  ccxt::any result2 = exchange.binaryConcat(binary3, binary4, binary5);
   assertTrue(
       isEqual(exchange.binaryToString(result2), std::string("foobarbaz")));
   // Test 3: Concat with hex bytes
-  std::any result3 =
+  ccxt::any result3 =
       exchange.binaryConcat(exchange.base16ToBinary(std::string("68656c6c6f")),
                             exchange.stringToBinary(std::string(" world")));
   assertTrue(

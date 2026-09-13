@@ -21,17 +21,17 @@ public:
     struct Impl {
         OrderBookSide bids;
         OrderBookSide asks;
-        std::any timestamp;
-        std::any datetime;
-        std::any nonce;
-        std::any symbol;
-        std::any cache;   // exchanges buffer deltas here before the snapshot arrives
+        ccxt::any timestamp;
+        ccxt::any datetime;
+        ccxt::any nonce;
+        ccxt::any symbol;
+        ccxt::any cache;   // exchanges buffer deltas here before the snapshot arrives
         OrderBookSide::Mode mode = OrderBookSide::Mode::plain;
         double depth = 0;
     };
     std::shared_ptr<Impl> impl;
 
-    explicit WsOrderBook (const std::any& snapshot = std::any {}, const std::any& depth = std::any {},
+    explicit WsOrderBook (const ccxt::any& snapshot = ccxt::any {}, const ccxt::any& depth = ccxt::any {},
                           OrderBookSide::Mode mode = OrderBookSide::Mode::plain)
         : impl (std::make_shared<Impl> ()) {
         Impl& s = *this->impl;
@@ -44,20 +44,20 @@ public:
         s.timestamp = snapValue (snapshot, "timestamp");
         s.nonce = snapValue (snapshot, "nonce");
         s.symbol = snapValue (snapshot, "symbol");
-        s.cache = std::any (list {});
+        s.cache = ccxt::any (list {});
         this->refreshDatetime ();
     }
 
     OrderBookSide& bids () { return this->impl->bids; }
     OrderBookSide& asks () { return this->impl->asks; }
-    std::any timestamp () const { return this->impl->timestamp; }
-    std::any datetime () const { return this->impl->datetime; }
-    std::any nonce () const { return this->impl->nonce; }
-    std::any symbol () const { return this->impl->symbol; }
-    std::any cache () const { return this->impl->cache; }
-    void setSymbol (const std::any& symbol) { this->impl->symbol = symbol; }
-    void setNonce (const std::any& nonce) { this->impl->nonce = nonce; }
-    void setTimestamp (const std::any& timestamp) {
+    ccxt::any timestamp () const { return this->impl->timestamp; }
+    ccxt::any datetime () const { return this->impl->datetime; }
+    ccxt::any nonce () const { return this->impl->nonce; }
+    ccxt::any symbol () const { return this->impl->symbol; }
+    ccxt::any cache () const { return this->impl->cache; }
+    void setSymbol (const ccxt::any& symbol) { this->impl->symbol = symbol; }
+    void setNonce (const ccxt::any& nonce) { this->impl->nonce = nonce; }
+    void setTimestamp (const ccxt::any& timestamp) {
         this->impl->timestamp = timestamp;
         this->refreshDatetime ();
     }
@@ -70,9 +70,9 @@ public:
     }
 
     // nonce-guarded full replacement
-    WsOrderBook& update (const std::any& snapshot) {
+    WsOrderBook& update (const ccxt::any& snapshot) {
         Impl& s = *this->impl;
-        const std::any snapNonce = snapValue (snapshot, "nonce");
+        const ccxt::any snapNonce = snapValue (snapshot, "nonce");
         if (snapNonce.has_value () && s.nonce.has_value ()
             && toDouble (snapNonce) <= toDouble (s.nonce)) {
             return *this;
@@ -80,12 +80,12 @@ public:
         return this->reset (snapshot);
     }
 
-    WsOrderBook& reset (const std::any& snapshot = std::any {}) {
+    WsOrderBook& reset (const ccxt::any& snapshot = ccxt::any {}) {
         Impl& s = *this->impl;
         s.bids = OrderBookSide (true, s.mode, snapValue (snapshot, "bids"),
-                                s.depth > 0 ? std::any (s.depth) : std::any {});
+                                s.depth > 0 ? ccxt::any (s.depth) : ccxt::any {});
         s.asks = OrderBookSide (false, s.mode, snapValue (snapshot, "asks"),
-                                s.depth > 0 ? std::any (s.depth) : std::any {});
+                                s.depth > 0 ? ccxt::any (s.depth) : ccxt::any {});
         s.nonce = snapValue (snapshot, "nonce");
         s.timestamp = snapValue (snapshot, "timestamp");
         s.symbol = snapValue (snapshot, "symbol");
@@ -96,12 +96,12 @@ public:
     // deep snapshot: fresh sides, copied rows — safe to hand to the consumer
     WsOrderBook copy () const {
         const Impl& s = *this->impl;
-        WsOrderBook out (std::any {}, s.depth > 0 ? std::any (s.depth) : std::any {}, s.mode);
+        WsOrderBook out (ccxt::any {}, s.depth > 0 ? ccxt::any (s.depth) : ccxt::any {}, s.mode);
         for (const auto& row : s.bids.rows ().items ()) {
-            out.impl->bids.storeArray (std::any (list (std::any_cast<list> (row).items ())));
+            out.impl->bids.storeArray (ccxt::any (list (ccxt::any_cast<list> (row).items ())));
         }
         for (const auto& row : s.asks.rows ().items ()) {
-            out.impl->asks.storeArray (std::any (list (std::any_cast<list> (row).items ())));
+            out.impl->asks.storeArray (ccxt::any (list (ccxt::any_cast<list> (row).items ())));
         }
         out.impl->nonce = s.nonce;
         out.impl->timestamp = s.timestamp;
@@ -111,24 +111,24 @@ public:
     }
 
     // the unified dict shape (fetchOrderBook parity) — used by the dynamic layer
-    std::any toDict () const {
+    ccxt::any toDict () const {
         const Impl& s = *this->impl;
         dict out;
-        out.set ("bids", std::any (s.bids.rows ()));
-        out.set ("asks", std::any (s.asks.rows ()));
+        out.set ("bids", ccxt::any (s.bids.rows ()));
+        out.set ("asks", ccxt::any (s.asks.rows ()));
         out.set ("timestamp", s.timestamp);
         out.set ("datetime", s.datetime);
         out.set ("nonce", s.nonce);
         out.set ("symbol", s.symbol);
-        return std::any (out);
+        return ccxt::any (out);
     }
 
 private:
-    static std::any snapValue (const std::any& snapshot, const char* key) {
+    static ccxt::any snapValue (const ccxt::any& snapshot, const char* key) {
         if (!isDict (snapshot)) {
-            return std::any {};
+            return ccxt::any {};
         }
-        return std::any_cast<dict> (snapshot).get (std::string (key));
+        return ccxt::any_cast<dict> (snapshot).get (std::string (key));
     }
 
     void refreshDatetime ();
@@ -136,13 +136,13 @@ private:
 
 // factory helpers — the shapes ts/src/base/Exchange.ts's orderBook()/indexedOrderBook()/
 // countedOrderBook() and the transpiled ws base tests construct
-inline WsOrderBook wsOrderBook (const std::any& snapshot = std::any {}, const std::any& depth = std::any {}) {
+inline WsOrderBook wsOrderBook (const ccxt::any& snapshot = ccxt::any {}, const ccxt::any& depth = ccxt::any {}) {
     return WsOrderBook (snapshot, depth, OrderBookSide::Mode::plain);
 }
-inline WsOrderBook indexedOrderBook (const std::any& snapshot = std::any {}, const std::any& depth = std::any {}) {
+inline WsOrderBook indexedOrderBook (const ccxt::any& snapshot = ccxt::any {}, const ccxt::any& depth = ccxt::any {}) {
     return WsOrderBook (snapshot, depth, OrderBookSide::Mode::indexed);
 }
-inline WsOrderBook countedOrderBook (const std::any& snapshot = std::any {}, const std::any& depth = std::any {}) {
+inline WsOrderBook countedOrderBook (const ccxt::any& snapshot = ccxt::any {}, const ccxt::any& depth = ccxt::any {}) {
     return WsOrderBook (snapshot, depth, OrderBookSide::Mode::counted);
 }
 

@@ -12,14 +12,14 @@ void testDeepExtend() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any obj1 = ccxt::dict{
+  ccxt::any obj1 = ccxt::dict{
       {std::string("a"), 1},
       {std::string("b"), ccxt::list{1, 2, 3}},
       {std::string("c"), ccxt::list{ccxt::dict{
                              {std::string("test1"), 1},
                              {std::string("test2"), 1},
                          }}},
-      {std::string("d"), std::any{}},
+      {std::string("d"), ccxt::any{}},
       {std::string("e"), std::string("not_undefined")},
       {std::string("sub"),
        ccxt::dict{
@@ -29,13 +29,13 @@ void testDeepExtend() {
                                   {std::string("test1"), 1},
                                   {std::string("test2"), 2},
                               }}},
-           {std::string("d"), std::any{}},
+           {std::string("d"), ccxt::any{}},
            {std::string("e"), std::string("not_undefined")},
            {std::string("other1"), std::string("x")},
        }},
       {std::string("other1"), std::string("x")},
   };
-  std::any obj2 = ccxt::dict{
+  ccxt::any obj2 = ccxt::dict{
       {std::string("a"), 2},
       {std::string("b"), ccxt::list{3, 4}},
       {std::string("c"), ccxt::list{ccxt::dict{
@@ -43,7 +43,7 @@ void testDeepExtend() {
                              {std::string("test3"), 3},
                          }}},
       {std::string("d"), std::string("not_undefined")},
-      {std::string("e"), std::any{}},
+      {std::string("e"), ccxt::any{}},
       {std::string("sub"),
        ccxt::dict{
            {std::string("a"), 2},
@@ -53,14 +53,14 @@ void testDeepExtend() {
                                   {std::string("test3"), 3},
                               }}},
            {std::string("d"), std::string("not_undefined")},
-           {std::string("e"), std::any{}},
+           {std::string("e"), ccxt::any{}},
            {std::string("other2"), std::string("y")},
        }},
       {std::string("other2"), std::string("y")},
   };
   // deepExtend
-  std::any deepExtended = exchange.deepExtend(obj1, obj2);
-  std::any compareTo = ccxt::dict{
+  ccxt::any deepExtended = exchange.deepExtend(obj1, obj2);
+  ccxt::any compareTo = ccxt::dict{
       {std::string("a"), 2},
       {std::string("b"), ccxt::list{3, 4}},
       {std::string("c"), ccxt::list{ccxt::dict{
@@ -68,7 +68,7 @@ void testDeepExtend() {
                              {std::string("test3"), 3},
                          }}},
       {std::string("d"), std::string("not_undefined")},
-      {std::string("e"), std::any{}},
+      {std::string("e"), ccxt::any{}},
       {std::string("sub"),
        ccxt::dict{
            {std::string("a"), 2},
@@ -78,7 +78,7 @@ void testDeepExtend() {
                                   {std::string("test3"), 3},
                               }}},
            {std::string("d"), std::string("not_undefined")},
-           {std::string("e"), std::any{}},
+           {std::string("e"), ccxt::any{}},
            {std::string("other1"), std::string("x")},
            {std::string("other2"), std::string("y")},
        }},
@@ -88,6 +88,6 @@ void testDeepExtend() {
   // todo: results are different across langs.
   // to avoid delay to this PR, I comment out this now, but will return to this
   // after this PR merged
-  assertDeepEqual(exchange, std::any{}, std::string("testDeepExtend"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testDeepExtend"),
                   deepExtended, compareTo);
 }

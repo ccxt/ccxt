@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_deepcoin(std::any config) {
+std::shared_ptr<ExchangeBase> create_deepcoin(ccxt::any config) {
   return newExchange<deepcoin>(config);
 }
 

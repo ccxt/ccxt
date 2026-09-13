@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_krakenfutures(std::any config) {
+std::shared_ptr<ExchangeBase> create_krakenfutures(ccxt::any config) {
   return newExchange<krakenfutures>(config);
 }
 

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_binanceusdm(std::any config) {
+std::shared_ptr<ExchangeBase> create_binanceusdm(ccxt::any config) {
   return newExchange<binanceusdm>(config);
 }
 

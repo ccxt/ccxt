@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_coinbase(std::any config) {
+std::shared_ptr<ExchangeBase> create_coinbase(ccxt::any config) {
   return newExchange<ccxt::pro::coinbase>(config);
 }
 

@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_whitebit(std::any config) {
+std::shared_ptr<ExchangeBase> create_whitebit(ccxt::any config) {
   return newExchange<ccxt::pro::whitebit>(config);
 }
 
