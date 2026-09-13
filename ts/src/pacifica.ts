@@ -3336,7 +3336,8 @@ export default class pacifica extends Exchange {
         if (subAccountPrivateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        const timestamp = this.milliseconds ();
+        let timestamp: Int = undefined;
+        [ timestamp, params ] = this.handleParamInteger (params, 'timestamp', this.milliseconds ());
         let expiryWindow: Int = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader = {
