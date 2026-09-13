@@ -6750,7 +6750,7 @@ export default class bingx extends Exchange {
         params = this.omit (params, [ 'cancelClientOrderId', 'cancelClientOrderID' ]);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         if (cancelClientOrderId !== undefined) {
-            const cancelClientOrderIdRequest = market['spot'] ? 'cancelClientOrderID' : 'cancelClientOrderId';
+            const cancelClientOrderIdRequest = (market['spot'] === true) ? 'cancelClientOrderID' : 'cancelClientOrderId';
             request[cancelClientOrderIdRequest] = cancelClientOrderId;
         } else {
             request['cancelOrderId'] = id;
