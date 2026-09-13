@@ -1957,10 +1957,8 @@ ccxt::any Exchange::setMarkets(ccxt::any markets, ccxt::any currencies) {
   }
   this->markets =
       this->mapToSafeMap(this->indexBy(values, std::string("symbol")));
-  ccxt::any marketsSortedBySymbol = this->keysort(this->markets);
-  ccxt::any marketsSortedById = this->keysort(this->markets_by_id);
-  this->symbols = getObjectKeys(marketsSortedBySymbol);
-  this->ids = getObjectKeys(marketsSortedById);
+  this->symbols = ::sortedObjectKeys(this->markets);
+  this->ids = ::sortedObjectKeys(this->markets_by_id);
   ccxt::any numCurrencies = 0;
   if (isTrue(!isEqual(currencies, ccxt::any{}))) {
     ccxt::any keys = getObjectKeys(currencies);

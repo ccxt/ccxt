@@ -822,14 +822,14 @@ function createImplicitMethodsCpp(){
         const exchange = exchanges[index];
         const methodNames = storedCamelCaseMethods[exchange];
         const methods = methodNames.map(method => {
-            // Every endpoint returns std::any: the C++ value model is dynamic, and the
+            // Every endpoint returns ccxt::any: the C++ value model is dynamic, and the
             // declared JSON shape the other ports narrow to (Dictionary/List) has no
             // separate C++ type to narrow to -- dict and list already live inside
-            // std::any. The prose shape stays in the comment so the information is not
+            // ccxt::any. The prose shape stays in the comment so the information is not
             // lost.
             return [
                 `${IDEN}// Calls the ${method} endpoint. Returns ${proseReturnShape (exchange, method)}.`,
-                `${IDEN}virtual std::shared_future<std::any> ${method} (std::any parameters = ccxt::dict {}) {`,
+                `${IDEN}virtual std::shared_future<ccxt::any> ${method} (ccxt::any parameters = ccxt::dict {}) {`,
                 `${IDEN}${IDEN}return this->callEndpoint (std::string ("${method}"), parameters);`,
                 `${IDEN}}`,
                 ``,
@@ -1141,7 +1141,7 @@ function createCppHeader(exchange: Exchange, parent: string){
         `class ${exchange.id}Api : public ${cppParent} {`,
         'public:',
         `    ${exchange.id}Api () = default;`,
-        `    explicit ${exchange.id}Api (std::any config) : ${cppParent} (config) {}`,
+        `    explicit ${exchange.id}Api (ccxt::any config) : ${cppParent} (config) {}`,
         '',
     ].join('\n');
     storedCppMethods[exchange.id] = [ getPreamble(), header ];

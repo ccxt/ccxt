@@ -325,15 +325,43 @@ public:
     using entry = std::pair<std::string, any>;
 
     // dicts with few keys (the vast majority in market data: precision/limits/
-    // filters/fee dicts are 2-10 entries) skip the unordered_map index entirely:
-    // a linear scan over the vector beats hashing a string + map lookup + bounds
-    // check, especially with the port's -O0 TU compiles of the hash machinery.
+    // filters/fee dicts are 2-10 entries) skip the hash index entirely: a linear
+    // scan over the vector beats hashing a string + probe + bounds check.
     static constexpr std::size_t LINEAR_THRESHOLD = 8;
 
+    // sentinel hashes for the flat index: empty slot / tombstone (deleted key).
+    // A real std::hash<string> colliding with these is 2^-64 — the same
+    // sentinel-trust argument CPython's dict makes.
+    static constexpr std::size_t EMPTY_HASH = ~static_cast<std::size_t> (0);
+    static constexpr std::size_t TOMB_HASH = EMPTY_HASH - 1;
+    static constexpr std::size_t NPOS = EMPTY_HASH;
+
+    // insertion-ordered dense entries; the key string lives HERE and nowhere
+    // else (no duplicate keys in the index — CPython's keys/values design)
     std::vector<entry> entries;
-    std::unordered_map<std::string, std::size_t> offsets;
+    // flat open-addressing probe table: (hash, entryIndex), size a power of two,
+    // load factor <= 0.5. Node-free: one contiguous allocation per dict, no
+    // per-key malloc, no pointer chasing.
+    std::vector<std::pair<std::size_t, std::size_t>> index;
 
     bool linearMode () const { return this->entries.size () <= LINEAR_THRESHOLD; }
+
+    // indexed-mode probe: entry index for key, or NPOS. Skips tombstones.
+    std::size_t findIdx (const std::string& key) const {
+        if (this->index.empty ()) return NPOS;
+        const std::size_t h = std::hash<std::string> {} (key);
+        const std::size_t mask = this->index.size () - 1;
+        std::size_t i = h & mask;
+        for (;;) {
+            const std::pair<std::size_t, std::size_t>& slot = this->index[i];
+            if (slot.first == EMPTY_HASH) return NPOS;
+            if (slot.first != TOMB_HASH && slot.first == h
+                && this->entries[slot.second].first == key) {
+                return slot.second;
+            }
+            i = (i + 1) & mask;
+        }
+    }
 
     bool has (const std::string& key) const {
         if (this->linearMode ()) {
@@ -342,7 +370,7 @@ public:
             }
             return false;
         }
-        return this->offsets.find (key) != this->offsets.end ();
+        return this->findIdx (key) != NPOS;
     }
 
     // returns an empty any for a missing key, matching JS `obj[k] === undefined`
@@ -353,12 +381,12 @@ public:
             }
             return any {};
         }
-        const auto it = this->offsets.find (key);
-        return (it == this->offsets.end ()) ? any {} : this->entries[it->second].second;
+        const std::size_t idx = this->findIdx (key);
+        return (idx == NPOS) ? any {} : this->entries[idx].second;
     }
 
     void set (const std::string& key, const any& value) {
-        if (this->entries.size () < LINEAR_THRESHOLD) {
+        if (this->linearMode ()) {
             for (auto& kv : this->entries) {
                 if (kv.first == key) {
                     kv.second = value;   // in place: order preserved
@@ -366,26 +394,28 @@ public:
                 }
             }
             this->entries.emplace_back (key, value);
-            if (this->entries.size () == LINEAR_THRESHOLD) {
-                // crossing into indexed mode: build the offset table once
-                this->rebuildOffsets ();
-            }
+            // crossing into indexed mode: build the probe table once. (Built at
+            // the 9th key, not the 8th — dicts that stop at exactly 8 keys never
+            // pay for an index their lookups don't use.)
+            if (this->entries.size () > LINEAR_THRESHOLD) this->buildIndex ();
             return;
         }
-        const auto it = this->offsets.find (key);
-        if (it != this->offsets.end ()) {
-            this->entries[it->second].second = value;   // in place: order preserved
+        const std::size_t idx = this->findIdx (key);
+        if (idx != NPOS) {
+            this->entries[idx].second = value;   // in place: order preserved
             return;
         }
-        this->offsets.emplace (key, this->entries.size ());
+        if ((this->entries.size () + 1) * 2 > this->index.size ()) this->buildIndex ();
         this->entries.emplace_back (key, value);
+        this->insertSlot (std::hash<std::string> {} (key), this->entries.size () - 1);
     }
 
-    // pre-size both stores (jsonToAny knows the object size up front); avoids
-    // the rehash/reallocation churn of growing a 4000-key dict 12 times
+    // pre-size the entries store (jsonToAny knows the object size up front);
+    // avoids the reallocation churn of growing a 4000-key dict 12 times. The
+    // probe index rebuilds geometrically on demand (rehash is pure arithmetic,
+    // no per-key allocation — cheaper than pre-sizing it).
     void reserve (std::size_t n) {
         this->entries.reserve (n);
-        if (n > LINEAR_THRESHOLD) this->offsets.reserve (n);
     }
 
     // JS `delete obj[k]` — reindexes, so it is O(n); rare enough not to matter
@@ -399,22 +429,43 @@ public:
             }
             return;
         }
-        const auto it = this->offsets.find (key);
-        if (it == this->offsets.end ()) {
+        const std::size_t idx = this->findIdx (key);
+        if (idx == NPOS) {
             return;
         }
-        this->entries.erase (this->entries.begin () + static_cast<long> (it->second));
-        this->rebuildOffsets ();
+        this->entries.erase (this->entries.begin () + static_cast<long> (idx));
+        if (this->entries.size () <= LINEAR_THRESHOLD) {
+            this->index.clear ();   // back to linear mode
+        } else {
+            this->buildIndex ();
+        }
     }
 
     std::size_t size () const { return this->entries.size (); }
 
 private:
-    void rebuildOffsets () {
-        this->offsets.clear ();
-        this->offsets.reserve (this->entries.size ());
-        for (std::size_t i = 0; i < this->entries.size (); i++) {
-            this->offsets.emplace (this->entries[i].first, i);
+    // slot count: smallest power of two holding 2n (load factor <= 0.5, so
+    // the probe never degenerates)
+    static std::size_t slotCount (std::size_t n) {
+        std::size_t slots = 8;
+        while (slots < n * 2) slots <<= 1;
+        return slots;
+    }
+
+    void insertSlot (std::size_t h, std::size_t e) {
+        const std::size_t mask = this->index.size () - 1;
+        std::size_t i = h & mask;
+        while (this->index[i].first != EMPTY_HASH && this->index[i].first != TOMB_HASH) {
+            i = (i + 1) & mask;
+        }
+        this->index[i] = { h, e };   // reuses tombstones
+    }
+
+    void buildIndex () {
+        this->index.assign (slotCount (this->entries.size ()), { EMPTY_HASH, 0 });
+        const std::size_t n = this->entries.size ();
+        for (std::size_t e = 0; e < n; e++) {
+            this->insertSlot (std::hash<std::string> {} (this->entries[e].first), e);
         }
     }
 };
