@@ -13,25 +13,25 @@ void testSort() {
       {std::string("id"), std::string("sampleexchange")},
   });
   // empty array
-  assertDeepEqual(exchange, std::any{}, std::string("sort"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sort"),
                   exchange.sort(ccxt::list{}), ccxt::list{});
   // single element
-  assertDeepEqual(exchange, std::any{}, std::string("sort"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sort"),
                   exchange.sort(ccxt::list{std::string("a")}),
                   ccxt::list{std::string("a")});
   // already sorted (idempotent)
   assertDeepEqual(
-      exchange, std::any{}, std::string("sort"),
+      exchange, ccxt::any{}, std::string("sort"),
       exchange.sort(
           ccxt::list{std::string("a"), std::string("b"), std::string("c")}),
       ccxt::list{std::string("a"), std::string("b"), std::string("c")});
   // duplicates
-  assertDeepEqual(exchange, std::any{}, std::string("sort"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sort"),
                   exchange.sort(ccxt::list{std::string("b"), std::string("a"),
                                            std::string("b"), std::string("c")}),
                   ccxt::list{std::string("a"), std::string("b"),
                              std::string("b"), std::string("c")});
-  assertDeepEqual(exchange, std::any{}, std::string("sort"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sort"),
                   exchange.sort(ccxt::list{std::string("b"), std::string("a"),
                                            std::string("c"), std::string("d")}),
                   ccxt::list{std::string("a"), std::string("b"),
@@ -49,10 +49,10 @@ void testSort() {
   // 0.5, 2.5 ]), [ 0.5, 1.5, 2.5 ]); assertDeepEqual (exchange, undefined,
   // 'sort', exchange.sort ([ 3.3, 1.1, 2.2 ]), [ 1.1, 2.2, 3.3 ]); immutability
   // - original array should not be modified
-  std::any original =
+  ccxt::any original =
       ccxt::list{std::string("b"), std::string("a"), std::string("c")};
   exchange.sort(original);
   assertDeepEqual(
-      exchange, std::any{}, std::string("sort"), original,
+      exchange, ccxt::any{}, std::string("sort"), original,
       ccxt::list{std::string("b"), std::string("a"), std::string("c")});
 }

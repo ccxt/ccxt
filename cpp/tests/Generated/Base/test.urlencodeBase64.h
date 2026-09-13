@@ -53,7 +53,7 @@ void testUrlencodeBase64() {
   //
   // add binary tests
   //
-  std::any binaryData = exchange.base16ToBinary(std::string("191919191919"));
+  ccxt::any binaryData = exchange.base16ToBinary(std::string("191919191919"));
   assertTrue(
       isEqual(exchange.urlencodeBase64(binaryData), std::string("GRkZGRkZ")));
 }

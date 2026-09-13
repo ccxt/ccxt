@@ -16,105 +16,105 @@ namespace prediction {
 class binanceApi : public PredictionExchange {
 public:
     binanceApi () = default;
-    explicit binanceApi (std::any config) : PredictionExchange (config) {}
+    explicit binanceApi (ccxt::any config) : PredictionExchange (config) {}
 
     // Calls the sapiPrivateGetCategoryList endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetCategoryList (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetCategoryList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetCategoryList"), parameters);
     }
 
     // Calls the sapiPrivateGetMarketList endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetMarketList (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetMarketList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetMarketList"), parameters);
     }
 
     // Calls the sapiPrivateGetMarketSearch endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> sapiPrivateGetMarketSearch (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetMarketSearch (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetMarketSearch"), parameters);
     }
 
     // Calls the sapiPrivateGetMarketDetail endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetMarketDetail (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetMarketDetail (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetMarketDetail"), parameters);
     }
 
     // Calls the sapiPrivateGetOrderBook endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetOrderBook (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetOrderBook (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetOrderBook"), parameters);
     }
 
     // Calls the sapiPrivateGetOrderBookLastTradePrice endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetOrderBookLastTradePrice (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetOrderBookLastTradePrice (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetOrderBookLastTradePrice"), parameters);
     }
 
     // Calls the sapiPrivateGetWalletList endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetWalletList (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetWalletList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetWalletList"), parameters);
     }
 
     // Calls the sapiPrivateGetBalancePaymentOptions endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetBalancePaymentOptions (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetBalancePaymentOptions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetBalancePaymentOptions"), parameters);
     }
 
     // Calls the sapiPrivateGetQuotaLimitStatus endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetQuotaLimitStatus (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetQuotaLimitStatus (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetQuotaLimitStatus"), parameters);
     }
 
     // Calls the sapiPrivateGetPnlPortfolio endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetPnlPortfolio (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetPnlPortfolio (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetPnlPortfolio"), parameters);
     }
 
     // Calls the sapiPrivateGetPnlQuery endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetPnlQuery (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetPnlQuery (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetPnlQuery"), parameters);
     }
 
     // Calls the sapiPrivateGetPositionList endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetPositionList (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetPositionList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetPositionList"), parameters);
     }
 
     // Calls the sapiPrivateGetPositionFilter endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetPositionFilter (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetPositionFilter (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetPositionFilter"), parameters);
     }
 
     // Calls the sapiPrivateGetPositionToken endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetPositionToken (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetPositionToken (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetPositionToken"), parameters);
     }
 
     // Calls the sapiPrivateGetPositionSettledHistory endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetPositionSettledHistory (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetPositionSettledHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetPositionSettledHistory"), parameters);
     }
 
     // Calls the sapiPrivateGetOrderList endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetOrderList (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetOrderList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetOrderList"), parameters);
     }
 
     // Calls the sapiPrivateGetOrderHistory endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivateGetOrderHistory (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivateGetOrderHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivateGetOrderHistory"), parameters);
     }
 
     // Calls the sapiPrivatePostTradeGetQuote endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivatePostTradeGetQuote (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivatePostTradeGetQuote (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivatePostTradeGetQuote"), parameters);
     }
 
     // Calls the sapiPrivatePostTradePlaceOrderBundle endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivatePostTradePlaceOrderBundle (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivatePostTradePlaceOrderBundle (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivatePostTradePlaceOrderBundle"), parameters);
     }
 
     // Calls the sapiPrivatePostTradeBatchCancel endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> sapiPrivatePostTradeBatchCancel (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> sapiPrivatePostTradeBatchCancel (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPrivatePostTradeBatchCancel"), parameters);
     }
 

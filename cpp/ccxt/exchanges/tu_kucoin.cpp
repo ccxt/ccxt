@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_kucoin(std::any config) {
+std::shared_ptr<ExchangeBase> create_kucoin(ccxt::any config) {
   return newExchange<kucoin>(config);
 }
 

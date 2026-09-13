@@ -43,9 +43,9 @@ namespace {
 
 // A key argument is either one key or a list of keys; the safe*N variants take the
 // list form and the plain ones are expressed in terms of them.
-list keyList (const std::any& keys) {
+list keyList (const ccxt::any& keys) {
     if (isList (keys)) {
-        return std::any_cast<list> (keys);
+        return ccxt::any_cast<list> (keys);
     }
     list single;
     single.push (keys);
@@ -53,35 +53,35 @@ list keyList (const std::any& keys) {
 }
 
 // Shared by every safe* accessor: first key that is present and not null wins.
-std::any firstPresent (const std::any& obj, const std::any& keys) {
+ccxt::any firstPresent (const ccxt::any& obj, const ccxt::any& keys) {
     const list candidates = keyList (keys);
     for (const auto& key : candidates.items ()) {
-        const std::any value = getValue (obj, key);
+        const ccxt::any value = getValue (obj, key);
         // TS prop()/getValueFromKeysInArray skip undefined, null AND the empty string,
         // so '' falls through to the next key and ultimately to the default
-        if (value.has_value () && !(isStr (value) && std::any_cast<std::string> (value).empty ())) {
+        if (value.has_value () && !(isStr (value) && ccxt::any_cast<std::string> (value).empty ())) {
             return value;
         }
     }
-    return std::any {};
+    return ccxt::any {};
 }
 
-nlohmann::ordered_json anyToJson (const std::any& v) {
+nlohmann::ordered_json anyToJson (const ccxt::any& v) {
     if (!v.has_value ())  return nullptr;
-    if (isStr (v))        return std::any_cast<std::string> (v);
-    if (isBoolean (v))    return std::any_cast<bool> (v);
+    if (isStr (v))        return ccxt::any_cast<std::string> (v);
+    if (isBoolean (v))    return ccxt::any_cast<bool> (v);
     if (isInt (v))        return toLong (v);
     if (isFloat (v))      return toDouble (v);
     if (isList (v)) {
         nlohmann::ordered_json out = nlohmann::ordered_json::array ();
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             out.push_back (anyToJson (item));
         }
         return out;
     }
     if (isDict (v)) {
         nlohmann::ordered_json out = nlohmann::ordered_json::object ();
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             out[kv.first] = anyToJson (kv.second);
         }
         return out;
@@ -89,18 +89,18 @@ nlohmann::ordered_json anyToJson (const std::any& v) {
     return nullptr;
 }
 
-std::any jsonToAny (const nlohmann::ordered_json& j) {
-    if (j.is_null ())            return std::any {};
-    if (j.is_string ())          return std::any (j.get<std::string> ());
-    if (j.is_boolean ())         return std::any (j.get<bool> ());
-    if (j.is_number_integer ())  return std::any (static_cast<long long> (j.get<long long> ()));
-    if (j.is_number_float ())    return std::any (j.get<double> ());
+ccxt::any jsonToAny (const nlohmann::ordered_json& j) {
+    if (j.is_null ())            return ccxt::any {};
+    if (j.is_string ())          return ccxt::any (j.get<std::string> ());
+    if (j.is_boolean ())         return ccxt::any (j.get<bool> ());
+    if (j.is_number_integer ())  return ccxt::any (static_cast<long long> (j.get<long long> ()));
+    if (j.is_number_float ())    return ccxt::any (j.get<double> ());
     if (j.is_array ()) {
         list out;
         for (const auto& item : j) {
             out.push (jsonToAny (item));
         }
-        return std::any (out);
+        return ccxt::any (out);
     }
     if (j.is_object ()) {
         dict out;
@@ -108,9 +108,9 @@ std::any jsonToAny (const nlohmann::ordered_json& j) {
         for (auto it = j.begin (); it != j.end (); ++it) {
             out.set (it.key (), jsonToAny (it.value ()));
         }
-        return std::any (out);
+        return ccxt::any (out);
     }
-    return std::any {};
+    return ccxt::any {};
 }
 
 #ifdef CCXT_HAS_SIMDJSON
@@ -120,21 +120,21 @@ std::any jsonToAny (const nlohmann::ordered_json& j) {
 // strings (int64 can't hold them and the old pre-pass quoted them), shorter
 // integers are int64, floats are doubles. Object field order is document
 // order (nlohmann::ordered_json parity).
-std::any simdToAny (simdjson::ondemand::value v) {
+ccxt::any simdToAny (simdjson::ondemand::value v) {
     using simdjson::ondemand::json_type;
     switch (v.type ()) {
     case json_type::null:
-        return std::any {};
+        return ccxt::any {};
     case json_type::boolean:
-        return std::any (v.get_bool ().value ());
+        return ccxt::any (v.get_bool ().value ());
     case json_type::string:
-        return std::any (
+        return ccxt::any (
             std::string (std::string_view (v.get_string ().value ())));
     case json_type::number: {
         const simdjson::ondemand::number_type ntype =
             v.get_number_type ().value ();
         if (ntype == simdjson::ondemand::number_type::floating_point_number) {
-            return std::any (v.get_double ().value ());
+            return ccxt::any (v.get_double ().value ());
         }
         const std::string_view raw = v.raw_json_token ();
         std::size_t digits = raw.size ();
@@ -142,16 +142,16 @@ std::any simdToAny (simdjson::ondemand::value v) {
             digits--;
         }
         if (digits >= 19) {
-            return std::any (std::string (raw));   // exact, rides as a string
+            return ccxt::any (std::string (raw));   // exact, rides as a string
         }
-        return std::any (static_cast<long long> (v.get_int64 ().value ()));
+        return ccxt::any (static_cast<long long> (v.get_int64 ().value ()));
     }
     case json_type::array: {
         list out;
         for (auto item : v.get_array ()) {
             out.push (simdToAny (item.value ()));
         }
-        return std::any (out);
+        return ccxt::any (out);
     }
     case json_type::object: {
         dict out;
@@ -160,20 +160,20 @@ std::any simdToAny (simdjson::ondemand::value v) {
                 std::string (std::string_view (field.unescaped_key ().value ())),
                 simdToAny (field.value ()));
         }
-        return std::any (out);
+        return ccxt::any (out);
     }
     }
-    return std::any {};
+    return ccxt::any {};
 }
 #endif
 
 // nlohmann::json objects sort keys, which would break request signing, so serialise
 // dictionaries by hand in insertion order.
-std::string serialise (const std::any& v) {
+std::string serialise (const ccxt::any& v) {
     if (isDict (v)) {
         std::string out = "{";
         bool first = true;
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             if (!first) out += ",";
             first = false;
             out += nlohmann::json (kv.first).dump () + ":" + serialise (kv.second);
@@ -183,7 +183,7 @@ std::string serialise (const std::any& v) {
     if (isList (v)) {
         std::string out = "[";
         bool first = true;
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             if (!first) out += ",";
             first = false;
             out += serialise (item);
@@ -193,34 +193,34 @@ std::string serialise (const std::any& v) {
     return anyToJson (v).dump ();
 }
 
-std::any deepClone (const std::any& v) {
+ccxt::any deepClone (const ccxt::any& v) {
     if (isDict (v)) {
         dict out;
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             out.set (kv.first, deepClone (kv.second));
         }
-        return std::any (out);
+        return ccxt::any (out);
     }
     if (isList (v)) {
         list out;
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             out.push (deepClone (item));
         }
-        return std::any (out);
+        return ccxt::any (out);
     }
     return v;
 }
 
-void deepMergeInto (dict& target, const std::any& source) {
+void deepMergeInto (dict& target, const ccxt::any& source) {
     if (!isDict (source)) {
         return;
     }
-    for (const auto& kv : std::any_cast<dict> (source).entries ()) {
-        const std::any existing = target.get (kv.first);
+    for (const auto& kv : ccxt::any_cast<dict> (source).entries ()) {
+        const ccxt::any existing = target.get (kv.first);
         if (isDict (kv.second) && isDict (existing)) {
-            dict merged = std::any_cast<dict> (existing);
+            dict merged = ccxt::any_cast<dict> (existing);
             deepMergeInto (merged, kv.second);
-            target.set (kv.first, std::any (merged));
+            target.set (kv.first, ccxt::any (merged));
         } else {
             target.set (kv.first, deepClone (kv.second));
         }
@@ -233,29 +233,29 @@ void deepMergeInto (dict& target, const std::any& source) {
 // async plumbing
 // ---------------------------------------------------------------------------
 
-std::any awaitValue (const std::any& value) {
+ccxt::any awaitValue (const ccxt::any& value) {
     // generated async bodies return shared_future<any>; awaiting anything else is a
     // no-op, exactly like `await 1` in JS
-    if (value.type () == typeid (std::shared_future<std::any>)) {
-        return std::any_cast<std::shared_future<std::any>> (value).get ();
+    if (value.type () == typeid (std::shared_future<ccxt::any>)) {
+        return ccxt::any_cast<std::shared_future<ccxt::any>> (value).get ();
     }
     // ws futures: watch() returns a ws::Future handle; awaiting blocks until the
     // matching message resolves/rejects it (possibly from another thread)
     if (value.type () == typeid (ccxt::ws::Future)) {
-        return std::any_cast<ccxt::ws::Future> (value).get ();
+        return ccxt::any_cast<ccxt::ws::Future> (value).get ();
     }
     return value;
 }
 
-std::any promiseAll (const std::any& futures) {
+ccxt::any promiseAll (const ccxt::any& futures) {
     if (!isList (futures)) {
         return futures;
     }
     list out;
-    for (const auto& item : std::any_cast<list> (futures).items ()) {
+    for (const auto& item : ccxt::any_cast<list> (futures).items ()) {
         out.push (awaitValue (item));
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
 // The static ws tests pair an injector future with a watcher future and rely on
@@ -267,13 +267,13 @@ std::any promiseAll (const std::any& futures) {
 // runs every future on its own thread and joins; it is applied only to the ws
 // harness call sites (see transpileTestMainClass) to keep the proven-sequential
 // REST sweep untouched.
-std::any promiseAllConcurrent (const std::any& futures) {
+ccxt::any promiseAllConcurrent (const ccxt::any& futures) {
     if (!isList (futures)) {
         return futures;
     }
-    const list items = std::any_cast<list> (futures);
+    const list items = ccxt::any_cast<list> (futures);
     const std::size_t n = items.size ();
-    std::vector<std::any> results (n);
+    std::vector<ccxt::any> results (n);
     std::vector<std::thread> threads;
     std::exception_ptr firstError;
     std::mutex errMutex;
@@ -300,28 +300,28 @@ std::any promiseAllConcurrent (const std::any& futures) {
     if (static_cast<bool> (firstError)) {
         std::rethrow_exception (firstError);
     }
-    return std::any (ccxt::list (std::vector<std::any> (results)));
+    return ccxt::any (ccxt::list (std::vector<ccxt::any> (results)));
 }
 
 // ---------------------------------------------------------------------------
 // safe accessors
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::safeValueN (std::any obj, std::any keys, std::any def) {
-    const std::any found = firstPresent (obj, keys);
+ccxt::any ExchangeBase::safeValueN (ccxt::any obj, ccxt::any keys, ccxt::any def) {
+    const ccxt::any found = firstPresent (obj, keys);
     return found.has_value () ? found : def;
 }
 
-std::any ExchangeBase::safeValue (std::any obj, std::any key, std::any def) {
+ccxt::any ExchangeBase::safeValue (ccxt::any obj, ccxt::any key, ccxt::any def) {
     return this->safeValueN (obj, key, def);
 }
 
-std::any ExchangeBase::safeValue2 (std::any obj, std::any k1, std::any k2, std::any def) {
-    return this->safeValueN (obj, std::any (list { k1, k2 }), def);
+ccxt::any ExchangeBase::safeValue2 (ccxt::any obj, ccxt::any k1, ccxt::any k2, ccxt::any def) {
+    return this->safeValueN (obj, ccxt::any (list { k1, k2 }), def);
 }
 
-std::any ExchangeBase::safeStringN (std::any obj, std::any keys, std::any def) {
-    const std::any found = firstPresent (obj, keys);
+ccxt::any ExchangeBase::safeStringN (ccxt::any obj, ccxt::any keys, ccxt::any def) {
+    const ccxt::any found = firstPresent (obj, keys);
     if (!found.has_value ()) {
         return def;
     }
@@ -337,44 +337,44 @@ std::any ExchangeBase::safeStringN (std::any obj, std::any keys, std::any def) {
     return def;
 }
 
-std::any ExchangeBase::safeString (std::any obj, std::any key, std::any def) {
+ccxt::any ExchangeBase::safeString (ccxt::any obj, ccxt::any key, ccxt::any def) {
     return this->safeStringN (obj, key, def);
 }
 
-std::any ExchangeBase::safeString2 (std::any obj, std::any k1, std::any k2, std::any def) {
-    return this->safeStringN (obj, std::any (list { k1, k2 }), def);
+ccxt::any ExchangeBase::safeString2 (ccxt::any obj, ccxt::any k1, ccxt::any k2, ccxt::any def) {
+    return this->safeStringN (obj, ccxt::any (list { k1, k2 }), def);
 }
 
 // The case conversion applies to the FOUND value only -- TS returns `$default`
 // untouched, so safeStringLower(o, 'missing', 'MiXed_Case') is 'MiXed_Case', not
 // 'mixed_case'. Hence the lookup passes no default of its own.
-std::any ExchangeBase::safeStringUpper (std::any obj, std::any key, std::any def) {
-    const std::any value = this->safeString (obj, key, std::any {});
+ccxt::any ExchangeBase::safeStringUpper (ccxt::any obj, ccxt::any key, ccxt::any def) {
+    const ccxt::any value = this->safeString (obj, key, ccxt::any {});
     return value.has_value () ? toUpperCase (value) : def;
 }
 
-std::any ExchangeBase::safeStringLower (std::any obj, std::any key, std::any def) {
-    const std::any value = this->safeString (obj, key, std::any {});
+ccxt::any ExchangeBase::safeStringLower (ccxt::any obj, ccxt::any key, ccxt::any def) {
+    const ccxt::any value = this->safeString (obj, key, ccxt::any {});
     return value.has_value () ? toLowerCase (value) : def;
 }
 
-std::any ExchangeBase::safeFloatN (std::any obj, std::any keys, std::any def) {
-    const std::any found = firstPresent (obj, keys);
+ccxt::any ExchangeBase::safeFloatN (ccxt::any obj, ccxt::any keys, ccxt::any def) {
+    const ccxt::any found = firstPresent (obj, keys);
     if (!found.has_value ()) {
         return def;
     }
     if (isNum (found)) {
-        return std::any (toDouble (found));
+        return ccxt::any (toDouble (found));
     }
     if (isStr (found)) {
         try {
             std::size_t consumed = 0;
-            const std::string s = std::any_cast<std::string> (found);
+            const std::string s = ccxt::any_cast<std::string> (found);
             const double parsed = std::stod (s, &consumed);
             if (consumed == 0) {
                 return def;
             }
-            return std::any (parsed);
+            return ccxt::any (parsed);
         } catch (const std::exception&) {
             return def;
         }
@@ -382,16 +382,16 @@ std::any ExchangeBase::safeFloatN (std::any obj, std::any keys, std::any def) {
     return def;
 }
 
-std::any ExchangeBase::safeFloat (std::any obj, std::any key, std::any def) {
+ccxt::any ExchangeBase::safeFloat (ccxt::any obj, ccxt::any key, ccxt::any def) {
     return this->safeFloatN (obj, key, def);
 }
 
-std::any ExchangeBase::safeFloat2 (std::any obj, std::any k1, std::any k2, std::any def) {
-    return this->safeFloatN (obj, std::any (list { k1, k2 }), def);
+ccxt::any ExchangeBase::safeFloat2 (ccxt::any obj, ccxt::any k1, ccxt::any k2, ccxt::any def) {
+    return this->safeFloatN (obj, ccxt::any (list { k1, k2 }), def);
 }
 
-std::any ExchangeBase::safeIntegerN (std::any obj, std::any keys, std::any def) {
-    const std::any value = this->safeFloatN (obj, keys, std::any {});
+ccxt::any ExchangeBase::safeIntegerN (ccxt::any obj, ccxt::any keys, ccxt::any def) {
+    const ccxt::any value = this->safeFloatN (obj, keys, ccxt::any {});
     if (!value.has_value ()) {
         return def;
     }
@@ -399,67 +399,67 @@ std::any ExchangeBase::safeIntegerN (std::any obj, std::any keys, std::any def) 
     if (!std::isfinite (d)) {
         return def;
     }
-    return std::any (static_cast<long long> (d));
+    return ccxt::any (static_cast<long long> (d));
 }
 
-std::any ExchangeBase::safeInteger (std::any obj, std::any key, std::any def) {
+ccxt::any ExchangeBase::safeInteger (ccxt::any obj, ccxt::any key, ccxt::any def) {
     return this->safeIntegerN (obj, key, def);
 }
 
-std::any ExchangeBase::safeInteger2 (std::any obj, std::any k1, std::any k2, std::any def) {
-    return this->safeIntegerN (obj, std::any (list { k1, k2 }), def);
+ccxt::any ExchangeBase::safeInteger2 (ccxt::any obj, ccxt::any k1, ccxt::any k2, ccxt::any def) {
+    return this->safeIntegerN (obj, ccxt::any (list { k1, k2 }), def);
 }
 
-std::any ExchangeBase::safeBool (std::any obj, std::any key, std::any def) {
-    const std::any found = firstPresent (obj, key);
+ccxt::any ExchangeBase::safeBool (ccxt::any obj, ccxt::any key, ccxt::any def) {
+    const ccxt::any found = firstPresent (obj, key);
     if (!found.has_value ()) {
         return def;
     }
-    return std::any (isTrue (found));
+    return ccxt::any (isTrue (found));
 }
 
-std::any ExchangeBase::safeTimestamp (std::any obj, std::any key, std::any def) {
-    const std::any secondsValue = this->safeFloat (obj, key, std::any {});
+ccxt::any ExchangeBase::safeTimestamp (ccxt::any obj, ccxt::any key, ccxt::any def) {
+    const ccxt::any secondsValue = this->safeFloat (obj, key, ccxt::any {});
     if (!secondsValue.has_value ()) {
         return def;
     }
-    return std::any (static_cast<long long> (toDouble (secondsValue) * 1000.0));
+    return ccxt::any (static_cast<long long> (toDouble (secondsValue) * 1000.0));
 }
 
-std::any ExchangeBase::safeTimestampN (std::any obj, std::any keys, std::any def) {
-    const std::any secondsValue = this->safeFloatN (obj, keys, std::any {});
+ccxt::any ExchangeBase::safeTimestampN (ccxt::any obj, ccxt::any keys, ccxt::any def) {
+    const ccxt::any secondsValue = this->safeFloatN (obj, keys, ccxt::any {});
     if (!secondsValue.has_value ()) {
         return def;
     }
-    return std::any (static_cast<long long> (toDouble (secondsValue) * 1000.0));
+    return ccxt::any (static_cast<long long> (toDouble (secondsValue) * 1000.0));
 }
 
-std::any ExchangeBase::safeTimestamp2 (std::any obj, std::any k1, std::any k2, std::any def) {
-    return this->safeTimestampN (obj, std::any (list { k1, k2 }), def);
+ccxt::any ExchangeBase::safeTimestamp2 (ccxt::any obj, ccxt::any k1, ccxt::any k2, ccxt::any def) {
+    return this->safeTimestampN (obj, ccxt::any (list { k1, k2 }), def);
 }
 
-std::any ExchangeBase::safeStringUpperN (std::any obj, std::any keys, std::any def) {
-    const std::any value = this->safeStringN (obj, keys, std::any {});
+ccxt::any ExchangeBase::safeStringUpperN (ccxt::any obj, ccxt::any keys, ccxt::any def) {
+    const ccxt::any value = this->safeStringN (obj, keys, ccxt::any {});
     return value.has_value () ? toUpperCase (value) : def;
 }
 
-std::any ExchangeBase::safeStringUpper2 (std::any obj, std::any k1, std::any k2, std::any def) {
-    return this->safeStringUpperN (obj, std::any (list { k1, k2 }), def);
+ccxt::any ExchangeBase::safeStringUpper2 (ccxt::any obj, ccxt::any k1, ccxt::any k2, ccxt::any def) {
+    return this->safeStringUpperN (obj, ccxt::any (list { k1, k2 }), def);
 }
 
-std::any ExchangeBase::safeStringLowerN (std::any obj, std::any keys, std::any def) {
-    const std::any value = this->safeStringN (obj, keys, std::any {});
+ccxt::any ExchangeBase::safeStringLowerN (ccxt::any obj, ccxt::any keys, ccxt::any def) {
+    const ccxt::any value = this->safeStringN (obj, keys, ccxt::any {});
     return value.has_value () ? toLowerCase (value) : def;
 }
 
-std::any ExchangeBase::safeStringLower2 (std::any obj, std::any k1, std::any k2, std::any def) {
-    return this->safeStringLowerN (obj, std::any (list { k1, k2 }), def);
+ccxt::any ExchangeBase::safeStringLower2 (ccxt::any obj, ccxt::any k1, ccxt::any k2, ccxt::any def) {
+    return this->safeStringLowerN (obj, ccxt::any (list { k1, k2 }), def);
 }
 
 // TS: `isNumber(n) ? parseInt(n * factor) : default` -- the multiply happens in
 // floating point and the result is truncated toward zero, not rounded.
-std::any ExchangeBase::safeIntegerProductN (std::any obj, std::any keys, std::any factor, std::any def) {
-    const std::any value = this->safeFloatN (obj, keys, std::any {});
+ccxt::any ExchangeBase::safeIntegerProductN (ccxt::any obj, ccxt::any keys, ccxt::any factor, ccxt::any def) {
+    const ccxt::any value = this->safeFloatN (obj, keys, ccxt::any {});
     if (!value.has_value ()) {
         return def;
     }
@@ -467,142 +467,142 @@ std::any ExchangeBase::safeIntegerProductN (std::any obj, std::any keys, std::an
     if (!std::isfinite (product)) {
         return def;
     }
-    return std::any (static_cast<long long> (product));
+    return ccxt::any (static_cast<long long> (product));
 }
 
-std::any ExchangeBase::safeIntegerProduct (std::any obj, std::any key, std::any factor, std::any def) {
+ccxt::any ExchangeBase::safeIntegerProduct (ccxt::any obj, ccxt::any key, ccxt::any factor, ccxt::any def) {
     return this->safeIntegerProductN (obj, key, factor, def);
 }
 
-std::any ExchangeBase::safeIntegerProduct2 (std::any obj, std::any k1, std::any k2, std::any factor, std::any def) {
-    return this->safeIntegerProductN (obj, std::any (list { k1, k2 }), factor, def);
+ccxt::any ExchangeBase::safeIntegerProduct2 (ccxt::any obj, ccxt::any k1, ccxt::any k2, ccxt::any factor, ccxt::any def) {
+    return this->safeIntegerProductN (obj, ccxt::any (list { k1, k2 }), factor, def);
 }
 
 // ---------------------------------------------------------------------------
 // generic collection helpers
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::extend (std::any a, std::any b) {
+ccxt::any ExchangeBase::extend (ccxt::any a, ccxt::any b) {
     dict out;
-    for (const std::any& source : { a, b }) {
+    for (const ccxt::any& source : { a, b }) {
         if (isDict (source)) {
-            for (const auto& kv : std::any_cast<dict> (source).entries ()) {
+            for (const auto& kv : ccxt::any_cast<dict> (source).entries ()) {
                 out.set (kv.first, kv.second);
             }
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::deepExtend (std::any a, std::any b, std::any c, std::any d) {
+ccxt::any ExchangeBase::deepExtend (ccxt::any a, ccxt::any b, ccxt::any c, ccxt::any d) {
     dict out;
-    for (const std::any& source : { a, b, c, d }) {
+    for (const ccxt::any& source : { a, b, c, d }) {
         deepMergeInto (out, source);
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::clone (std::any value) { return deepClone (value); }
+ccxt::any ExchangeBase::clone (ccxt::any value) { return deepClone (value); }
 
-std::any ExchangeBase::sortBy (std::any array, std::any key, std::any descending, std::any def) {
+ccxt::any ExchangeBase::sortBy (ccxt::any array, ccxt::any key, ccxt::any descending, ccxt::any def) {
     if (!isList (array)) {
         return array;
     }
-    std::vector<std::any> items = std::any_cast<list> (array).items ();
+    std::vector<ccxt::any> items = ccxt::any_cast<list> (array).items ();
     const bool desc = isTrue (descending);
-    std::stable_sort (items.begin (), items.end (), [&] (const std::any& l, const std::any& r) {
-        std::any lv = getValue (l, key);
-        std::any rv = getValue (r, key);
+    std::stable_sort (items.begin (), items.end (), [&] (const ccxt::any& l, const ccxt::any& r) {
+        ccxt::any lv = getValue (l, key);
+        ccxt::any rv = getValue (r, key);
         if (!lv.has_value ()) lv = def;
         if (!rv.has_value ()) rv = def;
         return desc ? isGreaterThan (lv, rv) : isLessThan (lv, rv);
     });
-    return std::any (list (items));
+    return ccxt::any (list (items));
 }
 
-std::any ExchangeBase::sortBy2 (std::any array, std::any k1, std::any k2, std::any descending) {
+ccxt::any ExchangeBase::sortBy2 (ccxt::any array, ccxt::any k1, ccxt::any k2, ccxt::any descending) {
     if (!isList (array)) {
         return array;
     }
-    std::vector<std::any> items = std::any_cast<list> (array).items ();
+    std::vector<ccxt::any> items = ccxt::any_cast<list> (array).items ();
     const bool desc = isTrue (descending);
-    std::stable_sort (items.begin (), items.end (), [&] (const std::any& l, const std::any& r) {
-        const std::any l1 = getValue (l, k1);
-        const std::any r1 = getValue (r, k1);
+    std::stable_sort (items.begin (), items.end (), [&] (const ccxt::any& l, const ccxt::any& r) {
+        const ccxt::any l1 = getValue (l, k1);
+        const ccxt::any r1 = getValue (r, k1);
         if (!isEqual (l1, r1)) {
             return desc ? isGreaterThan (l1, r1) : isLessThan (l1, r1);
         }
-        const std::any l2 = getValue (l, k2);
-        const std::any r2 = getValue (r, k2);
+        const ccxt::any l2 = getValue (l, k2);
+        const ccxt::any r2 = getValue (r, k2);
         return desc ? isGreaterThan (l2, r2) : isLessThan (l2, r2);
     });
-    return std::any (list (items));
+    return ccxt::any (list (items));
 }
 
-std::any ExchangeBase::groupBy (std::any array, std::any key) {
+ccxt::any ExchangeBase::groupBy (ccxt::any array, ccxt::any key) {
     dict out;
     if (!isList (array)) {
-        return std::any (out);
+        return ccxt::any (out);
     }
-    for (const auto& item : std::any_cast<list> (array).items ()) {
-        const std::any value = getValue (item, key);
+    for (const auto& item : ccxt::any_cast<list> (array).items ()) {
+        const ccxt::any value = getValue (item, key);
         if (!value.has_value ()) {
             continue;   // JS groupBy drops entries without the key
         }
         const std::string bucket = str (value);
-        std::any existing = out.get (bucket);
+        ccxt::any existing = out.get (bucket);
         if (!isList (existing)) {
-            existing = std::any (list {});
+            existing = ccxt::any (list {});
             out.set (bucket, existing);
         }
-        std::any_cast<list> (existing).push (item);
+        ccxt::any_cast<list> (existing).push (item);
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::indexBy (std::any array, std::any key) {
+ccxt::any ExchangeBase::indexBy (ccxt::any array, ccxt::any key) {
     dict out;
-    const std::any values = isDict (array) ? getObjectValues (array) : array;
+    const ccxt::any values = isDict (array) ? getObjectValues (array) : array;
     if (!isList (values)) {
-        return std::any (out);
+        return ccxt::any (out);
     }
-    for (const auto& item : std::any_cast<list> (values).items ()) {
-        const std::any value = getValue (item, key);
+    for (const auto& item : ccxt::any_cast<list> (values).items ()) {
+        const ccxt::any value = getValue (item, key);
         if (value.has_value ()) {
             out.set (str (value), item);
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::indexBySafe (std::any array, std::any key) {
+ccxt::any ExchangeBase::indexBySafe (ccxt::any array, ccxt::any key) {
     return this->indexBy (array, key);
 }
 
-std::any ExchangeBase::filterBy (std::any array, std::any key, std::any value) {
+ccxt::any ExchangeBase::filterBy (ccxt::any array, ccxt::any key, ccxt::any value) {
     list out;
-    const std::any values = isDict (array) ? getObjectValues (array) : array;
+    const ccxt::any values = isDict (array) ? getObjectValues (array) : array;
     if (!isList (values)) {
-        return std::any (out);
+        return ccxt::any (out);
     }
-    for (const auto& item : std::any_cast<list> (values).items ()) {
+    for (const auto& item : ccxt::any_cast<list> (values).items ()) {
         if (isEqual (getValue (item, key), value)) {
             out.push (item);
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::inArray (std::any needle, std::any haystack) {
-    return std::any (includes (haystack, needle));
+ccxt::any ExchangeBase::inArray (ccxt::any needle, ccxt::any haystack) {
+    return ccxt::any (includes (haystack, needle));
 }
 
-std::any ExchangeBase::keysort (std::any obj) {
+ccxt::any ExchangeBase::keysort (ccxt::any obj) {
     dict out;
     if (!isDict (obj)) {
-        return std::any (out);
+        return ccxt::any (out);
     }
-    const dict source = std::any_cast<dict> (obj);
+    const dict source = ccxt::any_cast<dict> (obj);
     std::vector<std::string> keys;
     for (const auto& kv : source.entries ()) {
         keys.push_back (kv.first);
@@ -611,11 +611,11 @@ std::any ExchangeBase::keysort (std::any obj) {
     for (const auto& key : keys) {
         out.set (key, source.get (key));
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::omit (std::any obj, std::any keys, std::any k2, std::any k3,
-                             std::any k4, std::any k5, std::any k6, std::any k7) {
+ccxt::any ExchangeBase::omit (ccxt::any obj, ccxt::any keys, ccxt::any k2, ccxt::any k3,
+                             ccxt::any k4, ccxt::any k5, ccxt::any k6, ccxt::any k7) {
     // TS omit is variadic: omit(obj, 'a', 'b') or omit(obj, ['a', 'b']); the extra
     // C++ parameters cover the spread form up to the widest generated call site.
     if (!isDict (obj)) {
@@ -623,46 +623,46 @@ std::any ExchangeBase::omit (std::any obj, std::any keys, std::any k2, std::any 
     }
     std::set<std::string> drop;
     if (isList (keys)) {
-        for (const auto& k : std::any_cast<list> (keys).items ()) {
+        for (const auto& k : ccxt::any_cast<list> (keys).items ()) {
             drop.insert (str (k));
         }
     } else if (keys.has_value ()) {
         drop.insert (str (keys));
     }
-    for (const std::any& extra : { k2, k3, k4, k5, k6, k7 }) {
+    for (const ccxt::any& extra : { k2, k3, k4, k5, k6, k7 }) {
         if (extra.has_value ()) {
             drop.insert (str (extra));
         }
     }
     dict out;
-    for (const auto& kv : std::any_cast<dict> (obj).entries ()) {
+    for (const auto& kv : ccxt::any_cast<dict> (obj).entries ()) {
         if (drop.find (kv.first) == drop.end ()) {
             out.set (kv.first, kv.second);
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::omitZero (std::any value) {
+ccxt::any ExchangeBase::omitZero (ccxt::any value) {
     if (!value.has_value ()) {
-        return std::any {};
+        return ccxt::any {};
     }
     double d = 0;
     if (isNum (value)) {
         d = toDouble (value);
     } else if (isStr (value)) {
         try {
-            d = std::stod (std::any_cast<std::string> (value));
+            d = std::stod (ccxt::any_cast<std::string> (value));
         } catch (const std::exception&) {
             return value;
         }
     } else {
         return value;
     }
-    return (d == 0.0) ? std::any {} : value;
+    return (d == 0.0) ? ccxt::any {} : value;
 }
 
-std::any ExchangeBase::toArray (std::any value) {
+ccxt::any ExchangeBase::toArray (ccxt::any value) {
     if (isList (value)) {
         return value;
     }
@@ -678,70 +678,70 @@ std::any ExchangeBase::toArray (std::any value) {
     return getObjectValues (value);
 }
 
-std::any ExchangeBase::unique (std::any array) {
+ccxt::any ExchangeBase::unique (ccxt::any array) {
     list out;
     if (!isList (array)) {
-        return std::any (out);
+        return ccxt::any (out);
     }
-    for (const auto& item : std::any_cast<list> (array).items ()) {
-        if (!includes (std::any (out), item)) {
+    for (const auto& item : ccxt::any_cast<list> (array).items ()) {
+        if (!includes (ccxt::any (out), item)) {
             out.push (item);
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::sum (std::any a, std::any b, std::any c, std::any d) {
+ccxt::any ExchangeBase::sum (ccxt::any a, ccxt::any b, ccxt::any c, ccxt::any d) {
     // JS `sum` ignores non-numeric arguments entirely
     double total = 0;
     bool sawNumber = false;
-    for (const std::any& value : { a, b, c, d }) {
+    for (const ccxt::any& value : { a, b, c, d }) {
         if (isNum (value)) {
             total += toDouble (value);
             sawNumber = true;
         }
     }
-    return sawNumber ? add (std::any (0), std::any (total)) : std::any {};
+    return sawNumber ? add (ccxt::any (0), ccxt::any (total)) : ccxt::any {};
 }
 
-std::any ExchangeBase::isDictionary (std::any value) { return std::any (isDict (value)); }
+ccxt::any ExchangeBase::isDictionary (ccxt::any value) { return ccxt::any (isDict (value)); }
 
-std::any ExchangeBase::arrayConcat (std::any a, std::any b) { return concat (a, b); }
+ccxt::any ExchangeBase::arrayConcat (ccxt::any a, ccxt::any b) { return concat (a, b); }
 
-std::any ExchangeBase::arraySlice (std::any array, std::any start, std::any end) {
+ccxt::any ExchangeBase::arraySlice (ccxt::any array, ccxt::any start, ccxt::any end) {
     return slice (array, start, end);
 }
 
-std::any ExchangeBase::valueIsDefined (std::any value) { return std::any (value.has_value ()); }
+ccxt::any ExchangeBase::valueIsDefined (ccxt::any value) { return ccxt::any (value.has_value ()); }
 
 // TS returns true only for undefined/null and empty containers; every scalar -- "", 0,
 // false included -- is explicitly false.
-std::any ExchangeBase::isEmpty (std::any value) {
+ccxt::any ExchangeBase::isEmpty (ccxt::any value) {
     if (!value.has_value ()) {
-        return std::any (true);
+        return ccxt::any (true);
     }
     if (isList (value)) {
-        return std::any (std::any_cast<list> (value).size () < 1);
+        return ccxt::any (ccxt::any_cast<list> (value).size () < 1);
     }
     if (isDict (value)) {
-        return std::any (std::any_cast<dict> (value).size () < 1);
+        return ccxt::any (ccxt::any_cast<dict> (value).size () < 1);
     }
-    return std::any (false);
+    return ccxt::any (false);
 }
 
 // TS copies first (`array.slice()`), so the input must not be reordered. With the
 // reference-semantic list of D1 that matters: sorting in place would be visible to
 // every alias, and test.sort asserts the original is untouched.
-std::any ExchangeBase::sort (std::any array) {
+ccxt::any ExchangeBase::sort (ccxt::any array) {
     if (!isList (array)) {
         return array;
     }
-    std::vector<std::any> copy = std::any_cast<list> (array).items ();
+    std::vector<ccxt::any> copy = ccxt::any_cast<list> (array).items ();
     // JS Array#sort with no comparator compares elements as strings
-    std::stable_sort (copy.begin (), copy.end (), [] (const std::any& a, const std::any& b) {
+    std::stable_sort (copy.begin (), copy.end (), [] (const ccxt::any& a, const ccxt::any& b) {
         return str (a) < str (b);
     });
-    return std::any (list (std::move (copy)));
+    return ccxt::any (list (std::move (copy)));
 }
 
 
@@ -749,19 +749,19 @@ std::any ExchangeBase::sort (std::any array) {
 // strings
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::capitalize (std::any s) {
+ccxt::any ExchangeBase::capitalize (ccxt::any s) {
     std::string value = str (s);
     if (value.empty ()) {
-        return std::any (value);
+        return ccxt::any (value);
     }
     value[0] = static_cast<char> (std::toupper (static_cast<unsigned char> (value[0])));
-    return std::any (value);
+    return ccxt::any (value);
 }
 
-std::any ExchangeBase::implodeParams (std::any target, std::any params) {
+ccxt::any ExchangeBase::implodeParams (ccxt::any target, ccxt::any params) {
     std::string out = str (target);
     if (isDict (params)) {
-        for (const auto& kv : std::any_cast<dict> (params).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (params).entries ()) {
             if (isList (kv.second)) {
                 continue;   // array params are query values, not path segments
             }
@@ -774,10 +774,10 @@ std::any ExchangeBase::implodeParams (std::any target, std::any params) {
             }
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::extractParams (std::any target) {
+ccxt::any ExchangeBase::extractParams (ccxt::any target) {
     const std::string value = str (target);
     list out;
     std::size_t at = value.find ('{');
@@ -786,13 +786,13 @@ std::any ExchangeBase::extractParams (std::any target) {
         if (close == std::string::npos) {
             break;
         }
-        out.push (std::any (value.substr (at + 1, close - at - 1)));
+        out.push (ccxt::any (value.substr (at + 1, close - at - 1)));
         at = value.find ('{', close);
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::encodeURIComponent (std::any value) {
+ccxt::any ExchangeBase::encodeURIComponent (ccxt::any value) {
     static const std::string unreserved =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.!~*'()";
     const std::string input = str (value);
@@ -806,18 +806,18 @@ std::any ExchangeBase::encodeURIComponent (std::any value) {
             out += buffer;
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::stringToCharsArray (std::any value) {
-    return split (value, std::any (std::string ("")));
+ccxt::any ExchangeBase::stringToCharsArray (ccxt::any value) {
+    return split (value, ccxt::any (std::string ("")));
 }
 
 namespace {
 const char* BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 }
 
-std::any ExchangeBase::stringToBase64 (std::any value) {
+ccxt::any ExchangeBase::stringToBase64 (ccxt::any value) {
     const std::string input = str (value);
     std::string out;
     for (std::size_t i = 0; i < input.size (); i += 3) {
@@ -829,10 +829,10 @@ std::any ExchangeBase::stringToBase64 (std::any value) {
         out += (i + 1 < input.size ()) ? BASE64_ALPHABET[((b1 & 0x0f) << 2) | (b2 >> 6)] : '=';
         out += (i + 2 < input.size ()) ? BASE64_ALPHABET[b2 & 0x3f] : '=';
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::base64ToBinary (std::any value) {
+ccxt::any ExchangeBase::base64ToBinary (ccxt::any value) {
     const std::string input = str (value);
     std::string out;
     int accumulator = 0;
@@ -852,10 +852,10 @@ std::any ExchangeBase::base64ToBinary (std::any value) {
             out += static_cast<char> ((accumulator >> bits) & 0xff);
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::binaryToBase16 (std::any value) {
+ccxt::any ExchangeBase::binaryToBase16 (ccxt::any value) {
     const std::string input = str (value);
     std::string out;
     for (unsigned char c : input) {
@@ -863,17 +863,17 @@ std::any ExchangeBase::binaryToBase16 (std::any value) {
         std::snprintf (buffer, sizeof (buffer), "%02x", c);
         out += buffer;
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::strip (std::any value) {
+ccxt::any ExchangeBase::strip (ccxt::any value) {
     return trim (value);
 }
 
 // uuid4, formatted 8-4-4-4-12 with the version and variant nibbles pinned. Seeded from
 // random_device per call site rather than a shared generator so it stays thread-safe
 // under the std::async-per-call model (D5).
-std::any ExchangeBase::uuid () {
+ccxt::any ExchangeBase::uuid () {
     static thread_local std::mt19937_64 generator (std::random_device {} ());
     std::uniform_int_distribution<int> nibble (0, 15);
     static const char* digits = "0123456789abcdef";
@@ -889,14 +889,14 @@ std::any ExchangeBase::uuid () {
             out += digits[nibble (generator)];
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
 // ---------------------------------------------------------------------------
 // numbers
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::parseNumber (std::any value, std::any def) {
+ccxt::any ExchangeBase::parseNumber (ccxt::any value, ccxt::any def) {
     if (!value.has_value ()) {
         return def;
     }
@@ -904,7 +904,7 @@ std::any ExchangeBase::parseNumber (std::any value, std::any def) {
         return value;
     }
     try {
-        return std::any (std::stod (str (value)));
+        return ccxt::any (std::stod (str (value)));
     } catch (const std::exception&) {
         return def;
     }
@@ -914,15 +914,15 @@ std::any ExchangeBase::parseNumber (std::any value, std::any def) {
 // expands any scientific notation so amounts and prices never reach an exchange as
 // "7.8e-7". std::to_chars in shortest mode is the same shortest-round-trip algorithm,
 // so the two agree digit for digit; only the expansion has to be written out.
-std::any ExchangeBase::numberToString (std::any value) {
+ccxt::any ExchangeBase::numberToString (ccxt::any value) {
     if (!value.has_value ()) {
-        return std::any {};
+        return ccxt::any {};
     }
-    return std::any (numberToText (value));
+    return ccxt::any (numberToText (value));
 }
 
-std::any ExchangeBase::decimalToPrecision (std::any x, std::any roundingMode, std::any digits,
-                                           std::any countingMode, std::any paddingMode) {
+ccxt::any ExchangeBase::decimalToPrecision (ccxt::any x, ccxt::any roundingMode, ccxt::any digits,
+                                           ccxt::any countingMode, ccxt::any paddingMode) {
     // The defaults match the TS signature: DECIMAL_PLACES counting, no padding. An
     // absent roundingMode means TRUNCATE, which is what ccxt's own callers rely on.
     const int rounding = roundingMode.has_value () ? static_cast<int> (toLong (roundingMode)) : 0;
@@ -930,12 +930,12 @@ std::any ExchangeBase::decimalToPrecision (std::any x, std::any roundingMode, st
         ? static_cast<int> (toLong (countingMode)) : 2;
     const int padding = paddingMode.has_value ()
         ? static_cast<int> (toLong (paddingMode)) : 5;
-    return std::any (decimalToPrecisionText (x, rounding, digits, counting, padding));
+    return ccxt::any (decimalToPrecisionText (x, rounding, digits, counting, padding));
 }
 
-std::any ExchangeBase::precisionFromString (std::any value) {
+ccxt::any ExchangeBase::precisionFromString (ccxt::any value) {
     if (!value.has_value ()) {
-        return std::any (0);
+        return ccxt::any (0);
     }
     const std::string s = str (value);
     // '1e-4' -> 4, '1e4' -> -4: strip the mantissa and negate the exponent
@@ -945,9 +945,9 @@ std::any ExchangeBase::precisionFromString (std::any value) {
         try {
             exponent = std::stoi (s.substr (at + 1));
         } catch (const std::exception&) {
-            return std::any (0);
+            return ccxt::any (0);
         }
-        return std::any (-exponent);
+        return ccxt::any (-exponent);
     }
     // Mirrors the single-pass scan in ts/src/base/functions/number.ts, which is
     // equivalent to str.replace(/0+$/g, '').split('.') -- trailing zeros do not count
@@ -969,16 +969,16 @@ std::any ExchangeBase::precisionFromString (std::any value) {
         }
     }
     if (dot < 0) {
-        return std::any (0);
+        return ccxt::any (0);
     }
-    return std::any (((secondDot < 0) ? (lastNonZero + 1) : secondDot) - dot - 1);
+    return ccxt::any (((secondDot < 0) ? (lastNonZero + 1) : secondDot) - dot - 1);
 }
 
 // ---------------------------------------------------------------------------
 // json
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::parseJson (std::any value) {
+ccxt::any ExchangeBase::parseJson (ccxt::any value) {
     try {
         // exchange ids routinely exceed int64 (e.g. alpaca trade ids like
         // 2880534893454904000): nlohmann stores those as double, rounding the
@@ -1067,24 +1067,24 @@ std::any ExchangeBase::parseJson (std::any value) {
         }
         return jsonToAny (nlohmann::ordered_json::parse (text));
     } catch (const std::exception&) {
-        return std::any {};   // ccxt returns undefined for unparseable payloads
+        return ccxt::any {};   // ccxt returns undefined for unparseable payloads
     }
 }
 
-std::any ExchangeBase::json (std::any value, std::any params) {
+ccxt::any ExchangeBase::json (ccxt::any value, ccxt::any params) {
     (void) params;   // TS accepts it for signature compatibility and ignores it
-    return std::any (serialise (value));
+    return ccxt::any (serialise (value));
 }
 
-std::any ExchangeBase::isJsonEncodedObject (std::any value) {
+ccxt::any ExchangeBase::isJsonEncodedObject (ccxt::any value) {
     if (!isStr (value)) {
-        return std::any (false);
+        return ccxt::any (false);
     }
-    const std::string text = std::any_cast<std::string> (value);
+    const std::string text = ccxt::any_cast<std::string> (value);
     if (text.empty ()) {
-        return std::any (false);
+        return ccxt::any (false);
     }
-    return std::any ((text[0] == '{') || (text[0] == '['));
+    return ccxt::any ((text[0] == '{') || (text[0] == '['));
 }
 
 // ---------------------------------------------------------------------------
@@ -1108,16 +1108,16 @@ std::any ExchangeBase::isJsonEncodedObject (std::any value) {
 namespace {
 
 void qsAppend (std::vector<std::pair<std::string, std::string>>& out,
-               const std::string& prefix, const std::any& value, bool arrayRepeat) {
+               const std::string& prefix, const ccxt::any& value, bool arrayRepeat) {
     if (isDict (value)) {
-        for (const auto& kv : std::any_cast<dict> (value).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (value).entries ()) {
             const std::string key = prefix.empty () ? kv.first : (prefix + "[" + kv.first + "]");
             qsAppend (out, key, kv.second, arrayRepeat);
         }
         return;
     }
     if (isList (value)) {
-        const auto& items = std::any_cast<list> (value).items ();
+        const auto& items = ccxt::any_cast<list> (value).items ();
         for (std::size_t i = 0; i < items.size (); i++) {
             // 'repeat' reuses the bare key for every element; otherwise qs indexes it
             const std::string key = arrayRepeat
@@ -1135,21 +1135,21 @@ void qsAppend (std::vector<std::pair<std::string, std::string>>& out,
 
 } // namespace
 
-std::any ExchangeBase::urlencode (std::any params, std::any sortKeys) {
-    return std::any (this->queryString (params, true, true, false, sortKeys));
+ccxt::any ExchangeBase::urlencode (ccxt::any params, ccxt::any sortKeys) {
+    return ccxt::any (this->queryString (params, true, true, false, sortKeys));
 }
 
-std::any ExchangeBase::urlencodeNested (std::any params) {
+ccxt::any ExchangeBase::urlencodeNested (ccxt::any params) {
     // encodeValuesOnly: brackets in the key must survive unescaped
-    return std::any (this->queryString (params, false, true, false, std::any {}));
+    return ccxt::any (this->queryString (params, false, true, false, ccxt::any {}));
 }
 
-std::any ExchangeBase::urlencodeWithArrayRepeat (std::any params) {
-    return std::any (this->queryString (params, true, true, true, std::any {}));
+ccxt::any ExchangeBase::urlencodeWithArrayRepeat (ccxt::any params) {
+    return ccxt::any (this->queryString (params, true, true, true, ccxt::any {}));
 }
 
-std::any ExchangeBase::rawencode (std::any params, std::any sortKeys) {
-    return std::any (this->queryString (params, false, false, false, sortKeys));
+ccxt::any ExchangeBase::rawencode (ccxt::any params, ccxt::any sortKeys) {
+    return ccxt::any (this->queryString (params, false, false, false, sortKeys));
 }
 
 namespace {
@@ -1182,9 +1182,9 @@ std::string qsEncode (const std::string& input) {
 }
 }
 
-std::string ExchangeBase::queryString (const std::any& params, bool encodeKeys,
+std::string ExchangeBase::queryString (const ccxt::any& params, bool encodeKeys,
                                        bool encodeValues, bool arrayRepeat,
-                                       const std::any& sortKeys) {
+                                       const ccxt::any& sortKeys) {
     std::vector<std::pair<std::string, std::string>> pairs;
     qsAppend (pairs, std::string (), params, arrayRepeat);
     if (isTrue (sortKeys)) {
@@ -1207,45 +1207,45 @@ std::string ExchangeBase::queryString (const std::any& params, bool encodeKeys,
 // time
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::milliseconds () { return getCurrentTimestamp (); }
+ccxt::any ExchangeBase::milliseconds () { return getCurrentTimestamp (); }
 
-std::any ExchangeBase::microseconds () {
+ccxt::any ExchangeBase::microseconds () {
     // TS microseconds(): Date.now() * 1000 — microseconds since the epoch
-    return std::any (toLong (getCurrentTimestamp ()) * 1000);
+    return ccxt::any (toLong (getCurrentTimestamp ()) * 1000);
 }
 
-std::any ExchangeBase::seconds () {
-    return std::any (static_cast<long long> (toLong (getCurrentTimestamp ()) / 1000));
+ccxt::any ExchangeBase::seconds () {
+    return ccxt::any (static_cast<long long> (toLong (getCurrentTimestamp ()) / 1000));
 }
 
-std::any ExchangeBase::iso8601 (std::any timestamp) {
+ccxt::any ExchangeBase::iso8601 (ccxt::any timestamp) {
     long long ms = 0;
     if (isNum (timestamp)) {
         ms = static_cast<long long> (std::floor (toDouble (timestamp)));
     } else if (isStr (timestamp)) {
         // only plain-integer strings are accepted, e.g. "1755432123456"
-        const std::string text = std::any_cast<std::string> (timestamp);
+        const std::string text = ccxt::any_cast<std::string> (timestamp);
         if (text.empty ()) {
-            return std::any {};
+            return ccxt::any {};
         }
         for (char c : text) {
             if (!std::isdigit (static_cast<unsigned char> (c))) {
-                return std::any {};
+                return ccxt::any {};
             }
         }
         try {
             ms = std::stoll (text);
         } catch (const std::exception&) {
-            return std::any {};
+            return ccxt::any {};
         }
     } else {
-        return std::any {};
+        return ccxt::any {};
     }
     // TS rejects negatives outright, and anything past the Date range. Without the
     // negative guard the millisecond field came out as ".-01" (C++ % truncates toward
     // zero), producing strings like "1970-01-01T00:00:00.-01Z".
     if (ms < 0 || ms > 8640000000000000LL) {
-        return std::any {};
+        return ccxt::any {};
     }
     const std::time_t whole = static_cast<std::time_t> (ms / 1000);
     std::tm utc {};
@@ -1254,30 +1254,30 @@ std::any ExchangeBase::iso8601 (std::any timestamp) {
     std::snprintf (buffer, sizeof (buffer), "%04d-%02d-%02dT%02d:%02d:%02d.%03lldZ",
                    utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday,
                    utc.tm_hour, utc.tm_min, utc.tm_sec, ms % 1000);
-    return std::any (std::string (buffer));
+    return ccxt::any (std::string (buffer));
 }
 
-std::any ExchangeBase::parseTimeframe (std::any timeframe) {
+ccxt::any ExchangeBase::parseTimeframe (ccxt::any timeframe) {
     const std::string value = str (timeframe);
     if (value.empty ()) {
-        return std::any {};
+        return ccxt::any {};
     }
     const char unit = value.back ();
     long long amount = 0;
     try {
         amount = std::stoll (value.substr (0, value.size () - 1));
     } catch (const std::exception&) {
-        return std::any {};
+        return ccxt::any {};
     }
     switch (unit) {
-    case 'y': return std::any (amount * 31536000LL);
-    case 'M': return std::any (amount * 2592000LL);
-    case 'w': return std::any (amount * 604800LL);
-    case 'd': return std::any (amount * 86400LL);
-    case 'h': return std::any (amount * 3600LL);
-    case 'm': return std::any (amount * 60LL);
-    case 's': return std::any (amount);
-    default:  return std::any {};
+    case 'y': return ccxt::any (amount * 31536000LL);
+    case 'M': return ccxt::any (amount * 2592000LL);
+    case 'w': return ccxt::any (amount * 604800LL);
+    case 'd': return ccxt::any (amount * 86400LL);
+    case 'h': return ccxt::any (amount * 3600LL);
+    case 'm': return ccxt::any (amount * 60LL);
+    case 's': return ccxt::any (amount);
+    default:  return ccxt::any {};
     }
 }
 
@@ -1285,13 +1285,13 @@ std::any ExchangeBase::parseTimeframe (std::any timeframe) {
 // but guards it first, rejecting bare digit strings and anything without both a dash
 // and a colon. A naive datetime (no zone, no trailing Z) is read as UTC, which is what
 // the `(x + 'Z')` fallback in the TS does.
-std::any ExchangeBase::parse8601 (std::any datetime) {
+ccxt::any ExchangeBase::parse8601 (ccxt::any datetime) {
     if (!isStr (datetime)) {
-        return std::any {};
+        return ccxt::any {};
     }
-    const std::string text = std::any_cast<std::string> (datetime);
+    const std::string text = ccxt::any_cast<std::string> (datetime);
     if (text.empty ()) {
-        return std::any {};
+        return ccxt::any {};
     }
     bool allDigits = true;
     for (char c : text) {
@@ -1302,10 +1302,10 @@ std::any ExchangeBase::parse8601 (std::any datetime) {
     }
     // a numeric string is a timestamp, not a date
     if (allDigits) {
-        return std::any {};
+        return ccxt::any {};
     }
     if (text.find ('-') == std::string::npos || text.find (':') == std::string::npos) {
-        return std::any {};
+        return ccxt::any {};
     }
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
     // the date/time separator is 'T' in ISO form and a space in the loose form ccxt
@@ -1314,14 +1314,14 @@ std::any ExchangeBase::parse8601 (std::any datetime) {
                      &year, &month, &day, &hour, &minute, &second) != 6 &&
         std::sscanf (text.c_str (), "%4d-%2d-%2d %2d:%2d:%2d",
                      &year, &month, &day, &hour, &minute, &second) != 6) {
-        return std::any {};
+        return ccxt::any {};
     }
     // reject out-of-range fields BEFORE timegm: glibc normalizes month 13 / hour 25
     // into the next period and returns a valid epoch for an invalid ISO date
     // (TS's Date.parse is strict and yields NaN -> undefined)
     if (month < 1 || month > 12 || day < 1 || day > 31 ||
         hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 60) {
-        return std::any {};
+        return ccxt::any {};
     }
     long long millis = 0;
     const std::size_t dot = text.find ('.');
@@ -1346,7 +1346,7 @@ std::any ExchangeBase::parse8601 (std::any datetime) {
     utc.tm_sec = second;
     const std::time_t epoch = timegm (&utc);
     if (epoch == static_cast<std::time_t> (-1)) {
-        return std::any {};
+        return ccxt::any {};
     }
     long long result = static_cast<long long> (epoch) * 1000LL + millis;
     // an explicit offset shifts the result back to UTC
@@ -1367,32 +1367,32 @@ std::any ExchangeBase::parse8601 (std::any datetime) {
             result += (text[offsetAt] == '+') ? -offsetMs : offsetMs;
         }
     }
-    return std::any (result);
+    return ccxt::any (result);
 }
 
-std::any ExchangeBase::roundTimeframe (std::any timeframe, std::any timestamp, std::any direction) {
-    const std::any parsed = this->parseTimeframe (timeframe);
+ccxt::any ExchangeBase::roundTimeframe (ccxt::any timeframe, ccxt::any timestamp, ccxt::any direction) {
+    const ccxt::any parsed = this->parseTimeframe (timeframe);
     if (!parsed.has_value () || !timestamp.has_value ()) {
-        return std::any {};
+        return ccxt::any {};
     }
     const long long ms = toLong (parsed) * 1000LL;
     if (ms == 0) {
-        return std::any {};
+        return ccxt::any {};
     }
     const long long value = toLong (timestamp);
     const long long offset = value % ms;
     // TS defaults the direction to ROUND_DOWN and adds a whole period for ROUND_UP
     const bool roundUp = direction.has_value () && isEqual (direction, ROUND_UP);
-    return std::any (value - offset + (roundUp ? ms : 0));
+    return ccxt::any (value - offset + (roundUp ? ms : 0));
 }
 
-std::shared_future<std::any> ExchangeBase::sleep (std::any ms) {
+std::shared_future<ccxt::any> ExchangeBase::sleep (ccxt::any ms) {
     const long long duration = toLong (ms);
     // sleep keeps launch::async: the whole point is that time passes, and a
     // deferred body would not start until someone awaited it
-    return std::async (std::launch::async, [duration] () -> std::any {
+    return std::async (std::launch::async, [duration] () -> ccxt::any {
         std::this_thread::sleep_for (std::chrono::milliseconds (duration));
-        return std::any {};
+        return ccxt::any {};
     }).share ();
 }
 
@@ -1400,22 +1400,22 @@ std::shared_future<std::any> ExchangeBase::sleep (std::any ms) {
 // logging and plumbing
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::log (std::any value) {
+ccxt::any ExchangeBase::log (ccxt::any value) {
     std::cout << serialise (value) << std::endl;
-    return std::any {};
+    return ccxt::any {};
 }
 
-std::any ExchangeBase::createSafeDictionary (std::any) { return std::any (dict {}); }
-std::any ExchangeBase::mapToSafeMap (std::any value) { return value; }
-std::any ExchangeBase::initThrottler () { return std::any {}; }
-std::any ExchangeBase::addFetchCache (std::any, std::any) { return std::any {}; }
-std::any ExchangeBase::setLastRequest (std::any) { return std::any {}; }
-std::any ExchangeBase::setLastRestRequestTimestamp (std::any) { return std::any {}; }
-std::any ExchangeBase::storeArray (std::any target, std::any value) {
+ccxt::any ExchangeBase::createSafeDictionary (ccxt::any) { return ccxt::any (dict {}); }
+ccxt::any ExchangeBase::mapToSafeMap (ccxt::any value) { return value; }
+ccxt::any ExchangeBase::initThrottler () { return ccxt::any {}; }
+ccxt::any ExchangeBase::addFetchCache (ccxt::any, ccxt::any) { return ccxt::any {}; }
+ccxt::any ExchangeBase::setLastRequest (ccxt::any) { return ccxt::any {}; }
+ccxt::any ExchangeBase::setLastRestRequestTimestamp (ccxt::any) { return ccxt::any {}; }
+ccxt::any ExchangeBase::storeArray (ccxt::any target, ccxt::any value) {
     // ws order book sides: store the delta (shared store, mutation propagates);
     // the transpiler rewrites `side.storeArray (delta)` to `this->storeArray (side, delta)`
     if (target.type () == typeid (ccxt::ws::OrderBookSide)) {
-        ccxt::ws::OrderBookSide side = std::any_cast<ccxt::ws::OrderBookSide> (target);
+        ccxt::ws::OrderBookSide side = ccxt::any_cast<ccxt::ws::OrderBookSide> (target);
         side.storeArray (value);
     }
     return target;
@@ -1426,15 +1426,15 @@ namespace {
 // then a receive thread routes frames into the exchange's handleMessage. Used
 // by BOTH watch() and watchMultiple() -- the pro tier funnels most exchanges
 // through watchMultiple, so the connect step must live here too.
-void connectWsClient (ccxt::ExchangeBase* ex, const std::any& url, ccxt::ws::Client& client) {
+void connectWsClient (ccxt::ExchangeBase* ex, const ccxt::any& url, ccxt::ws::Client& client) {
     if (client.isMockConnected () || client.isLiveConnected ()) {
         return;
     }
-    const std::any clientAny = std::any (client);
+    const ccxt::any clientAny = ccxt::any (client);
     try {
         client.connect (
             str (url),
-            [ex, clientAny] (const std::any& rawText) {
+            [ex, clientAny] (const ccxt::any& rawText) {
                 if (std::getenv ("CCXT_WS_URL_TRACE")) {
                     const std::string text = str (rawText);
                     std::fprintf (stderr, "[ws-frame] %.110s\n", text.c_str ());
@@ -1449,7 +1449,7 @@ void connectWsClient (ccxt::ExchangeBase* ex, const std::any& url, ccxt::ws::Cli
                     // a malformed frame must not kill the receive thread
                 }
             },
-            [ex] (const std::any& message) {
+            [ex] (const ccxt::any& message) {
                 return ::str (ex->json (message));
             });
         if (std::getenv ("CCXT_WS_URL_TRACE")) {
@@ -1470,16 +1470,16 @@ ExchangeBase::~ExchangeBase () {
     // threads route frames into handleMessage on `this`, and the join inside
     // Transport::shutdown orders any in-flight callback before this teardown
     if (this->clients.has_value () && ccxt::isDict (this->clients)) {
-        const ccxt::dict clients = std::any_cast<ccxt::dict> (this->clients);
+        const ccxt::dict clients = ccxt::any_cast<ccxt::dict> (this->clients);
         for (const auto& kv : clients.entries ()) {
             if (kv.second.type () == typeid (ccxt::ws::Client)) {
-                std::any_cast<ccxt::ws::Client> (kv.second).shutdown ();
+                ccxt::any_cast<ccxt::ws::Client> (kv.second).shutdown ();
             }
         }
     }
 }
 
-std::any ExchangeBase::resolve (std::any value, std::any messageHash) {
+ccxt::any ExchangeBase::resolve (ccxt::any value, ccxt::any messageHash) {
     if (std::getenv ("CCXT_WS_URL_TRACE")) {
         std::fprintf (stderr, "[ex-resolve-enter] hash=%s clients=%d\n",
                       messageHash.has_value () ? str (messageHash).c_str () : "<empty>",
@@ -1490,25 +1490,25 @@ std::any ExchangeBase::resolve (std::any value, std::any messageHash) {
     // that holds the hash will settle anything, the others no-op (JS client.resolve).
     if (this->clients.has_value () && ccxt::isDict (this->clients)) {
         const std::string hash = messageHash.has_value () ? str (messageHash) : std::string {};
-        const ccxt::dict clients = std::any_cast<ccxt::dict> (this->clients);
+        const ccxt::dict clients = ccxt::any_cast<ccxt::dict> (this->clients);
         if (std::getenv ("CCXT_WS_URL_TRACE")) {
             std::fprintf (stderr, "[ex-resolve] hash=%s clients=%zu\n", hash.c_str (), clients.size ());
         }
         for (const auto& kv : clients.entries ()) {
             if (kv.second.type () == typeid (ccxt::ws::Client)) {
-                std::any_cast<ccxt::ws::Client> (kv.second).resolve (value, hash);
+                ccxt::any_cast<ccxt::ws::Client> (kv.second).resolve (value, hash);
             }
         }
     }
     return value;
 }
 
-std::any ExchangeBase::reject (std::any value, std::any messageHash) {
+ccxt::any ExchangeBase::reject (ccxt::any value, ccxt::any messageHash) {
     if (this->clients.has_value () && ccxt::isDict (this->clients)) {
         const std::string hash = messageHash.has_value () ? str (messageHash) : std::string {};
-        for (const auto& kv : std::any_cast<ccxt::dict> (this->clients).entries ()) {
+        for (const auto& kv : ccxt::any_cast<ccxt::dict> (this->clients).entries ()) {
             if (kv.second.type () == typeid (ccxt::ws::Client)) {
-                std::any_cast<ccxt::ws::Client> (kv.second).reject (value, hash);
+                ccxt::any_cast<ccxt::ws::Client> (kv.second).reject (value, hash);
             }
         }
     }
@@ -1520,7 +1520,7 @@ std::any ExchangeBase::reject (std::any value, std::any messageHash) {
 // transpile marker (client/watch/watchMultiple/spawn/delay/ping/handlers/close)
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::client (std::any url) {
+ccxt::any ExchangeBase::client (ccxt::any url) {
     if (!url.has_value ()) {
         throw ccxt::ArgumentsRequired (str (this->id) + " client() requires a url argument");
     }
@@ -1529,19 +1529,19 @@ std::any ExchangeBase::client (std::any url) {
         std::fprintf (stderr, "[ws-client] %s client url=%s\n", str (this->id).c_str (), urlStr.c_str ());
     }
     if (!this->clients.has_value ()) {
-        this->clients = std::any (ccxt::dict {});
+        this->clients = ccxt::any (ccxt::dict {});
     }
-    ccxt::dict clients = std::any_cast<ccxt::dict> (this->clients);
+    ccxt::dict clients = ccxt::any_cast<ccxt::dict> (this->clients);
     if (!clients.has (urlStr)) {
         // the static tests never dial: connect is resolved by the mock transport
         // (setupWsMockTransport); a real transport plugs in here later
-        clients.set (urlStr, std::any (ccxt::ws::Client (urlStr)));
+        clients.set (urlStr, ccxt::any (ccxt::ws::Client (urlStr)));
     }
     return clients.get (urlStr);
 }
 
-std::any ExchangeBase::watch (std::any url, std::any messageHash, std::any message,
-                              std::any subscribeHash, std::any subscription) {
+ccxt::any ExchangeBase::watch (ccxt::any url, ccxt::any messageHash, ccxt::any message,
+                              ccxt::any subscribeHash, ccxt::any subscription) {
     if (!url.has_value ()) {
         throw ccxt::ArgumentsRequired (str (this->id) + " watch() requires a url argument");
     }
@@ -1549,18 +1549,18 @@ std::any ExchangeBase::watch (std::any url, std::any messageHash, std::any messa
         throw ccxt::ArgumentsRequired (str (this->id) + " watch() requires a messageHash argument");
     }
     const std::string hash = str (messageHash);
-    ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (this->client (url));
+    ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (this->client (url));
     // a non-mock client dials the real socket on first use (shared with watchMultiple)
     connectWsClient (this, url, client);
     if (!subscribeHash.has_value () && client.hasFuture (hash)) {
-        return std::any (client.future (hash));
+        return ccxt::any (client.future (hash));
     }
     ccxt::ws::Future future = client.future (hash);
     bool newSubscription = false;
     if (subscribeHash.has_value ()) {
         if (!client.isSubscribed (str (subscribeHash))) {
             client.setSubscription (str (subscribeHash),
-                                    subscription.has_value () ? subscription : std::any (true));
+                                    subscription.has_value () ? subscription : ccxt::any (true));
             newSubscription = true;
         }
     }
@@ -1570,133 +1570,133 @@ std::any ExchangeBase::watch (std::any url, std::any messageHash, std::any messa
     if (message.has_value () && newSubscription) {
         client.send (message);
     }
-    return std::any (future);
+    return ccxt::any (future);
 }
 
-std::any ExchangeBase::watchMultiple (std::any url, std::any messageHashes, std::any message,
-                                      std::any subscribeHashes, std::any subscription) {
+ccxt::any ExchangeBase::watchMultiple (ccxt::any url, ccxt::any messageHashes, ccxt::any message,
+                                      ccxt::any subscribeHashes, ccxt::any subscription) {
     if (!url.has_value ()) {
         throw ccxt::ArgumentsRequired (str (this->id) + " watchMultiple() requires a url argument");
     }
-    ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (this->client (url));
+    ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (this->client (url));
     // a non-mock client dials the real socket on first use (shared with watch)
     connectWsClient (this, url, client);
     // missing-subscription bookkeeping before the race so re-entrant calls don't resend
     std::vector<std::string> missing;
     if (subscribeHashes.has_value () && ccxt::isList (subscribeHashes)) {
-        for (const auto& h : std::any_cast<ccxt::list> (subscribeHashes).items ()) {
+        for (const auto& h : ccxt::any_cast<ccxt::list> (subscribeHashes).items ()) {
             if (!client.isSubscribed (str (h))) {
                 missing.push_back (str (h));
             }
         }
         for (const auto& h : missing) {
-            client.setSubscription (h, subscription.has_value () ? subscription : std::any (true));
+            client.setSubscription (h, subscription.has_value () ? subscription : ccxt::any (true));
         }
     }
     std::vector<ccxt::ws::Future> futures;
-    for (const auto& h : std::any_cast<ccxt::list> (messageHashes).items ()) {
+    for (const auto& h : ccxt::any_cast<ccxt::list> (messageHashes).items ()) {
         futures.push_back (client.future (str (h)));
     }
     if (message.has_value () && !missing.empty ()) {
         client.send (message);
     }
-    return std::any (ccxt::ws::race (futures));
+    return ccxt::any (ccxt::ws::race (futures));
 }
 
-std::shared_future<std::any> ExchangeBase::spawn (std::any methodName, std::any args) {
+std::shared_future<ccxt::any> ExchangeBase::spawn (ccxt::any methodName, ccxt::any args) {
     // fire-and-forget dispatch by method name (generated pro code passes the
     // method as a stringified reference). Exceptions propagate through the
     // shared_future (TS parity: a throwing spawned task rejects its promise
     // and awaitValue rethrows) -- swallowing here produced empty results that
     // masked real failures downstream.
-    return std::async (std::launch::async, [this, methodName, args] () -> std::any {
+    return std::async (std::launch::async, [this, methodName, args] () -> ccxt::any {
         return this->callDynamically (str (methodName), args);
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::delay (std::any timeout, std::any methodName, std::any args) {
+std::shared_future<ccxt::any> ExchangeBase::delay (ccxt::any timeout, ccxt::any methodName, ccxt::any args) {
     const int64_t ms = timeout.has_value () ? static_cast<int64_t> (toDouble (timeout)) : 0;
-    return std::async (std::launch::async, [this, ms, methodName, args] () -> std::any {
+    return std::async (std::launch::async, [this, ms, methodName, args] () -> ccxt::any {
         std::this_thread::sleep_for (std::chrono::milliseconds (ms));
         return this->callDynamically (str (methodName), args);
     }).share ();
 }
 
-std::any ExchangeBase::ping (std::any) {
-    return std::any {};
+ccxt::any ExchangeBase::ping (ccxt::any) {
+    return ccxt::any {};
 }
 
 // ws base emulations — TS Exchange.ts declares these above the transpile marker,
 // so the C++ base owns them (see declarations in ExchangeBase.h). Bodies mirror
 // the TS ones: resolve current state immediately.
-std::shared_future<std::any> ExchangeBase::fetchMarketsWs (std::any) {
-    return std::async (std::launch::deferred, [this] () -> std::any {
+std::shared_future<ccxt::any> ExchangeBase::fetchMarketsWs (ccxt::any) {
+    return std::async (std::launch::deferred, [this] () -> ccxt::any {
         if (!this->markets.has_value () || !ccxt::isDict (this->markets)) {
-            return std::any (ccxt::list {});
+            return ccxt::any (ccxt::list {});
         }
         ccxt::list out;
-        for (const auto& kv : std::any_cast<ccxt::dict> (this->markets).entries ()) {
+        for (const auto& kv : ccxt::any_cast<ccxt::dict> (this->markets).entries ()) {
             out.push (kv.second);
         }
-        return std::any (out);
+        return ccxt::any (out);
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::fetchCurrenciesWs (std::any) {
-    return std::async (std::launch::deferred, [this] () -> std::any {
-        return this->currencies.has_value () ? this->currencies : std::any (ccxt::dict {});
+std::shared_future<ccxt::any> ExchangeBase::fetchCurrenciesWs (ccxt::any) {
+    return std::async (std::launch::deferred, [this] () -> ccxt::any {
+        return this->currencies.has_value () ? this->currencies : ccxt::any (ccxt::dict {});
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::fetchBalanceWs (std::any) {
-    return std::async (std::launch::deferred, [this] () -> std::any {
-        return this->balance.has_value () ? this->balance : std::any (ccxt::dict {});
+std::shared_future<ccxt::any> ExchangeBase::fetchBalanceWs (ccxt::any) {
+    return std::async (std::launch::deferred, [this] () -> ccxt::any {
+        return this->balance.has_value () ? this->balance : ccxt::any (ccxt::dict {});
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::fetchTradingFeesWs (std::any) {
-    return std::async (std::launch::deferred, [this] () -> std::any {
-        return this->fees.has_value () ? this->fees : std::any (ccxt::dict {});
+std::shared_future<ccxt::any> ExchangeBase::fetchTradingFeesWs (ccxt::any) {
+    return std::async (std::launch::deferred, [this] () -> ccxt::any {
+        return this->fees.has_value () ? this->fees : ccxt::any (ccxt::dict {});
     }).share ();
 }
 
-void ExchangeBase::handleMessage (std::any, std::any) {
+void ExchangeBase::handleMessage (ccxt::any, ccxt::any) {
     // stub to override in pro exchanges
 }
 
-void ExchangeBase::onConnected (std::any, std::any) {
+void ExchangeBase::onConnected (ccxt::any, ccxt::any) {
 }
 
-void ExchangeBase::onError (std::any, std::any) {
+void ExchangeBase::onError (ccxt::any, ccxt::any) {
 }
 
-void ExchangeBase::onClose (std::any, std::any) {
+void ExchangeBase::onClose (ccxt::any, ccxt::any) {
 }
 
-std::shared_future<std::any> ExchangeBase::close (std::any) {
+std::shared_future<ccxt::any> ExchangeBase::close (ccxt::any) {
     // reject every pending future with ExchangeClosedByUser and drop the clients
     if (this->clients.has_value () && ccxt::isDict (this->clients)) {
-        for (const auto& kv : std::any_cast<ccxt::dict> (this->clients).entries ()) {
+        for (const auto& kv : ccxt::any_cast<ccxt::dict> (this->clients).entries ()) {
             if (kv.second.type () == typeid (ccxt::ws::Client)) {
-                std::any_cast<ccxt::ws::Client> (kv.second).reject (
-                    std::any (std::string (str (this->id) + " closedByUser")));
+                ccxt::any_cast<ccxt::ws::Client> (kv.second).reject (
+                    ccxt::any (std::string (str (this->id) + " closedByUser")));
             }
         }
-        this->clients = std::any (ccxt::dict {});
+        this->clients = ccxt::any (ccxt::dict {});
     }
-    return std::async (std::launch::deferred, [] () -> std::any { return std::any {}; }).share ();
+    return std::async (std::launch::deferred, [] () -> ccxt::any { return ccxt::any {}; }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::throttle (std::any) {
-    return std::async (std::launch::deferred, [] () -> std::any { return std::any {}; }).share ();
+std::shared_future<ccxt::any> ExchangeBase::throttle (ccxt::any) {
+    return std::async (std::launch::deferred, [] () -> ccxt::any { return ccxt::any {}; }).share ();
 }
 
 // ---------------------------------------------------------------------------
 // network — deliberately unimplemented in iteration 1
 // ---------------------------------------------------------------------------
 
-std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
-                                                  std::any headers, std::any body) {
+std::shared_future<ccxt::any> ExchangeBase::fetch (ccxt::any url, ccxt::any method,
+                                                  ccxt::any headers, ccxt::any body) {
     // Record what sign() built BEFORE failing. The static request tests assert on
     // exactly this -- they never want the response, only the request -- so throwing
     // first would make every fixture unverifiable rather than merely unsent.
@@ -1708,7 +1708,7 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
     if (this->fetchImpl) {
         const auto impl = this->fetchImpl;
         return std::async (std::launch::deferred,
-                           [impl, url, method, headers, body] () -> std::any {
+                           [impl, url, method, headers, body] () -> ccxt::any {
             return impl (url, method, headers, body);
         }).share ();
     }
@@ -1720,13 +1720,13 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
     // would run them strictly one at a time on the awaiting thread (~3x slower
     // network phase). Futures are created up front by the generated promiseAll
     // list, so the requests overlap even though promiseAll awaits in order.
-    return std::async (std::launch::async, [this, target, verb, url, method, headers, body] () -> std::any {
+    return std::async (std::launch::async, [this, target, verb, url, method, headers, body] () -> ccxt::any {
         // merged headers are built from a LOCAL snapshot: concurrent fetches
         // (TS promiseAll fan-outs) must not race on the this->headers member
         // (the only writer is the exchange's own describe/init path, which is
         // single-threaded and done before any fetch fires)
-        std::any base = this->headers;
-        std::any merged = headers;
+        ccxt::any base = this->headers;
+        ccxt::any merged = headers;
         if (base.has_value () && isDict (base)) {
             merged = (headers.has_value () && isDict (headers))
                 ? this->deepExtend (base, headers)
@@ -1762,10 +1762,10 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
         bool proxyApplied = false;
         std::string proxyValue;
         if (this->options.has_value () && isDict (this->options)) {
-            const auto& opts = std::any_cast<dict> (this->options);
+            const auto& opts = ccxt::any_cast<dict> (this->options);
             const auto pick = [&opts] (const char* key) -> std::string {
                 if (opts.has (std::string (key))) {
-                    const std::any v = opts.get (std::string (key));
+                    const ccxt::any v = opts.get (std::string (key));
                     if (isStr (v)) {
                         return str (v);
                     }
@@ -1795,7 +1795,7 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
 
         struct curl_slist* hdrs = nullptr;
         if (merged.has_value () && isDict (merged)) {
-            for (const auto& kv : std::any_cast<dict> (merged).entries ()) {
+            for (const auto& kv : ccxt::any_cast<dict> (merged).entries ()) {
                 hdrs = curl_slist_append (hdrs, (kv.first + ": " + str (kv.second)).c_str ());
             }
         }
@@ -1836,25 +1836,25 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
                                 + curl_easy_strerror (res));
         }
 
-        const std::any statusText = std::string ("OK");
-        const std::any emptyHeaders = dict {};
+        const ccxt::any statusText = std::string ("OK");
+        const ccxt::any emptyHeaders = dict {};
 
-        const std::any bodyText = this->onRestResponse (status, statusText, url, method,
+        const ccxt::any bodyText = this->onRestResponse (status, statusText, url, method,
                                                         emptyHeaders, out, headers, body);
-        std::any parsed = std::any {};
+        ccxt::any parsed = ccxt::any {};
         try {
             parsed = this->parseJson (bodyText);
         } catch (const std::exception&) {
-            parsed = std::any {};
+            parsed = ccxt::any {};
         }
 
-        const std::any skip = this->handleErrors (status, statusText, url, method,
+        const ccxt::any skip = this->handleErrors (status, statusText, url, method,
                                                   emptyHeaders, bodyText, parsed,
                                                   headers, body);
         if (!skip.has_value ()) {
             this->handleHttpStatusCode (status, statusText, url, method, out);
         }
-        if (parsed.has_value () && !isTrue (isEqual (parsed, std::any {}))) {
+        if (parsed.has_value () && !isTrue (isEqual (parsed, ccxt::any {}))) {
             return parsed;
         }
         return out;
@@ -1863,10 +1863,10 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
 
 // ---------------------------------------------------------------------------
 // dynamic access — the transpiled test framework reads and writes members
-// through these when the receiver is a std::any
+// through these when the receiver is a ccxt::any
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::getProperty (const std::string& name) {
+ccxt::any ExchangeBase::getProperty (const std::string& name) {
     if (name == "id") return this->id;
     if (name == "name") return this->name;
     if (name == "alias") return this->alias;
@@ -1930,11 +1930,11 @@ std::any ExchangeBase::getProperty (const std::string& name) {
     if (name == "httpsProxy") return this->httpsProxy;
     if (name == "wsProxy") return this->wsProxy;
     if (name == "wssProxy") return this->wssProxy;
-    if (name == "enableLastHttpResponse") return std::any (true);
+    if (name == "enableLastHttpResponse") return ccxt::any (true);
     throw NotSupported ("getProperty: unknown member \"" + name + "\"");
 }
 
-std::any ExchangeBase::setProperty (const std::string& name, std::any value) {
+ccxt::any ExchangeBase::setProperty (const std::string& name, ccxt::any value) {
     if (name == "id") { this->id = value; return value; }
     if (name == "alias") { this->alias = value; return value; }
     if (name == "hostname") { this->hostname = value; return value; }
@@ -1961,7 +1961,7 @@ std::any ExchangeBase::setProperty (const std::string& name, std::any value) {
     throw NotSupported ("setProperty: unknown member \"" + name + "\"");
 }
 
-std::any ExchangeBase::callDynamically (const std::string& name, std::any args) {
+ccxt::any ExchangeBase::callDynamically (const std::string& name, ccxt::any args) {
     if (std::getenv ("CCXT_WS_URL_TRACE")
         && (name.rfind ("handle", 0) == 0 || name.rfind ("watch", 0) == 0)) {
         std::fprintf (stderr, "[callDynamically] %s\n", name.c_str ());
@@ -1976,7 +1976,7 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
     } ();
     if (!knownMiss) {
         try {
-            return this->callMethod (std::string (name), args.has_value () ? args : std::any (list {}));
+            return this->callMethod (std::string (name), args.has_value () ? args : ccxt::any (list {}));
         } catch (const DispatchMiss&) {
             // genuine table miss: record it and fall through to the helper registry
             {
@@ -1988,11 +1988,11 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
         // NotSupported stub, exchange error): propagate it untouched -- falling through
         // here would mask it behind "no handler" and poison the cache
     }
-    const auto& argv = isList (args) ? std::any_cast<list> (args).items () : std::vector<std::any> {};
-    const std::any a0 = argv.size () > 0 ? argv[0] : std::any {};
-    const std::any a1 = argv.size () > 1 ? argv[1] : std::any {};
-    const std::any a2 = argv.size () > 2 ? argv[2] : std::any {};
-    const std::any a3 = argv.size () > 3 ? argv[3] : std::any {};
+    const auto& argv = isList (args) ? ccxt::any_cast<list> (args).items () : std::vector<ccxt::any> {};
+    const ccxt::any a0 = argv.size () > 0 ? argv[0] : ccxt::any {};
+    const ccxt::any a1 = argv.size () > 1 ? argv[1] : ccxt::any {};
+    const ccxt::any a2 = argv.size () > 2 ? argv[2] : ccxt::any {};
+    const ccxt::any a3 = argv.size () > 3 ? argv[3] : ccxt::any {};
     if (name == "safeValue") return this->safeValue (a0, a1, a2);
     if (name == "safeString") return this->safeString (a0, a1, a2);
     if (name == "safeStringUpper") return this->safeStringUpper (a0, a1, a2);
@@ -2028,20 +2028,20 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
     if (name == "iso8601") return this->iso8601 (a0);
     if (name == "milliseconds") return this->milliseconds ();
     if (name == "checkRequiredCredentials") return this->checkRequiredCredentials (a0);
-    if (name == "setSandboxMode") { this->setSandboxMode (a0); return std::any {}; }
-    if (name == "setMarkets") { this->setMarkets (a0, a1); return std::any {}; }
+    if (name == "setSandboxMode") { this->setSandboxMode (a0); return ccxt::any {}; }
+    if (name == "setMarkets") { this->setMarkets (a0, a1); return ccxt::any {}; }
     if (name == "loadMarkets") return this->loadMarkets (a0);
     if (name == "sleep") return this->sleep (a0);
     if (name == "getCcxtVersion") return this->getCcxtVersion ();
     if (name == "fetch") return this->fetch (a0, a1, a2, a3);
     // free-form test helpers (transpiled test.sharedMethods passes the exchange
     // itself as a0 inside the args list; it rides as a shared_ptr<ExchangeBase>)
-    const auto unwrapSelf = [] (const std::any& selfAny) -> ExchangeBase* {
+    const auto unwrapSelf = [] (const ccxt::any& selfAny) -> ExchangeBase* {
         if (selfAny.type () == typeid (std::shared_ptr<ExchangeBase>)) {
-            return std::any_cast<std::shared_ptr<ExchangeBase>> (selfAny).get ();
+            return ccxt::any_cast<std::shared_ptr<ExchangeBase>> (selfAny).get ();
         }
         if (selfAny.type () == typeid (ExchangeBase*)) {
-            return std::any_cast<ExchangeBase*> (selfAny);
+            return ccxt::any_cast<ExchangeBase*> (selfAny);
         }
         return nullptr;
     };
@@ -2062,7 +2062,7 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
         } catch (const NotSupported&) {
             // TS would create an expando property; the C++ port has no bag for those
         }
-        return std::any {};
+        return ccxt::any {};
     }
     if (name == "jsonStringifyWithNull") return this->json (a0);
     if (name == "capitalize") return this->capitalize (a0);
@@ -2071,29 +2071,29 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
     // static request fixtures call them directly; route through callEndpoint. The
     // endpoint default is an empty params dict, mirroring TS's `params = {}`.
     if (this->hasEndpoint (name)) {
-        const std::any endpointParams = a0.has_value () ? a0 : std::any (dict {});
-        return std::any (this->callEndpoint (std::any (std::string (name)), endpointParams));
+        const ccxt::any endpointParams = a0.has_value () ? a0 : ccxt::any (dict {});
+        return ccxt::any (this->callEndpoint (ccxt::any (std::string (name)), endpointParams));
     }
     // No dynamic handler at all -- the only way here is a cached DispatchMiss that the
     // helper registry also does not cover.
     throw NotSupported ("callDynamically: no handler for \"" + name + "\"");
 }
 
-std::any ExchangeBase::handleErrors (std::any, std::any, std::any, std::any,
-                                     std::any, std::any, std::any, std::any,
-                                     std::any) {
-    return std::any {};   // no-op default; per-exchange overrides throw
+ccxt::any ExchangeBase::handleErrors (ccxt::any, ccxt::any, ccxt::any, ccxt::any,
+                                     ccxt::any, ccxt::any, ccxt::any, ccxt::any,
+                                     ccxt::any) {
+    return ccxt::any {};   // no-op default; per-exchange overrides throw
 }
 
-std::any ExchangeBase::handleHttpStatusCode (std::any code, std::any reason,
-                                             std::any url, std::any method,
-                                             std::any body) {
+ccxt::any ExchangeBase::handleHttpStatusCode (ccxt::any code, ccxt::any reason,
+                                             ccxt::any url, ccxt::any method,
+                                             ccxt::any body) {
     if (!code.has_value ()) {
-        return std::any {};
+        return ccxt::any {};
     }
     const long long status = toLong (code);
     if (status < 400) {
-        return std::any {};
+        return ccxt::any {};
     }
     const std::string message = (this->id.has_value () ? str (this->id) : std::string ("ccxt"))
         + " " + str (method) + " " + str (url) + " " + std::to_string (status)
@@ -2112,13 +2112,13 @@ std::any ExchangeBase::handleHttpStatusCode (std::any code, std::any reason,
         if (status >= 500) {
             throw ExchangeNotAvailable (message);
         }
-        return std::any {};
+        return ccxt::any {};
     }
 }
 
-std::any ExchangeBase::onRestResponse (std::any, std::any, std::any, std::any,
-                                       std::any, std::any responseBody,
-                                       std::any, std::any) {
+ccxt::any ExchangeBase::onRestResponse (ccxt::any, ccxt::any, ccxt::any, ccxt::any,
+                                       ccxt::any, ccxt::any responseBody,
+                                       ccxt::any, ccxt::any) {
     // default: return the trimmed body text
     if (!responseBody.has_value () || !isStr (responseBody)) {
         return responseBody;
@@ -2136,16 +2136,16 @@ std::any ExchangeBase::onRestResponse (std::any, std::any, std::any, std::any,
 // handwritten helpers the transpiled test framework calls (ts/src/base/Exchange.ts)
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::extendExchangeOptions (std::any newOptions) {
+ccxt::any ExchangeBase::extendExchangeOptions (ccxt::any newOptions) {
     this->options = this->extend (this->options, newOptions);
-    return std::any {};
+    return ccxt::any {};
 }
 
-std::any ExchangeBase::convertToSafeDictionary (std::any value) {
+ccxt::any ExchangeBase::convertToSafeDictionary (ccxt::any value) {
     return value;
 }
 
-std::any ExchangeBase::getCcxtVersion () {
+ccxt::any ExchangeBase::getCcxtVersion () {
     return std::string ("4.4.79");   // kept in sync with the JS package version
 }
 
@@ -2157,43 +2157,43 @@ std::any ExchangeBase::getCcxtVersion () {
 // bind. Everything reachable through an ExchangeBase* is a concrete Exchange, so
 // these are never actually dispatched.
 
-std::any ExchangeBase::safeNumber (std::any, std::any, std::any) {
+ccxt::any ExchangeBase::safeNumber (ccxt::any, ccxt::any, ccxt::any) {
     throw NotSupported ("safeNumber is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::safeDict (std::any, std::any, std::any) {
+ccxt::any ExchangeBase::safeDict (ccxt::any, ccxt::any, ccxt::any) {
     throw NotSupported ("safeDict is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::safeList (std::any, std::any, std::any) {
+ccxt::any ExchangeBase::safeList (ccxt::any, ccxt::any, ccxt::any) {
     throw NotSupported ("safeList is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::parseToInt (std::any) {
+ccxt::any ExchangeBase::parseToInt (ccxt::any) {
     throw NotSupported ("parseToInt is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::parseToNumeric (std::any) {
+ccxt::any ExchangeBase::parseToNumeric (ccxt::any) {
     throw NotSupported ("parseToNumeric is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::market (std::any) {
+ccxt::any ExchangeBase::market (ccxt::any) {
     throw NotSupported ("market is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::marketId (std::any) {
+ccxt::any ExchangeBase::marketId (ccxt::any) {
     throw NotSupported ("marketId is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::currency (std::any) {
+ccxt::any ExchangeBase::currency (ccxt::any) {
     throw NotSupported ("currency is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::currencyId (std::any) {
+ccxt::any ExchangeBase::currencyId (ccxt::any) {
     throw NotSupported ("currencyId is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::checkRequiredCredentials (std::any) {
+ccxt::any ExchangeBase::checkRequiredCredentials (ccxt::any) {
     throw NotSupported ("checkRequiredCredentials is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::setMarkets (std::any, std::any) {
+ccxt::any ExchangeBase::setMarkets (ccxt::any, ccxt::any) {
     throw NotSupported ("setMarkets is generated, not on the C++ ExchangeBase");
 }
-void ExchangeBase::setSandboxMode (std::any) {
+void ExchangeBase::setSandboxMode (ccxt::any) {
     throw NotSupported ("setSandboxMode is generated, not on the C++ ExchangeBase");
 }
-std::any ExchangeBase::isEmptyString (std::any) {
+ccxt::any ExchangeBase::isEmptyString (ccxt::any) {
     throw NotSupported ("isEmptyString is generated, not on the C++ ExchangeBase");
 }
 
@@ -2203,72 +2203,72 @@ std::any ExchangeBase::isEmptyString (std::any) {
 
 namespace {
 
-// Generated code hands binary around as std::any; it may hold real bytes or, on the
+// Generated code hands binary around as ccxt::any; it may hold real bytes or, on the
 // paths that have not been converted yet, a std::string of raw octets.
-bytes asBytes (const std::any& v) {
+bytes asBytes (const ccxt::any& v) {
     if (isBytes (v)) {
-        return std::any_cast<bytes> (v);
+        return ccxt::any_cast<bytes> (v);
     }
     return bytes (str (v));
 }
 
 } // namespace
 
-std::any ExchangeBase::encode (std::any value) { return std::any (encodeUtf8 (str (value))); }
+ccxt::any ExchangeBase::encode (ccxt::any value) { return ccxt::any (encodeUtf8 (str (value))); }
 
-std::any ExchangeBase::decode (std::any value) { return std::any (decodeUtf8 (asBytes (value))); }
+ccxt::any ExchangeBase::decode (ccxt::any value) { return ccxt::any (decodeUtf8 (asBytes (value))); }
 
-std::any ExchangeBase::base16ToBinary (std::any value) { return std::any (fromBase16 (str (value))); }
+ccxt::any ExchangeBase::base16ToBinary (ccxt::any value) { return ccxt::any (fromBase16 (str (value))); }
 
-std::any ExchangeBase::binaryToBase64 (std::any value) { return std::any (toBase64 (asBytes (value))); }
+ccxt::any ExchangeBase::binaryToBase64 (ccxt::any value) { return ccxt::any (toBase64 (asBytes (value))); }
 
-std::any ExchangeBase::base58ToBinary (std::any value) { return std::any (fromBase58 (str (value))); }
+ccxt::any ExchangeBase::base58ToBinary (ccxt::any value) { return ccxt::any (fromBase58 (str (value))); }
 
-std::any ExchangeBase::binaryToBase58 (std::any value) { return std::any (toBase58 (asBytes (value))); }
+ccxt::any ExchangeBase::binaryToBase58 (ccxt::any value) { return ccxt::any (toBase58 (asBytes (value))); }
 
-std::any ExchangeBase::binaryConcat (std::any a, std::any b, std::any c, std::any d,
-                                     std::any e, std::any f, std::any g) {
+ccxt::any ExchangeBase::binaryConcat (ccxt::any a, ccxt::any b, ccxt::any c, ccxt::any d,
+                                     ccxt::any e, ccxt::any f, ccxt::any g) {
     // TS binaryConcat = concatBytes -- variadic byte concatenation, including the
     // zero-arg call hibachi uses to initialise an empty byte array. The C++ runtime
-    // models binaries as `bytes`; non-set parts (std::any{}) are skipped.
+    // models binaries as `bytes`; non-set parts (ccxt::any{}) are skipped.
     std::vector<unsigned char> out;
-    for (const std::any& part : { a, b, c, d, e, f, g }) {
+    for (const ccxt::any& part : { a, b, c, d, e, f, g }) {
         if (!part.has_value ()) {
             continue;
         }
         const std::vector<unsigned char>& tail = asBytes (part).data ();
         out.insert (out.end (), tail.begin (), tail.end ());
     }
-    return std::any (bytes (std::move (out)));
+    return ccxt::any (bytes (std::move (out)));
 }
 
-std::any ExchangeBase::binaryLength (std::any value) {
-    return std::any (static_cast<long long> (asBytes (value).size ()));
+ccxt::any ExchangeBase::binaryLength (ccxt::any value) {
+    return ccxt::any (static_cast<long long> (asBytes (value).size ()));
 }
 
-std::any ExchangeBase::isBinaryMessage (std::any value) { return std::any (isBytes (value)); }
+ccxt::any ExchangeBase::isBinaryMessage (ccxt::any value) { return ccxt::any (isBytes (value)); }
 
-std::any ExchangeBase::hash (std::any payload, std::any algorithm, std::any digest) {
+ccxt::any ExchangeBase::hash (ccxt::any payload, ccxt::any algorithm, ccxt::any digest) {
     return hashBytes (asBytes (payload),
                       algorithm.has_value () ? str (algorithm) : std::string ("sha256"),
                       digest.has_value () ? str (digest) : std::string ("hex"));
 }
 
-std::any ExchangeBase::hmac (std::any payload, std::any key, std::any algorithm, std::any digest) {
+ccxt::any ExchangeBase::hmac (ccxt::any payload, ccxt::any key, ccxt::any algorithm, ccxt::any digest) {
     return hmacBytes (asBytes (payload), asBytes (key).toString (),
                       algorithm.has_value () ? str (algorithm) : std::string ("sha256"),
                       digest.has_value () ? str (digest) : std::string ("hex"));
 }
 
-std::any ExchangeBase::crc32 (std::any value, std::any signed32) {
-    return std::any (crc32Of (str (value), isTrue (signed32)));
+ccxt::any ExchangeBase::crc32 (ccxt::any value, ccxt::any signed32) {
+    return ccxt::any (crc32Of (str (value), isTrue (signed32)));
 }
 
-std::any ExchangeBase::rsa (std::any, std::any, std::any, std::any) {
+ccxt::any ExchangeBase::rsa (ccxt::any, ccxt::any, ccxt::any, ccxt::any) {
     throw NotSupported ("rsa signing is not implemented in the C++ port yet; only hmac keys work");
 }
 
-std::any ExchangeBase::eddsa (std::any request, std::any secret, std::any curve) {
+ccxt::any ExchangeBase::eddsa (ccxt::any request, ccxt::any secret, ccxt::any curve) {
     // TS eddsa(request, secret, ed25519): request is the message bytes, secret is the
     // 32-byte seed (modetrade passes base58ToBinary(secret)); returns base64(signature).
     if (curve.has_value () && isStr (curve) && str (curve) != "ed25519") {
@@ -2310,46 +2310,46 @@ std::any ExchangeBase::eddsa (std::any request, std::any secret, std::any curve)
         throw NotSupported ("eddsa: ed25519 signing failed");
     }
     signature.resize (signatureLength);
-    return std::any (toBase64 (bytes (std::move (signature))));
+    return ccxt::any (toBase64 (bytes (std::move (signature))));
 }
 
-std::any ExchangeBase::jwt (std::any data, std::any secretKey, std::any algorithm, std::any isRSA, std::any opts) {
+ccxt::any ExchangeBase::jwt (ccxt::any data, ccxt::any secretKey, ccxt::any algorithm, ccxt::any isRSA, ccxt::any opts) {
     // ts/src/base/functions/rsa.ts jwt(): header {alg, typ, +opts}, payload = data,
     // base64url segments; signature HS (hmac), ES (ecdsa/p256), Ed (eddsa) or RS.
     const std::string hashName = algorithm.has_value () ? str (algorithm) : "sha256";
     if (hashName != "sha256" && hashName != "sha384" && hashName != "sha512") {
         throw NotSupported ("jwt: unsupported hash " + hashName);
     }
-    const dict headerOpts = opts.has_value () && isDict (opts) ? std::any_cast<dict> (opts) : dict {};
+    const dict headerOpts = opts.has_value () && isDict (opts) ? ccxt::any_cast<dict> (opts) : dict {};
     std::string alg = (isTrue (isRSA) ? "RS" : "HS") + hashName.substr (3);
-    const std::any algOpt = headerOpts.get ("alg");
+    const ccxt::any algOpt = headerOpts.get ("alg");
     if (algOpt.has_value ()) {
         alg = str (algOpt);
         for (char& c : alg) c = static_cast<char> (std::toupper (static_cast<unsigned char> (c)));
     }
     dict header;
-    header.set ("alg", std::any (alg));
-    header.set ("typ", std::any (std::string ("JWT")));
+    header.set ("alg", ccxt::any (alg));
+    header.set ("typ", ccxt::any (std::string ("JWT")));
     for (const auto& kv : headerOpts.entries ()) {
         if (kv.first == "alg") {
             continue;
         }
         if (kv.first == "iat" && isDict (data)) {
-            std::any_cast<dict> (data).set ("iat", kv.second);
+            ccxt::any_cast<dict> (data).set ("iat", kv.second);
             continue;
         }
         header.set (kv.first, kv.second);
     }
-    const std::string encodedHeader = str (this->urlencodeBase64 (std::any (this->json (std::any (header)))));
-    const std::string encodedData = str (this->urlencodeBase64 (std::any (this->json (data))));
+    const std::string encodedHeader = str (this->urlencodeBase64 (ccxt::any (this->json (ccxt::any (header)))));
+    const std::string encodedData = str (this->urlencodeBase64 (ccxt::any (this->json (data))));
     const std::string token = encodedHeader + "." + encodedData;
     std::string signature;
     if (alg.rfind ("HS", 0) == 0) {
-        const std::any mac = this->hmac (std::any (token), secretKey, algorithm, std::any (std::string ("binary")));
+        const ccxt::any mac = this->hmac (ccxt::any (token), secretKey, algorithm, ccxt::any (std::string ("binary")));
         signature = str (this->urlencodeBase64 (mac));
     } else if (alg.rfind ("ED", 0) == 0) {
         // coinbase advanced-trade: secret is the base58 32-byte seed
-        const std::any sig = this->eddsa (std::any (token), secretKey, std::any (std::string ("ed25519")));
+        const ccxt::any sig = this->eddsa (ccxt::any (token), secretKey, ccxt::any (std::string ("ed25519")));
         // base64 -> base64url: '+'->'-', '/'->'_', strip '='
         std::string b64url = str (sig);
         for (char& c : b64url) {
@@ -2363,11 +2363,11 @@ std::any ExchangeBase::jwt (std::any data, std::any secretKey, std::any algorith
     } else {
         throw NotSupported ("jwt: algorithm " + alg + " is not implemented in the C++ port yet (only HS and EdDSA)");
     }
-    return std::any (token + "." + signature);
+    return ccxt::any (token + "." + signature);
 }
 
 // ccxt's uuid16/uuid22 are the uuid4 hex with the dashes removed, truncated
-std::any ExchangeBase::uuid16 () {
+ccxt::any ExchangeBase::uuid16 () {
     const std::string full = str (this->uuid ());
     std::string flat;
     for (char c : full) {
@@ -2375,10 +2375,10 @@ std::any ExchangeBase::uuid16 () {
             flat += c;
         }
     }
-    return std::any (flat.substr (0, 16));
+    return ccxt::any (flat.substr (0, 16));
 }
 
-std::any ExchangeBase::uuid22 () {
+ccxt::any ExchangeBase::uuid22 () {
     const std::string full = str (this->uuid ());
     std::string flat;
     for (char c : full) {
@@ -2386,13 +2386,13 @@ std::any ExchangeBase::uuid22 () {
             flat += c;
         }
     }
-    return std::any (flat.substr (0, 22));
+    return ccxt::any (flat.substr (0, 22));
 }
 
 namespace {
 
 // shared by the ymd family: UTC calendar parts of a ms timestamp
-bool utcParts (const std::any& timestamp, std::tm& out) {
+bool utcParts (const ccxt::any& timestamp, std::tm& out) {
     if (!timestamp.has_value () || !isNum (timestamp)) {
         return false;
     }
@@ -2403,59 +2403,59 @@ bool utcParts (const std::any& timestamp, std::tm& out) {
 
 } // namespace
 
-std::any ExchangeBase::yymmdd (std::any timestamp, std::any infix) {
+ccxt::any ExchangeBase::yymmdd (ccxt::any timestamp, ccxt::any infix) {
     std::tm utc {};
     if (!utcParts (timestamp, utc)) {
-        return std::any {};
+        return ccxt::any {};
     }
     const std::string sep = infix.has_value () ? str (infix) : std::string ("");
     char buffer[32];
     std::snprintf (buffer, sizeof (buffer), "%02d%s%02d%s%02d",
                    (utc.tm_year + 1900) % 100, sep.c_str (),
                    utc.tm_mon + 1, sep.c_str (), utc.tm_mday);
-    return std::any (std::string (buffer));
+    return ccxt::any (std::string (buffer));
 }
 
-std::any ExchangeBase::yyyymmdd (std::any timestamp, std::any infix) {
+ccxt::any ExchangeBase::yyyymmdd (ccxt::any timestamp, ccxt::any infix) {
     std::tm utc {};
     if (!utcParts (timestamp, utc)) {
-        return std::any {};
+        return ccxt::any {};
     }
     const std::string sep = infix.has_value () ? str (infix) : std::string ("-");
     char buffer[32];
     std::snprintf (buffer, sizeof (buffer), "%04d%s%02d%s%02d",
                    utc.tm_year + 1900, sep.c_str (),
                    utc.tm_mon + 1, sep.c_str (), utc.tm_mday);
-    return std::any (std::string (buffer));
+    return ccxt::any (std::string (buffer));
 }
 
-std::any ExchangeBase::ymd (std::any timestamp, std::any infix) {
-    return this->yyyymmdd (timestamp, infix.has_value () ? infix : std::any (std::string ("-")));
+ccxt::any ExchangeBase::ymd (ccxt::any timestamp, ccxt::any infix) {
+    return this->yyyymmdd (timestamp, infix.has_value () ? infix : ccxt::any (std::string ("-")));
 }
 
-std::any ExchangeBase::ymdhms (std::any timestamp, std::any infix) {
+ccxt::any ExchangeBase::ymdhms (ccxt::any timestamp, ccxt::any infix) {
     std::tm utc {};
     if (!utcParts (timestamp, utc)) {
-        return std::any {};
+        return ccxt::any {};
     }
     const std::string sep = infix.has_value () ? str (infix) : std::string (" ");
     char buffer[64];
     std::snprintf (buffer, sizeof (buffer), "%04d-%02d-%02d%s%02d:%02d:%02d",
                    utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday, sep.c_str (),
                    utc.tm_hour, utc.tm_min, utc.tm_sec);
-    return std::any (std::string (buffer));
+    return ccxt::any (std::string (buffer));
 }
 
 // Loading markets needs the HTTP layer, which this iteration stubs out. They exist so
 // a derived exchange's generated override binds; calling one fails loudly.
-std::any ExchangeBase::callMethod (std::any name, std::any) {
+ccxt::any ExchangeBase::callMethod (ccxt::any name, ccxt::any) {
     throw DispatchMiss (str (name));
 }
 
 // The transpiler drops the TS bodies below (BigInt / zklink SDK), so they live here,
 // exactly like their C# counterparts in cs/ccxt/base/Exchange.cs.
 
-std::any ExchangeBase::randNumber (std::any size) {
+ccxt::any ExchangeBase::randNumber (ccxt::any size) {
     // TS: build a digit string, parseInt it. Return the number (double), matching the
     // call shape `toString(this->randNumber (12))` in the generated apex code.
     static std::mt19937 rng (std::random_device {} ());
@@ -2466,43 +2466,43 @@ std::any ExchangeBase::randNumber (std::any size) {
         number += static_cast<char> ('0' + digit (rng));
     }
     if (number.empty ()) {
-        return std::any (0.0);
+        return ccxt::any (0.0);
     }
-    return std::any (std::stod (number));
+    return ccxt::any (std::stod (number));
 }
 
-std::any ExchangeBase::remove0xPrefix (std::any hexData) {
+ccxt::any ExchangeBase::remove0xPrefix (ccxt::any hexData) {
     if (!hexData.has_value () || !isStr (hexData)) {
         return hexData;
     }
-    std::string s = std::any_cast<std::string> (hexData);
+    std::string s = ccxt::any_cast<std::string> (hexData);
     if (s.size () >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
         s.erase (0, 2);
     }
-    return std::any (s);
+    return ccxt::any (s);
 }
 
-std::shared_future<std::any> ExchangeBase::getZKContractSignatureObj (std::any, std::any) {
+std::shared_future<ccxt::any> ExchangeBase::getZKContractSignatureObj (ccxt::any, ccxt::any) {
     // same contract as C# Exchange.cs: zklink is a node SDK that does not exist here
-    return std::async (std::launch::deferred, [] () -> std::any {
+    return std::async (std::launch::deferred, [] () -> ccxt::any {
         throw NotSupported ("Apex currently does not support create order in C++ language");
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::getZKTransferSignatureObj (std::any, std::any) {
-    return std::async (std::launch::deferred, [] () -> std::any {
+std::shared_future<ccxt::any> ExchangeBase::getZKTransferSignatureObj (ccxt::any, ccxt::any) {
+    return std::async (std::launch::deferred, [] () -> ccxt::any {
         throw NotSupported ("Apex currently does not support create order in C++ language");
     }).share ();
 }
 
-std::any ExchangeBase::intToBase16 (std::any number) {
+ccxt::any ExchangeBase::intToBase16 (ccxt::any number) {
     // TS: elem.toString(16) -- hex without the 0x prefix
     char buffer[32];
     std::snprintf (buffer, sizeof (buffer), "%llx", static_cast<unsigned long long> (toLong (number)));
-    return std::any (std::string (buffer));
+    return ccxt::any (std::string (buffer));
 }
 
-std::any ExchangeBase::exceptionMessage (std::any exc, std::any includeStack) {
+ccxt::any ExchangeBase::exceptionMessage (ccxt::any exc, ccxt::any includeStack) {
     // TS: '[' + exc.constructor.name + '] ' + (includeStack ? exc.stack : exc.message),
     // truncated to 100000 chars. C++ has no stack traces; the type name + what() is
     // the faithful equivalent.
@@ -2510,7 +2510,7 @@ std::any ExchangeBase::exceptionMessage (std::any exc, std::any includeStack) {
     std::string message;
     if (exc.type () == typeid (std::exception_ptr)) {
         try {
-            std::rethrow_exception (std::any_cast<std::exception_ptr> (exc));
+            std::rethrow_exception (ccxt::any_cast<std::exception_ptr> (exc));
         } catch (const std::exception& e) {
             message = std::string ("[") + typeid (e).name () + "] " + e.what ();
         } catch (...) {
@@ -2522,10 +2522,10 @@ std::any ExchangeBase::exceptionMessage (std::any exc, std::any includeStack) {
         message = "[undefined]";
     }
     const std::size_t length = std::min<std::size_t> (100000, message.length ());
-    return std::any (message.substr (0, length));
+    return ccxt::any (message.substr (0, length));
 }
 
-std::any ExchangeBase::fixStringifiedJsonMembers (std::any content) {
+ccxt::any ExchangeBase::fixStringifiedJsonMembers (ccxt::any content) {
     // TS: strip backslashes and the quotes around stringified nested JSON values
     // ("takeProfit":"{...}" -> "takeProfit":{...}), used by bingx.
     std::string s = str (content);
@@ -2543,10 +2543,10 @@ std::any ExchangeBase::fixStringifiedJsonMembers (std::any content) {
         s.replace (pos, 2, "}");
         pos += 1;
     }
-    return std::any (s);
+    return ccxt::any (s);
 }
 
-std::any ExchangeBase::randomBytes (std::any size) {
+ccxt::any ExchangeBase::randomBytes (ccxt::any size) {
     const long long n = size.has_value () ? toLong (size) : 0;
     if (n < 0) {
         throw ArgumentsRequired ("randomBytes size must be non-negative");
@@ -2555,10 +2555,10 @@ std::any ExchangeBase::randomBytes (std::any size) {
     if (n > 0 && RAND_bytes (buffer.data (), static_cast<int> (n)) != 1) {
         throw ExchangeError ("randomBytes: RAND_bytes failed");
     }
-    return std::any (bytes (std::move (buffer)));
+    return ccxt::any (bytes (std::move (buffer)));
 }
 
-std::any ExchangeBase::uuid5 (std::any nspace, std::any name) {
+ccxt::any ExchangeBase::uuid5 (ccxt::any nspace, ccxt::any name) {
     // TS: sha1(namespaceBytes ++ utf8(nameBytes)) with UUID-v5 version/variant bits
     std::string ns = nspace.has_value () ? str (nspace) : std::string ();
     std::string nsHex;
@@ -2585,15 +2585,15 @@ std::any ExchangeBase::uuid5 (std::any nspace, std::any name) {
     }
     hex[32] = '\0';
     std::string h (hex);
-    return std::any (h.substr (0, 8) + "-" + h.substr (8, 4) + "-" + h.substr (12, 4)
+    return ccxt::any (h.substr (0, 8) + "-" + h.substr (8, 4) + "-" + h.substr (12, 4)
                      + "-" + h.substr (16, 4) + "-" + h.substr (20, 12));
 }
 
-std::any ExchangeBase::convertToBigInt (std::any value) {
+ccxt::any ExchangeBase::convertToBigInt (ccxt::any value) {
     // TS BigInt(value): the value rides through as a numeric string and the
     // consumers (ethAbiEncode) parse it; no boxed bigint type exists in the port
     if (isStr (value)) {
-        return std::any (str (value));
+        return ccxt::any (str (value));
     }
     return value;
 }
@@ -2603,25 +2603,25 @@ namespace {
 std::vector<unsigned char> hexDecode (const std::string& text);
 std::vector<unsigned char> uintToBytes32 (long long value);
 std::vector<unsigned char> intToBytes32 (long long value);
-std::vector<unsigned char> anyToBigUint (const std::any& v);
-std::vector<unsigned char> anyToBigInt (const std::any& v);
+std::vector<unsigned char> anyToBigUint (const ccxt::any& v);
+std::vector<unsigned char> anyToBigInt (const ccxt::any& v);
 }
 
-std::any ExchangeBase::ethAbiEncode (std::any typesAny, std::any argsAny) {
+ccxt::any ExchangeBase::ethAbiEncode (ccxt::any typesAny, ccxt::any argsAny) {
     // ethers.encode(types, args) over the static subset the exchanges use:
     // address / uintN / intN / bool / bytesN -- each argument one 32-byte word.
     if (!isList (typesAny) || !isList (argsAny)) {
         throw NotSupported ("ethAbiEncode: types and args must be arrays");
     }
-    const auto& types = std::any_cast<list> (typesAny).items ();
-    const auto& args = std::any_cast<list> (argsAny).items ();
+    const auto& types = ccxt::any_cast<list> (typesAny).items ();
+    const auto& args = ccxt::any_cast<list> (argsAny).items ();
     std::vector<unsigned char> out;
     for (std::size_t i = 0; i < types.size (); i++) {
         if (i >= args.size ()) {
             throw NotSupported ("ethAbiEncode: fewer args than types");
         }
         const std::string type = str (types[i]);
-        const std::any& value = args[i];
+        const ccxt::any& value = args[i];
         if (type == "address") {
             std::vector<unsigned char> word (32, 0);
             const std::vector<unsigned char> addr = hexDecode (str (value));
@@ -2649,7 +2649,7 @@ std::any ExchangeBase::ethAbiEncode (std::any typesAny, std::any argsAny) {
             throw NotSupported ("ethAbiEncode: unsupported type '" + type + "'");
         }
     }
-    return std::any (bytes (std::move (out)));
+    return ccxt::any (bytes (std::move (out)));
 }
 
 namespace {
@@ -2695,24 +2695,24 @@ std::vector<unsigned char> intToBytes32 (long long value) {
     return result;
 }
 
-long long anyToLong (const std::any& v) {
+long long anyToLong (const ccxt::any& v) {
     if (!v.has_value ()) {
         return 0;
     }
     if (v.type () == typeid (long long)) {
-        return std::any_cast<long long> (v);
+        return ccxt::any_cast<long long> (v);
     }
     if (v.type () == typeid (int)) {
-        return std::any_cast<int> (v);
+        return ccxt::any_cast<int> (v);
     }
     if (v.type () == typeid (long)) {
-        return std::any_cast<long> (v);
+        return ccxt::any_cast<long> (v);
     }
     if (v.type () == typeid (double)) {
-        return static_cast<long long> (std::any_cast<double> (v));
+        return static_cast<long long> (ccxt::any_cast<double> (v));
     }
     if (v.type () == typeid (bool)) {
-        return std::any_cast<bool> (v) ? 1 : 0;
+        return ccxt::any_cast<bool> (v) ? 1 : 0;
     }
     // fall back to a numeric string (Precise strings, big chainIds)
     return static_cast<long long> (std::stoll (::str (v)));
@@ -2721,7 +2721,7 @@ long long anyToLong (const std::any& v) {
 // 256-bit unsigned integer as a 32-byte big-endian vector. Handles any numeric value
 // the exchanges pass (double, integral types) plus decimal strings wider than 64 bits
 // (repeated mod-256 on the decimal digits).
-std::vector<unsigned char> anyToBigUint (const std::any& v) {
+std::vector<unsigned char> anyToBigUint (const ccxt::any& v) {
     if (!v.has_value ()) {
         return std::vector<unsigned char> (32, 0);
     }
@@ -2768,7 +2768,7 @@ std::vector<unsigned char> anyToBigUint (const std::any& v) {
 // signed arbitrary-precision integer as 32-byte two's complement. Handles negative
 // decimal strings (nado sells: Precise.stringMul(x, '-1') = "-27544000000000000000000")
 // and positive values wider than 64 bits (int128).
-std::vector<unsigned char> anyToBigInt (const std::any& v) {
+std::vector<unsigned char> anyToBigInt (const ccxt::any& v) {
     std::vector<unsigned char> magnitude (32, 0);
     if (v.has_value () && isStr (v)) {
         std::string s = ::str (v);
@@ -2824,13 +2824,13 @@ std::vector<unsigned char> anyToBigInt (const std::any& v) {
 // (grvt's OrderLeg[]), mirroring ethers' TypedDataEncoder.encode(domain, types, value):
 // keccak256("0x1901" + hashStruct(EIP712Domain) + hashStruct(primaryType)). Domain field
 // types are the canonical EIP712Domain list filtered to the fields present in the dict.
-std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any messageTypesAny, std::any messageDataAny) {
+ccxt::any ExchangeBase::ethEncodeStructuredData (ccxt::any domainAny, ccxt::any messageTypesAny, ccxt::any messageDataAny) {
     if (!isDict (domainAny) || !isDict (messageTypesAny) || !isDict (messageDataAny)) {
         throw NotSupported ("ethEncodeStructuredData: domain, messageTypes and message must be objects");
     }
-    const dict domain = std::any_cast<dict> (domainAny);
-    const dict messageTypes = std::any_cast<dict> (messageTypesAny);
-    const dict messageData = std::any_cast<dict> (messageDataAny);
+    const dict domain = ccxt::any_cast<dict> (domainAny);
+    const dict messageTypes = ccxt::any_cast<dict> (messageTypesAny);
+    const dict messageData = ccxt::any_cast<dict> (messageDataAny);
     if (messageTypes.entries ().empty ()) {
         throw NotSupported ("ethEncodeStructuredData: empty messageTypes");
     }
@@ -2839,16 +2839,16 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
     // -- the struct registry: name -> ordered field list ----------------------------
     using Fields = std::vector<std::pair<std::string, std::string>>;
     std::map<std::string, Fields> structs;
-    const auto parseFields = [&](const std::any& fieldsAny) -> Fields {
+    const auto parseFields = [&](const ccxt::any& fieldsAny) -> Fields {
         if (!isList (fieldsAny)) {
             throw NotSupported ("ethEncodeStructuredData: struct fields must be an array");
         }
         Fields fields;
-        for (const auto& item : std::any_cast<list> (fieldsAny).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (fieldsAny).items ()) {
             if (!isDict (item)) {
                 throw NotSupported ("ethEncodeStructuredData: field descriptor must be an object");
             }
-            const dict field = std::any_cast<dict> (item);
+            const dict field = ccxt::any_cast<dict> (item);
             fields.push_back ({::str (field.get ("name")), ::str (field.get ("type"))});
         }
         return fields;
@@ -2870,7 +2870,7 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
     structs["EIP712Domain"] = presentDomainFields;
 
     // -- atomic field encoding (32 bytes) -------------------------------------------
-    const auto encodeAtomic = [&](const std::string& type, const std::any& value) -> std::vector<unsigned char> {
+    const auto encodeAtomic = [&](const std::string& type, const ccxt::any& value) -> std::vector<unsigned char> {
         if (type == "string") {
             return keccak256Bytes (::str (value)).data ();
         }
@@ -2919,8 +2919,8 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
 
     // -- recursive encoders ---------------------------------------------------------
     std::function<std::string (const std::string&)> encodeType;
-    std::function<std::vector<unsigned char> (const std::string&, const std::any&)> hashStruct;
-    std::function<std::vector<unsigned char> (const std::string&, const std::any&)> encodeData;
+    std::function<std::vector<unsigned char> (const std::string&, const ccxt::any&)> hashStruct;
+    std::function<std::vector<unsigned char> (const std::string&, const ccxt::any&)> encodeData;
 
     // ethers' getDependencies: every referenced struct, recursively, sorted by name,
     // with the primary type itself excluded from the dependency tail
@@ -2962,7 +2962,7 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
         return typeString;
     };
 
-    encodeData = [&](const std::string& name, const std::any& value) -> std::vector<unsigned char> {
+    encodeData = [&](const std::string& name, const ccxt::any& value) -> std::vector<unsigned char> {
         const auto it = structs.find (name);
         if (it == structs.end ()) {
             throw NotSupported ("ethEncodeStructuredData: unknown struct '" + name + "'");
@@ -2970,7 +2970,7 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
         const auto& fields = it->second;
         std::vector<unsigned char> out;
         for (const auto& field : fields) {
-            std::any fieldValue = isDict (value) ? std::any_cast<dict> (value).get (field.first) : std::any {};
+            ccxt::any fieldValue = isDict (value) ? ccxt::any_cast<dict> (value).get (field.first) : ccxt::any {};
             const auto base = arrayBase (field.second);
             std::vector<unsigned char> part;
             if (base.second) {
@@ -2979,7 +2979,7 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
                 // per-element keccak (hashStruct), atomics as 32-byte words
                 std::vector<unsigned char> concat;
                 if (isList (fieldValue)) {
-                    for (const auto& item : std::any_cast<list> (fieldValue).items ()) {
+                    for (const auto& item : ccxt::any_cast<list> (fieldValue).items ()) {
                         std::vector<unsigned char> elem = structs.count (base.first)
                             ? hashStruct (base.first, item)
                             : encodeAtomic (base.first, item);
@@ -2997,7 +2997,7 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
         return out;
     };
 
-    hashStruct = [&](const std::string& name, const std::any& value) -> std::vector<unsigned char> {
+    hashStruct = [&](const std::string& name, const ccxt::any& value) -> std::vector<unsigned char> {
         std::vector<unsigned char> input = keccak256Bytes (encodeType (name)).data ();
         const std::vector<unsigned char> data = encodeData (name, value);
         input.insert (input.end (), data.begin (), data.end ());
@@ -3006,16 +3006,16 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
 
     // -- 0x1901 || domainSeparator || hashStruct(primary) ---------------------------
     const std::vector<unsigned char> domainSeparator =
-        hashStruct ("EIP712Domain", std::any (domain));
+        hashStruct ("EIP712Domain", ccxt::any (domain));
     const std::vector<unsigned char> primaryHash =
-        hashStruct (primaryType, std::any (messageData));
+        hashStruct (primaryType, ccxt::any (messageData));
     std::vector<unsigned char> out = {0x19, 0x01};
     out.insert (out.end (), domainSeparator.begin (), domainSeparator.end ());
     out.insert (out.end (), primaryHash.begin (), primaryHash.end ());
-    return std::any (bytes (std::move (out)));
+    return ccxt::any (bytes (std::move (out)));
 }
 
-std::any ExchangeBase::ethGetAddressFromPrivateKey (std::any privateKey) {
+ccxt::any ExchangeBase::ethGetAddressFromPrivateKey (ccxt::any privateKey) {
     // Ethereum address: keccak256(uncompressed secp256k1 pubkey[1..64])[12..32]
     std::string key = str (privateKey);
     if (key.size () >= 2 && key[0] == '0' && (key[1] == 'x' || key[1] == 'X')) {
@@ -3064,70 +3064,70 @@ std::any ExchangeBase::ethGetAddressFromPrivateKey (std::any privateKey) {
         address += hexDigits[(hash[i] >> 4) & 0xf];
         address += hexDigits[hash[i] & 0xf];
     }
-    return std::any (address);
+    return ccxt::any (address);
 }
 
-std::any ExchangeBase::starknetEncodeStructuredData (std::any domain, std::any messageTypes, std::any messageData, std::any address) {
+ccxt::any ExchangeBase::starknetEncodeStructuredData (ccxt::any domain, ccxt::any messageTypes, ccxt::any messageData, ccxt::any address) {
     if (!isDict (domain) || !isDict (messageTypes) || !isDict (messageData)) {
         throw NotSupported ("starknetEncodeStructuredData: domain, messageTypes and message must be objects");
     }
-    return std::any (starkcrypto::messageHashLegacy (
-        std::any_cast<dict> (messageTypes),
-        std::any_cast<dict> (domain),
-        std::any_cast<dict> (messageData),
+    return ccxt::any (starkcrypto::messageHashLegacy (
+        ccxt::any_cast<dict> (messageTypes),
+        ccxt::any_cast<dict> (domain),
+        ccxt::any_cast<dict> (messageData),
         str (address)));
 }
 
-std::any ExchangeBase::retrieveStarkAccount (std::any signature, std::any accountClassHash, std::any accountProxyClassHash) {
+ccxt::any ExchangeBase::retrieveStarkAccount (ccxt::any signature, ccxt::any accountClassHash, ccxt::any accountProxyClassHash) {
     const std::string priv = starkcrypto::ethSigToPrivate (str (signature));
     const std::string pub = starkcrypto::getStarkKey (priv);
     const std::string address = starkcrypto::computeAccountAddress (
         str (accountClassHash), str (accountProxyClassHash), pub);
     dict out;
-    out.set ("privateKey", std::any (priv));
-    out.set ("publicKey", std::any (pub));
-    out.set ("address", std::any (address));
-    return std::any (out);
+    out.set ("privateKey", ccxt::any (priv));
+    out.set ("publicKey", ccxt::any (pub));
+    out.set ("address", ccxt::any (address));
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::starknetSign (std::any message, std::any privateKey) {
+ccxt::any ExchangeBase::starknetSign (ccxt::any message, ccxt::any privateKey) {
     const auto sig = starkcrypto::sign (str (message), str (privateKey));
     list out;
-    out.push (std::any (sig.first));
-    out.push (std::any (sig.second));
-    return this->json (std::any (out));
+    out.push (ccxt::any (sig.first));
+    out.push (ccxt::any (sig.second));
+    return this->json (ccxt::any (out));
 }
 
 // dydx protobuf signing: mirrors the C# Exchange.cs stubs verbatim
 
-std::any ExchangeBase::encodeDydxTxForSigning (std::any, std::any, std::any, std::any, std::any, std::any) {
+ccxt::any ExchangeBase::encodeDydxTxForSigning (ccxt::any, ccxt::any, ccxt::any, ccxt::any, ccxt::any, ccxt::any) {
     throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
 }
 
-std::any ExchangeBase::encodeDydxTxForSimulation (std::any, std::any, std::any, std::any) {
+ccxt::any ExchangeBase::encodeDydxTxForSimulation (ccxt::any, ccxt::any, ccxt::any, ccxt::any) {
     throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
 }
 
-std::any ExchangeBase::encodeDydxTxRaw (std::any, std::any) {
+ccxt::any ExchangeBase::encodeDydxTxRaw (ccxt::any, ccxt::any) {
     throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
 }
 
-std::any ExchangeBase::retrieveDydxCredentials (std::any) {
+ccxt::any ExchangeBase::retrieveDydxCredentials (ccxt::any) {
     throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
 }
 
-std::shared_future<std::any> ExchangeBase::loadDydxProtos () {
-    return std::async (std::launch::deferred, [] () -> std::any {
+std::shared_future<ccxt::any> ExchangeBase::loadDydxProtos () {
+    return std::async (std::launch::deferred, [] () -> ccxt::any {
         throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
     }).share ();
 }
 
-std::any ExchangeBase::toDydxLong (std::any value) {
+ccxt::any ExchangeBase::toDydxLong (ccxt::any value) {
     // TS: BigInt(value).toString() -- string representation of an integral number
-    return std::any (str (value));
+    return ccxt::any (str (value));
 }
 
-std::any ExchangeBase::extendedStarknetSign (std::any msgHash, std::any pri) {
+ccxt::any ExchangeBase::extendedStarknetSign (ccxt::any msgHash, ccxt::any pri) {
     // TS: starknetCurveSign(msgHash without 0x, pri without 0x) -> json([r, s]) with
     // r/s as decimal strings (BigInt toString()). starkcrypto::sign already returns
     // decimal r/s (same RFC-6979 path paradex uses).
@@ -3139,31 +3139,31 @@ std::any ExchangeBase::extendedStarknetSign (std::any msgHash, std::any pri) {
     return this->json (ccxt::list {rs.first, rs.second});
 }
 
-std::any ExchangeBase::extendedStarknetComputePoseidonHashOnElements (std::any valuesAny) {
+ccxt::any ExchangeBase::extendedStarknetComputePoseidonHashOnElements (ccxt::any valuesAny) {
     // TS extendedStarknetComputePoseidonHashOnElements: poseidon_hash_many over
     // felt elements -> hex string. Elements arrive as hex or decimal strings.
     std::vector<std::string> elements;
     if (ccxt::isList (valuesAny)) {
-        const auto& l = std::any_cast<const ccxt::list&> (valuesAny);
+        const auto& l = ccxt::any_cast<const ccxt::list&> (valuesAny);
         for (std::size_t i = 0; i < l.size (); i++) {
             elements.push_back (str (l.get (static_cast<long long> (i))));
         }
     }
-    return std::any (std::string ("0x") + ccxt::starkcrypto::poseidonHashMany (elements));
+    return ccxt::any (std::string ("0x") + ccxt::starkcrypto::poseidonHashMany (elements));
 }
 
-std::any ExchangeBase::extendedStarknetGetSelectorFromName (std::any value) {
+ccxt::any ExchangeBase::extendedStarknetGetSelectorFromName (ccxt::any value) {
     // starknet getSelectorFromName: keccak256(name) & (2^250 - 1), hex string
-    return std::any (ccxt::starkcrypto::getSelectorFromName (str (value)));
+    return ccxt::any (ccxt::starkcrypto::getSelectorFromName (str (value)));
 }
 
-std::any ExchangeBase::parseDate (std::any value) {
+ccxt::any ExchangeBase::parseDate (ccxt::any value) {
     // functions/time.ts parseDate: a GMT-prefixed string parses via Date.parse, anything
     // else goes through parse8601; non-strings yield undefined
     if (!isStr (value) || str (value).empty ()) {
-        return std::any {};
+        return ccxt::any {};
     }
-    const std::string x = std::any_cast<std::string> (value);
+    const std::string x = ccxt::any_cast<std::string> (value);
     if (x.find ("GMT") != std::string::npos) {
         // RFC 1123 form: "Tue, 22 Apr 2025 12:00:00 GMT"
         std::tm tm {};
@@ -3171,9 +3171,9 @@ std::any ExchangeBase::parseDate (std::any value) {
         stream >> std::get_time (&tm, "%a, %d %b %Y %H:%M:%S GMT");
         if (!stream.fail ()) {
             std::time_t epoch = timegm (&tm);
-            return std::any (static_cast<double> (epoch) * 1000.0);
+            return ccxt::any (static_cast<double> (epoch) * 1000.0);
         }
-        return std::any {};
+        return ccxt::any {};
     }
     return this->parse8601 (value);
 }
@@ -3196,13 +3196,13 @@ namespace {
             out.push_back (static_cast<unsigned char> ((value >> shift) & 0xff));
         }
     }
-    void msgpackAppend (std::vector<unsigned char>& out, const std::any& value) {
+    void msgpackAppend (std::vector<unsigned char>& out, const ccxt::any& value) {
         if (!value.has_value ()) {
             putByte (out, 0xc0);   // nil
             return;
         }
         if (isBool (value)) {
-            putByte (out, std::any_cast<bool> (value) ? 0xc3 : 0xc2);
+            putByte (out, ccxt::any_cast<bool> (value) ? 0xc3 : 0xc2);
             return;
         }
         if (isNum (value)) {
@@ -3227,7 +3227,7 @@ namespace {
             return;
         }
         if (isStr (value)) {
-            const std::string s = std::any_cast<std::string> (value);
+            const std::string s = ccxt::any_cast<std::string> (value);
             const std::size_t n = s.size ();
             if (n < 32) {
                 putByte (out, static_cast<unsigned char> (0xa0 | n));
@@ -3258,7 +3258,7 @@ namespace {
             return;
         }
         if (isList (value)) {
-            const std::vector<std::any> items = std::any_cast<list> (value).items ();
+            const std::vector<ccxt::any> items = ccxt::any_cast<list> (value).items ();
             const std::size_t n = items.size ();
             if (n < 16) {
                 putByte (out, static_cast<unsigned char> (0x90 | n));
@@ -3275,7 +3275,7 @@ namespace {
             return;
         }
         if (isDict (value)) {
-            const std::vector<OrderedMap::entry> entries = std::any_cast<dict> (value).entries ();
+            const std::vector<OrderedMap::entry> entries = ccxt::any_cast<dict> (value).entries ();
             const std::size_t n = entries.size ();
             if (n < 16) {
                 putByte (out, static_cast<unsigned char> (0x80 | n));
@@ -3287,7 +3287,7 @@ namespace {
                 putBigEndian64 (out, static_cast<unsigned long long> (n));
             }
             for (const auto& kv : entries) {
-                msgpackAppend (out, std::any (kv.first));
+                msgpackAppend (out, ccxt::any (kv.first));
                 msgpackAppend (out, kv.second);
             }
             return;
@@ -3296,13 +3296,13 @@ namespace {
     }
 }   // namespace
 
-std::any ExchangeBase::packb (std::any data) {
+ccxt::any ExchangeBase::packb (ccxt::any data) {
     std::vector<unsigned char> out;
     msgpackAppend (out, data);
-    return std::any (bytes (std::move (out)));
+    return ccxt::any (bytes (std::move (out)));
 }
 
-std::any ExchangeBase::urlencodeBase64 (std::any data) {
+ccxt::any ExchangeBase::urlencodeBase64 (ccxt::any data) {
     // base64url: standard base64 of the input bytes, drop '=' padding, '+'->'-', '/'->'_'
     static const char b64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     const bytes b = asBytes (data);
@@ -3326,14 +3326,14 @@ std::any ExchangeBase::urlencodeBase64 (std::any data) {
         if (c == '+') c = '-';
         else if (c == '/') c = '_';
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
 // lighter signing: stubs until a lighter-native milestone (C# has real implementations
 // in Exchange.Lighter.cs backed by the vendor .so)
 
 #define LIGHTER_STUB_DEF(NAME) \
-    std::any ExchangeBase::NAME (std::any, std::any, std::any, std::any, std::any) { \
+    ccxt::any ExchangeBase::NAME (ccxt::any, ccxt::any, ccxt::any, ccxt::any, ccxt::any) { \
         throw NotSupported (std::string (#NAME) + " requires the lighter native library; not implemented in the C++ port yet"); \
     }
 
@@ -3354,49 +3354,49 @@ LIGHTER_STUB_DEF (lighterSignUpdateMargin)
 LIGHTER_STUB_DEF (lighterSignWithdraw)
 #undef LIGHTER_STUB_DEF
 
-std::shared_future<std::any> ExchangeBase::loadLighterLibrary (std::any, std::any, std::any, std::any, std::any, std::any) {
-    return std::async (std::launch::deferred, [] () -> std::any {
+std::shared_future<ccxt::any> ExchangeBase::loadLighterLibrary (ccxt::any, ccxt::any, ccxt::any, ccxt::any, ccxt::any, ccxt::any) {
+    return std::async (std::launch::deferred, [] () -> ccxt::any {
         throw NotSupported ("loadLighterLibrary requires the lighter native library; not implemented in the C++ port yet");
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::fetchMarkets (std::any) {
+std::shared_future<ccxt::any> ExchangeBase::fetchMarkets (ccxt::any) {
     // C# Exchange.fetchMarkets: the base returns this.markets as an array; the
     // generated per-exchange override does the real HTTP fetch.
-    return std::async (std::launch::deferred, [this] () -> std::any {
+    return std::async (std::launch::deferred, [this] () -> ccxt::any {
         return this->toArray (this->markets);
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::fetchCurrencies (std::any) {
+std::shared_future<ccxt::any> ExchangeBase::fetchCurrencies (ccxt::any) {
     // C# Exchange.fetchCurrencies: base returns this.currencies verbatim
-    return std::async (std::launch::deferred, [this] () -> std::any {
+    return std::async (std::launch::deferred, [this] () -> ccxt::any {
         return this->currencies;
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::loadMarkets (std::any reload, std::any params) {
+std::shared_future<ccxt::any> ExchangeBase::loadMarkets (ccxt::any reload, ccxt::any params) {
     // C# loadMarketsHelper semantics. The C# version caches the in-flight task
     // (marketsLoading); the C++ async model is deferred futures resolved on the
     // calling thread, so the mutex is enough to keep concurrent callers correct.
-    return std::async (std::launch::deferred, [this, reload, params] () -> std::any {
+    return std::async (std::launch::deferred, [this, reload, params] () -> ccxt::any {
         std::lock_guard<std::mutex> guard (this->loadMarketsMutex);
         if (!isTrue (reload) && isDict (this->markets)
-            && (std::any_cast<dict> (this->markets).size () > 0)) {
+            && (ccxt::any_cast<dict> (this->markets).size () > 0)) {
             if (!this->markets_by_id.has_value ()) {
                 return this->setMarkets (this->markets);
             }
             return this->markets;
         }
-        std::any currenciesFetched;
-        const std::any hasFetchCurrencies = this->safeValue (this->has, std::string ("fetchCurrencies"));
+        ccxt::any currenciesFetched;
+        const ccxt::any hasFetchCurrencies = this->safeValue (this->has, std::string ("fetchCurrencies"));
         if (isTrue (hasFetchCurrencies)) {
             currenciesFetched = awaitValue (this->fetchCurrencies ());
             if (isDict (this->options)) {
-                std::any_cast<dict> (this->options).set ("cachedCurrencies", currenciesFetched);
+                ccxt::any_cast<dict> (this->options).set ("cachedCurrencies", currenciesFetched);
             }
         }
-        const std::any fetched = awaitValue (this->fetchMarkets (params));
+        const ccxt::any fetched = awaitValue (this->fetchMarkets (params));
         if (isDict (this->options)) {
             deleteKey (this->options, std::string ("cachedCurrencies"));
         }
@@ -3408,18 +3408,18 @@ std::shared_future<std::any> ExchangeBase::loadMarkets (std::any reload, std::an
 // dynamic dispatch (D3)
 // ---------------------------------------------------------------------------
 
-std::any ExchangeBase::getProperty (ExchangeBase* self, std::any name) {
+ccxt::any ExchangeBase::getProperty (ExchangeBase* self, ccxt::any name) {
     // route through the instance-side property table (the full field surface);
     // checkRequiredCredentials() and the test harness read arbitrary members here.
     // TS returns undefined for a missing property -- mirror that, not a throw.
     try {
         return self->getProperty (str (name));
     } catch (const NotSupported&) {
-        return std::any {};
+        return ccxt::any {};
     }
 }
 
-void ExchangeBase::setProperty (ExchangeBase* self, std::any name, std::any value) {
+void ExchangeBase::setProperty (ExchangeBase* self, ccxt::any name, ccxt::any value) {
     // route through the instance-side property table (the full field surface);
     // silently dropping unknown keys here hid real harness writes (accountId, apiKey).
     // Unknown members stay a silent no-op, exactly like the TS free function.
@@ -3430,7 +3430,7 @@ void ExchangeBase::setProperty (ExchangeBase* self, std::any name, std::any valu
     }
 }
 
-std::any ExchangeBase::callDynamically (ExchangeBase* self, std::any name, std::any args) {
+ccxt::any ExchangeBase::callDynamically (ExchangeBase* self, ccxt::any name, ccxt::any args) {
     // transpiled code calls the free-function form callDynamically(this, name, args)
     // (fetchWebEndpoint's endpointMethod, pagination helpers). Route through the
     // instance dispatch, which covers unified methods, helpers, and implicit API
@@ -3440,22 +3440,22 @@ std::any ExchangeBase::callDynamically (ExchangeBase* self, std::any name, std::
 
 // Global, not a member: the backend emits it unqualified for `throw new x[a](msg)`.
 // Merges price levels that share a price, used by parseOrderBook and test.aggregate.
-std::any ExchangeBase::aggregate (std::any bidasks) {
+ccxt::any ExchangeBase::aggregate (ccxt::any bidasks) {
     dict grouped;
     // ws orderbook sides are array-like: aggregate their rows (parseWsBidAsk and
     // friends hand sides in directly, as JS OrderBookSide extends Array)
     if (bidasks.type () == typeid (ccxt::ws::OrderBookSide)) {
-        bidasks = std::any (std::any_cast<const ccxt::ws::OrderBookSide&> (bidasks).rows ());
+        bidasks = ccxt::any (ccxt::any_cast<const ccxt::ws::OrderBookSide&> (bidasks).rows ());
     }
     if (isList (bidasks)) {
-        for (const auto& entry : std::any_cast<list> (bidasks).items ()) {
-            const std::any price = getValue (entry, std::any (0));
-            const std::any volume = getValue (entry, std::any (1));
+        for (const auto& entry : ccxt::any_cast<list> (bidasks).items ()) {
+            const ccxt::any price = getValue (entry, ccxt::any (0));
+            const ccxt::any volume = getValue (entry, ccxt::any (1));
             if (!isTrue (volume)) {
                 continue;   // a zero-size level means "remove", as in the wire format
             }
-            const std::string key = std::any_cast<std::string> (toString (price));
-            const std::any running = grouped.get (key);
+            const std::string key = ccxt::any_cast<std::string> (toString (price));
+            const ccxt::any running = grouped.get (key);
             grouped.set (key, running.has_value () ? add (running, volume) : volume);
         }
     }
@@ -3464,34 +3464,34 @@ std::any ExchangeBase::aggregate (std::any bidasks) {
     // and entries() hands back a reference into the shared store; iterating directly
     // over any_cast<dict>(<temporary>) drops the last shared_ptr owner at the end of
     // the range-init expression and leaves the loop walking freed memory.
-    const std::any sorted = this->keysort (std::any (grouped));
-    const dict sortedDict = std::any_cast<dict> (sorted);
+    const ccxt::any sorted = this->keysort (ccxt::any (grouped));
+    const dict sortedDict = ccxt::any_cast<dict> (sorted);
     for (const auto& kv : sortedDict.entries ()) {
-        out.push (std::any (list { std::any (std::stod (kv.first)), kv.second }));
+        out.push (ccxt::any (list { ccxt::any (std::stod (kv.first)), kv.second }));
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any ExchangeBase::orderBook (std::any snapshot, std::any depth) {
-    return std::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::plain));
+ccxt::any ExchangeBase::orderBook (ccxt::any snapshot, ccxt::any depth) {
+    return ccxt::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::plain));
 }
 
-std::any ExchangeBase::indexedOrderBook (std::any snapshot, std::any depth) {
-    return std::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::indexed));
+ccxt::any ExchangeBase::indexedOrderBook (ccxt::any snapshot, ccxt::any depth) {
+    return ccxt::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::indexed));
 }
 
-std::any ExchangeBase::countedOrderBook (std::any snapshot, std::any depth) {
-    return std::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::counted));
+ccxt::any ExchangeBase::countedOrderBook (ccxt::any snapshot, ccxt::any depth) {
+    return ccxt::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::counted));
 }
 
-std::any ExchangeBase::totp (std::any) {
+ccxt::any ExchangeBase::totp (ccxt::any) {
     throw NotSupported ("totp requires the crypto layer, not implemented in the C++ port yet");
 }
 
 } // namespace ccxt
 
-[[noreturn]] void throwDynamicException (const std::any& name, const std::any& message) {
-    ccxt::throwByName (std::any_cast<std::string> (toString (name)),
-                       std::any_cast<std::string> (toString (message)));
+[[noreturn]] void throwDynamicException (const ccxt::any& name, const ccxt::any& message) {
+    ccxt::throwByName (ccxt::any_cast<std::string> (toString (name)),
+                       ccxt::any_cast<std::string> (toString (message)));
 }
 

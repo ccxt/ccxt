@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_delta(std::any config) {
+std::shared_ptr<ExchangeBase> create_delta(ccxt::any config) {
   return newExchange<delta>(config);
 }
 

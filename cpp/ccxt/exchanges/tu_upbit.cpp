@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_upbit(std::any config) {
+std::shared_ptr<ExchangeBase> create_upbit(ccxt::any config) {
   return newExchange<upbit>(config);
 }
 

@@ -3,13 +3,13 @@
 
 // Included inside the body of class ccxt::Exchange - see Exchange.h.
 
-virtual std::any callMethod(std::any name, std::any args) override {
+virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
   const std::string which = ::toString(name).has_value()
-                                ? std::any_cast<std::string>(::toString(name))
+                                ? ccxt::any_cast<std::string>(::toString(name))
                                 : std::string();
   const long count =
       ccxt::isList(args)
-          ? static_cast<long>(std::any_cast<ccxt::list>(args).size())
+          ? static_cast<long>(ccxt::any_cast<ccxt::list>(args).size())
           : 0;
   if (which == "describe") {
     if (true)
@@ -18,13 +18,13 @@ virtual std::any callMethod(std::any name, std::any args) override {
   if (which == "cleanRestData") {
     if (true) {
       this->cleanRestData();
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "cleanWsData") {
     if (true) {
       this->cleanWsData();
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "safeBoolN") {
@@ -97,41 +97,41 @@ virtual std::any callMethod(std::any name, std::any args) override {
     if (true) {
       this->storeByKey(::getValue(args, 0), ::getValue(args, 1),
                        ::getValue(args, 2));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "handleDeltas") {
     if (true) {
       this->handleDeltas(::getValue(args, 0), ::getValue(args, 1));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "handleDelta") {
     if (true) {
       this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "handleDeltasWithKeys") {
     if (count <= 2) {
       this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1));
-      return std::any{};
+      return ccxt::any{};
     }
     if (count == 3) {
       this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                  ::getValue(args, 2));
-      return std::any{};
+      return ccxt::any{};
     }
     if (count == 4) {
       this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                  ::getValue(args, 2), ::getValue(args, 3));
-      return std::any{};
+      return ccxt::any{};
     }
     if (count >= 5) {
       this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                  ::getValue(args, 2), ::getValue(args, 3),
                                  ::getValue(args, 4));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "getCacheIndex") {
@@ -189,7 +189,7 @@ virtual std::any callMethod(std::any name, std::any args) override {
   if (which == "checkConflictingProxies") {
     if (true) {
       this->checkConflictingProxies(::getValue(args, 0), ::getValue(args, 1));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "checkAddress") {
@@ -258,13 +258,13 @@ virtual std::any callMethod(std::any name, std::any args) override {
   if (which == "setSandboxMode") {
     if (true) {
       this->setSandboxMode(::getValue(args, 0));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "enableDemoTrading") {
     if (true) {
       this->enableDemoTrading(::getValue(args, 0));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "sign") {
@@ -910,19 +910,19 @@ virtual std::any callMethod(std::any name, std::any args) override {
   if (which == "afterConstruct") {
     if (true) {
       this->afterConstruct();
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "initRestRateLimiter") {
     if (true) {
       this->initRestRateLimiter();
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "featuresGenerator") {
     if (true) {
       this->featuresGenerator();
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "featuresMapper") {
@@ -965,7 +965,7 @@ virtual std::any callMethod(std::any name, std::any args) override {
   if (which == "createNetworksByIdObject") {
     if (true) {
       this->createNetworksByIdObject();
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "getDefaultOptions") {
@@ -2193,14 +2193,14 @@ virtual std::any callMethod(std::any name, std::any args) override {
     if (true) {
       this->throwExactlyMatchedException(
           ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "throwBroadlyMatchedException") {
     if (true) {
       this->throwBroadlyMatchedException(
           ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "findBroadlyMatchedKey") {
@@ -3116,19 +3116,19 @@ virtual std::any callMethod(std::any name, std::any args) override {
     if (count <= 3) {
       this->checkRequiredArgument(::getValue(args, 0), ::getValue(args, 1),
                                   ::getValue(args, 2));
-      return std::any{};
+      return ccxt::any{};
     }
     if (count >= 4) {
       this->checkRequiredArgument(::getValue(args, 0), ::getValue(args, 1),
                                   ::getValue(args, 2), ::getValue(args, 3));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "checkRequiredMarginArgument") {
     if (true) {
       this->checkRequiredMarginArgument(
           ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "parseDepositWithdrawFees") {
@@ -3688,18 +3688,18 @@ virtual std::any callMethod(std::any name, std::any args) override {
     if (count <= 3) {
       this->cleanUnsubscription(::getValue(args, 0), ::getValue(args, 1),
                                 ::getValue(args, 2));
-      return std::any{};
+      return ccxt::any{};
     }
     if (count >= 4) {
       this->cleanUnsubscription(::getValue(args, 0), ::getValue(args, 1),
                                 ::getValue(args, 2), ::getValue(args, 3));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "cleanCache") {
     if (true) {
       this->cleanCache(::getValue(args, 0));
-      return std::any{};
+      return ccxt::any{};
     }
   }
   if (which == "timeframeFromMilliseconds") {

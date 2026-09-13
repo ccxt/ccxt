@@ -40,21 +40,21 @@ std::string numberToJsString (double d) {
     return std::to_string (d);
 }
 
-std::string anyToString (const std::any& v) {
+std::string anyToString (const ccxt::any& v) {
     if (!v.has_value ())            return "undefined";
-    if (ccxt::isStr (v))            return std::any_cast<std::string> (v);
-    if (ccxt::isBoolean (v))        return std::any_cast<bool> (v) ? "true" : "false";
+    if (ccxt::isStr (v))            return ccxt::any_cast<std::string> (v);
+    if (ccxt::isBoolean (v))        return ccxt::any_cast<bool> (v) ? "true" : "false";
     // integer types print exactly (C# long semantics): the double round-trip
     // corrupts 19-digit ids (782042010738492300 -> ...288)
-    if (v.type () == typeid (long long))          return std::to_string (std::any_cast<long long> (v));
-    if (v.type () == typeid (long))               return std::to_string (std::any_cast<long> (v));
-    if (v.type () == typeid (int))                return std::to_string (std::any_cast<int> (v));
-    if (v.type () == typeid (unsigned long long)) return std::to_string (std::any_cast<unsigned long long> (v));
+    if (v.type () == typeid (long long))          return std::to_string (ccxt::any_cast<long long> (v));
+    if (v.type () == typeid (long))               return std::to_string (ccxt::any_cast<long> (v));
+    if (v.type () == typeid (int))                return std::to_string (ccxt::any_cast<int> (v));
+    if (v.type () == typeid (unsigned long long)) return std::to_string (ccxt::any_cast<unsigned long long> (v));
     if (v.type () == typeid (std::size_t) && typeid (std::size_t) != typeid (unsigned long long))
-        return std::to_string (std::any_cast<std::size_t> (v));
+        return std::to_string (ccxt::any_cast<std::size_t> (v));
     if (ccxt::isNum (v))            return numberToJsString (ccxt::toDouble (v));
     if (v.type () == typeid (ccxt::Precise)) {
-        return anyToString (std::any_cast<const ccxt::Precise&> (v).toString ());
+        return anyToString (ccxt::any_cast<const ccxt::Precise&> (v).toString ());
     }
     if (ccxt::isList (v))           return "[object Array]";
     if (ccxt::isDict (v))           return "[object Object]";
@@ -62,17 +62,17 @@ std::string anyToString (const std::any& v) {
 }
 
 // JS numeric coercion for comparisons: a numeric string compares as a number.
-bool numericValue (const std::any& v, double& out) {
+bool numericValue (const ccxt::any& v, double& out) {
     if (ccxt::isNum (v)) {
         out = ccxt::toDouble (v);
         return true;
     }
     if (ccxt::isBoolean (v)) {
-        out = std::any_cast<bool> (v) ? 1.0 : 0.0;
+        out = ccxt::any_cast<bool> (v) ? 1.0 : 0.0;
         return true;
     }
     if (ccxt::isStr (v)) {
-        const std::string s = std::any_cast<std::string> (v);
+        const std::string s = ccxt::any_cast<std::string> (v);
         if (s.empty ()) {
             out = 0.0;
             return true;
@@ -97,15 +97,15 @@ bool numericValue (const std::any& v, double& out) {
 
 // Returns an int when the value is integral, so round-tripping a JS integer through
 // arithmetic does not silently turn every count into a double.
-std::any numberResult (double d) {
+ccxt::any numberResult (double d) {
     if (std::isfinite (d) && d == std::floor (d) && std::fabs (d) < 9.2e18) {
         const long long asLong = static_cast<long long> (d);
         if (asLong >= INT_MIN && asLong <= INT_MAX) {
-            return std::any (static_cast<int> (asLong));
+            return ccxt::any (static_cast<int> (asLong));
         }
-        return std::any (asLong);
+        return ccxt::any (asLong);
     }
-    return std::any (d);
+    return ccxt::any (d);
 }
 
 } // namespace
@@ -114,41 +114,41 @@ std::any numberResult (double d) {
 // element access
 // ---------------------------------------------------------------------------
 
-std::any getValue (const std::any& target, const std::any& key) {
+ccxt::any getValue (const ccxt::any& target, const ccxt::any& key) {
     if (!target.has_value ()) {
-        return std::any {};
+        return ccxt::any {};
     }
     // ws client: url, subscriptions, futures, rejections, mockSentMessages
     if (target.type () == typeid (ccxt::ws::Client)) {
-        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (target);
+        ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (target);
         const std::string name = anyToString (key);
-        if (name == "url")          return std::any (client.url ());
-        if (name == "subscriptions") return std::any (client.subscriptionsView ());
-        if (name == "futures")      return std::any (client.futuresView ());
-        if (name == "rejections")   return std::any (client.rejectionsView ());
-        if (name == "mockSentMessages") return std::any (client.sentMessagesView ());
-        return std::any {};
+        if (name == "url")          return ccxt::any (client.url ());
+        if (name == "subscriptions") return ccxt::any (client.subscriptionsView ());
+        if (name == "futures")      return ccxt::any (client.futuresView ());
+        if (name == "rejections")   return ccxt::any (client.rejectionsView ());
+        if (name == "mockSentMessages") return ccxt::any (client.sentMessagesView ());
+        return ccxt::any {};
     }
     // ws layer values: books expose bids/asks/timestamp/... ; caches and sides
     // behave like arrays (numeric keys)
     if (target.type () == typeid (ccxt::ws::WsOrderBook)) {
-        const auto& book = std::any_cast<const ccxt::ws::WsOrderBook&> (target);
+        const auto& book = ccxt::any_cast<const ccxt::ws::WsOrderBook&> (target);
         const std::string name = anyToString (key);
-        if (name == "bids")      return std::any (book.impl->bids);
-        if (name == "asks")      return std::any (book.impl->asks);
+        if (name == "bids")      return ccxt::any (book.impl->bids);
+        if (name == "asks")      return ccxt::any (book.impl->asks);
         if (name == "timestamp") return book.timestamp ();
         if (name == "datetime")  return book.datetime ();
         if (name == "nonce")     return book.nonce ();
         if (name == "symbol")    return book.symbol ();
         if (name == "cache")     return book.cache ();
-        return std::any {};
+        return ccxt::any {};
     }
     if (target.type () == typeid (ccxt::ws::OrderBookSide)) {
         double index = 0;
         if (!numericValue (key, index)) {
-            return std::any {};
+            return ccxt::any {};
         }
-        return std::any_cast<const ccxt::ws::OrderBookSide&> (target).get (static_cast<long> (index));
+        return ccxt::any_cast<const ccxt::ws::OrderBookSide&> (target).get (static_cast<long> (index));
     }
     if (target.type () == typeid (ccxt::ws::ArrayCache)
         || target.type () == typeid (ccxt::ws::ArrayCacheByTimestamp)
@@ -159,58 +159,58 @@ std::any getValue (const std::any& target, const std::any& key) {
         // so cast to whichever subclass is stored and use the base interface
         const ccxt::ws::ArrayCache* cache = nullptr;
         if (target.type () == typeid (ccxt::ws::ArrayCache)) {
-            cache = &std::any_cast<const ccxt::ws::ArrayCache&> (target);
+            cache = &ccxt::any_cast<const ccxt::ws::ArrayCache&> (target);
         } else if (target.type () == typeid (ccxt::ws::ArrayCacheByTimestamp)) {
-            cache = &std::any_cast<const ccxt::ws::ArrayCacheByTimestamp&> (target);
+            cache = &ccxt::any_cast<const ccxt::ws::ArrayCacheByTimestamp&> (target);
         } else if (target.type () == typeid (ccxt::ws::ArrayCacheBySymbolById)) {
-            cache = &std::any_cast<const ccxt::ws::ArrayCacheBySymbolById&> (target);
+            cache = &ccxt::any_cast<const ccxt::ws::ArrayCacheBySymbolById&> (target);
         } else if (target.type () == typeid (ccxt::ws::ArrayCacheByOutcomeById)) {
-            cache = &std::any_cast<const ccxt::ws::ArrayCacheByOutcomeById&> (target);
+            cache = &ccxt::any_cast<const ccxt::ws::ArrayCacheByOutcomeById&> (target);
         } else {
-            cache = &std::any_cast<const ccxt::ws::ArrayCacheBySymbolBySide&> (target);
+            cache = &ccxt::any_cast<const ccxt::ws::ArrayCacheBySymbolBySide&> (target);
         }
         const std::string name = anyToString (key);
         if (name == "hashmap") {
-            return std::any (cache->hashmap ());
+            return ccxt::any (cache->hashmap ());
         }
         double index = 0;
         if (!numericValue (key, index)) {
-            return std::any {};
+            return ccxt::any {};
         }
         return cache->get (static_cast<long> (index));
     }
     if (ccxt::isDict (target)) {
-        return std::any_cast<dict> (target).get (anyToString (key));
+        return ccxt::any_cast<dict> (target).get (anyToString (key));
     }
     if (ccxt::isList (target)) {
         double index = 0;
         if (!numericValue (key, index)) {
-            return std::any {};
+            return ccxt::any {};
         }
-        return std::any_cast<list> (target).get (static_cast<long> (index));
+        return ccxt::any_cast<list> (target).get (static_cast<long> (index));
     }
     if (ccxt::isStr (target)) {
         double index = 0;
         if (!numericValue (key, index)) {
-            return std::any {};
+            return ccxt::any {};
         }
-        const std::string s = std::any_cast<std::string> (target);
+        const std::string s = ccxt::any_cast<std::string> (target);
         const long i = static_cast<long> (index);
         if (i < 0 || static_cast<std::size_t> (i) >= s.size ()) {
-            return std::any {};
+            return ccxt::any {};
         }
-        return std::any (std::string (1, s[static_cast<std::size_t> (i)]));
+        return ccxt::any (std::string (1, s[static_cast<std::size_t> (i)]));
     }
-    return std::any {};
+    return ccxt::any {};
 }
 
-void setValue (const std::any& target, const std::any& key, const std::any& value) {
+void setValue (const ccxt::any& target, const ccxt::any& key, const ccxt::any& value) {
     if (ccxt::isDict (target)) {
-        std::any_cast<dict> (target).set (anyToString (key), value);
+        ccxt::any_cast<dict> (target).set (anyToString (key), value);
         return;
     }
     if (target.type () == typeid (ccxt::ws::WsOrderBook)) {
-        ccxt::ws::WsOrderBook book = std::any_cast<ccxt::ws::WsOrderBook> (target);
+        ccxt::ws::WsOrderBook book = ccxt::any_cast<ccxt::ws::WsOrderBook> (target);
         const std::string name = anyToString (key);
         if (name == "timestamp") { book.setTimestamp (value); return; }
         if (name == "nonce")     { book.setNonce (value); return; }
@@ -220,14 +220,14 @@ void setValue (const std::any& target, const std::any& key, const std::any& valu
     if (ccxt::isList (target)) {
         double index = 0;
         if (numericValue (key, index)) {
-            std::any_cast<list> (target).set (static_cast<long> (index), value);
+            ccxt::any_cast<list> (target).set (static_cast<long> (index), value);
         }
     }
 }
 
-void deleteKey (const std::any& target, const std::any& key) {
+void deleteKey (const ccxt::any& target, const ccxt::any& key) {
     if (ccxt::isDict (target)) {
-        std::any_cast<dict> (target).erase (anyToString (key));
+        ccxt::any_cast<dict> (target).erase (anyToString (key));
     }
 }
 
@@ -235,37 +235,37 @@ void deleteKey (const std::any& target, const std::any& key) {
 // truthiness, equality, ordering
 // ---------------------------------------------------------------------------
 
-bool isTrue (const std::any& v) {
+bool isTrue (const ccxt::any& v) {
     if (!v.has_value ())     return false;
-    if (ccxt::isBoolean (v)) return std::any_cast<bool> (v);
+    if (ccxt::isBoolean (v)) return ccxt::any_cast<bool> (v);
     if (ccxt::isNum (v)) {
         const double d = ccxt::toDouble (v);
         return (d != 0.0) && !std::isnan (d);
     }
-    if (ccxt::isStr (v))     return !std::any_cast<std::string> (v).empty ();
+    if (ccxt::isStr (v))     return !ccxt::any_cast<std::string> (v).empty ();
     // objects and arrays are always truthy in JS, even when empty
     return true;
 }
 
-bool isEqual (const std::any& a, const std::any& b) {
+bool isEqual (const ccxt::any& a, const ccxt::any& b) {
     if (!a.has_value () || !b.has_value ()) {
         return !a.has_value () && !b.has_value ();
     }
     if (ccxt::isStr (a) && ccxt::isStr (b)) {
-        return std::any_cast<std::string> (a) == std::any_cast<std::string> (b);
+        return ccxt::any_cast<std::string> (a) == ccxt::any_cast<std::string> (b);
     }
     if (ccxt::isBoolean (a) && ccxt::isBoolean (b)) {
-        return std::any_cast<bool> (a) == std::any_cast<bool> (b);
+        return ccxt::any_cast<bool> (a) == ccxt::any_cast<bool> (b);
     }
     if (ccxt::isNum (a) && ccxt::isNum (b)) {
         return ccxt::toDouble (a) == ccxt::toDouble (b);
     }
     // reference identity for objects and arrays, matching JS ===
     if (ccxt::isDict (a) && ccxt::isDict (b)) {
-        return std::any_cast<dict> (a).sameAs (std::any_cast<dict> (b));
+        return ccxt::any_cast<dict> (a).sameAs (ccxt::any_cast<dict> (b));
     }
     if (ccxt::isList (a) && ccxt::isList (b)) {
-        return std::any_cast<list> (a).sameAs (std::any_cast<list> (b));
+        return ccxt::any_cast<list> (a).sameAs (ccxt::any_cast<list> (b));
     }
     return false;
 }
@@ -274,10 +274,10 @@ namespace {
 
 // shared by the four ordering helpers; returns false when either side is not
 // numerically comparable, which is how JS treats NaN-producing comparisons
-bool compareNumeric (const std::any& a, const std::any& b, int& sign) {
+bool compareNumeric (const ccxt::any& a, const ccxt::any& b, int& sign) {
     if (ccxt::isStr (a) && ccxt::isStr (b)) {
-        const std::string ls = std::any_cast<std::string> (a);
-        const std::string rs = std::any_cast<std::string> (b);
+        const std::string ls = ccxt::any_cast<std::string> (a);
+        const std::string rs = ccxt::any_cast<std::string> (b);
         sign = (ls < rs) ? -1 : ((ls > rs) ? 1 : 0);
         return true;
     }
@@ -295,29 +295,29 @@ bool compareNumeric (const std::any& a, const std::any& b, int& sign) {
 
 } // namespace
 
-bool isGreaterThan (const std::any& a, const std::any& b) {
+bool isGreaterThan (const ccxt::any& a, const ccxt::any& b) {
     int sign = 0;
     return compareNumeric (a, b, sign) && sign > 0;
 }
 
-bool isGreaterThanOrEqual (const std::any& a, const std::any& b) {
+bool isGreaterThanOrEqual (const ccxt::any& a, const ccxt::any& b) {
     int sign = 0;
     return compareNumeric (a, b, sign) && sign >= 0;
 }
 
-bool isLessThan (const std::any& a, const std::any& b) {
+bool isLessThan (const ccxt::any& a, const ccxt::any& b) {
     int sign = 0;
     return compareNumeric (a, b, sign) && sign < 0;
 }
 
-bool isLessThanOrEqual (const std::any& a, const std::any& b) {
+bool isLessThanOrEqual (const ccxt::any& a, const ccxt::any& b) {
     int sign = 0;
     return compareNumeric (a, b, sign) && sign <= 0;
 }
 
-bool inOp (const std::any& container, const std::any& key) {
+bool inOp (const ccxt::any& container, const ccxt::any& key) {
     if (ccxt::isDict (container)) {
-        return std::any_cast<dict> (container).has (anyToString (key));
+        return ccxt::any_cast<dict> (container).has (anyToString (key));
     }
     if (ccxt::isList (container)) {
         double index = 0;
@@ -325,7 +325,7 @@ bool inOp (const std::any& container, const std::any& key) {
             return false;
         }
         const long i = static_cast<long> (index);
-        return i >= 0 && static_cast<std::size_t> (i) < std::any_cast<list> (container).size ();
+        return i >= 0 && static_cast<std::size_t> (i) < ccxt::any_cast<list> (container).size ();
     }
     return false;
 }
@@ -334,90 +334,90 @@ bool inOp (const std::any& container, const std::any& key) {
 // arithmetic
 // ---------------------------------------------------------------------------
 
-std::any add (const std::any& a, const std::any& b) {
+ccxt::any add (const ccxt::any& a, const ccxt::any& b) {
     // JS `+` concatenates when either operand is a string
     if (ccxt::isStr (a) || ccxt::isStr (b)) {
-        return std::any (anyToString (a) + anyToString (b));
+        return ccxt::any (anyToString (a) + anyToString (b));
     }
     double left = 0;
     double right = 0;
     if (numericValue (a, left) && numericValue (b, right)) {
         return numberResult (left + right);
     }
-    return std::any (anyToString (a) + anyToString (b));
+    return ccxt::any (anyToString (a) + anyToString (b));
 }
 
-std::any subtract (const std::any& a, const std::any& b) {
+ccxt::any subtract (const ccxt::any& a, const ccxt::any& b) {
     double left = 0;
     double right = 0;
     if (!numericValue (a, left) || !numericValue (b, right)) {
-        return std::any (std::nan (""));
+        return ccxt::any (std::nan (""));
     }
     return numberResult (left - right);
 }
 
-std::any multiply (const std::any& a, const std::any& b) {
+ccxt::any multiply (const ccxt::any& a, const ccxt::any& b) {
     double left = 0;
     double right = 0;
     if (!numericValue (a, left) || !numericValue (b, right)) {
-        return std::any (std::nan (""));
+        return ccxt::any (std::nan (""));
     }
     return numberResult (left * right);
 }
 
-std::any divide (const std::any& a, const std::any& b) {
+ccxt::any divide (const ccxt::any& a, const ccxt::any& b) {
     double left = 0;
     double right = 0;
     if (!numericValue (a, left) || !numericValue (b, right)) {
-        return std::any (std::nan (""));
+        return ccxt::any (std::nan (""));
     }
     // JS `/` is always floating point, including 1/2 === 0.5
     return numberResult (left / right);
 }
 
-std::any mod (const std::any& a, const std::any& b) {
+ccxt::any mod (const ccxt::any& a, const ccxt::any& b) {
     double left = 0;
     double right = 0;
     if (!numericValue (a, left) || !numericValue (b, right)) {
-        return std::any (std::nan (""));
+        return ccxt::any (std::nan (""));
     }
     return numberResult (std::fmod (left, right));
 }
 
-std::any postFixIncrement (std::any& v) {
-    const std::any previous = v;
-    v = add (v, std::any (1));
+ccxt::any postFixIncrement (ccxt::any& v) {
+    const ccxt::any previous = v;
+    v = add (v, ccxt::any (1));
     return previous;
 }
 
-std::any postFixDecrement (std::any& v) {
-    const std::any previous = v;
-    v = subtract (v, std::any (1));
+ccxt::any postFixDecrement (ccxt::any& v) {
+    const ccxt::any previous = v;
+    v = subtract (v, ccxt::any (1));
     return previous;
 }
 
-std::any prefixUnaryPlus (const std::any& v) {
+ccxt::any prefixUnaryPlus (const ccxt::any& v) {
     double d = 0;
-    return numericValue (v, d) ? numberResult (d) : std::any (std::nan (""));
+    return numericValue (v, d) ? numberResult (d) : ccxt::any (std::nan (""));
 }
 
-std::any prefixUnaryNeg (const std::any& v) {
+ccxt::any prefixUnaryNeg (const ccxt::any& v) {
     double d = 0;
-    return numericValue (v, d) ? numberResult (-d) : std::any (std::nan (""));
+    return numericValue (v, d) ? numberResult (-d) : ccxt::any (std::nan (""));
 }
 
 // ---------------------------------------------------------------------------
 // type predicates
 // ---------------------------------------------------------------------------
 
-bool isString (const std::any& v)     { return ccxt::isStr (v); }
-bool isNumber (const std::any& v)     { return ccxt::isNum (v); }
-bool isBool (const std::any& v)       { return ccxt::isBoolean (v); }
-bool isDictionary (const std::any& v) { return ccxt::isDict (v); }
-bool isFunction (const std::any&)     { return false; }   // no first-class functions in the value model
-bool isArray (const std::any& v)      { return ccxt::isList (v); }
+bool isString (const ccxt::any& v)     { return ccxt::isStr (v); }
+bool isNumber (const ccxt::any& v)     { return ccxt::isNum (v); }
+bool isBool (const ccxt::any& v)       { return ccxt::isBoolean (v); }
+bool isDictionary (const ccxt::any& v) { return ccxt::isDict (v); }
+bool isFunction (const ccxt::any&)     { return false; }   // no first-class functions in the value model
+bool isArray (const ccxt::any& v)      { return ccxt::isList (v); }
 
-bool isInteger (const std::any& v) {
+bool isInteger (const ccxt::any& v) {
     if (!ccxt::isNum (v)) {
         return false;
     }
@@ -429,129 +429,129 @@ bool isInteger (const std::any& v) {
 // collections
 // ---------------------------------------------------------------------------
 
-std::any getArrayLength (const std::any& v) {
-    if (ccxt::isList (v)) return std::any (static_cast<int> (std::any_cast<list> (v).size ()));
-    if (ccxt::isDict (v)) return std::any (static_cast<int> (std::any_cast<dict> (v).size ()));
-    if (ccxt::isStr (v))  return std::any (static_cast<int> (std::any_cast<std::string> (v).size ()));
+ccxt::any getArrayLength (const ccxt::any& v) {
+    if (ccxt::isList (v)) return ccxt::any (static_cast<int> (ccxt::any_cast<list> (v).size ()));
+    if (ccxt::isDict (v)) return ccxt::any (static_cast<int> (ccxt::any_cast<dict> (v).size ()));
+    if (ccxt::isStr (v))  return ccxt::any (static_cast<int> (ccxt::any_cast<std::string> (v).size ()));
     // ws layer: caches and book sides behave like arrays
     if (v.type () == typeid (ccxt::ws::OrderBookSide)) {
-        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::OrderBookSide&> (v).size ()));
+        return ccxt::any (static_cast<int> (ccxt::any_cast<const ccxt::ws::OrderBookSide&> (v).size ()));
     }
     if (v.type () == typeid (ccxt::ws::ArrayCache)) {
-        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCache&> (v).size ()));
+        return ccxt::any (static_cast<int> (ccxt::any_cast<const ccxt::ws::ArrayCache&> (v).size ()));
     }
     if (v.type () == typeid (ccxt::ws::ArrayCacheByTimestamp)) {
-        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCacheByTimestamp&> (v).size ()));
+        return ccxt::any (static_cast<int> (ccxt::any_cast<const ccxt::ws::ArrayCacheByTimestamp&> (v).size ()));
     }
     if (v.type () == typeid (ccxt::ws::ArrayCacheBySymbolById)) {
-        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCacheBySymbolById&> (v).size ()));
+        return ccxt::any (static_cast<int> (ccxt::any_cast<const ccxt::ws::ArrayCacheBySymbolById&> (v).size ()));
     }
     if (v.type () == typeid (ccxt::ws::ArrayCacheByOutcomeById)) {
-        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCacheByOutcomeById&> (v).size ()));
+        return ccxt::any (static_cast<int> (ccxt::any_cast<const ccxt::ws::ArrayCacheByOutcomeById&> (v).size ()));
     }
     if (v.type () == typeid (ccxt::ws::ArrayCacheBySymbolBySide)) {
-        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCacheBySymbolBySide&> (v).size ()));
+        return ccxt::any (static_cast<int> (ccxt::any_cast<const ccxt::ws::ArrayCacheBySymbolBySide&> (v).size ()));
     }
-    return std::any (0);
+    return ccxt::any (0);
 }
 
-std::any getStringLength (const std::any& v) {
-    return std::any (static_cast<int> (anyToString (v).size ()));
+ccxt::any getStringLength (const ccxt::any& v) {
+    return ccxt::any (static_cast<int> (anyToString (v).size ()));
 }
 
-std::any getObjectKeys (const std::any& v) {
+ccxt::any getObjectKeys (const ccxt::any& v) {
     list out;
     if (ccxt::isDict (v)) {
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
-            out.push (std::any (kv.first));
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
+            out.push (ccxt::any (kv.first));
         }
     } else if (ccxt::isList (v)) {
-        const std::size_t n = std::any_cast<list> (v).size ();
+        const std::size_t n = ccxt::any_cast<list> (v).size ();
         for (std::size_t i = 0; i < n; i++) {
-            out.push (std::any (std::to_string (i)));
+            out.push (ccxt::any (std::to_string (i)));
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any getObjectValues (const std::any& v) {
+ccxt::any getObjectValues (const ccxt::any& v) {
     list out;
     if (ccxt::isDict (v)) {
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             out.push (kv.second);
         }
     } else if (ccxt::isList (v)) {
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             out.push (item);
         }
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-void arrayPush (const std::any& arr, const std::any& v) {
+void arrayPush (const ccxt::any& arr, const ccxt::any& v) {
     if (ccxt::isList (arr)) {
-        std::any_cast<list> (arr).push (v);
+        ccxt::any_cast<list> (arr).push (v);
     }
 }
 
-std::any pop (const std::any& arr) {
+ccxt::any pop (const ccxt::any& arr) {
     if (!ccxt::isList (arr)) {
-        return std::any {};
+        return ccxt::any {};
     }
-    list handle = std::any_cast<list> (arr);
+    list handle = ccxt::any_cast<list> (arr);
     auto& items = handle.items ();
     if (items.empty ()) {
-        return std::any {};
+        return ccxt::any {};
     }
-    const std::any back = items.back ();
+    const ccxt::any back = items.back ();
     items.pop_back ();
     return back;
 }
 
-std::any shift (const std::any& arr) {
+ccxt::any shift (const ccxt::any& arr) {
     if (!ccxt::isList (arr)) {
-        return std::any {};
+        return ccxt::any {};
     }
-    list handle = std::any_cast<list> (arr);
+    list handle = ccxt::any_cast<list> (arr);
     auto& items = handle.items ();
     if (items.empty ()) {
-        return std::any {};
+        return ccxt::any {};
     }
-    const std::any front = items.front ();
+    const ccxt::any front = items.front ();
     items.erase (items.begin ());
     return front;
 }
 
-std::any reverse (const std::any& arr) {
+ccxt::any reverse (const ccxt::any& arr) {
     if (ccxt::isList (arr)) {
-        list handle = std::any_cast<list> (arr);
+        list handle = ccxt::any_cast<list> (arr);
         auto& items = handle.items ();
         std::reverse (items.begin (), items.end ());
     }
     return arr;   // JS Array#reverse mutates and returns the same array
 }
 
-std::any concat (const std::any& a, const std::any& b) {
+ccxt::any concat (const ccxt::any& a, const ccxt::any& b) {
     if (ccxt::isStr (a) || ccxt::isStr (b)) {
-        return std::any (anyToString (a) + anyToString (b));
+        return ccxt::any (anyToString (a) + anyToString (b));
     }
     list out;
     if (ccxt::isList (a)) {
-        for (const auto& item : std::any_cast<list> (a).items ()) out.push (item);
+        for (const auto& item : ccxt::any_cast<list> (a).items ()) out.push (item);
     }
     if (ccxt::isList (b)) {
-        for (const auto& item : std::any_cast<list> (b).items ()) out.push (item);
+        for (const auto& item : ccxt::any_cast<list> (b).items ()) out.push (item);
     } else if (b.has_value ()) {
         out.push (b);
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
 namespace {
 
 // shared start/end normalisation for slice: negative counts from the end, and an
 // absent end means "to the end", exactly as Array#slice / String#slice do
-void normaliseSliceBounds (long length, const std::any& start, const std::any& end,
+void normaliseSliceBounds (long length, const ccxt::any& start, const ccxt::any& end,
                            long& from, long& to) {
     double raw = 0;
     from = numericValue (start, raw) ? static_cast<long> (raw) : 0;
@@ -569,17 +569,17 @@ void normaliseSliceBounds (long length, const std::any& start, const std::any& e
 
 } // namespace
 
-std::any slice (const std::any& target, const std::any& start, const std::any& end) {
+ccxt::any slice (const ccxt::any& target, const ccxt::any& start, const ccxt::any& end) {
     if (ccxt::isStr (target)) {
-        const std::string s = std::any_cast<std::string> (target);
+        const std::string s = ccxt::any_cast<std::string> (target);
         long from = 0;
         long to = 0;
         normaliseSliceBounds (static_cast<long> (s.size ()), start, end, from, to);
-        return std::any (s.substr (static_cast<std::size_t> (from),
+        return ccxt::any (s.substr (static_cast<std::size_t> (from),
                                    static_cast<std::size_t> (to - from)));
     }
     if (ccxt::isList (target)) {
-        const auto& items = std::any_cast<list> (target).items ();
+        const auto& items = ccxt::any_cast<list> (target).items ();
         long from = 0;
         long to = 0;
         normaliseSliceBounds (static_cast<long> (items.size ()), start, end, from, to);
@@ -587,17 +587,17 @@ std::any slice (const std::any& target, const std::any& start, const std::any& e
         for (long i = from; i < to; i++) {
             out.push (items[static_cast<std::size_t> (i)]);
         }
-        return std::any (out);
+        return ccxt::any (out);
     }
-    return std::any {};
+    return ccxt::any {};
 }
 
-bool includes (const std::any& haystack, const std::any& needle) {
+bool includes (const ccxt::any& haystack, const ccxt::any& needle) {
     if (ccxt::isStr (haystack)) {
-        return std::any_cast<std::string> (haystack).find (anyToString (needle)) != std::string::npos;
+        return ccxt::any_cast<std::string> (haystack).find (anyToString (needle)) != std::string::npos;
     }
     if (ccxt::isList (haystack)) {
-        for (const auto& item : std::any_cast<list> (haystack).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (haystack).items ()) {
             if (isEqual (item, needle)) {
                 return true;
             }
@@ -606,80 +606,80 @@ bool includes (const std::any& haystack, const std::any& needle) {
     return false;
 }
 
-std::any getIndexOf (const std::any& haystack, const std::any& needle) {
+ccxt::any getIndexOf (const ccxt::any& haystack, const ccxt::any& needle) {
     if (ccxt::isStr (haystack)) {
-        const std::size_t at = std::any_cast<std::string> (haystack).find (anyToString (needle));
-        return std::any (at == std::string::npos ? -1 : static_cast<int> (at));
+        const std::size_t at = ccxt::any_cast<std::string> (haystack).find (anyToString (needle));
+        return ccxt::any (at == std::string::npos ? -1 : static_cast<int> (at));
     }
     if (ccxt::isList (haystack)) {
-        const auto& items = std::any_cast<list> (haystack).items ();
+        const auto& items = ccxt::any_cast<list> (haystack).items ();
         for (std::size_t i = 0; i < items.size (); i++) {
             if (isEqual (items[i], needle)) {
-                return std::any (static_cast<int> (i));
+                return ccxt::any (static_cast<int> (i));
             }
         }
     }
-    return std::any (-1);
+    return ccxt::any (-1);
 }
 
 // ---------------------------------------------------------------------------
 // strings
 // ---------------------------------------------------------------------------
 
-std::any toString (const std::any& v) { return std::any (anyToString (v)); }
+ccxt::any toString (const ccxt::any& v) { return ccxt::any (anyToString (v)); }
 
-std::string str (const std::any& v) { return anyToString (v); }
+std::string str (const ccxt::any& v) { return anyToString (v); }
 
-bool startsWith (const std::any& s, const std::any& prefix) {
+bool startsWith (const ccxt::any& s, const ccxt::any& prefix) {
     const std::string str = anyToString (s);
     const std::string pre = anyToString (prefix);
     return str.size () >= pre.size () && str.compare (0, pre.size (), pre) == 0;
 }
 
-bool endsWith (const std::any& s, const std::any& suffix) {
+bool endsWith (const ccxt::any& s, const ccxt::any& suffix) {
     const std::string str = anyToString (s);
     const std::string suf = anyToString (suffix);
     return str.size () >= suf.size ()
         && str.compare (str.size () - suf.size (), suf.size (), suf) == 0;
 }
 
-std::any trim (const std::any& s) {
+ccxt::any trim (const ccxt::any& s) {
     const std::string str = anyToString (s);
     const auto first = str.find_first_not_of (" \t\n\r\f\v");
     if (first == std::string::npos) {
-        return std::any (std::string (""));
+        return ccxt::any (std::string (""));
     }
     const auto last = str.find_last_not_of (" \t\n\r\f\v");
-    return std::any (str.substr (first, last - first + 1));
+    return ccxt::any (str.substr (first, last - first + 1));
 }
 
-std::any split (const std::any& s, const std::any& sep) {
+ccxt::any split (const ccxt::any& s, const ccxt::any& sep) {
     const std::string str = anyToString (s);
     const std::string delimiter = anyToString (sep);
     list out;
     if (delimiter.empty ()) {
         for (char c : str) {
-            out.push (std::any (std::string (1, c)));
+            out.push (ccxt::any (std::string (1, c)));
         }
-        return std::any (out);
+        return ccxt::any (out);
     }
     std::size_t start = 0;
     std::size_t at = str.find (delimiter);
     while (at != std::string::npos) {
-        out.push (std::any (str.substr (start, at - start)));
+        out.push (ccxt::any (str.substr (start, at - start)));
         start = at + delimiter.size ();
         at = str.find (delimiter, start);
     }
-    out.push (std::any (str.substr (start)));
-    return std::any (out);
+    out.push (ccxt::any (str.substr (start)));
+    return ccxt::any (out);
 }
 
-std::any join (const std::any& arr, const std::any& sep) {
+ccxt::any join (const ccxt::any& arr, const ccxt::any& sep) {
     if (!ccxt::isList (arr)) {
-        return std::any (std::string (""));
+        return ccxt::any (std::string (""));
     }
     const std::string delimiter = anyToString (sep);
-    const auto& items = std::any_cast<list> (arr).items ();
+    const auto& items = ccxt::any_cast<list> (arr).items ();
     std::string out;
     for (std::size_t i = 0; i < items.size (); i++) {
         if (i > 0) {
@@ -688,41 +688,41 @@ std::any join (const std::any& arr, const std::any& sep) {
         // JS Array#join renders undefined and null as empty strings
         out += items[i].has_value () ? anyToString (items[i]) : std::string ("");
     }
-    return std::any (out);
+    return ccxt::any (out);
 }
 
-std::any toUpperCase (const std::any& s) {
+ccxt::any toUpperCase (const ccxt::any& s) {
     std::string str = anyToString (s);
     std::transform (str.begin (), str.end (), str.begin (),
                     [] (unsigned char c) { return static_cast<char> (std::toupper (c)); });
-    return std::any (str);
+    return ccxt::any (str);
 }
 
-std::any toLowerCase (const std::any& s) {
+ccxt::any toLowerCase (const ccxt::any& s) {
     std::string str = anyToString (s);
     std::transform (str.begin (), str.end (), str.begin (),
                     [] (unsigned char c) { return static_cast<char> (std::tolower (c)); });
-    return std::any (str);
+    return ccxt::any (str);
 }
 
-std::any replace (const std::any& s, const std::any& from, const std::any& to) {
+ccxt::any replace (const ccxt::any& s, const ccxt::any& from, const ccxt::any& to) {
     std::string str = anyToString (s);
     const std::string needle = anyToString (from);
     if (needle.empty ()) {
-        return std::any (str);
+        return ccxt::any (str);
     }
     const std::size_t at = str.find (needle);
     if (at != std::string::npos) {
         str.replace (at, needle.size (), anyToString (to));
     }
-    return std::any (str);
+    return ccxt::any (str);
 }
 
-std::any replaceAll (const std::any& s, const std::any& from, const std::any& to) {
+ccxt::any replaceAll (const ccxt::any& s, const ccxt::any& from, const ccxt::any& to) {
     std::string str = anyToString (s);
     const std::string needle = anyToString (from);
     if (needle.empty ()) {
-        return std::any (str);
+        return ccxt::any (str);
     }
     const std::string replacement = anyToString (to);
     std::size_t at = str.find (needle);
@@ -730,57 +730,57 @@ std::any replaceAll (const std::any& s, const std::any& from, const std::any& to
         str.replace (at, needle.size (), replacement);
         at = str.find (needle, at + replacement.size ());
     }
-    return std::any (str);
+    return ccxt::any (str);
 }
 
-std::any padStart (const std::any& s, const std::any& width, const std::any& pad) {
+ccxt::any padStart (const ccxt::any& s, const ccxt::any& width, const ccxt::any& pad) {
     const std::string str = anyToString (s);
     double target = 0;
     numericValue (width, target);
     const std::string filler = pad.has_value () ? anyToString (pad) : std::string (" ");
     if (filler.empty () || str.size () >= static_cast<std::size_t> (target)) {
-        return std::any (str);
+        return ccxt::any (str);
     }
     std::string prefix;
     while (prefix.size () + str.size () < static_cast<std::size_t> (target)) {
         prefix += filler;
     }
     prefix.resize (static_cast<std::size_t> (target) - str.size ());
-    return std::any (prefix + str);
+    return ccxt::any (prefix + str);
 }
 
-std::any padEnd (const std::any& s, const std::any& width, const std::any& pad) {
+ccxt::any padEnd (const ccxt::any& s, const ccxt::any& width, const ccxt::any& pad) {
     std::string str = anyToString (s);
     double target = 0;
     numericValue (width, target);
     const std::string filler = pad.has_value () ? anyToString (pad) : std::string (" ");
     if (filler.empty () || str.size () >= static_cast<std::size_t> (target)) {
-        return std::any (str);
+        return ccxt::any (str);
     }
     while (str.size () < static_cast<std::size_t> (target)) {
         str += filler;
     }
     str.resize (static_cast<std::size_t> (target));
-    return std::any (str);
+    return ccxt::any (str);
 }
 
-std::any toFixed (const std::any& v, const std::any& digits) {
+ccxt::any toFixed (const ccxt::any& v, const ccxt::any& digits) {
     double d = 0;
     if (!numericValue (v, d)) {
-        return std::any (std::string ("NaN"));
+        return ccxt::any (std::string ("NaN"));
     }
     double places = 0;
     numericValue (digits, places);
     char buffer[512];
     std::snprintf (buffer, sizeof (buffer), "%.*f", static_cast<int> (places), d);
-    return std::any (std::string (buffer));
+    return ccxt::any (std::string (buffer));
 }
 
 // ---------------------------------------------------------------------------
 // math
 // ---------------------------------------------------------------------------
 
-std::any mathMin (const std::any& a, const std::any& b) {
+ccxt::any mathMin (const ccxt::any& a, const ccxt::any& b) {
     double left = 0;
     double right = 0;
     numericValue (a, left);
@@ -788,7 +788,7 @@ std::any mathMin (const std::any& a, const std::any& b) {
     return numberResult (std::min (left, right));
 }
 
-std::any mathMax (const std::any& a, const std::any& b) {
+ccxt::any mathMax (const ccxt::any& a, const ccxt::any& b) {
     double left = 0;
     double right = 0;
     numericValue (a, left);
@@ -796,32 +796,32 @@ std::any mathMax (const std::any& a, const std::any& b) {
     return numberResult (std::max (left, right));
 }
 
-std::any mathAbs (const std::any& v) {
+ccxt::any mathAbs (const ccxt::any& v) {
     double d = 0;
     numericValue (v, d);
     return numberResult (std::fabs (d));
 }
 
-std::any mathFloor (const std::any& v) {
+ccxt::any mathFloor (const ccxt::any& v) {
     double d = 0;
     numericValue (v, d);
     return numberResult (std::floor (d));
 }
 
-std::any mathCeil (const std::any& v) {
+ccxt::any mathCeil (const ccxt::any& v) {
     double d = 0;
     numericValue (v, d);
     return numberResult (std::ceil (d));
 }
 
-std::any mathRound (const std::any& v) {
+ccxt::any mathRound (const ccxt::any& v) {
     double d = 0;
     numericValue (v, d);
     // JS rounds .5 toward +Infinity, unlike std::round which rounds away from zero
     return numberResult (std::floor (d + 0.5));
 }
 
-std::any mathPow (const std::any& a, const std::any& b) {
+ccxt::any mathPow (const ccxt::any& a, const ccxt::any& b) {
     double base = 0;
     double exponent = 0;
     numericValue (a, base);
@@ -829,24 +829,24 @@ std::any mathPow (const std::any& a, const std::any& b) {
     return numberResult (std::pow (base, exponent));
 }
 
-std::any mathLog (const std::any& v) {
+ccxt::any mathLog (const ccxt::any& v) {
     double d = 0;
     numericValue (v, d);
-    return std::any (std::log (d));
+    return ccxt::any (std::log (d));
 }
 
 // ---------------------------------------------------------------------------
 // misc
 // ---------------------------------------------------------------------------
 
-void consoleLog (const std::any& v) {
+void consoleLog (const ccxt::any& v) {
     std::cout << anyToString (v) << std::endl;
 }
 
-std::any getCurrentTimestamp () {
+ccxt::any getCurrentTimestamp () {
     const auto now = std::chrono::system_clock::now ().time_since_epoch ();
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds> (now).count ();
-    return std::any (static_cast<long long> (ms));
+    return ccxt::any (static_cast<long long> (ms));
 }
 
 // The transpiled base tests are long runs of bare `assert(...)` with no message, so a
@@ -857,7 +857,7 @@ long long assertionOrdinal = 0;
 
 void resetAssertionOrdinal () { assertionOrdinal = 0; }
 
-void assertTrue (const std::any& condition, const std::any& message) {
+void assertTrue (const ccxt::any& condition, const ccxt::any& message) {
     assertionOrdinal++;
     if (!isTrue (condition)) {
         const std::string detail = message.has_value () ? anyToString (message) : std::string ("");
@@ -870,7 +870,7 @@ void assertTrue (const std::any& condition, const std::any& message) {
 // JSON and numeric parsing (declared late; see helpers.h)
 // ---------------------------------------------------------------------------
 
-std::any jsonStringify (const std::any& v) {
+ccxt::any jsonStringify (const ccxt::any& v) {
     // ws values serialize as their plain shapes (caches -> lists, books -> dicts),
     // matching the JS shape the fixtures assert against
     if (v.type () == typeid (ccxt::ws::WsOrderBook) ||
@@ -885,25 +885,25 @@ std::any jsonStringify (const std::any& v) {
     if (ccxt::isDict (v)) {
         std::string out = "{";
         bool first = true;
-        for (const auto& kv : std::any_cast<dict> (v).entries ()) {
+        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             if (!first) out += ",";
             first = false;
-            out += "\"" + kv.first + "\":" + std::any_cast<std::string> (jsonStringify (kv.second));
+            out += "\"" + kv.first + "\":" + ccxt::any_cast<std::string> (jsonStringify (kv.second));
         }
-        return std::any (out + "}");
+        return ccxt::any (out + "}");
     }
     if (ccxt::isList (v)) {
         std::string out = "[";
         bool first = true;
-        for (const auto& item : std::any_cast<list> (v).items ()) {
+        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
             if (!first) out += ",";
             first = false;
-            out += std::any_cast<std::string> (jsonStringify (item));
+            out += ccxt::any_cast<std::string> (jsonStringify (item));
         }
-        return std::any (out + "]");
+        return ccxt::any (out + "]");
     }
-    if (!v.has_value ())      return std::any (std::string ("null"));
-    if (ccxt::isBoolean (v))  return std::any (std::string (std::any_cast<bool> (v) ? "true" : "false"));
+    if (!v.has_value ())      return ccxt::any (std::string ("null"));
+    if (ccxt::isBoolean (v))  return ccxt::any (std::string (ccxt::any_cast<bool> (v) ? "true" : "false"));
     if (ccxt::isNum (v))      return toString (v);
     std::string escaped = "\"";
     for (char c : anyToString (v)) {
@@ -916,41 +916,41 @@ std::any jsonStringify (const std::any& v) {
         default:   escaped += c;      break;
         }
     }
-    return std::any (escaped + "\"");
+    return ccxt::any (escaped + "\"");
 }
 
-std::any parseFloat (const std::any& v) {
+ccxt::any parseFloat (const ccxt::any& v) {
     // JS parseFloat reads a leading number and ignores trailing junk
     try {
         std::size_t consumed = 0;
         const double parsed = std::stod (anyToString (v), &consumed);
-        return (consumed == 0) ? std::any (std::nan ("")) : std::any (parsed);
+        return (consumed == 0) ? ccxt::any (std::nan ("")) : ccxt::any (parsed);
     } catch (const std::exception&) {
-        return std::any (std::nan (""));
+        return ccxt::any (std::nan (""));
     }
 }
 
-std::any parseInt (const std::any& v) {
+ccxt::any parseInt (const ccxt::any& v) {
     try {
         std::size_t consumed = 0;
         const double parsed = std::stod (anyToString (v), &consumed);
-        return (consumed == 0) ? std::any (std::nan (""))
-                               : std::any (static_cast<long long> (std::trunc (parsed)));
+        return (consumed == 0) ? ccxt::any (std::nan (""))
+                               : ccxt::any (static_cast<long long> (std::trunc (parsed)));
     } catch (const std::exception&) {
-        return std::any (std::nan (""));
+        return ccxt::any (std::nan (""));
     }
 }
 
-std::any parseToInt (const std::any& v) { return parseInt (v); }
+ccxt::any parseToInt (const ccxt::any& v) { return parseInt (v); }
 
-std::any describeOf (const std::any&) { return std::any (ccxt::dict {}); }
+ccxt::any describeOf (const ccxt::any&) { return ccxt::any (ccxt::dict {}); }
 
-std::any resetOrderBook (const std::any& book, const std::any& snapshot) {
+ccxt::any resetOrderBook (const ccxt::any& book, const ccxt::any& snapshot) {
     // ws books: reset in place (the handle shares the store, mutation propagates);
     // anything else passes through untouched (pre-ws dict-based paths)
     if (book.type () == typeid (ccxt::ws::WsOrderBook)) {
-        ccxt::ws::WsOrderBook handle = std::any_cast<ccxt::ws::WsOrderBook> (book);
-        handle.reset (snapshot.has_value () ? snapshot : std::any {});
+        ccxt::ws::WsOrderBook handle = ccxt::any_cast<ccxt::ws::WsOrderBook> (book);
+        handle.reset (snapshot.has_value () ? snapshot : ccxt::any {});
     }
     return book;
 }
@@ -961,122 +961,122 @@ namespace {
 // but it must be copied into ITS OWN type — assigning a subclass into an ArrayCache
 // variable slices the vtable and every append would run the base version.
 template <class F>
-std::any dispatchCache (const std::any& v, F&& f) {
+ccxt::any dispatchCache (const ccxt::any& v, F&& f) {
     if (v.type () == typeid (ccxt::ws::ArrayCache)) {
-        ccxt::ws::ArrayCache handle = std::any_cast<ccxt::ws::ArrayCache> (v);
+        ccxt::ws::ArrayCache handle = ccxt::any_cast<ccxt::ws::ArrayCache> (v);
         return f (handle);
     }
     if (v.type () == typeid (ccxt::ws::ArrayCacheByTimestamp)) {
-        ccxt::ws::ArrayCacheByTimestamp handle = std::any_cast<ccxt::ws::ArrayCacheByTimestamp> (v);
+        ccxt::ws::ArrayCacheByTimestamp handle = ccxt::any_cast<ccxt::ws::ArrayCacheByTimestamp> (v);
         return f (handle);
     }
     if (v.type () == typeid (ccxt::ws::ArrayCacheBySymbolById)) {
-        ccxt::ws::ArrayCacheBySymbolById handle = std::any_cast<ccxt::ws::ArrayCacheBySymbolById> (v);
+        ccxt::ws::ArrayCacheBySymbolById handle = ccxt::any_cast<ccxt::ws::ArrayCacheBySymbolById> (v);
         return f (handle);
     }
     if (v.type () == typeid (ccxt::ws::ArrayCacheByOutcomeById)) {
-        ccxt::ws::ArrayCacheByOutcomeById handle = std::any_cast<ccxt::ws::ArrayCacheByOutcomeById> (v);
+        ccxt::ws::ArrayCacheByOutcomeById handle = ccxt::any_cast<ccxt::ws::ArrayCacheByOutcomeById> (v);
         return f (handle);
     }
     if (v.type () == typeid (ccxt::ws::ArrayCacheBySymbolBySide)) {
-        ccxt::ws::ArrayCacheBySymbolBySide handle = std::any_cast<ccxt::ws::ArrayCacheBySymbolBySide> (v);
+        ccxt::ws::ArrayCacheBySymbolBySide handle = ccxt::any_cast<ccxt::ws::ArrayCacheBySymbolBySide> (v);
         return f (handle);
     }
-    return std::any {};
+    return ccxt::any {};
 }
 
 } // namespace
 
-std::any wsStore (const std::any& side, const std::any& price, const std::any& size) {
+ccxt::any wsStore (const ccxt::any& side, const ccxt::any& price, const ccxt::any& size) {
     if (side.type () == typeid (ccxt::ws::OrderBookSide)) {
-        ccxt::ws::OrderBookSide handle = std::any_cast<ccxt::ws::OrderBookSide> (side);
+        ccxt::ws::OrderBookSide handle = ccxt::any_cast<ccxt::ws::OrderBookSide> (side);
         handle.store (price, size);
     }
     return side;
 }
 
-std::any wsStoreArray (const std::any& side, const std::any& delta) {
+ccxt::any wsStoreArray (const ccxt::any& side, const ccxt::any& delta) {
     if (side.type () == typeid (ccxt::ws::OrderBookSide)) {
-        ccxt::ws::OrderBookSide handle = std::any_cast<ccxt::ws::OrderBookSide> (side);
+        ccxt::ws::OrderBookSide handle = ccxt::any_cast<ccxt::ws::OrderBookSide> (side);
         handle.storeArray (delta);
     }
     return side;
 }
 
-std::any wsLimit (const std::any& bookOrSide) {
+ccxt::any wsLimit (const ccxt::any& bookOrSide) {
     if (bookOrSide.type () == typeid (ccxt::ws::WsOrderBook)) {
-        ccxt::ws::WsOrderBook handle = std::any_cast<ccxt::ws::WsOrderBook> (bookOrSide);
+        ccxt::ws::WsOrderBook handle = ccxt::any_cast<ccxt::ws::WsOrderBook> (bookOrSide);
         handle.limit ();
     } else if (bookOrSide.type () == typeid (ccxt::ws::OrderBookSide)) {
-        ccxt::ws::OrderBookSide handle = std::any_cast<ccxt::ws::OrderBookSide> (bookOrSide);
+        ccxt::ws::OrderBookSide handle = ccxt::any_cast<ccxt::ws::OrderBookSide> (bookOrSide);
         handle.limit ();
     }
     return bookOrSide;
 }
 
-std::any wsAppend (const std::any& cache, const std::any& item) {
-    dispatchCache (cache, [&] (auto& handle) -> std::any {
+ccxt::any wsAppend (const ccxt::any& cache, const ccxt::any& item) {
+    dispatchCache (cache, [&] (auto& handle) -> ccxt::any {
         handle.append (item);
-        return std::any {};
+        return ccxt::any {};
     });
     return cache;
 }
 
-std::any wsGetLimit (const std::any& cache, const std::any& symbol, const std::any& limit) {
-    return dispatchCache (cache, [&] (auto& handle) -> std::any {
+ccxt::any wsGetLimit (const ccxt::any& cache, const ccxt::any& symbol, const ccxt::any& limit) {
+    return dispatchCache (cache, [&] (auto& handle) -> ccxt::any {
         return handle.getLimit (symbol, limit);
     });
 }
 
-std::any wsClear (const std::any& cache) {
-    dispatchCache (cache, [] (auto& handle) -> std::any {
+ccxt::any wsClear (const ccxt::any& cache) {
+    dispatchCache (cache, [] (auto& handle) -> ccxt::any {
         handle.clear ();
-        return std::any {};
+        return ccxt::any {};
     });
     return cache;
 }
 
-std::any wsReset (const std::any& book) {
+ccxt::any wsReset (const ccxt::any& book) {
     // no-arg reset: rebuild the book from its stored snapshot (JS book.reset())
     if (book.type () == typeid (ccxt::ws::WsOrderBook)) {
-        std::any_cast<ccxt::ws::WsOrderBook> (book).reset ();
+        ccxt::any_cast<ccxt::ws::WsOrderBook> (book).reset ();
     }
     return book;
 }
 
 // -- ws client helpers (generated pro code calls client.resolve(...) etc on a
-//    std::any-held Client handle) -------------------------------------------------
+//    ccxt::any-held Client handle) -------------------------------------------------
 
-std::any wsClientResolve (const std::any& client, const std::any& result, const std::any& messageHash) {
+ccxt::any wsClientResolve (const ccxt::any& client, const ccxt::any& result, const ccxt::any& messageHash) {
     ccxt::ws::Client::of (client).resolve (result, anyToString (messageHash));
     return result;
 }
 
-std::any wsClientReject (const std::any& client, const std::any& reason, const std::any& messageHash) {
+ccxt::any wsClientReject (const ccxt::any& client, const ccxt::any& reason, const ccxt::any& messageHash) {
     ccxt::ws::Client::of (client).reject (reason, anyToString (messageHash));
     return reason;
 }
 
-std::any wsClientFuture (const std::any& client, const std::any& messageHash) {
-    return std::any (ccxt::ws::Client::of (client).future (anyToString (messageHash)));
+ccxt::any wsClientFuture (const ccxt::any& client, const ccxt::any& messageHash) {
+    return ccxt::any (ccxt::ws::Client::of (client).future (anyToString (messageHash)));
 }
 
-std::any wsClientSend (const std::any& client, const std::any& message) {
+ccxt::any wsClientSend (const ccxt::any& client, const ccxt::any& message) {
     ccxt::ws::Client::of (client).send (message);
-    return std::any {};
+    return ccxt::any {};
 }
 
-std::any wsClientReset (const std::any& client, const std::any& error) {
+ccxt::any wsClientReset (const ccxt::any& client, const ccxt::any& error) {
     // JS client.reset rejects every pending future with the error
     ccxt::ws::Client::of (client).reject (error);
     return error;
 }
 
-std::any wsClientReusableFuture (const std::any& client, const std::any& messageHash) {
-    return std::any (ccxt::ws::Client::of (client).future (anyToString (messageHash)));
+ccxt::any wsClientReusableFuture (const ccxt::any& client, const ccxt::any& messageHash) {
+    return ccxt::any (ccxt::ws::Client::of (client).future (anyToString (messageHash)));
 }
 
-std::any makeExchangeError (const std::any& errorClass, const std::any& message) {
+ccxt::any makeExchangeError (const ccxt::any& errorClass, const ccxt::any& message) {
     // pro venues materialise the stored error CLASS NAME into an error OBJECT
     // (assigned and passed to client.reject). Build it by throwing through the
     // Errors.h registry and capturing the exception_ptr -- copying the caught
@@ -1085,32 +1085,32 @@ std::any makeExchangeError (const std::any& errorClass, const std::any& message)
     try {
         ccxt::throwByName (anyToString (errorClass), anyToString (message));
     } catch (...) {
-        return std::any (std::current_exception ());
+        return ccxt::any (std::current_exception ());
     }
-    return std::any {};
+    return ccxt::any {};
 }
 
-std::any wsFutureResolve (const std::any& future, const std::any& value) {
-    std::any_cast<ccxt::ws::Future> (future).resolve (value);
+ccxt::any wsFutureResolve (const ccxt::any& future, const ccxt::any& value) {
+    ccxt::any_cast<ccxt::ws::Future> (future).resolve (value);
     return value;
 }
 
-std::any wsFutureReject (const std::any& future, const std::any& error) {
-    std::any_cast<ccxt::ws::Future> (future).reject (ccxt::ws::Client::reasonToException (error));
+ccxt::any wsFutureReject (const ccxt::any& future, const ccxt::any& error) {
+    ccxt::any_cast<ccxt::ws::Future> (future).reject (ccxt::ws::Client::reasonToException (error));
     return error;
 }
 
-std::any wsToPlain (const std::any& v) {
+ccxt::any wsToPlain (const ccxt::any& v) {
     if (v.type () == typeid (ccxt::ws::WsOrderBook)) {
         // the enumerable-props shape the JS test equals iterates: bids/asks rows plus
         // the scalar fields (cache stays invisible, as in JS)
-        return std::any_cast<const ccxt::ws::WsOrderBook&> (v).toDict ();
+        return ccxt::any_cast<const ccxt::ws::WsOrderBook&> (v).toDict ();
     }
     if (v.type () == typeid (ccxt::ws::OrderBookSide)) {
-        return std::any (std::any_cast<const ccxt::ws::OrderBookSide&> (v).rows ());
+        return ccxt::any (ccxt::any_cast<const ccxt::ws::OrderBookSide&> (v).rows ());
     }
-    const std::any asRows = dispatchCache (v, [] (auto& handle) -> std::any {
-        return std::any (handle.rows ());
+    const ccxt::any asRows = dispatchCache (v, [] (auto& handle) -> ccxt::any {
+        return ccxt::any (handle.rows ());
     });
     return asRows.has_value () ? asRows : v;
 }

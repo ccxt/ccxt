@@ -123,11 +123,22 @@ function formatCppSource (filePath: string, content: string): string {
     return formatted.stdout;
 }
 
+// final token pass for EVERY generated artifact: the backend's hardcoded
+// emissions (async lambda returns, destructuring bindings, method return
+// types) bypass the VAR_TOKEN config, so convert any residual std::any /
+// std::any_cast to the port's SBO value type (ccxt::any) at the write
+// chokepoint. Idempotent.
+function useSboAnyType (content: string): string {
+    return content
+        .replace (/\bstd::any_cast\b/g, 'ccxt::any_cast')
+        .replace (/\bstd::any\b/g, 'ccxt::any');
+}
+
 function overwriteFileAndFolder (filePath: string, content: string) {
     if (!fs.existsSync (filePath)) {
         checkCreateFolder (filePath);
     }
-    overwriteFile (filePath, formatCppSource (filePath, content));
+    overwriteFile (filePath, formatCppSource (filePath, useSboAnyType (content)));
 }
 
 // ---------------------------------------------------------------------------
@@ -425,7 +436,7 @@ function rewritePreciseCalls (content: string): string {
 // parentheses and clang-format may have broken the line, so whitespace and opening
 // parens are tolerated between `=` and the call.
 function rewriteSelfShadowingLocals (content: string): string {
-    return content.replace (/std::any (\w+) =(\s*\(*)\1\(/g, 'std::any $1 =$2::$1(');
+    return content.replace (/(?:std::any|ccxt::any) (\w+) =(\s*\(*)\1\(/g, 'std::any $1 =$2::$1(');
 }
 
 // Property and method access on std::any locals. C# casts these (`(client as
@@ -568,7 +579,7 @@ const SHADOWED_HELPERS: Record<string, string> = { isArray: 'isArrayFlag' };
 function rewriteShadowedHelperNames (content: string): string {
     let out = content;
     for (const [name, rename] of Object.entries (SHADOWED_HELPERS)) {
-        if (!new RegExp (`\\bstd::any ${name} =`).test (out)) {
+        if (!new RegExp (`\\b(?:std::any|ccxt::any) ${name} =`).test (out)) {
             continue;
         }
         out = outsideStringLiterals (out, (masked) => masked
@@ -672,7 +683,7 @@ class CppTranspilerDriver {
         // braces, `dict {}` spacing), so anchor on the valueDefined decl and
         // consume everything up to the deepExtend call.
         const stripRe =
-            /std::any valueDefined = ccxt::dict\s*\{\};[\s\S]*?std::any market = this->deepExtend/;
+            /ccxt::any valueDefined = ccxt::dict\s*\{\};[\s\S]*?ccxt::any market = this->deepExtend/;
         const stripTo = [
             '    std::any valueDefined = ccxt::dict{};',
             '    {',
@@ -695,7 +706,7 @@ class CppTranspilerDriver {
         // Replace the uses FIRST, then insert the declaration — inserting
         // before the replace would match the inserted line itself and
         // produce `std::any valueId = valueId;` (self-init UB, segfault).
-        const valueDecl = '    std::any value = ::getValue(marketValues, i);';
+        const valueDecl = '    ccxt::any value = ::getValue(marketValues, i);';
         if (sm.includes (valueDecl)) {
             sm = sm.replace (/::getValue\(value, std::string\("id"\)\)/g, 'valueId');
             sm = sm.replace (valueDecl, valueDecl
@@ -710,8 +721,8 @@ class CppTranspilerDriver {
         // before the loop, after the quoteCurrencies decl. Idempotent: a second
         // regen deletes the hoisted copy and re-inserts the same text.
         const precisionDeclRe =
-            /std::any defaultCurrencyPrecision =[\s\S]*?std::string\("1e-8"\)\)\)\)\);/;
-        const quoteCurrenciesRe = /std::any quoteCurrencies = ccxt::list\s*\{\};/;
+            /ccxt::any defaultCurrencyPrecision =[\s\S]*?std::string\("1e-8"\)\)\)\)\);/;
+        const quoteCurrenciesRe = /ccxt::any quoteCurrencies = ccxt::list\s*\{\};/;
         if (precisionDeclRe.test (sm) && quoteCurrenciesRe.test (sm)) {
             sm = sm.replace (precisionDeclRe, '');
             const hoistedPrecision = [
@@ -833,6 +844,17 @@ class CppTranspilerDriver {
                     // std::unordered_map / std::vector by value.
                     'OBJECT_OPENING': 'ccxt::dict {',
                     'ARRAY_OPENING_TOKEN': 'ccxt::list{',
+                    // D2 — the port's SBO value type (see cpp/ccxt/base/Value.h):
+                    // ccxt::any inlines the hot scalar/string/handle payloads where
+                    // std::any heap-allocated a slot per value (~30% of warm CPU was
+                    // malloc/std::any-manager). Every generated `std::any` VAR
+                    // position (locals, params, undefined literals) routes through
+                    // these tokens; hardcoded backend emissions (async lambda
+                    // returns, method return types) are converted by the
+                    // useSboAnyType write-chokepoint instead.
+                    'VAR_TOKEN': 'ccxt::any',
+                    'UNDEFINED_TOKEN': 'ccxt::any{}',
+                    'DEFAULT_PARAMETER_TYPE': 'ccxt::any',
                 },
                 'FullPropertyAccessReplacements': {
                     // the backend maps this to INT_MAX (2^31), but JS means 2^53-1 and
@@ -903,7 +925,7 @@ class CppTranspilerDriver {
         // with matching defaults so the override remains virtual-dispatched
         // (parseTransactions routes through this->parseTransaction) instead of hiding.
         baseMethods = baseMethods.replace (
-            /virtual std::any parseTransaction\(std::any transaction, std::any currency = std::any\{\}\)/,
+            /virtual std::any parseTransaction\((?:std::any|ccxt::any) transaction, (?:std::any|ccxt::any) currency = (?:std::any|ccxt::any)\{\}\)/,
             'virtual std::any parseTransaction(std::any transaction, std::any currency = std::any{}, std::any since = std::any{}, std::any limit = std::any{})');
 
         // The whole generated base-methods surface is the live hot path (per-market
@@ -1194,7 +1216,7 @@ class CppTranspilerDriver {
             + '// The typed user-facing API: PascalCase methods returning Types.h structs\n'
             + '// (C# wrapper parity). Regenerate with `npm run transpileCpp -- --typedApi`.\n\n';
         checkCreateFolder (path.dirname (TYPED_API_FILE));
-        fs.writeFileSync (TYPED_API_FILE, header + lines.join ('\n') + '\n');
+        fs.writeFileSync (TYPED_API_FILE, useSboAnyType (header + lines.join ('\n') + '\n'));
         log.green ('[cpp] Generated typed API (' + emitted.size.toString () + ' methods) to', (TYPED_API_FILE as any).yellow);
     }
 
@@ -2056,10 +2078,49 @@ class CppTranspilerDriver {
     // deep-equality `equals` for the generated callers to resolve to, exactly as
     // cs/tests/BaseTest.Bridge.cs does.
     stripGeneratedEquals (content: string): string {
-        return content.replace (
-            /^std::any equals\(std::any a, std::any b\)\n\{[\s\S]*?\n\}\n/m,
-            ''
-        );
+        const anyT = '(?:std::any|ccxt::any)';
+        if (process.env.CPP_DEBUG_STRIP) {
+            const i = content.indexOf ('equals');
+            fs.writeFileSync ('/tmp/strip-debug.inc', content.slice (Math.max (0, i - 200), i + 400));
+        }
+        const sigRe = new RegExp ('^' + anyT + ' equals\\(' + anyT + ' a, ' + anyT + ' b\\)', 'gm');
+        let out = content
+            // the hoisted forward declaration (TS hoists the helper; the definition is stripped)
+            .replace (new RegExp ('^' + anyT + ' equals\\(' + anyT + ' a, ' + anyT + ' b\\);$', 'gm'), '');
+        // the definition: the body has nested if-blocks (braces on their own
+        // lines — the backend's formatting), so strip from the signature line
+        // to the MATCHING closing brace by depth counting; a lazy regex stops
+        // at the first inner '}' and leaves orphan body lines behind
+        let m = null;
+        while ((m = sigRe.exec (out)) !== null) {
+            const open = out.indexOf ('{', m.index + m[0].length);
+            if (open < 0) {
+                break;
+            }
+            let depth = 0;
+            let end = -1;
+            for (let i = open; i < out.length; i++) {
+                if (out[i] === '{') {
+                    depth++;
+                } else if (out[i] === '}') {
+                    depth--;
+                    if (depth === 0) {
+                        end = i;
+                        break;
+                    }
+                }
+            }
+            if (end < 0) {
+                break;
+            }
+            let stripEnd = end + 1;
+            if (out[stripEnd] === '\n') {
+                stripEnd++;
+            }
+            out = out.slice (0, m.index) + out.slice (stripEnd);
+            sigRe.lastIndex = 0;
+        }
+        return out;
     }
 
     // -----------------------------------------------------------------------
@@ -2323,20 +2384,20 @@ function applyExchangeTestFixes (content: string): string {
     // testWsStatically; every other promiseAll (runStaticTests fan-out etc) keeps
     // its sequential semantics.
     let wsFixed = commonFixed
-        // parsedResponses branch: final-state assert after all frames
-        .replace (/std::any results = awaitValue\(promiseAll\(promises\)\);\n\s*std::any unifiedResult =/,
-                  'std::any results = awaitValue(promiseAllConcurrent(promises));\n                   std::any unifiedResult =')
-        // sequential branch: one watch resolution per frame
-        .replace (/awaitValue\(promiseAll\(promises\)\);\n\s*this->assertWsSentMessages/,
-                  'awaitValue(promiseAllConcurrent(promises));\n                   this->assertWsSentMessages')
-        // single-parsedResponse branch: the dispatcher awaits the watch future
-        // INLINE (callMethod emits awaitValue(watchX(...))), so building the
-        // promises list on the caller thread would block inside the watch chain
-        // before the injector thread exists. Wrap the dispatch in a deferred
-        // future so promiseAllConcurrent's worker runs it concurrently with
-        // the injector, mirroring the sequential branch's shape.
-        .replace (/std::any promises = ccxt::list\{callExchangeMethodDynamically\(exchange, method, input\), this->injectWsMessages\(exchange, url, messages\)\};/,
-                  `std::any promises = ccxt::list{\n                       std::async(std::launch::deferred, [=]() -> std::any {\n                           return callExchangeMethodDynamically(exchange, method, input);\n                       }).share(),\n                       this->injectWsMessages(exchange, url, messages)};`);
+    // parsedResponses branch: final-state assert after all frames
+    .replace (/(?:std::any|ccxt::any) results = awaitValue\(promiseAll\(promises\)\);\n\s*(?:std::any|ccxt::any) unifiedResult =/,
+              'ccxt::any results = awaitValue(promiseAllConcurrent(promises));\n                   ccxt::any unifiedResult =')
+    // sequential branch: one watch resolution per frame
+    .replace (/awaitValue\(promiseAll\(promises\)\);\n\s*this->assertWsSentMessages/,
+              'awaitValue(promiseAllConcurrent(promises));\n                   this->assertWsSentMessages')
+    // single-parsedResponse branch: the dispatcher awaits the watch future
+    // INLINE (callMethod emits awaitValue(watchX(...))), so building the
+    // promises list on the caller thread would block inside the watch chain
+    // before the injector thread exists. Wrap the dispatch in a deferred
+    // future so promiseAllConcurrent's worker runs it concurrently with
+    // the injector, mirroring the sequential branch's shape.
+    .replace (/(?:std::any|ccxt::any) promises = ccxt::list\{callExchangeMethodDynamically\(exchange, method, input\), this->injectWsMessages\(exchange, url, messages\)\};/,
+              `ccxt::any promises = ccxt::list{\n                       std::async(std::launch::deferred, [=]() -> ccxt::any {\n                           return callExchangeMethodDynamically(exchange, method, input);\n                       }).share(),\n                       this->injectWsMessages(exchange, url, messages)};`);
 // The backend leaks `undefined` as a bare identifier in expression contexts,
     // and its string wrapper can produce `std::string(undefined)`. Neither is
     // valid C++; the wrapped form goes first so the bare replacement never

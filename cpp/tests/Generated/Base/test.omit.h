@@ -12,17 +12,17 @@ void testOmit() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  assertDeepEqual(exchange, std::any{}, std::string("testOmit"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testOmit"),
                   exchange.omit(ccxt::dict{}, std::string("foo")),
                   ccxt::dict{});
-  assertDeepEqual(exchange, std::any{}, std::string("testOmit"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testOmit"),
                   exchange.omit(
                       ccxt::dict{
                           {std::string("foo"), 2},
                       },
                       std::string("foo")),
                   ccxt::dict{});
-  assertDeepEqual(exchange, std::any{}, std::string("testOmit"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testOmit"),
                   exchange.omit(
                       ccxt::dict{
                           {std::string("foo"), 2},
@@ -32,7 +32,7 @@ void testOmit() {
                   ccxt::dict{
                       {std::string("bar"), 3},
                   });
-  assertDeepEqual(exchange, std::any{}, std::string("testOmit"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testOmit"),
                   exchange.omit(
                       ccxt::dict{
                           {std::string("foo"), 2},

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_btse(std::any config) {
+std::shared_ptr<ExchangeBase> create_btse(ccxt::any config) {
   return newExchange<btse>(config);
 }
 

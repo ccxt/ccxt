@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_paymium(std::any config) {
+std::shared_ptr<ExchangeBase> create_paymium(ccxt::any config) {
   return newExchange<paymium>(config);
 }
 

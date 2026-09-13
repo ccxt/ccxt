@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bingx(std::any config) {
+std::shared_ptr<ExchangeBase> create_bingx(ccxt::any config) {
   return newExchange<bingx>(config);
 }
 

@@ -99,28 +99,28 @@ void testWsCache() {
   // ----------------------------------------------------------------------------
   ccxt::ws::ArrayCacheByTimestamp timestampCache =
       ccxt::ws::ArrayCacheByTimestamp();
-  std::any ohlcv1 = ccxt::list{100, 1, 2, 3};
-  std::any ohlcv2 = ccxt::list{200, 5, 6, 7};
+  ccxt::any ohlcv1 = ccxt::list{100, 1, 2, 3};
+  ccxt::any ohlcv2 = ccxt::list{200, 5, 6, 7};
   ::wsAppend(timestampCache, ohlcv1);
   ::wsAppend(timestampCache, ohlcv2);
   assertTrue(equals(timestampCache, ccxt::list{ohlcv1, ohlcv2}));
-  std::any modify2 = ccxt::list{200, 10, 11, 12};
+  ccxt::any modify2 = ccxt::list{200, 10, 11, 12};
   ::wsAppend(timestampCache, modify2);
   assertTrue(equals(timestampCache, ccxt::list{ohlcv1, modify2}));
   // ----------------------------------------------------------------------------
   ccxt::ws::ArrayCacheBySymbolById cacheSymbolId =
       ccxt::ws::ArrayCacheBySymbolById();
-  std::any object1 = ccxt::dict{
+  ccxt::any object1 = ccxt::dict{
       {std::string("symbol"), std::string("BTC/USDT")},
       {std::string("id"), std::string("abcdef")},
       {std::string("i"), 1},
   };
-  std::any object2 = ccxt::dict{
+  ccxt::any object2 = ccxt::dict{
       {std::string("symbol"), std::string("ETH/USDT")},
       {std::string("id"), std::string("qwerty")},
       {std::string("i"), 2},
   };
-  std::any object3 = ccxt::dict{
+  ccxt::any object3 = ccxt::dict{
       {std::string("symbol"), std::string("BTC/USDT")},
       {std::string("id"), std::string("abcdef")},
       {std::string("i"), 3},
@@ -132,7 +132,7 @@ void testWsCache() {
   // ----------------------------------------------------------------------------
   ccxt::ws::ArrayCacheBySymbolById cacheSymbolId5 =
       ccxt::ws::ArrayCacheBySymbolById(5);
-  for (std::any i = 1; isLessThan(i, 11); postFixIncrement(i)) {
+  for (ccxt::any i = 1; isLessThan(i, 11); postFixIncrement(i)) {
     ::wsAppend(cacheSymbolId5,
                ccxt::dict{
                    {std::string("symbol"), std::string("BTC/USDT")},
@@ -167,7 +167,7 @@ void testWsCache() {
                             {std::string("id"), std::string("10")},
                             {std::string("i"), 10},
                         }}));
-  for (std::any i = 1; isLessThan(i, 11); postFixIncrement(i)) {
+  for (ccxt::any i = 1; isLessThan(i, 11); postFixIncrement(i)) {
     ::wsAppend(cacheSymbolId5,
                ccxt::dict{
                    {std::string("symbol"), std::string("BTC/USDT")},
@@ -202,7 +202,7 @@ void testWsCache() {
                             {std::string("id"), std::string("10")},
                             {std::string("i"), 20},
                         }}));
-  std::any middle = ccxt::dict{
+  ccxt::any middle = ccxt::dict{
       {std::string("symbol"), std::string("BTC/USDT")},
       {std::string("id"), std::string("8")},
       {std::string("i"), 28},
@@ -235,7 +235,7 @@ void testWsCache() {
                             {std::string("id"), std::string("8")},
                             {std::string("i"), 28},
                         }}));
-  std::any otherMiddle = ccxt::dict{
+  ccxt::any otherMiddle = ccxt::dict{
       {std::string("symbol"), std::string("BTC/USDT")},
       {std::string("id"), std::string("7")},
       {std::string("i"), 27},
@@ -268,7 +268,7 @@ void testWsCache() {
                             {std::string("id"), std::string("7")},
                             {std::string("i"), 27},
                         }}));
-  for (std::any i = 30; isLessThan(i, 33); postFixIncrement(i)) {
+  for (ccxt::any i = 30; isLessThan(i, 33); postFixIncrement(i)) {
     ::wsAppend(cacheSymbolId5,
                ccxt::dict{
                    {std::string("symbol"), std::string("BTC/USDT")},
@@ -303,7 +303,7 @@ void testWsCache() {
                             {std::string("id"), std::string("32")},
                             {std::string("i"), 42},
                         }}));
-  std::any first = ccxt::dict{
+  ccxt::any first = ccxt::dict{
       {std::string("symbol"), std::string("BTC/USDT")},
       {std::string("id"), std::string("8")},
       {std::string("i"), 38},
@@ -336,7 +336,7 @@ void testWsCache() {
                             {std::string("id"), std::string("8")},
                             {std::string("i"), 38},
                         }}));
-  std::any another = ccxt::dict{
+  ccxt::any another = ccxt::dict{
       {std::string("symbol"), std::string("BTC/USDT")},
       {std::string("id"), std::string("30")},
       {std::string("i"), 50},
@@ -371,31 +371,31 @@ void testWsCache() {
                         }}));
   // ----------------------------------------------------------------------------
   // test ArrayCacheBySymbolById limit with symbol set
-  std::any symbol = std::string("BTC/USDT");
+  ccxt::any symbol = std::string("BTC/USDT");
   ccxt::ws::ArrayCacheBySymbolById cacheSymbolId2 =
       ccxt::ws::ArrayCacheBySymbolById();
-  std::any initialLength = 5;
-  for (std::any i = 0; isLessThan(i, initialLength); postFixIncrement(i)) {
+  ccxt::any initialLength = 5;
+  for (ccxt::any i = 0; isLessThan(i, initialLength); postFixIncrement(i)) {
     ::wsAppend(cacheSymbolId2, ccxt::dict{
                                    {std::string("symbol"), symbol},
                                    {std::string("id"), toString(i)},
                                    {std::string("i"), i},
                                });
   }
-  std::any limited = ::wsGetLimit(cacheSymbolId2, symbol, std::any{});
+  ccxt::any limited = ::wsGetLimit(cacheSymbolId2, symbol, ccxt::any{});
   assertTrue(isEqual(initialLength, limited));
   // ----------------------------------------------------------------------------
   ccxt::ws::ArrayCacheBySymbolById cacheSymbolId3 =
       ccxt::ws::ArrayCacheBySymbolById();
-  std::any appendItemsLength = 3;
-  for (std::any i = 0; isLessThan(i, appendItemsLength); postFixIncrement(i)) {
+  ccxt::any appendItemsLength = 3;
+  for (ccxt::any i = 0; isLessThan(i, appendItemsLength); postFixIncrement(i)) {
     ::wsAppend(cacheSymbolId3, ccxt::dict{
                                    {std::string("symbol"), symbol},
                                    {std::string("id"), toString(i)},
                                    {std::string("i"), i},
                                });
   }
-  std::any outsideLimit = 5;
+  ccxt::any outsideLimit = 5;
   limited = ::wsGetLimit(cacheSymbolId3, symbol, outsideLimit);
   assertTrue(isEqual(appendItemsLength, limited));
   outsideLimit = 2; // if limit < newsUpdate that should be returned
@@ -407,20 +407,20 @@ void testWsCache() {
   ccxt::ws::ArrayCacheBySymbolById cacheSymbolId4 =
       ccxt::ws::ArrayCacheBySymbolById();
   initialLength = 5;
-  for (std::any i = 0; isLessThan(i, initialLength); postFixIncrement(i)) {
+  for (ccxt::any i = 0; isLessThan(i, initialLength); postFixIncrement(i)) {
     ::wsAppend(cacheSymbolId4, ccxt::dict{
                                    {std::string("symbol"), symbol},
                                    {std::string("id"), toString(i)},
                                    {std::string("i"), i},
                                });
   }
-  limited = ::wsGetLimit(cacheSymbolId4, std::any{}, std::any{});
+  limited = ::wsGetLimit(cacheSymbolId4, ccxt::any{}, ccxt::any{});
   assertTrue(isEqual(initialLength, limited));
   // ----------------------------------------------------------------------------
   ccxt::ws::ArrayCacheBySymbolById cacheSymbolId6 =
       ccxt::ws::ArrayCacheBySymbolById();
   appendItemsLength = 3;
-  for (std::any i = 0; isLessThan(i, appendItemsLength); postFixIncrement(i)) {
+  for (ccxt::any i = 0; isLessThan(i, appendItemsLength); postFixIncrement(i)) {
     ::wsAppend(cacheSymbolId6, ccxt::dict{
                                    {std::string("symbol"), symbol},
                                    {std::string("id"), toString(i)},
@@ -438,7 +438,7 @@ void testWsCache() {
   ccxt::ws::ArrayCacheBySymbolById cacheSymbolId7 =
       ccxt::ws::ArrayCacheBySymbolById();
   symbol = std::string("BTC/USDT");
-  std::any otherSymbol = std::string("ETH/USDT");
+  ccxt::any otherSymbol = std::string("ETH/USDT");
   ::wsAppend(cacheSymbolId7, ccxt::dict{
                                  {std::string("symbol"), symbol},
                                  {std::string("id"), std::string("singleId")},
@@ -456,7 +456,7 @@ void testWsCache() {
                              });
   outsideLimit = 5;
   limited = ::wsGetLimit(cacheSymbolId7, symbol, outsideLimit);
-  std::any limited2 = ::wsGetLimit(cacheSymbolId7, std::any{}, outsideLimit);
+  ccxt::any limited2 = ::wsGetLimit(cacheSymbolId7, ccxt::any{}, outsideLimit);
   assertTrue(isEqual(limited, 1));
   assertTrue(isEqual(limited2, 2));
   // ----------------------------------------------------------------------------
@@ -464,22 +464,22 @@ void testWsCache() {
   ccxt::ws::ArrayCacheByTimestamp timestampCache2 =
       ccxt::ws::ArrayCacheByTimestamp();
   initialLength = 5;
-  for (std::any i = 0; isLessThan(i, initialLength); postFixIncrement(i)) {
+  for (ccxt::any i = 0; isLessThan(i, initialLength); postFixIncrement(i)) {
     ::wsAppend(timestampCache2, ccxt::list{multiply(i, 10), multiply(i, 10),
                                            multiply(i, 10), multiply(i, 10)});
   }
-  limited = ::wsGetLimit(timestampCache2, std::any{}, std::any{});
+  limited = ::wsGetLimit(timestampCache2, ccxt::any{}, ccxt::any{});
   assertTrue(isEqual(initialLength, limited));
   appendItemsLength = 3;
-  for (std::any i = 0; isLessThan(i, appendItemsLength); postFixIncrement(i)) {
+  for (ccxt::any i = 0; isLessThan(i, appendItemsLength); postFixIncrement(i)) {
     ::wsAppend(timestampCache2, ccxt::list{multiply(i, 4), multiply(i, 4),
                                            multiply(i, 4), multiply(i, 4)});
   }
   outsideLimit = 5;
-  limited = ::wsGetLimit(timestampCache2, std::any{}, outsideLimit);
+  limited = ::wsGetLimit(timestampCache2, ccxt::any{}, outsideLimit);
   assertTrue(isEqual(appendItemsLength, limited));
   outsideLimit = 2; // if limit < newsUpdate that should be returned
-  limited = ::wsGetLimit(timestampCache2, std::any{}, outsideLimit);
+  limited = ::wsGetLimit(timestampCache2, ccxt::any{}, outsideLimit);
   assertTrue(isEqual(outsideLimit, limited));
   // ----------------------------------------------------------------------------
   // test ArrayCacheBySymbolById, watch all orders, same symbol and order id
@@ -492,26 +492,26 @@ void testWsCache() {
                                  {std::string("symbol"), symbol},
                                  {std::string("id"), std::string("oneId")},
                                  {std::string("i"), 3},
-                             });                          // create first order
-  ::wsGetLimit(cacheSymbolId8, std::any{}, outsideLimit); // watch all orders
+                             });                           // create first order
+  ::wsGetLimit(cacheSymbolId8, ccxt::any{}, outsideLimit); // watch all orders
   ::wsAppend(cacheSymbolId8, ccxt::dict{
                                  {std::string("symbol"), symbol},
                                  {std::string("id"), std::string("oneId")},
                                  {std::string("i"), 4},
                              }); // first order is closed
-  ::wsGetLimit(cacheSymbolId8, std::any{}, outsideLimit); // watch all orders
+  ::wsGetLimit(cacheSymbolId8, ccxt::any{}, outsideLimit); // watch all orders
   ::wsAppend(cacheSymbolId8, ccxt::dict{
                                  {std::string("symbol"), symbol},
                                  {std::string("id"), std::string("twoId")},
                                  {std::string("i"), 5},
-                             });                          // create second order
-  ::wsGetLimit(cacheSymbolId8, std::any{}, outsideLimit); // watch all orders
+                             }); // create second order
+  ::wsGetLimit(cacheSymbolId8, ccxt::any{}, outsideLimit); // watch all orders
   ::wsAppend(cacheSymbolId8, ccxt::dict{
                                  {std::string("symbol"), symbol},
                                  {std::string("id"), std::string("twoId")},
                                  {std::string("i"), 6},
                              }); // second order is closed
-  limited = ::wsGetLimit(cacheSymbolId8, std::any{},
+  limited = ::wsGetLimit(cacheSymbolId8, ccxt::any{},
                          outsideLimit); // watch all orders
   assertTrue(isEqual(limited, 1));      // one new update
   // ----------------------------------------------------------------------------
@@ -520,7 +520,7 @@ void testWsCache() {
   ccxt::ws::ArrayCacheBySymbolById cacheSymbolId9 =
       ccxt::ws::ArrayCacheBySymbolById();
   symbol = std::string("BTC/USDT");
-  std::any symbol2 = std::string("ETH/USDT");
+  ccxt::any symbol2 = std::string("ETH/USDT");
   outsideLimit = 5;
   ::wsAppend(cacheSymbolId9, ccxt::dict{
                                  {std::string("symbol"), symbol},
@@ -532,7 +532,7 @@ void testWsCache() {
                                  {std::string("id"), std::string("two")},
                                  {std::string("i"), 1},
                              }); // create second order
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolId9, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolId9, ccxt::any{}, outsideLimit),
                      2)); // watch all orders
   assertTrue(isEqual(::wsGetLimit(cacheSymbolId9, symbol, outsideLimit),
                      1)); // watch by symbol
@@ -548,7 +548,7 @@ void testWsCache() {
                              }); // update second order
   assertTrue(isEqual(::wsGetLimit(cacheSymbolId9, symbol, outsideLimit),
                      1)); // watch by symbol
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolId9, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolId9, ccxt::any{}, outsideLimit),
                      2)); // watch all orders
   ::wsAppend(cacheSymbolId9, ccxt::dict{
                                  {std::string("symbol"), symbol2},
@@ -560,7 +560,7 @@ void testWsCache() {
                                  {std::string("id"), std::string("three")},
                                  {std::string("i"), 3},
                              }); // create third order
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolId9, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolId9, ccxt::any{}, outsideLimit),
                      2)); // watch all orders
   // ----------------------------------------------------------------------------
   // test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id
@@ -600,21 +600,21 @@ void testWsCache() {
                                    {std::string("side"), std::string("short")},
                                    {std::string("contracts"), 1},
                                }); // create first position
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide2, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide2, ccxt::any{}, outsideLimit),
                      1)); // watch all positions
   ::wsAppend(cacheSymbolSide2, ccxt::dict{
                                    {std::string("symbol"), symbol},
                                    {std::string("side"), std::string("short")},
                                    {std::string("contracts"), 0},
                                }); // first position is closed
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide2, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide2, ccxt::any{}, outsideLimit),
                      1)); // watch all positions
   ::wsAppend(cacheSymbolSide2, ccxt::dict{
                                    {std::string("symbol"), symbol},
                                    {std::string("side"), std::string("long")},
                                    {std::string("contracts"), 3},
                                }); // create second position
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide2, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide2, ccxt::any{}, outsideLimit),
                      1)); // watch all positions
   ::wsAppend(cacheSymbolSide2, ccxt::dict{
                                    {std::string("symbol"), symbol},
@@ -626,7 +626,7 @@ void testWsCache() {
                                    {std::string("side"), std::string("long")},
                                    {std::string("contracts"), 1},
                                }); // second position is reduced
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide2, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide2, ccxt::any{}, outsideLimit),
                      1)); // watch all orders
   // ----------------------------------------------------------------------------
   // test ArrayCacheBySymbolBySide, watchPositions, and watchPosition (symbol)
@@ -645,7 +645,7 @@ void testWsCache() {
                                    {std::string("side"), std::string("long")},
                                    {std::string("contracts"), 1},
                                }); // create second position
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide3, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide3, ccxt::any{}, outsideLimit),
                      2)); // watch all positions
   assertTrue(isEqual(::wsGetLimit(cacheSymbolSide3, symbol, outsideLimit),
                      1)); // watch by symbol
@@ -661,14 +661,14 @@ void testWsCache() {
                                }); // update second position
   assertTrue(isEqual(::wsGetLimit(cacheSymbolSide3, symbol, outsideLimit),
                      1)); // watch by symbol
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide3, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide3, ccxt::any{}, outsideLimit),
                      2)); // watch all positions
   ::wsAppend(cacheSymbolSide3, ccxt::dict{
                                    {std::string("symbol"), symbol2},
                                    {std::string("side"), std::string("long")},
                                    {std::string("contracts"), 3},
                                }); // update second position
-  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide3, std::any{}, outsideLimit),
+  assertTrue(isEqual(::wsGetLimit(cacheSymbolSide3, ccxt::any{}, outsideLimit),
                      1)); // watch all positions
   // ----------------------------------------------------------------------------
   // test ArrayCacheBySymbolBySide, watchPositions does not override
@@ -676,7 +676,7 @@ void testWsCache() {
       ccxt::ws::ArrayCacheBySymbolBySide();
   symbol = std::string("BTC/USDT");
   symbol2 = std::string("ETH/USDT");
-  std::any symbol3 = std::string("XRP/USDT");
+  ccxt::any symbol3 = std::string("XRP/USDT");
   ::wsAppend(cacheSymbolSide4, ccxt::dict{
                                    {std::string("symbol"), symbol},
                                    {std::string("side"), std::string("long")},
@@ -721,7 +721,7 @@ void testWsCache() {
              isTrue(isEqual(::getValue(::getValue(cacheSymbolSide4, 2),
                                        std::string("symbol")),
                             symbol2)));
-  std::any arrayLength = getArrayLength(cacheSymbolSide4);
+  ccxt::any arrayLength = getArrayLength(cacheSymbolSide4);
   assertTrue(isEqual(arrayLength, 3));
   // ----------------------------------------------------------------------------
   // test clear () really resets ArrayCacheBySymbolById - the hashmap used to
@@ -744,7 +744,7 @@ void testWsCache() {
              });
   ::wsClear(cacheClearById);
   assertTrue(isEqual(getArrayLength(cacheClearById), 0));
-  assertTrue(isEqual(::wsGetLimit(cacheClearById, std::any{}, 10),
+  assertTrue(isEqual(::wsGetLimit(cacheClearById, ccxt::any{}, 10),
                      0)); // no phantom updates
   ::wsAppend(cacheClearById,
              ccxt::dict{
@@ -780,7 +780,7 @@ void testWsCache() {
   ::wsAppend(cacheClearTimestamp, ccxt::list{200, 4, 5, 6});
   ::wsClear(cacheClearTimestamp);
   assertTrue(isEqual(getArrayLength(cacheClearTimestamp), 0));
-  assertTrue(isEqual(::wsGetLimit(cacheClearTimestamp, std::any{}, 10),
+  assertTrue(isEqual(::wsGetLimit(cacheClearTimestamp, ccxt::any{}, 10),
                      0)); // no phantom updates
   ::wsAppend(cacheClearTimestamp, ccxt::list{100, 7, 8, 9});
   assertTrue(equals(cacheClearTimestamp, ccxt::list{ccxt::list{100, 7, 8, 9}}));
@@ -801,7 +801,7 @@ void testWsCache() {
                  {std::string("contracts"), 2},
              });
   ::wsClear(cacheClearBySide);
-  std::any clearedBySideLength = getArrayLength(cacheClearBySide);
+  ccxt::any clearedBySideLength = getArrayLength(cacheClearBySide);
   assertTrue(isEqual(clearedBySideLength, 0));
   ::wsAppend(cacheClearBySide,
              ccxt::dict{
@@ -815,7 +815,7 @@ void testWsCache() {
                  {std::string("side"), std::string("long")},
                  {std::string("contracts"), 4},
              });
-  std::any reappendedBySideLength = getArrayLength(cacheClearBySide);
+  ccxt::any reappendedBySideLength = getArrayLength(cacheClearBySide);
   assertTrue(isEqual(reappendedBySideLength, 2));
   assertTrue(isEqual(
       ::getValue(::getValue(cacheClearBySide, 0), std::string("contracts")),
@@ -930,7 +930,7 @@ void testWsCache() {
   // with the evicted candle instead of leaking
   ccxt::ws::ArrayCacheByTimestamp cacheTimestampLimited =
       ccxt::ws::ArrayCacheByTimestamp(3);
-  for (std::any i = 1; isLessThan(i, 7); postFixIncrement(i)) {
+  for (ccxt::any i = 1; isLessThan(i, 7); postFixIncrement(i)) {
     ::wsAppend(cacheTimestampLimited, ccxt::list{multiply(i, 100), i, i, i});
   }
   assertTrue(
@@ -1026,7 +1026,7 @@ void testWsCache() {
   // at maxSize
   ccxt::ws::ArrayCacheBySymbolById cacheEvictBuckets =
       ccxt::ws::ArrayCacheBySymbolById(3);
-  for (std::any i = 0; isLessThan(i, 10); postFixIncrement(i)) {
+  for (ccxt::any i = 0; isLessThan(i, 10); postFixIncrement(i)) {
     ::wsAppend(cacheEvictBuckets, ccxt::dict{
                                       {std::string("symbol"),
                                        add(add(std::string("S"), toString(i)),
@@ -1035,11 +1035,11 @@ void testWsCache() {
                                       {std::string("i"), i},
                                   });
   }
-  std::any evictedLength = getArrayLength(cacheEvictBuckets);
+  ccxt::any evictedLength = getArrayLength(cacheEvictBuckets);
   assertTrue(isEqual(evictedLength, 3));
-  std::any bucketKeys =
+  ccxt::any bucketKeys =
       getObjectKeys(::getValue(cacheEvictBuckets, std::string("hashmap")));
-  std::any bucketCount = getArrayLength(bucketKeys);
+  ccxt::any bucketCount = getArrayLength(bucketKeys);
   assertTrue(isEqual(bucketCount, 3)); // no empty leftover buckets
   // ----------------------------------------------------------------------------
   // test the symbol-scoped and the global getLimit scopes count independently -
@@ -1059,7 +1059,7 @@ void testWsCache() {
                  {std::string("id"), std::string("b")},
                  {std::string("i"), 2},
              });
-  std::any symbolScopeFirst =
+  ccxt::any symbolScopeFirst =
       ::wsGetLimit(cacheTwoScopes, std::string("BTC/USDT"), 100);
   assertTrue(isEqual(symbolScopeFirst, 2));
   ::wsAppend(cacheTwoScopes,
@@ -1068,11 +1068,11 @@ void testWsCache() {
                  {std::string("id"), std::string("a")},
                  {std::string("i"), 3},
              });
-  std::any globalScope = ::wsGetLimit(cacheTwoScopes, std::any{}, 100);
+  ccxt::any globalScope = ::wsGetLimit(cacheTwoScopes, ccxt::any{}, 100);
   assertTrue(
       isEqual(globalScope, 2)); // distinct ids a and b since no global poll
                                 // happened - id a must not double-count
-  std::any symbolScopeSecond =
+  ccxt::any symbolScopeSecond =
       ::wsGetLimit(cacheTwoScopes, std::string("BTC/USDT"), 100);
   assertTrue(
       isEqual(symbolScopeSecond, 1)); // id a since the last symbol-scoped poll
@@ -1090,7 +1090,7 @@ void testWsCache() {
                  {std::string("id"), std::string("e")},
                  {std::string("i"), 5},
              });
-  std::any globalScopeSecond = ::wsGetLimit(cacheTwoScopes, std::any{}, 100);
+  ccxt::any globalScopeSecond = ::wsGetLimit(cacheTwoScopes, ccxt::any{}, 100);
   assertTrue(isEqual(
       globalScopeSecond,
       2)); // ids d and e since the first global poll - id a was consumed by it
@@ -1100,7 +1100,7 @@ void testWsCache() {
                  {std::string("id"), std::string("d")},
                  {std::string("i"), 6},
              });
-  std::any symbolScopeThird =
+  ccxt::any symbolScopeThird =
       ::wsGetLimit(cacheTwoScopes, std::string("BTC/USDT"), 100);
   assertTrue(isEqual(symbolScopeThird,
                      2)); // ids d, e since the last symbol poll - the global
@@ -1121,7 +1121,7 @@ void testWsCache() {
                  {std::string("side"), std::string("short")},
                  {std::string("contracts"), 1},
              });
-  std::any sideSymbolFirst =
+  ccxt::any sideSymbolFirst =
       ::wsGetLimit(sideTwoScopes, std::string("BTC/USDT:USDT"), 100);
   assertTrue(isEqual(sideSymbolFirst, 2));
   ::wsAppend(sideTwoScopes,
@@ -1130,7 +1130,7 @@ void testWsCache() {
                  {std::string("side"), std::string("long")},
                  {std::string("contracts"), 2},
              });
-  std::any sideGlobal = ::wsGetLimit(sideTwoScopes, std::any{}, 100);
+  ccxt::any sideGlobal = ::wsGetLimit(sideTwoScopes, ccxt::any{}, 100);
   assertTrue(
       isEqual(sideGlobal, 2)); // long and short distinct since no global poll -
                                // the re-updated long must not double-count
@@ -1140,7 +1140,7 @@ void testWsCache() {
                  {std::string("side"), std::string("short")},
                  {std::string("contracts"), 2},
              });
-  std::any sideSymbolSecond =
+  ccxt::any sideSymbolSecond =
       ::wsGetLimit(sideTwoScopes, std::string("BTC/USDT:USDT"), 100);
   assertTrue(isEqual(sideSymbolSecond,
                      2)); // long and short since the last symbol poll - the
@@ -1169,7 +1169,7 @@ void testWsCache() {
                  {std::string("id"), std::string("c")},
                  {std::string("i"), 3},
              }); // evicts id a
-  std::any evictSymbolCount =
+  ccxt::any evictSymbolCount =
       ::wsGetLimit(cacheEvictSeen, std::string("BTC/USDT"), 100);
   assertTrue(isEqual(evictSymbolCount,
                      2)); // ids b and c - the evicted id a no longer counts
@@ -1179,7 +1179,7 @@ void testWsCache() {
                  {std::string("id"), std::string("d")},
                  {std::string("i"), 4},
              }); // evicts id b
-  std::any evictGlobalCount = ::wsGetLimit(cacheEvictSeen, std::any{}, 100);
+  ccxt::any evictGlobalCount = ::wsGetLimit(cacheEvictSeen, ccxt::any{}, 100);
   assertTrue(isEqual(evictGlobalCount,
                      2)); // ids c and d - the counts track distinct ids within
                           // the retained window in both scopes

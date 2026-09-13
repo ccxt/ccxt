@@ -13,7 +13,7 @@ void testArrayConcat() {
       {std::string("id"), std::string("sampleexchange")},
   });
   assertDeepEqual(
-      exchange, std::any{}, std::string("testArrayConcat"),
+      exchange, ccxt::any{}, std::string("testArrayConcat"),
       exchange.arrayConcat(ccxt::list{std::string("b")},
                            ccxt::list{std::string("a"), std::string("c")}),
       ccxt::list{std::string("b"), std::string("a"), std::string("c")});

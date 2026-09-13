@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bit2c(std::any config) {
+std::shared_ptr<ExchangeBase> create_bit2c(ccxt::any config) {
   return newExchange<bit2c>(config);
 }
 

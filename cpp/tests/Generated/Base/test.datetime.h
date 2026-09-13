@@ -30,13 +30,13 @@ void testIso8601() {
                      std::string("1986-04-26T01:23:47.062Z")));
   assertTrue(
       isEqual(exchange.iso8601(1), std::string("1970-01-01T00:00:00.001Z")));
-  assertTrue(isEqual(exchange.iso8601(-1), std::any{}));
+  assertTrue(isEqual(exchange.iso8601(-1), ccxt::any{}));
   // assert (exchange.iso8601 () === undefined);
   // todo: assert (exchange.iso8601 () === undefined);
-  assertTrue(isEqual(exchange.iso8601(std::any{}), std::any{}));
-  assertTrue(isEqual(exchange.iso8601(std::string("")), std::any{}));
-  assertTrue(isEqual(exchange.iso8601(std::string("a")), std::any{}));
-  assertTrue(isEqual(exchange.iso8601(ccxt::dict{}), std::any{}));
+  assertTrue(isEqual(exchange.iso8601(ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(exchange.iso8601(std::string("")), ccxt::any{}));
+  assertTrue(isEqual(exchange.iso8601(std::string("a")), ccxt::any{}));
+  assertTrue(isEqual(exchange.iso8601(ccxt::dict{}), ccxt::any{}));
   // NB: every assert below must hold byte-for-byte in every language.
   // Timestamps stay within the year 1970-9999 range, the only range where all
   // the native date implementations agree. 1ms after epoch is asserted above
@@ -108,7 +108,7 @@ void testIso8601() {
   assertTrue(isEqual(exchange.iso8601(std::string("1755432123456")),
                      std::string("2025-08-17T12:02:03.456Z")));
   // strings that are not a plain integer are rejected
-  assertTrue(isEqual(exchange.iso8601(std::string("123abc")), std::any{}));
+  assertTrue(isEqual(exchange.iso8601(std::string("123abc")), ccxt::any{}));
   // non-integer numbers are floored
   assertTrue(isEqual(exchange.iso8601(514862627559.9),
                      std::string("1986-04-26T01:23:47.559Z")));
@@ -116,11 +116,11 @@ void testIso8601() {
   assertTrue(isEqual(exchange.iso8601(253402300799999),
                      std::string("9999-12-31T23:59:59.999Z")));
   // one millisecond past the maximum supported range yields undefined
-  assertTrue(isEqual(exchange.iso8601(8640000000000001), std::any{}));
+  assertTrue(isEqual(exchange.iso8601(8640000000000001), ccxt::any{}));
   // absurdly large / non-finite magnitudes are rejected too. NaN/Infinity
   // literals don't survive transpilation, but 1e300 does and it exercises the
   // same > 8.64e15 guard in every port (incl. PHP's is_finite branch)
-  assertTrue(isEqual(exchange.iso8601(1e+300), std::any{}));
+  assertTrue(isEqual(exchange.iso8601(1e+300), ccxt::any{}));
 }
 void testParse8601() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
@@ -139,18 +139,20 @@ void testParse8601() {
                      514862627060));
   assertTrue(isEqual(exchange.parse8601(std::string("1986-04-26T01:23:47.6Z")),
                      514862627600));
-  assertTrue(isEqual(
-      exchange.parse8601(std::string("1977-13-13T00:00:00.000Z")), std::any{}));
-  assertTrue(isEqual(
-      exchange.parse8601(std::string("1986-04-26T25:71:47.000Z")), std::any{}));
-  assertTrue(isEqual(exchange.parse8601(std::string("3333")), std::any{}));
-  assertTrue(isEqual(exchange.parse8601(std::string("Sr90")), std::any{}));
-  assertTrue(isEqual(exchange.parse8601(std::string("")), std::any{}));
+  assertTrue(
+      isEqual(exchange.parse8601(std::string("1977-13-13T00:00:00.000Z")),
+              ccxt::any{}));
+  assertTrue(
+      isEqual(exchange.parse8601(std::string("1986-04-26T25:71:47.000Z")),
+              ccxt::any{}));
+  assertTrue(isEqual(exchange.parse8601(std::string("3333")), ccxt::any{}));
+  assertTrue(isEqual(exchange.parse8601(std::string("Sr90")), ccxt::any{}));
+  assertTrue(isEqual(exchange.parse8601(std::string("")), ccxt::any{}));
   // assert (exchange.parse8601 () === undefined);
   // todo: assert (exchange.parse8601 () === undefined);
-  assertTrue(isEqual(exchange.parse8601(std::any{}), std::any{}));
-  assertTrue(isEqual(exchange.parse8601(ccxt::dict{}), std::any{}));
-  assertTrue(isEqual(exchange.parse8601(33), std::any{}));
+  assertTrue(isEqual(exchange.parse8601(ccxt::any{}), ccxt::any{}));
+  assertTrue(isEqual(exchange.parse8601(ccxt::dict{}), ccxt::any{}));
+  assertTrue(isEqual(exchange.parse8601(33), ccxt::any{}));
 }
 void testParseDate() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
@@ -162,14 +164,14 @@ void testParseDate() {
       isEqual(exchange.parseDate(std::string("1986-04-26T01:23:47.000Z")),
               514862627000));
   assertTrue(isEqual(exchange.parseDate(std::string("1986-13-13 00:00:00")),
-                     std::any{}));
+                     ccxt::any{}));
 }
 void testMicroseconds() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any value = exchange.microseconds();
-  std::any valueString = toString(value);
+  ccxt::any value = exchange.microseconds();
+  ccxt::any valueString = toString(value);
   assertTrue(isGreaterThan(value, 0));
   assertTrue(isEqual(getStringLength(valueString), 16));
 }
@@ -177,8 +179,8 @@ void testMilliseconds() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any value = exchange.milliseconds();
-  std::any valueString = toString(value);
+  ccxt::any value = exchange.milliseconds();
+  ccxt::any valueString = toString(value);
   assertTrue(isGreaterThan(value, 0));
   assertTrue(isEqual(getStringLength(valueString), 13));
 }
@@ -186,8 +188,8 @@ void testSeconds() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any value = exchange.seconds();
-  std::any valueString = toString(value);
+  ccxt::any value = exchange.seconds();
+  ccxt::any valueString = toString(value);
   assertTrue(isGreaterThan(value, 0));
   assertTrue(isEqual(getStringLength(valueString), 10));
 }
@@ -195,12 +197,12 @@ void testYymmdd() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any testMs = 1750123456789; // 17 June 2025
-  std::any value = exchange.yymmdd(testMs, std::string("_"));
+  ccxt::any testMs = 1750123456789; // 17 June 2025
+  ccxt::any value = exchange.yymmdd(testMs, std::string("_"));
   assertTrue(isEqual(value, std::string("25_06_17")));
-  std::any value2 = exchange.yymmdd(exchange.milliseconds());
+  ccxt::any value2 = exchange.yymmdd(exchange.milliseconds());
   assertTrue(isEqual(getStringLength(value2), 6));
-  std::any intNum = exchange.parseToInt(value2);
+  ccxt::any intNum = exchange.parseToInt(value2);
   assertTrue(isTrue(isGreaterThan(intNum, 260000)) &&
              isTrue(isLessThan(intNum, 360000))); // date between 2026 and 2036
 }
@@ -208,12 +210,12 @@ void testYyyymmdd() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any testMs = 1750123456789; // 17 June 2025
-  std::any value = exchange.yyyymmdd(testMs, std::string("_"));
+  ccxt::any testMs = 1750123456789; // 17 June 2025
+  ccxt::any value = exchange.yyyymmdd(testMs, std::string("_"));
   assertTrue(isEqual(value, std::string("2025_06_17")));
-  std::any value2 = exchange.yyyymmdd(exchange.milliseconds());
+  ccxt::any value2 = exchange.yyyymmdd(exchange.milliseconds());
   assertTrue(isEqual(getStringLength(value2), 10));
-  std::any intNum = exchange.parseToInt(
+  ccxt::any intNum = exchange.parseToInt(
       replace((replace(value2, std::string("-"), std::string(""))),
               std::string("-"), std::string("")));
   assertTrue(
@@ -224,16 +226,16 @@ void testYmd() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any testMs = 1750123456789; // 17 June 2025
-  std::any value = exchange.ymd(testMs, std::string("_"));
+  ccxt::any testMs = 1750123456789; // 17 June 2025
+  ccxt::any value = exchange.ymd(testMs, std::string("_"));
   assertTrue(isEqual(value, std::string("2025_06_17")));
 }
 void testYmdhms() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any testMs = 1750123456789; // 17 June 2025
-  std::any value = exchange.ymdhms(testMs, std::string("_"));
+  ccxt::any testMs = 1750123456789; // 17 June 2025
+  ccxt::any value = exchange.ymdhms(testMs, std::string("_"));
   assertTrue(
       isTrue(isEqual(value, std::string("2025-06-17_01:24:16"))) ||
       isTrue(isEqual(

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_luno(std::any config) {
+std::shared_ptr<ExchangeBase> create_luno(ccxt::any config) {
   return newExchange<luno>(config);
 }
 

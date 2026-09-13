@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_blofin(std::any config) {
+std::shared_ptr<ExchangeBase> create_blofin(ccxt::any config) {
   return newExchange<blofin>(config);
 }
 

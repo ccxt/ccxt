@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_gateeu(std::any config) {
+std::shared_ptr<ExchangeBase> create_gateeu(ccxt::any config) {
   return newExchange<gateeu>(config);
 }
 

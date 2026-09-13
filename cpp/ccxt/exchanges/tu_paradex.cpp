@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_paradex(std::any config) {
+std::shared_ptr<ExchangeBase> create_paradex(ccxt::any config) {
   return newExchange<paradex>(config);
 }
 

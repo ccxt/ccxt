@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_dydx(std::any config) {
+std::shared_ptr<ExchangeBase> create_dydx(ccxt::any config) {
   return newExchange<dydx>(config);
 }
 

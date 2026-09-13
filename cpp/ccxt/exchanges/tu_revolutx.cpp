@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_revolutx(std::any config) {
+std::shared_ptr<ExchangeBase> create_revolutx(ccxt::any config) {
   return newExchange<revolutx>(config);
 }
 

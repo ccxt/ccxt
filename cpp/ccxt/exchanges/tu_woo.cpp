@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_woo(std::any config) {
+std::shared_ptr<ExchangeBase> create_woo(ccxt::any config) {
   return newExchange<woo>(config);
 }
 

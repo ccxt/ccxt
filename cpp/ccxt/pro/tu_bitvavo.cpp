@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitvavo(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitvavo(ccxt::any config) {
   return newExchange<ccxt::pro::bitvavo>(config);
 }
 

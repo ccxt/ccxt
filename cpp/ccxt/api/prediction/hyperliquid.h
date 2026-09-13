@@ -16,15 +16,15 @@ namespace prediction {
 class hyperliquidApi : public PredictionExchange {
 public:
     hyperliquidApi () = default;
-    explicit hyperliquidApi (std::any config) : PredictionExchange (config) {}
+    explicit hyperliquidApi (ccxt::any config) : PredictionExchange (config) {}
 
     // Calls the publicPostInfo endpoint. Returns a JSON object, a JSON array or a JSON scalar.
-    virtual std::shared_future<std::any> publicPostInfo (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicPostInfo (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicPostInfo"), parameters);
     }
 
     // Calls the privatePostExchange endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostExchange (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostExchange (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostExchange"), parameters);
     }
 

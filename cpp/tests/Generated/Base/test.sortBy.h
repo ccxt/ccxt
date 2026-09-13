@@ -15,26 +15,26 @@ void testSortBy1() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any arr = ccxt::list{ccxt::dict{
-                                {std::string("x"), 5},
-                            },
-                            ccxt::dict{
-                                {std::string("x"), 2},
-                            },
-                            ccxt::dict{
-                                {std::string("x"), 4},
-                            },
-                            ccxt::dict{
-                                {std::string("x"), 0},
-                            },
-                            ccxt::dict{
-                                {std::string("x"), 1},
-                            },
-                            ccxt::dict{
-                                {std::string("x"), 3},
-                            }};
-  std::any newArray = exchange.sortBy(arr, std::string("x"));
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy"), newArray,
+  ccxt::any arr = ccxt::list{ccxt::dict{
+                                 {std::string("x"), 5},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 2},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 4},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 0},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 1},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 3},
+                             }};
+  ccxt::any newArray = exchange.sortBy(arr, std::string("x"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy"), newArray,
                   ccxt::list{ccxt::dict{
                                  {std::string("x"), 0},
                              },
@@ -53,8 +53,8 @@ void testSortBy1() {
                              ccxt::dict{
                                  {std::string("x"), 5},
                              }});
-  std::any newArrayDescending = exchange.sortBy(arr, std::string("x"), true);
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy"),
+  ccxt::any newArrayDescending = exchange.sortBy(arr, std::string("x"), true);
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy"),
                   newArrayDescending,
                   ccxt::list{ccxt::dict{
                                  {std::string("x"), 5},
@@ -74,43 +74,43 @@ void testSortBy1() {
                              ccxt::dict{
                                  {std::string("x"), 0},
                              }});
-  std::any emptyArray = exchange.sortBy(ccxt::list{}, std::string("x"));
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy"), emptyArray,
+  ccxt::any emptyArray = exchange.sortBy(ccxt::list{}, std::string("x"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy"), emptyArray,
                   ccxt::list{});
   // regression: keys crossing a digit-count boundary must sort numerically, a
   // lexicographic comparison yields 1, 10, 2 .. 9
-  std::any arrTwoDigits = ccxt::list{ccxt::dict{
-                                         {std::string("x"), 10},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 1},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 3},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 7},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 2},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 9},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 5},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 8},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 4},
-                                     },
-                                     ccxt::dict{
-                                         {std::string("x"), 6},
-                                     }};
-  std::any sortedTwoDigits = exchange.sortBy(arrTwoDigits, std::string("x"));
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy"), sortedTwoDigits,
+  ccxt::any arrTwoDigits = ccxt::list{ccxt::dict{
+                                          {std::string("x"), 10},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 1},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 3},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 7},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 2},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 9},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 5},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 8},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 4},
+                                      },
+                                      ccxt::dict{
+                                          {std::string("x"), 6},
+                                      }};
+  ccxt::any sortedTwoDigits = exchange.sortBy(arrTwoDigits, std::string("x"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy"), sortedTwoDigits,
                   ccxt::list{ccxt::dict{
                                  {std::string("x"), 1},
                              },
@@ -147,24 +147,24 @@ void testSortBy2() {
       {std::string("id"), std::string("sampleexchange")},
   });
   // sort ascending by key1, then key2 (key1 values are all distinct here)
-  std::any arr = ccxt::list{ccxt::dict{
-                                {std::string("x"), 3},
-                                {std::string("y"), 1},
-                            },
-                            ccxt::dict{
-                                {std::string("x"), 1},
-                                {std::string("y"), 2},
-                            },
-                            ccxt::dict{
-                                {std::string("x"), 2},
-                                {std::string("y"), 3},
-                            },
-                            ccxt::dict{
-                                {std::string("x"), 0},
-                                {std::string("y"), 4},
-                            }};
-  std::any sorted = exchange.sortBy2(arr, std::string("x"), std::string("y"));
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy2"), sorted,
+  ccxt::any arr = ccxt::list{ccxt::dict{
+                                 {std::string("x"), 3},
+                                 {std::string("y"), 1},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 1},
+                                 {std::string("y"), 2},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 2},
+                                 {std::string("y"), 3},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 0},
+                                 {std::string("y"), 4},
+                             }};
+  ccxt::any sorted = exchange.sortBy2(arr, std::string("x"), std::string("y"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"), sorted,
                   ccxt::list{ccxt::dict{
                                  {std::string("x"), 0},
                                  {std::string("y"), 4},
@@ -182,25 +182,25 @@ void testSortBy2() {
                                  {std::string("y"), 1},
                              }});
   // sort descending by key1
-  std::any arr2 = ccxt::list{ccxt::dict{
-                                 {std::string("x"), 3},
-                                 {std::string("y"), 1},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 2},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 2},
-                                 {std::string("y"), 3},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 0},
-                                 {std::string("y"), 4},
-                             }};
-  std::any sortedDescending =
+  ccxt::any arr2 = ccxt::list{ccxt::dict{
+                                  {std::string("x"), 3},
+                                  {std::string("y"), 1},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 2},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 2},
+                                  {std::string("y"), 3},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 0},
+                                  {std::string("y"), 4},
+                              }};
+  ccxt::any sortedDescending =
       exchange.sortBy2(arr2, std::string("x"), std::string("y"), true);
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy2"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"),
                   sortedDescending,
                   ccxt::list{ccxt::dict{
                                  {std::string("x"), 3},
@@ -219,25 +219,25 @@ void testSortBy2() {
                                  {std::string("y"), 4},
                              }});
   // when key1 values are equal, sort by key2 ascending
-  std::any arr3 = ccxt::list{ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 5},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 2},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 9},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 1},
-                             }};
-  std::any sortedByKey2 =
+  ccxt::any arr3 = ccxt::list{ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 5},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 2},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 9},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 1},
+                              }};
+  ccxt::any sortedByKey2 =
       exchange.sortBy2(arr3, std::string("x"), std::string("y"));
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy2"), sortedByKey2,
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"), sortedByKey2,
                   ccxt::list{ccxt::dict{
                                  {std::string("x"), 1},
                                  {std::string("y"), 1},
@@ -255,25 +255,25 @@ void testSortBy2() {
                                  {std::string("y"), 9},
                              }});
   // when key1 values are equal, sort by key2 descending
-  std::any arr4 = ccxt::list{ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 5},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 2},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 9},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 1},
-                             }};
-  std::any sortedByKey2Descending =
+  ccxt::any arr4 = ccxt::list{ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 5},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 2},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 9},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 1},
+                              }};
+  ccxt::any sortedByKey2Descending =
       exchange.sortBy2(arr4, std::string("x"), std::string("y"), true);
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy2"),
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"),
                   sortedByKey2Descending,
                   ccxt::list{ccxt::dict{
                                  {std::string("x"), 1},
@@ -292,29 +292,29 @@ void testSortBy2() {
                                  {std::string("y"), 1},
                              }});
   // mixed: sort by key1 first, then key2 as tiebreaker
-  std::any arr5 = ccxt::list{ccxt::dict{
-                                 {std::string("x"), 2},
-                                 {std::string("y"), 3},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 5},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 2},
-                                 {std::string("y"), 1},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 1},
-                                 {std::string("y"), 2},
-                             },
-                             ccxt::dict{
-                                 {std::string("x"), 2},
-                                 {std::string("y"), 2},
-                             }};
-  std::any sortedMixed =
+  ccxt::any arr5 = ccxt::list{ccxt::dict{
+                                  {std::string("x"), 2},
+                                  {std::string("y"), 3},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 5},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 2},
+                                  {std::string("y"), 1},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 1},
+                                  {std::string("y"), 2},
+                              },
+                              ccxt::dict{
+                                  {std::string("x"), 2},
+                                  {std::string("y"), 2},
+                              }};
+  ccxt::any sortedMixed =
       exchange.sortBy2(arr5, std::string("x"), std::string("y"));
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy2"), sortedMixed,
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"), sortedMixed,
                   ccxt::list{ccxt::dict{
                                  {std::string("x"), 1},
                                  {std::string("y"), 2},
@@ -336,9 +336,9 @@ void testSortBy2() {
                                  {std::string("y"), 3},
                              }});
   // empty array
-  std::any emptyArray =
+  ccxt::any emptyArray =
       exchange.sortBy2(ccxt::list{}, std::string("x"), std::string("y"));
-  assertDeepEqual(exchange, std::any{}, std::string("sortBy2"), emptyArray,
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"), emptyArray,
                   ccxt::list{});
 }
 void testSortBy() {

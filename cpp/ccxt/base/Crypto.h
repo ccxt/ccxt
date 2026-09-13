@@ -20,23 +20,23 @@ namespace ccxt {
 // deterministic RFC-6979 nonces (HMAC-SHA256), low-s normalisation and the noble-curves
 // 'recovered' recovery bit -- this is what the 7 EIP-712 exchanges pin in their static
 // fixtures. See Crypto.cpp.
-std::any ecdsa (std::any request, std::any secret, std::any curve = std::any {},
-                std::any prehash = std::any {}, std::any fixedLength = std::any {});
+ccxt::any ecdsa (ccxt::any request, ccxt::any secret, ccxt::any curve = ccxt::any {},
+                ccxt::any prehash = ccxt::any {}, ccxt::any fixedLength = ccxt::any {});
 
 // Digest selectors. Generated code passes these positionally into hash()/hmac(); they
 // are plain strings so an unknown algorithm fails loudly at the call rather than
 // silently picking a default.
-inline const std::any sha1   = std::string ("sha1");
-inline const std::any sha256 = std::string ("sha256");
-inline const std::any sha384 = std::string ("sha384");
-inline const std::any sha512 = std::string ("sha512");
-inline const std::any md5    = std::string ("md5");
-inline const std::any keccak = std::string ("keccak");
+inline const ccxt::any sha1   = std::string ("sha1");
+inline const ccxt::any sha256 = std::string ("sha256");
+inline const ccxt::any sha384 = std::string ("sha384");
+inline const ccxt::any sha512 = std::string ("sha512");
+inline const ccxt::any md5    = std::string ("md5");
+inline const ccxt::any keccak = std::string ("keccak");
 // asymmetric-key selectors: they name the algorithm for rsa()/eddsa(), which are not
 // wired yet -- the constants have to exist because binance's sign() references them on
 // its RSA / ed25519 key branches even when the hmac branch is the one taken
-inline const std::any ed25519   = std::string ("ed25519");
-inline const std::any secp256k1 = std::string ("secp256k1");
+inline const ccxt::any ed25519   = std::string ("ed25519");
+inline const ccxt::any secp256k1 = std::string ("secp256k1");
 
 // -- binary <-> text ---------------------------------------------------------------
 
@@ -55,7 +55,7 @@ bytes fromBase58 (const std::string& text);
 // `digest` selects the output encoding: "hex" (default), "base64", or "binary" for the
 // raw bytes. This mirrors the third argument of the TS hash()/hmac().
 
-std::any hashBytes (const bytes& payload, const std::string& algorithm, const std::string& digest);
+ccxt::any hashBytes (const bytes& payload, const std::string& algorithm, const std::string& digest);
 
 // Original Keccak-256 (Ethereum flavour) over raw bytes -- the eth signing paths need
 // it directly (EIP-712 struct hashing, address derivation).
@@ -63,7 +63,7 @@ bytes keccak256Bytes (const bytes& payload);
 inline bytes keccak256Bytes (const std::string& payload) {
     return keccak256Bytes (bytes (std::vector<unsigned char> (payload.begin (), payload.end ())));
 }
-std::any hmacBytes (const bytes& payload, const std::string& key,
+ccxt::any hmacBytes (const bytes& payload, const std::string& key,
                     const std::string& algorithm, const std::string& digest);
 
 // CRC-32 (IEEE), returned signed when `signed32` is true, matching TS crc32().

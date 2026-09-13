@@ -14,14 +14,14 @@ void testUrlencode() {
   });
   // todo: add nulls
   // todo: add sort
-  std::any dict1 = ccxt::dict{
+  ccxt::any dict1 = ccxt::dict{
       {std::string("a"), 1},
       {std::string("c"), std::string("+&")},
   };
   // as key-order not preserved, expect mixed order
-  std::any expected1 = std::string("a=1&c=%2B%26");
-  std::any expected2 = std::string("c=%2B%26&a=1");
-  std::any encoded = exchange.urlencode(dict1);
+  ccxt::any expected1 = std::string("a=1&c=%2B%26");
+  ccxt::any expected2 = std::string("c=%2B%26&a=1");
+  ccxt::any encoded = exchange.urlencode(dict1);
   assertTrue(
       isTrue(isEqual(encoded, expected1)) ||
           isTrue(isEqual(encoded, expected2)),

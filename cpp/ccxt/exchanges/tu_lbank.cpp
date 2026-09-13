@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_lbank(std::any config) {
+std::shared_ptr<ExchangeBase> create_lbank(ccxt::any config) {
   return newExchange<lbank>(config);
 }
 

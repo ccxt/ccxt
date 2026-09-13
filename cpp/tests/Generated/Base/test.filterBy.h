@@ -12,43 +12,43 @@ void testFilterBy() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any sampleArray = ccxt::list{ccxt::dict{
-                                        {std::string("foo"), std::string("a")},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::any{}},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::string("b")},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::string("a")},
-                                        {std::string("bar"), std::string("b")},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::string("c")},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::string("d")},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::string("b")},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::string("c")},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::string("c")},
-                                    }};
-  std::any currentValue =
+  ccxt::any sampleArray = ccxt::list{ccxt::dict{
+                                         {std::string("foo"), std::string("a")},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), ccxt::any{}},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), std::string("b")},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), std::string("a")},
+                                         {std::string("bar"), std::string("b")},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), std::string("c")},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), std::string("d")},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), std::string("b")},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), std::string("c")},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), std::string("c")},
+                                     }};
+  ccxt::any currentValue =
       exchange.filterBy(sampleArray, std::string("foo"), std::string("a"));
-  std::any storedValue = ccxt::list{ccxt::dict{
-                                        {std::string("foo"), std::string("a")},
-                                    },
-                                    ccxt::dict{
-                                        {std::string("foo"), std::string("a")},
-                                        {std::string("bar"), std::string("b")},
-                                    }};
-  assertDeepEqual(exchange, std::any{}, std::string("testFilterBy"),
+  ccxt::any storedValue = ccxt::list{ccxt::dict{
+                                         {std::string("foo"), std::string("a")},
+                                     },
+                                     ccxt::dict{
+                                         {std::string("foo"), std::string("a")},
+                                         {std::string("bar"), std::string("b")},
+                                     }};
+  assertDeepEqual(exchange, ccxt::any{}, std::string("testFilterBy"),
                   currentValue, storedValue);
 }

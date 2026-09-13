@@ -128,9 +128,9 @@ public:
 
     Precise () = default;
 
-    // generated code writes `Precise(add(a, b))`, and every value there is a std::any
-    explicit Precise (const std::any& input)
-        : Precise (input.has_value () ? std::any_cast<std::string> (::toString (input))
+    // generated code writes `Precise(add(a, b))`, and every value there is a ccxt::any
+    explicit Precise (const ccxt::any& input)
+        : Precise (input.has_value () ? ccxt::any_cast<std::string> (::toString (input))
                                       : std::string ()) {}
 
     explicit Precise (const std::string& input) {
@@ -230,9 +230,9 @@ private:
     //
     // PRIVATE on purpose. Generated code writes `Precise::divText(std::string("1"),
     // std::string("0"))`, and a public std::string overload would be an exact match and
-    // win over the std::any one -- returning "" where ccxt means undefined, because a
+    // win over the ccxt::any one -- returning "" where ccxt means undefined, because a
     // std::string cannot represent absence. Hiding these forces every outside call
-    // through the std::any API below, which can.
+    // through the ccxt::any API below, which can.
 
     static std::string addText (const std::string& x, const std::string& y) {
         Precise a (x);
@@ -408,14 +408,14 @@ private:
 
 public:
 
-// -- std::any overloads ---------------------------------------------------------
+// -- ccxt::any overloads ---------------------------------------------------------
     //
-    // Every value in generated code is a std::any, so these are what the transpiled
+    // Every value in generated code is a ccxt::any, so these are what the transpiled
     // call sites actually bind to. `::toString` is qualified because the member
     // toString() above would otherwise hide the global helper.
 
-    static std::string asText (const std::any& v) {
-        return v.has_value () ? std::any_cast<std::string> (::toString (v)) : std::string ();
+    static std::string asText (const ccxt::any& v) {
+        return v.has_value () ? ccxt::any_cast<std::string> (::toString (v)) : std::string ();
     }
 
     // Every TS static guards its operands first: the value-returning ones propagate
@@ -423,77 +423,77 @@ public:
     // absent operand into "" and Precise("") reads as 0, so stringMul(undefined, '1')
     // would quietly be '0' instead of undefined -- a wrong number rather than a
     // missing one, which is far worse in an amount or a price.
-    static bool anyUndefined (const std::any& x, const std::any& y) {
+    static bool anyUndefined (const ccxt::any& x, const ccxt::any& y) {
         return !x.has_value () || !y.has_value ();
     }
 
-    static std::any stringAdd (const std::any& x, const std::any& y) {
-        if (anyUndefined (x, y)) return std::any {};
-        return std::any (addText (asText (x), asText (y)));
+    static ccxt::any stringAdd (const ccxt::any& x, const ccxt::any& y) {
+        if (anyUndefined (x, y)) return ccxt::any {};
+        return ccxt::any (addText (asText (x), asText (y)));
     }
-    static std::any stringSub (const std::any& x, const std::any& y) {
-        if (anyUndefined (x, y)) return std::any {};
-        return std::any (subText (asText (x), asText (y)));
+    static ccxt::any stringSub (const ccxt::any& x, const ccxt::any& y) {
+        if (anyUndefined (x, y)) return ccxt::any {};
+        return ccxt::any (subText (asText (x), asText (y)));
     }
-    static std::any stringMul (const std::any& x, const std::any& y) {
-        if (anyUndefined (x, y)) return std::any {};
-        return std::any (mulText (asText (x), asText (y)));
+    static ccxt::any stringMul (const ccxt::any& x, const ccxt::any& y) {
+        if (anyUndefined (x, y)) return ccxt::any {};
+        return ccxt::any (mulText (asText (x), asText (y)));
     }
-    static std::any stringDiv (const std::any& x, const std::any& y) {
-        if (anyUndefined (x, y)) return std::any {};
+    static ccxt::any stringDiv (const ccxt::any& x, const ccxt::any& y) {
+        if (anyUndefined (x, y)) return ccxt::any {};
         const std::string out = divText (asText (x), asText (y));
-        return out.empty () ? std::any {} : std::any (out);
+        return out.empty () ? ccxt::any {} : ccxt::any (out);
     }
-    static std::any stringDiv (const std::any& x, const std::any& y, const std::any& precision) {
-        if (anyUndefined (x, y)) return std::any {};
+    static ccxt::any stringDiv (const ccxt::any& x, const ccxt::any& y, const ccxt::any& precision) {
+        if (anyUndefined (x, y)) return ccxt::any {};
         const int places = precision.has_value () ? static_cast<int> (toLong (precision)) : 18;
         const std::string out = divText (asText (x), asText (y), places);
-        return out.empty () ? std::any {} : std::any (out);
+        return out.empty () ? ccxt::any {} : ccxt::any (out);
     }
-    static bool stringGt (const std::any& x, const std::any& y) {
+    static bool stringGt (const ccxt::any& x, const ccxt::any& y) {
         return anyUndefined (x, y) ? false : gtText (asText (x), asText (y));
     }
-    static bool stringGe (const std::any& x, const std::any& y) {
+    static bool stringGe (const ccxt::any& x, const ccxt::any& y) {
         return anyUndefined (x, y) ? false : geText (asText (x), asText (y));
     }
-    static bool stringLt (const std::any& x, const std::any& y) {
+    static bool stringLt (const ccxt::any& x, const ccxt::any& y) {
         return anyUndefined (x, y) ? false : ltText (asText (x), asText (y));
     }
-    static bool stringLe (const std::any& x, const std::any& y) {
+    static bool stringLe (const ccxt::any& x, const ccxt::any& y) {
         return anyUndefined (x, y) ? false : leText (asText (x), asText (y));
     }
-    static bool stringEquals (const std::any& x, const std::any& y) {
+    static bool stringEquals (const ccxt::any& x, const ccxt::any& y) {
         return anyUndefined (x, y) ? false : equalsText (asText (x), asText (y));
     }
-    static bool stringEq (const std::any& x, const std::any& y) {
+    static bool stringEq (const ccxt::any& x, const ccxt::any& y) {
         return anyUndefined (x, y) ? false : eqText (asText (x), asText (y));
     }
-    static std::any stringAbs (const std::any& x) {
-        if (!x.has_value ()) return std::any {};
-        return std::any (absText (asText (x)));
+    static ccxt::any stringAbs (const ccxt::any& x) {
+        if (!x.has_value ()) return ccxt::any {};
+        return ccxt::any (absText (asText (x)));
     }
-    static std::any stringNeg (const std::any& x) {
-        if (!x.has_value ()) return std::any {};
-        return std::any (negText (asText (x)));
+    static ccxt::any stringNeg (const ccxt::any& x) {
+        if (!x.has_value ()) return ccxt::any {};
+        return ccxt::any (negText (asText (x)));
     }
-    static std::any stringMin (const std::any& x, const std::any& y) {
-        if (anyUndefined (x, y)) return std::any {};
-        return std::any (minText (asText (x), asText (y)));
+    static ccxt::any stringMin (const ccxt::any& x, const ccxt::any& y) {
+        if (anyUndefined (x, y)) return ccxt::any {};
+        return ccxt::any (minText (asText (x), asText (y)));
     }
-    static std::any stringMax (const std::any& x, const std::any& y) {
-        if (anyUndefined (x, y)) return std::any {};
-        return std::any (maxText (asText (x), asText (y)));
+    static ccxt::any stringMax (const ccxt::any& x, const ccxt::any& y) {
+        if (anyUndefined (x, y)) return ccxt::any {};
+        return ccxt::any (maxText (asText (x), asText (y)));
     }
-    static std::any stringMod (const std::any& x, const std::any& y) {
-        if (anyUndefined (x, y)) return std::any {};
-        return std::any (modText (asText (x), asText (y)));
+    static ccxt::any stringMod (const ccxt::any& x, const ccxt::any& y) {
+        if (anyUndefined (x, y)) return ccxt::any {};
+        return ccxt::any (modText (asText (x), asText (y)));
     }
 
     // TS keeps the left operand's `decimals` and never aligns, so a fractional operand
     // is already meaningless there; mirror that by operating on the integer digits.
-    static std::any stringOr (const std::any& x, const std::any& y) {
+    static ccxt::any stringOr (const ccxt::any& x, const ccxt::any& y) {
         if (!x.has_value () || !y.has_value ()) {
-            return std::any {};
+            return ccxt::any {};
         }
         const Precise a (asText (x));
         const Precise b (asText (y));
@@ -502,7 +502,7 @@ public:
         out.decimals = a.decimals;
         out.negative = false;
         out.reduce ();
-        return std::any (out.toString ());
+        return ccxt::any (out.toString ());
     }
 };
 

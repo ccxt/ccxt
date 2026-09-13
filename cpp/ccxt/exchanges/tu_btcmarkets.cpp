@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_btcmarkets(std::any config) {
+std::shared_ptr<ExchangeBase> create_btcmarkets(ccxt::any config) {
   return newExchange<btcmarkets>(config);
 }
 

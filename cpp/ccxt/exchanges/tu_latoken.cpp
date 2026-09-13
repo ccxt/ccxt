@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_latoken(std::any config) {
+std::shared_ptr<ExchangeBase> create_latoken(ccxt::any config) {
   return newExchange<latoken>(config);
 }
 

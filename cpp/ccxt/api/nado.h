@@ -14,75 +14,75 @@ namespace ccxt {
 class nadoApi : public Exchange {
 public:
     nadoApi () = default;
-    explicit nadoApi (std::any config) : Exchange (config) {}
+    explicit nadoApi (ccxt::any config) : Exchange (config) {}
 
     // Calls the gatewayPublicGetSymbols endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> gatewayPublicGetSymbols (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> gatewayPublicGetSymbols (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayPublicGetSymbols"), parameters);
     }
 
     // Calls the gatewayPublicGetQuery endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> gatewayPublicGetQuery (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> gatewayPublicGetQuery (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayPublicGetQuery"), parameters);
     }
 
     // Calls the gatewayPublicGetEdgeQuery endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> gatewayPublicGetEdgeQuery (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> gatewayPublicGetEdgeQuery (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayPublicGetEdgeQuery"), parameters);
     }
 
     // Calls the gatewayPublicPostQuery endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> gatewayPublicPostQuery (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> gatewayPublicPostQuery (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayPublicPostQuery"), parameters);
     }
 
     // Calls the gatewayPrivatePostExecute endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> gatewayPrivatePostExecute (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> gatewayPrivatePostExecute (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayPrivatePostExecute"), parameters);
     }
 
     // Calls the gatewayV2PublicGetAssets endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> gatewayV2PublicGetAssets (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> gatewayV2PublicGetAssets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayV2PublicGetAssets"), parameters);
     }
 
     // Calls the gatewayV2PublicGetPairs endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> gatewayV2PublicGetPairs (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> gatewayV2PublicGetPairs (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayV2PublicGetPairs"), parameters);
     }
 
     // Calls the gatewayV2PublicGetOrderbook endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> gatewayV2PublicGetOrderbook (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> gatewayV2PublicGetOrderbook (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayV2PublicGetOrderbook"), parameters);
     }
 
     // Calls the archivePost endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> archivePost (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> archivePost (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("archivePost"), parameters);
     }
 
     // Calls the archiveV2PublicGetTickers endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> archiveV2PublicGetTickers (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> archiveV2PublicGetTickers (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("archiveV2PublicGetTickers"), parameters);
     }
 
     // Calls the archiveV2PublicGetContracts endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> archiveV2PublicGetContracts (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> archiveV2PublicGetContracts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("archiveV2PublicGetContracts"), parameters);
     }
 
     // Calls the archiveV2PublicGetTrades endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> archiveV2PublicGetTrades (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> archiveV2PublicGetTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("archiveV2PublicGetTrades"), parameters);
     }
 
     // Calls the triggerPrivatePostExecute endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> triggerPrivatePostExecute (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> triggerPrivatePostExecute (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("triggerPrivatePostExecute"), parameters);
     }
 
     // Calls the triggerPrivatePostQuery endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> triggerPrivatePostQuery (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> triggerPrivatePostQuery (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("triggerPrivatePostQuery"), parameters);
     }
 

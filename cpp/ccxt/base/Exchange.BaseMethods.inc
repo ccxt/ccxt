@@ -3,90 +3,95 @@
 
 // Included inside the body of class ccxt::Exchange - see Exchange.h.
 
-virtual std::any describe();
+virtual ccxt::any describe();
 
 virtual void cleanRestData();
 
 virtual void cleanWsData();
 
-virtual std::any safeBoolN(std::any dictionaryOrList, std::any keys,
-                           std::any defaultValue = std::any{});
+virtual ccxt::any safeBoolN(ccxt::any dictionaryOrList, ccxt::any keys,
+                            ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeBool2(std::any dictionaryOrList, std::any key1,
-                           std::any key2, std::any defaultValue = std::any{});
+virtual ccxt::any safeBool2(ccxt::any dictionaryOrList, ccxt::any key1,
+                            ccxt::any key2,
+                            ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeBool(std::any dictionaryOrList, std::any key,
-                          std::any defaultValue = std::any{});
+virtual ccxt::any safeBool(ccxt::any dictionaryOrList, ccxt::any key,
+                           ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeDictN(std::any dictionaryOrList, std::any keys,
-                           std::any defaultValue = std::any{});
+virtual ccxt::any safeDictN(ccxt::any dictionaryOrList, ccxt::any keys,
+                            ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeDict(std::any dictionaryOrList, std::any key,
-                          std::any defaultValue = std::any{});
+virtual ccxt::any safeDict(ccxt::any dictionaryOrList, ccxt::any key,
+                           ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeDict2(std::any dictionaryOrList, std::any key1,
-                           std::any key2, std::any defaultValue = std::any{});
+virtual ccxt::any safeDict2(ccxt::any dictionaryOrList, ccxt::any key1,
+                            ccxt::any key2,
+                            ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeListN(std::any dictionaryOrList, std::any keys,
-                           std::any defaultValue = std::any{});
+virtual ccxt::any safeListN(ccxt::any dictionaryOrList, ccxt::any keys,
+                            ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeList2(std::any dictionaryOrList, std::any key1,
-                           std::any key2, std::any defaultValue = std::any{});
+virtual ccxt::any safeList2(ccxt::any dictionaryOrList, ccxt::any key1,
+                            ccxt::any key2,
+                            ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeList(std::any dictionaryOrList, std::any key,
-                          std::any defaultValue = std::any{});
+virtual ccxt::any safeList(ccxt::any dictionaryOrList, ccxt::any key,
+                           ccxt::any defaultValue = ccxt::any{});
 
-virtual void storeByKey(std::any dict, std::any key, std::any value);
+virtual void storeByKey(ccxt::any dict, ccxt::any key, ccxt::any value);
 
-virtual void handleDeltas(std::any orderbook, std::any deltas);
+virtual void handleDeltas(ccxt::any orderbook, ccxt::any deltas);
 
-virtual void handleDelta(std::any bookside, std::any delta);
+virtual void handleDelta(ccxt::any bookside, ccxt::any delta);
 
-virtual void handleDeltasWithKeys(std::any bookSide, std::any deltas,
-                                  std::any priceKey = 0, std::any amountKey = 1,
-                                  std::any countOrIdKey = 2);
+virtual void handleDeltasWithKeys(ccxt::any bookSide, ccxt::any deltas,
+                                  ccxt::any priceKey = 0,
+                                  ccxt::any amountKey = 1,
+                                  ccxt::any countOrIdKey = 2);
 
-virtual std::any getCacheIndex(std::any orderbook, std::any deltas);
+virtual ccxt::any getCacheIndex(ccxt::any orderbook, ccxt::any deltas);
 
-virtual std::any arraysConcat(std::any arraysOfArrays);
+virtual ccxt::any arraysConcat(ccxt::any arraysOfArrays);
 
-virtual std::any findTimeframe(std::any timeframe,
-                               std::any timeframes = std::any{});
+virtual ccxt::any findTimeframe(ccxt::any timeframe,
+                                ccxt::any timeframes = ccxt::any{});
 
-virtual std::any checkProxyUrlSettings(std::any url = std::any{},
-                                       std::any method = std::any{},
-                                       std::any headers = std::any{},
-                                       std::any body = std::any{});
+virtual ccxt::any checkProxyUrlSettings(ccxt::any url = ccxt::any{},
+                                        ccxt::any method = ccxt::any{},
+                                        ccxt::any headers = ccxt::any{},
+                                        ccxt::any body = ccxt::any{});
 
-virtual std::any urlEncoderForProxyUrl(std::any targetUrl);
+virtual ccxt::any urlEncoderForProxyUrl(ccxt::any targetUrl);
 
-virtual std::any checkProxySettings(std::any url = std::any{},
-                                    std::any method = std::any{},
-                                    std::any headers = std::any{},
-                                    std::any body = std::any{});
+virtual ccxt::any checkProxySettings(ccxt::any url = ccxt::any{},
+                                     ccxt::any method = ccxt::any{},
+                                     ccxt::any headers = ccxt::any{},
+                                     ccxt::any body = ccxt::any{});
 
-virtual std::any checkWsProxySettings();
+virtual ccxt::any checkWsProxySettings();
 
-virtual void checkConflictingProxies(std::any proxyAgentSet,
-                                     std::any proxyUrlSet);
+virtual void checkConflictingProxies(ccxt::any proxyAgentSet,
+                                     ccxt::any proxyUrlSet);
 
-virtual std::any checkAddress(std::any address = std::any{});
+virtual ccxt::any checkAddress(ccxt::any address = ccxt::any{});
 
-virtual std::any findMessageHashes(std::any client, std::any element);
+virtual ccxt::any findMessageHashes(ccxt::any client, ccxt::any element);
 
-virtual std::any filterByLimit(std::any array, std::any limit = std::any{},
-                               std::any key = std::string("timestamp"),
-                               std::any fromStart = false);
+virtual ccxt::any filterByLimit(ccxt::any array, ccxt::any limit = ccxt::any{},
+                                ccxt::any key = std::string("timestamp"),
+                                ccxt::any fromStart = false);
 
-virtual std::any filterBySinceLimit(std::any array, std::any since = std::any{},
-                                    std::any limit = std::any{},
-                                    std::any key = std::string("timestamp"),
-                                    std::any tail = false);
+virtual ccxt::any filterBySinceLimit(ccxt::any array,
+                                     ccxt::any since = ccxt::any{},
+                                     ccxt::any limit = ccxt::any{},
+                                     ccxt::any key = std::string("timestamp"),
+                                     ccxt::any tail = false);
 
-virtual std::any filterByValueSinceLimit(
-    std::any array, std::any field, std::any value = std::any{},
-    std::any since = std::any{}, std::any limit = std::any{},
-    std::any key = std::string("timestamp"), std::any tail = false);
+virtual ccxt::any filterByValueSinceLimit(
+    ccxt::any array, ccxt::any field, ccxt::any value = ccxt::any{},
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any key = std::string("timestamp"), ccxt::any tail = false);
 
 /**
  * @method
@@ -94,7 +99,7 @@ virtual std::any filterByValueSinceLimit(
  * @description set the sandbox mode for the exchange
  * @param {boolean} enabled true to enable sandbox mode, false to disable it
  */
-virtual void setSandboxMode(std::any enabled);
+virtual void setSandboxMode(ccxt::any enabled);
 
 /**
  * @method
@@ -103,38 +108,39 @@ virtual void setSandboxMode(std::any enabled);
  * @param {boolean} [enable] true if demo trading should be enabled, false
  * otherwise
  */
-virtual void enableDemoTrading(std::any enable);
+virtual void enableDemoTrading(ccxt::any enable);
 
-virtual std::any sign(std::any path, std::any api = std::string("public"),
-                      std::any method = std::string("GET"),
-                      std::any params = ccxt::dict{},
-                      std::any headers = std::any{},
-                      std::any body = std::any{});
+virtual ccxt::any sign(ccxt::any path, ccxt::any api = std::string("public"),
+                       ccxt::any method = std::string("GET"),
+                       ccxt::any params = ccxt::dict{},
+                       ccxt::any headers = ccxt::any{},
+                       ccxt::any body = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchAccounts(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchAccounts(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchAccounts() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchLiquidations(std::any symbol, std::any since = std::any{},
-                  std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchLiquidations(ccxt::any symbol, ccxt::any since = ccxt::any{},
+                  ccxt::any limit = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(
                                   this->has,
                                   std::string("watchLiquidationsForSymbols")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(
                                   this->has,
@@ -146,39 +152,39 @@ watchLiquidations(std::any symbol, std::any since = std::any{},
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" watchLiquidations() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchLiquidationsForSymbols(std::any symbols, std::any since = std::any{},
-                            std::any limit = std::any{},
-                            std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchLiquidationsForSymbols(ccxt::any symbols, ccxt::any since = ccxt::any{},
+                            ccxt::any limit = ccxt::any{},
+                            ccxt::any params = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
-            [=]() mutable -> std::any {
+            [=]() mutable -> ccxt::any {
               throw NotSupported(toString(add(
                   this->id,
                   std::string(
                       " watchLiquidationsForSymbols() is not supported yet"))));
-              return std::any{};
+              return ccxt::any{};
             })
           .share();
 }
 
-virtual std::shared_future<std::any>
-watchMyLiquidations(std::any symbol, std::any since = std::any{},
-                    std::any limit = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchMyLiquidations(ccxt::any symbol, ccxt::any since = ccxt::any{},
+                    ccxt::any limit = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(
                                   this->has,
                                   std::string("watchMyLiquidationsForSymbols")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(
                                   this->has,
@@ -191,193 +197,192 @@ watchMyLiquidations(std::any symbol, std::any since = std::any{},
                    add(this->id,
                        std::string(
                            " watchMyLiquidations() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchMyLiquidationsForSymbols(std::any symbols, std::any since = std::any{},
-                              std::any limit = std::any{},
-                              std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchMyLiquidationsForSymbols(ccxt::any symbols, ccxt::any since = ccxt::any{},
+                              ccxt::any limit = ccxt::any{},
+                              ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id, std::string(" watchMyLiquidationsForSymbols"
                                                 "() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchOrders(std::any symbol = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchOrders(ccxt::any symbol = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" unWatchOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchTrades(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchTrades(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" unWatchTrades() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchTradesForSymbols(std::any symbols, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchTradesForSymbols(ccxt::any symbols, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " unWatchTradesForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchOHLCVForSymbols(std::any symbolsAndTimeframes, std::any since = std::any{},
-                     std::any limit = std::any{},
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> watchOHLCVForSymbols(
+    ccxt::any symbolsAndTimeframes, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " watchOHLCVForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchOHLCVForSymbols(std::any symbolsAndTimeframes,
-                       std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchOHLCVForSymbols(ccxt::any symbolsAndTimeframes,
+                       ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " unWatchOHLCVForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchOrderBookForSymbols(std::any symbols, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchOrderBookForSymbols(ccxt::any symbols, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " unWatchOrderBookForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchPositions(std::any symbols = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchPositions(ccxt::any symbols = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" unWatchPositions() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchTicker(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchTicker(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" unWatchTicker() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchMarkPrice(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchMarkPrice(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" unWatchMarkPrice() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchMarkPrices(std::any symbols = std::any{},
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchMarkPrices(ccxt::any symbols = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" unWatchMarkPrices() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchDepositAddresses(std::any codes = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchDepositAddresses(ccxt::any codes = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchDepositAddresses() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchMarginMode(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchMarginMode(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchMarginModes")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchMarginModes")),
                               false)))) {
-                 std::any marginModes = awaitValue(
+                 ccxt::any marginModes = awaitValue(
                      this->fetchMarginModes(ccxt::list{symbol}, params));
                  return this->safeDict(marginModes, symbol);
                } else {
@@ -385,306 +390,307 @@ fetchMarginMode(std::any symbol, std::any params = ccxt::dict{}) {
                      this->id,
                      std::string(" fetchMarginMode() is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchMarginModes(std::any symbols = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchMarginModes(ccxt::any symbols = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchMarginModes () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchOrderBook(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchOrderBook(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" unWatchOrderBook() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchTime(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTime(ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" fetchTime() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTradingLimits(std::any symbols = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTradingLimits(ccxt::any symbols = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchTradingLimits() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any parseCurrency(std::any rawCurrency);
+virtual ccxt::any parseCurrency(ccxt::any rawCurrency);
 
-virtual std::any parseCurrencies(std::any rawCurrencies);
+virtual ccxt::any parseCurrencies(ccxt::any rawCurrencies);
 
-virtual std::any parseMarket(std::any market);
+virtual ccxt::any parseMarket(ccxt::any market);
 
-virtual std::any parseMarkets(std::any markets);
+virtual ccxt::any parseMarkets(ccxt::any markets);
 
-virtual std::any parseTicker(std::any ticker, std::any market = std::any{});
+virtual ccxt::any parseTicker(ccxt::any ticker, ccxt::any market = ccxt::any{});
 
-virtual std::any parseDepositAddress(std::any depositAddress,
-                                     std::any currency = std::any{});
+virtual ccxt::any parseDepositAddress(ccxt::any depositAddress,
+                                      ccxt::any currency = ccxt::any{});
 
-virtual std::any parseTrade(std::any trade, std::any market = std::any{});
+virtual ccxt::any parseTrade(ccxt::any trade, ccxt::any market = ccxt::any{});
 
-virtual std::any parseTransaction(std::any transaction,
-                                  std::any currency = std::any{},
-                                  std::any since = std::any{},
-                                  std::any limit = std::any{});
+virtual ccxt::any parseTransaction(ccxt::any transaction,
+                                   ccxt::any currency = ccxt::any{},
+                                   ccxt::any since = ccxt::any{},
+                                   ccxt::any limit = ccxt::any{});
 
-virtual std::any parseTransfer(std::any transfer,
-                               std::any currency = std::any{});
+virtual ccxt::any parseTransfer(ccxt::any transfer,
+                                ccxt::any currency = ccxt::any{});
 
-virtual std::any parseAccount(std::any account);
+virtual ccxt::any parseAccount(ccxt::any account);
 
-virtual std::any parseLedgerEntry(std::any item,
-                                  std::any currency = std::any{});
+virtual ccxt::any parseLedgerEntry(ccxt::any item,
+                                   ccxt::any currency = ccxt::any{});
 
-virtual std::any parseOrder(std::any order, std::any market = std::any{});
+virtual ccxt::any parseOrder(ccxt::any order, ccxt::any market = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchCrossBorrowRates(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchCrossBorrowRates(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchCrossBorrowRates() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchIsolatedBorrowRates(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchIsolatedBorrowRates(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchIsolatedBorrowRates() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any parseMarketLeverageTiers(std::any info,
-                                          std::any market = std::any{});
+virtual ccxt::any parseMarketLeverageTiers(ccxt::any info,
+                                           ccxt::any market = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchLeverageTiers(std::any symbols = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchLeverageTiers(ccxt::any symbols = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchLeverageTiers() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any parsePosition(std::any position, std::any market = std::any{});
+virtual ccxt::any parsePosition(ccxt::any position,
+                                ccxt::any market = ccxt::any{});
 
-virtual std::any parseFundingRateHistory(std::any info,
-                                         std::any market = std::any{});
+virtual ccxt::any parseFundingRateHistory(ccxt::any info,
+                                          ccxt::any market = ccxt::any{});
 
-virtual std::any parseBorrowInterest(std::any info,
-                                     std::any market = std::any{});
+virtual ccxt::any parseBorrowInterest(ccxt::any info,
+                                      ccxt::any market = ccxt::any{});
 
-virtual std::any parseIsolatedBorrowRate(std::any info,
-                                         std::any market = std::any{});
+virtual ccxt::any parseIsolatedBorrowRate(ccxt::any info,
+                                          ccxt::any market = ccxt::any{});
 
-virtual std::any parseWsTrade(std::any trade, std::any market = std::any{});
+virtual ccxt::any parseWsTrade(ccxt::any trade, ccxt::any market = ccxt::any{});
 
-virtual std::any parseWsOrder(std::any order, std::any market = std::any{});
+virtual ccxt::any parseWsOrder(ccxt::any order, ccxt::any market = ccxt::any{});
 
-virtual std::any parseWsOrderTrade(std::any trade,
-                                   std::any market = std::any{});
+virtual ccxt::any parseWsOrderTrade(ccxt::any trade,
+                                    ccxt::any market = ccxt::any{});
 
-virtual std::any parseWsOHLCV(std::any ohlcv, std::any market = std::any{});
+virtual ccxt::any parseWsOHLCV(ccxt::any ohlcv, ccxt::any market = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchFundingRates(std::any symbols = std::any{},
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchFundingRates(ccxt::any symbols = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchFundingRates() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchFundingIntervals(std::any symbols = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchFundingIntervals(ccxt::any symbols = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchFundingIntervals() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchFundingRate(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchFundingRate(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" watchFundingRate() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchFundingRates(std::any symbols = std::any{},
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchFundingRates(ccxt::any symbols = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" watchFundingRates() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchFundingRates(std::any symbols = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchFundingRates(ccxt::any symbols = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " unWatchFundingRates() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchFundingRatesForSymbols(std::any symbols, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchFundingRatesForSymbols(ccxt::any symbols,
+                            ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->watchFundingRates(symbols, params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any> transfer(std::any code, std::any amount,
-                                              std::any fromAccount,
-                                              std::any toAccount,
-                                              std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+transfer(ccxt::any code, ccxt::any amount, ccxt::any fromAccount,
+         ccxt::any toAccount, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id, std::string(" transfer() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> withdraw(std::any code, std::any amount,
-                                              std::any address,
-                                              std::any tag = std::any{},
-                                              std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+withdraw(ccxt::any code, ccxt::any amount, ccxt::any address,
+         ccxt::any tag = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id, std::string(" withdraw() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createDepositAddress(std::any code, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createDepositAddress(ccxt::any code, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " createDepositAddress() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-setLeverage(std::any leverage, std::any symbol = std::any{},
-            std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+setLeverage(ccxt::any leverage, ccxt::any symbol = ccxt::any{},
+            ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" setLeverage() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchLeverage(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchLeverage(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchLeverages")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchLeverages")),
                            false)))) {
-                 std::any leverages = awaitValue(
+                 ccxt::any leverages = awaitValue(
                      this->fetchLeverages(ccxt::list{symbol}, params));
                  return this->safeDict(leverages, symbol);
                } else {
@@ -692,212 +698,215 @@ fetchLeverage(std::any symbol, std::any params = ccxt::dict{}) {
                      this->id,
                      std::string(" fetchLeverage() is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchLeverages(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchLeverages(ccxt::any symbols = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchLeverages() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-setPositionMode(std::any hedged, std::any symbol = std::any{},
-                std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+setPositionMode(ccxt::any hedged, ccxt::any symbol = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" setPositionMode() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> addMargin(std::any symbol, std::any amount,
-                                               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+addMargin(ccxt::any symbol, ccxt::any amount, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" addMargin() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-reduceMargin(std::any symbol, std::any amount, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+reduceMargin(ccxt::any symbol, ccxt::any amount,
+             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" reduceMargin() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> setMargin(std::any symbol, std::any amount,
-                                               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+setMargin(ccxt::any symbol, ccxt::any amount, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" setMargin() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchLongShortRatio(std::any symbol, std::any timeframe = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchLongShortRatio(ccxt::any symbol, ccxt::any timeframe = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " fetchLongShortRatio() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchLongShortRatioHistory(
-    std::any symbol = std::any{}, std::any timeframe = std::any{},
-    std::any since = std::any{}, std::any limit = std::any{},
-    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchLongShortRatioHistory(
+    ccxt::any symbol = ccxt::any{}, ccxt::any timeframe = ccxt::any{},
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchLongShortRatioHistory() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchMarginAdjustmentHistory(
-    std::any symbol = std::any{}, std::any type = std::any{},
-    std::any since = std::any{}, std::any limit = std::any{},
-    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchMarginAdjustmentHistory(
+    ccxt::any symbol = ccxt::any{}, ccxt::any type = ccxt::any{},
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id, std::string(" fetchMarginAdjustmentHistory("
                                                 ") is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-setMarginMode(std::any marginMode, std::any symbol = std::any{},
-              std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+setMarginMode(ccxt::any marginMode, ccxt::any symbol = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" setMarginMode() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchDepositAddressesByNetwork(std::any code, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchDepositAddressesByNetwork(ccxt::any code,
+                               ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id, std::string(" fetchDepositAddressesByNetwor"
                                                 "k() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchOpenInterestHistory(
-    std::any symbol, std::any timeframe = std::string("1h"),
-    std::any since = std::any{}, std::any limit = std::any{},
-    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchOpenInterestHistory(
+    ccxt::any symbol, ccxt::any timeframe = std::string("1h"),
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchOpenInterestHistory() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOpenInterests(std::any symbols = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOpenInterests(ccxt::any symbols = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchOpenInterests() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> signIn(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> signIn(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id, std::string(" signIn() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPaymentMethods(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPaymentMethods(ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " fetchPaymentMethods() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::any parseToInt(std::any number);
+virtual ccxt::any parseToInt(ccxt::any number);
 
-virtual std::any parseToNumeric(std::any number);
+virtual ccxt::any parseToNumeric(ccxt::any number);
 
-virtual std::any isRoundNumber(std::any value);
+virtual ccxt::any isRoundNumber(ccxt::any value);
 
-virtual std::any isEmptyString(std::any value);
+virtual ccxt::any isEmptyString(ccxt::any value);
 
-virtual std::any safeNumberOmitZero(std::any obj, std::any key,
-                                    std::any defaultValue = std::any{});
+virtual ccxt::any safeNumberOmitZero(ccxt::any obj, ccxt::any key,
+                                     ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any safeIntegerOmitZero(std::any obj, std::any key,
-                                     std::any defaultValue = std::any{});
+virtual ccxt::any safeIntegerOmitZero(ccxt::any obj, ccxt::any key,
+                                      ccxt::any defaultValue = ccxt::any{});
 
 virtual void afterConstruct();
 
@@ -905,199 +914,203 @@ virtual void initRestRateLimiter();
 
 virtual void featuresGenerator();
 
-virtual std::any featuresMapper(std::any initialFeatures, std::any marketType,
-                                std::any subType = std::any{});
+virtual ccxt::any featuresMapper(ccxt::any initialFeatures,
+                                 ccxt::any marketType,
+                                 ccxt::any subType = ccxt::any{});
 
-virtual std::any featureValue(std::any symbol, std::any methodName = std::any{},
-                              std::any paramName = std::any{},
-                              std::any defaultValue = std::any{});
+virtual ccxt::any featureValue(ccxt::any symbol,
+                               ccxt::any methodName = ccxt::any{},
+                               ccxt::any paramName = ccxt::any{},
+                               ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any featureValueByType(std::any marketType, std::any subType,
-                                    std::any methodName = std::any{},
-                                    std::any paramName = std::any{},
-                                    std::any defaultValue = std::any{});
+virtual ccxt::any featureValueByType(ccxt::any marketType, ccxt::any subType,
+                                     ccxt::any methodName = ccxt::any{},
+                                     ccxt::any paramName = ccxt::any{},
+                                     ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any orderbookChecksumMessage(std::any symbol);
+virtual ccxt::any orderbookChecksumMessage(ccxt::any symbol);
 
 virtual void createNetworksByIdObject();
 
-virtual std::any getDefaultOptions();
+virtual ccxt::any getDefaultOptions();
 
-virtual std::any safeLedgerEntry(std::any entry,
-                                 std::any currency = std::any{});
+virtual ccxt::any safeLedgerEntry(ccxt::any entry,
+                                  ccxt::any currency = ccxt::any{});
 
-virtual std::any safeCurrencyStructure(std::any currency);
+virtual ccxt::any safeCurrencyStructure(ccxt::any currency);
 
-virtual std::any safeMarketStructure(std::any market = std::any{});
+virtual ccxt::any safeMarketStructure(ccxt::any market = ccxt::any{});
 
-virtual std::any setMarkets(std::any markets, std::any currencies = std::any{});
+virtual ccxt::any setMarkets(ccxt::any markets,
+                             ccxt::any currencies = ccxt::any{});
 
-virtual std::any setMarketsFromExchange(std::any sourceExchange);
+virtual ccxt::any setMarketsFromExchange(ccxt::any sourceExchange);
 
-virtual std::any getDescribeForExtendedWsExchange(std::any currentRestInstance,
-                                                  std::any parentRestInstance,
-                                                  std::any wsBaseDescribe);
+virtual ccxt::any
+getDescribeForExtendedWsExchange(ccxt::any currentRestInstance,
+                                 ccxt::any parentRestInstance,
+                                 ccxt::any wsBaseDescribe);
 
-virtual std::any safeBalance(std::any balance);
+virtual ccxt::any safeBalance(ccxt::any balance);
 
-virtual std::any safeOrder(std::any order, std::any market = std::any{});
+virtual ccxt::any safeOrder(ccxt::any order, ccxt::any market = ccxt::any{});
 
-virtual std::any parseOrders(std::any orders, std::any market = std::any{},
-                             std::any since = std::any{},
-                             std::any limit = std::any{},
-                             std::any params = ccxt::dict{});
+virtual ccxt::any parseOrders(ccxt::any orders, ccxt::any market = ccxt::any{},
+                              ccxt::any since = ccxt::any{},
+                              ccxt::any limit = ccxt::any{},
+                              ccxt::any params = ccxt::dict{});
 
-virtual std::any calculateFeeWithRate(
-    std::any symbol, std::any type, std::any side, std::any amount,
-    std::any price, std::any takerOrMaker = std::string("taker"),
-    std::any feeRate = std::any{}, std::any params = ccxt::dict{});
+virtual ccxt::any calculateFeeWithRate(
+    ccxt::any symbol, ccxt::any type, ccxt::any side, ccxt::any amount,
+    ccxt::any price, ccxt::any takerOrMaker = std::string("taker"),
+    ccxt::any feeRate = ccxt::any{}, ccxt::any params = ccxt::dict{});
 
-virtual std::any calculateFee(std::any symbol, std::any type, std::any side,
-                              std::any amount, std::any price,
-                              std::any takerOrMaker = std::string("taker"),
-                              std::any params = ccxt::dict{});
+virtual ccxt::any calculateFee(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                               ccxt::any amount, ccxt::any price,
+                               ccxt::any takerOrMaker = std::string("taker"),
+                               ccxt::any params = ccxt::dict{});
 
-virtual std::any safeLiquidation(std::any liquidation,
-                                 std::any market = std::any{});
+virtual ccxt::any safeLiquidation(ccxt::any liquidation,
+                                  ccxt::any market = ccxt::any{});
 
-virtual std::any safeTrade(std::any trade, std::any market = std::any{});
+virtual ccxt::any safeTrade(ccxt::any trade, ccxt::any market = ccxt::any{});
 
-virtual std::any createCcxtTradeId(std::any timestamp = std::any{},
-                                   std::any side = std::any{},
-                                   std::any amount = std::any{},
-                                   std::any price = std::any{},
-                                   std::any takerOrMaker = std::any{});
+virtual ccxt::any createCcxtTradeId(ccxt::any timestamp = ccxt::any{},
+                                    ccxt::any side = ccxt::any{},
+                                    ccxt::any amount = ccxt::any{},
+                                    ccxt::any price = ccxt::any{},
+                                    ccxt::any takerOrMaker = ccxt::any{});
 
-virtual std::any parsedFeeAndFees(std::any container);
+virtual ccxt::any parsedFeeAndFees(ccxt::any container);
 
-virtual std::any parseFeeNumeric(std::any fee);
+virtual ccxt::any parseFeeNumeric(ccxt::any fee);
 
-virtual std::any findNearestCeiling(std::any arr, std::any providedValue);
+virtual ccxt::any findNearestCeiling(ccxt::any arr, ccxt::any providedValue);
 
-virtual std::any addKeyInArrayItems(std::any obj, std::any keyName);
+virtual ccxt::any addKeyInArrayItems(ccxt::any obj, ccxt::any keyName);
 
-virtual std::any invertFlatStringDictionary(std::any dict);
+virtual ccxt::any invertFlatStringDictionary(ccxt::any dict);
 
-virtual std::any stringToBase16(std::any str);
+virtual ccxt::any stringToBase16(ccxt::any str);
 
-virtual std::any reduceFeesByCurrency(std::any fees);
+virtual ccxt::any reduceFeesByCurrency(ccxt::any fees);
 
-virtual std::any safeTicker(std::any ticker, std::any market = std::any{});
+virtual ccxt::any safeTicker(ccxt::any ticker, ccxt::any market = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchBorrowRate(std::any code, std::any amount,
-                std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchBorrowRate(ccxt::any code, ccxt::any amount,
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id, std::string(" fetchBorrowRate is deprecated, "
                                          "please use fetchCrossBorrowRate or "
                                          "fetchIsolatedBorrowRate instead"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-repayCrossMargin(std::any code, std::any amount,
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+repayCrossMargin(ccxt::any code, ccxt::any amount,
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" repayCrossMargin is not support yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-repayIsolatedMargin(std::any symbol, std::any code, std::any amount,
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+repayIsolatedMargin(ccxt::any symbol, ccxt::any code, ccxt::any amount,
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" repayIsolatedMargin is not support yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-borrowCrossMargin(std::any code, std::any amount,
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+borrowCrossMargin(ccxt::any code, ccxt::any amount,
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" borrowCrossMargin is not support yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-borrowIsolatedMargin(std::any symbol, std::any code, std::any amount,
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+borrowIsolatedMargin(ccxt::any symbol, ccxt::any code, ccxt::any amount,
+                     ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" borrowIsolatedMargin is not support yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-borrowMargin(std::any code, std::any amount, std::any symbol = std::any{},
-             std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+borrowMargin(ccxt::any code, ccxt::any amount, ccxt::any symbol = ccxt::any{},
+             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " borrowMargin is deprecated, please use "
                        "borrowCrossMargin or borrowIsolatedMargin instead"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-repayMargin(std::any code, std::any amount, std::any symbol = std::any{},
-            std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+repayMargin(ccxt::any code, ccxt::any amount, ccxt::any symbol = ccxt::any{},
+            ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " repayMargin is deprecated, please use "
                        "repayCrossMargin or repayIsolatedMargin instead"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-           std::any since = std::any{}, std::any limit = std::any{},
-           std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+           ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+           ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any message = std::string("");
+             [=]() mutable -> ccxt::any {
+               ccxt::any message = std::string("");
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has, std::string("fetchTrades")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has, std::string("fetchTrades")),
                               false)))) {
@@ -1111,53 +1124,53 @@ fetchOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
                    add(add(this->id,
                            std::string(" fetchOHLCV() is not supported yet")),
                        message)));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchSpotOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-               std::any since = std::any{}, std::any limit = std::any{},
-               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchSpotOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+               ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchSpotOHLCV() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchContractOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-                   std::any since = std::any{}, std::any limit = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchContractOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+                   ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchContractOHLCV() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOHLCVWs(std::any symbol, std::any timeframe = std::string("1m"),
-             std::any since = std::any{}, std::any limit = std::any{},
-             std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOHLCVWs(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+             ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any message = std::string("");
+             [=]() mutable -> ccxt::any {
+               ccxt::any message = std::string("");
                if (isTrue(
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchTradesWs")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchTradesWs")),
                            false)))) {
@@ -1172,60 +1185,60 @@ fetchOHLCVWs(std::any symbol, std::any timeframe = std::string("1m"),
                            std::string(" fetchOHLCVWs() is not supported yet. "
                                        "Try using fetchOHLCV instead.")),
                        message)));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-           std::any since = std::any{}, std::any limit = std::any{},
-           std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+           ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+           ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" watchOHLCV() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::any convertTradingViewToOHLCV(
-    std::any ohlcvs, std::any timestamp = std::string("t"),
-    std::any open = std::string("o"), std::any high = std::string("h"),
-    std::any low = std::string("l"), std::any close = std::string("c"),
-    std::any volume = std::string("v"), std::any ms = false);
+virtual ccxt::any convertTradingViewToOHLCV(
+    ccxt::any ohlcvs, ccxt::any timestamp = std::string("t"),
+    ccxt::any open = std::string("o"), ccxt::any high = std::string("h"),
+    ccxt::any low = std::string("l"), ccxt::any close = std::string("c"),
+    ccxt::any volume = std::string("v"), ccxt::any ms = false);
 
-virtual std::any convertOHLCVToTradingView(
-    std::any ohlcvs, std::any timestamp = std::string("t"),
-    std::any open = std::string("o"), std::any high = std::string("h"),
-    std::any low = std::string("l"), std::any close = std::string("c"),
-    std::any volume = std::string("v"), std::any ms = false);
+virtual ccxt::any convertOHLCVToTradingView(
+    ccxt::any ohlcvs, ccxt::any timestamp = std::string("t"),
+    ccxt::any open = std::string("o"), ccxt::any high = std::string("h"),
+    ccxt::any low = std::string("l"), ccxt::any close = std::string("c"),
+    ccxt::any volume = std::string("v"), ccxt::any ms = false);
 
-virtual std::shared_future<std::any>
-fetchWebEndpoint(std::any method, std::any endpointMethod,
-                 std::any returnAsJson, std::any startRegex = std::any{},
-                 std::any endRegex = std::any{}) {
+virtual std::shared_future<ccxt::any>
+fetchWebEndpoint(ccxt::any method, ccxt::any endpointMethod,
+                 ccxt::any returnAsJson, ccxt::any startRegex = ccxt::any{},
+                 ccxt::any endRegex = ccxt::any{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any errorMessage = std::string("");
-               std::any options =
+             [=]() mutable -> ccxt::any {
+               ccxt::any errorMessage = std::string("");
+               ccxt::any options =
                    this->safeValue(this->options, method, ccxt::dict{});
-               std::any muteOnFailure = this->safeBool(
+               ccxt::any muteOnFailure = this->safeBool(
                    options, std::string("webApiMuteFailure"), true);
                try {
                  // if it was not explicitly disabled, then don't fetch
                  if (!isTrue(this->safeBool(
                          options, std::string("webApiEnable"), true))) {
-                   return std::any{};
+                   return ccxt::any{};
                  }
-                 std::any maxRetries =
+                 ccxt::any maxRetries =
                      this->safeValue(options, std::string("webApiRetries"), 10);
-                 std::any response = std::any{};
-                 std::any retry = 0;
-                 std::any shouldBreak = false;
+                 ccxt::any response = ccxt::any{};
+                 ccxt::any retry = 0;
+                 ccxt::any shouldBreak = false;
                  while (isLessThan(retry, maxRetries)) {
                    try {
                      response = awaitValue(callDynamically(
@@ -1242,35 +1255,35 @@ fetchWebEndpoint(std::any method, std::any endpointMethod,
                      break; // this is needed because of GO
                    }
                  }
-                 std::any content = response;
-                 if (isTrue(isEqual(content, std::any{}))) {
+                 ccxt::any content = response;
+                 if (isTrue(isEqual(content, ccxt::any{}))) {
                    throw NullResponse(toString(
                        add(this->id,
                            std::string(
                                " fetchWebEndpoint() returned empty content"))));
                  }
-                 if (isTrue(!isEqual(startRegex, std::any{}))) {
-                   std::any splitted_by_start = split(content, startRegex);
+                 if (isTrue(!isEqual(startRegex, ccxt::any{}))) {
+                   ccxt::any splitted_by_start = split(content, startRegex);
                    content = ::getValue(splitted_by_start,
                                         1); // we need second part after start
                  }
-                 if (isTrue(isEqual(content, std::any{}))) {
+                 if (isTrue(isEqual(content, ccxt::any{}))) {
                    throw NullResponse(toString(
                        add(this->id,
                            std::string(
                                " fetchWebEndpoint() returned empty content"))));
                  }
-                 if (isTrue(!isEqual(endRegex, std::any{}))) {
-                   std::any splitted_by_end = split(content, endRegex);
+                 if (isTrue(!isEqual(endRegex, ccxt::any{}))) {
+                   ccxt::any splitted_by_end = split(content, endRegex);
                    content = ::getValue(splitted_by_end,
                                         0); // we need first part after start
                  }
                  if (isTrue(isTrue((isEqual(returnAsJson, true))) &&
                             isTrue((isString(content))))) {
-                   std::any jsoned = this->parseJson(
+                   ccxt::any jsoned = this->parseJson(
                        trim(content)); // content should be trimmed before json
                                        // parsing
-                   if (isTrue(isTrue((!isEqual(jsoned, std::any{}))) &&
+                   if (isTrue(isTrue((!isEqual(jsoned, ccxt::any{}))) &&
                               isTrue((!isEqual(jsoned, null))))) {
                      return jsoned; // if parsing was not successfull, exception
                                     // should be thrown
@@ -1289,102 +1302,106 @@ fetchWebEndpoint(std::any method, std::any endpointMethod,
                                  "changed, breaking the page custom parser."));
                }
                if (isTrue(isEqual(muteOnFailure, true))) {
-                 return std::any{};
+                 return ccxt::any{};
                } else {
                  throw BadResponse(toString(errorMessage));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any marketIds(std::any symbols = std::any{});
+virtual ccxt::any marketIds(ccxt::any symbols = ccxt::any{});
 
-virtual std::any currencyIds(std::any codes = std::any{});
+virtual ccxt::any currencyIds(ccxt::any codes = ccxt::any{});
 
-virtual std::any marketsForSymbols(std::any symbols = std::any{});
+virtual ccxt::any marketsForSymbols(ccxt::any symbols = ccxt::any{});
 
 // allowEmpty: false always returns string[] (throws on empty/undefined at
 // runtime)
-virtual std::any marketSymbols(std::any symbols = std::any{},
-                               std::any type = std::any{},
-                               std::any allowEmpty = true,
-                               std::any sameTypeOnly = false,
-                               std::any sameSubTypeOnly = false);
+virtual ccxt::any marketSymbols(ccxt::any symbols = ccxt::any{},
+                                ccxt::any type = ccxt::any{},
+                                ccxt::any allowEmpty = true,
+                                ccxt::any sameTypeOnly = false,
+                                ccxt::any sameSubTypeOnly = false);
 
-virtual std::any marketCodes(std::any codes = std::any{});
+virtual ccxt::any marketCodes(ccxt::any codes = ccxt::any{});
 
-virtual std::any parseOrderBookBidsAsks(std::any bidasks, std::any priceKey = 0,
-                                        std::any amountKey = 1,
-                                        std::any countOrIdKey = 2);
+virtual ccxt::any parseOrderBookBidsAsks(ccxt::any bidasks,
+                                         ccxt::any priceKey = 0,
+                                         ccxt::any amountKey = 1,
+                                         ccxt::any countOrIdKey = 2);
 
-virtual std::any filterByKey(std::any objects, std::any key,
-                             std::any value = std::any{});
+virtual ccxt::any filterByKey(ccxt::any objects, ccxt::any key,
+                              ccxt::any value = ccxt::any{});
 
-virtual std::any filterBySymbol(std::any objects, std::any symbol = std::any{});
+virtual ccxt::any filterBySymbol(ccxt::any objects,
+                                 ccxt::any symbol = ccxt::any{});
 
-virtual std::any parseOHLCV(std::any ohlcv, std::any market = std::any{});
+virtual ccxt::any parseOHLCV(ccxt::any ohlcv, ccxt::any market = ccxt::any{});
 
-virtual std::any safeNetwork(std::any network);
+virtual ccxt::any safeNetwork(ccxt::any network);
 
-virtual std::any prioritizedNetworkAliases(std::any networkCode = std::any{},
-                                           std::any currencyCode = std::any{},
-                                           std::any allowDefault = false);
+virtual ccxt::any
+prioritizedNetworkAliases(ccxt::any networkCode = ccxt::any{},
+                          ccxt::any currencyCode = ccxt::any{},
+                          ccxt::any allowDefault = false);
 
-virtual std::any networkCodeToId(std::any networkCode,
-                                 std::any currencyCode = std::any{});
+virtual ccxt::any networkCodeToId(ccxt::any networkCode,
+                                  ccxt::any currencyCode = ccxt::any{});
 
-virtual std::any networkIdToCode(std::any networkId = std::any{},
-                                 std::any currencyCode = std::any{});
+virtual ccxt::any networkIdToCode(ccxt::any networkId = ccxt::any{},
+                                  ccxt::any currencyCode = ccxt::any{});
 
-virtual std::any handleNetworkCodeAndParams(std::any params);
+virtual ccxt::any handleNetworkCodeAndParams(ccxt::any params);
 
-virtual std::any defaultNetworkCode(std::any currencyCode);
+virtual ccxt::any defaultNetworkCode(ccxt::any currencyCode);
 
-virtual std::any
-selectNetworkCodeFromUnifiedNetworks(std::any currencyCode,
-                                     std::any networkCode,
-                                     std::any indexedNetworkEntries);
+virtual ccxt::any
+selectNetworkCodeFromUnifiedNetworks(ccxt::any currencyCode,
+                                     ccxt::any networkCode,
+                                     ccxt::any indexedNetworkEntries);
 
-virtual std::any selectNetworkIdFromRawNetworks(std::any currencyCode,
-                                                std::any networkCode,
-                                                std::any indexedNetworkEntries);
+virtual ccxt::any
+selectNetworkIdFromRawNetworks(ccxt::any currencyCode, ccxt::any networkCode,
+                               ccxt::any indexedNetworkEntries);
 
-virtual std::any
-selectNetworkKeyFromNetworks(std::any currencyCode, std::any networkCode,
-                             std::any indexedNetworkEntries,
-                             std::any isIndexedByUnifiedNetworkCode = false);
+virtual ccxt::any
+selectNetworkKeyFromNetworks(ccxt::any currencyCode, ccxt::any networkCode,
+                             ccxt::any indexedNetworkEntries,
+                             ccxt::any isIndexedByUnifiedNetworkCode = false);
 
-virtual std::any safeNumber2(std::any dictionary, std::any key1, std::any key2,
-                             std::any d = std::any{});
+virtual ccxt::any safeNumber2(ccxt::any dictionary, ccxt::any key1,
+                              ccxt::any key2, ccxt::any d = ccxt::any{});
 
-virtual std::any parseOrderBook(std::any orderbook, std::any symbol,
-                                std::any timestamp = std::any{},
-                                std::any bidsKey = std::string("bids"),
-                                std::any asksKey = std::string("asks"),
-                                std::any priceKey = 0, std::any amountKey = 1,
-                                std::any countOrIdKey = 2);
+virtual ccxt::any parseOrderBook(ccxt::any orderbook, ccxt::any symbol,
+                                 ccxt::any timestamp = ccxt::any{},
+                                 ccxt::any bidsKey = std::string("bids"),
+                                 ccxt::any asksKey = std::string("asks"),
+                                 ccxt::any priceKey = 0,
+                                 ccxt::any amountKey = 1,
+                                 ccxt::any countOrIdKey = 2);
 
-virtual std::any parseOHLCVs(std::any ohlcvs, std::any market = std::any{},
-                             std::any timeframe = std::string("1m"),
-                             std::any since = std::any{},
-                             std::any limit = std::any{},
-                             std::any tail = false);
+virtual ccxt::any parseOHLCVs(ccxt::any ohlcvs, ccxt::any market = ccxt::any{},
+                              ccxt::any timeframe = std::string("1m"),
+                              ccxt::any since = ccxt::any{},
+                              ccxt::any limit = ccxt::any{},
+                              ccxt::any tail = false);
 
-virtual std::any parseLeverageTiers(std::any response,
-                                    std::any symbols = std::any{},
-                                    std::any marketIdKey = std::any{});
+virtual ccxt::any parseLeverageTiers(ccxt::any response,
+                                     ccxt::any symbols = ccxt::any{},
+                                     ccxt::any marketIdKey = ccxt::any{});
 
-virtual std::shared_future<std::any>
-loadTradingLimits(std::any symbols = std::any{}, std::any reload = false,
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+loadTradingLimits(ccxt::any symbols = ccxt::any{}, ccxt::any reload = false,
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchTradingLimits")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchTradingLimits")),
@@ -1392,21 +1409,21 @@ loadTradingLimits(std::any symbols = std::any{}, std::any reload = false,
                  if (isTrue(isTrue(reload) ||
                             !isTrue((inOp(this->options,
                                           std::string("limitsLoaded")))))) {
-                   std::any response =
+                   ccxt::any response =
                        awaitValue(this->fetchTradingLimits(symbols));
-                   std::any symbolsArray = this->requireValue(
+                   ccxt::any symbolsArray = this->requireValue(
                        symbols,
                        std::string(
                            "loadTradingLimits() requires a symbols argument"));
-                   std::any markets = this->markets;
-                   if (isTrue(isEqual(markets, std::any{}))) {
+                   ccxt::any markets = this->markets;
+                   if (isTrue(isEqual(markets, ccxt::any{}))) {
                      throw ExchangeError(toString(
                          add(this->id, std::string(" markets not loaded"))));
                    }
-                   for (std::any i = 0;
+                   for (ccxt::any i = 0;
                         isLessThan(i, getArrayLength(symbolsArray));
                         postFixIncrement(i)) {
-                     std::any symbol = ::getValue(symbolsArray, i);
+                     ccxt::any symbol = ::getValue(symbolsArray, i);
                      ::setValue(markets, symbol,
                                 this->deepExtend(::getValue(markets, symbol),
                                                  ::getValue(response, symbol)));
@@ -1420,87 +1437,89 @@ loadTradingLimits(std::any symbols = std::any{}, std::any reload = false,
       .share();
 }
 
-virtual std::any safePosition(std::any position);
+virtual ccxt::any safePosition(ccxt::any position);
 
-virtual std::any parsePositions(std::any positions,
-                                std::any symbols = std::any{},
-                                std::any params = ccxt::dict{});
+virtual ccxt::any parsePositions(ccxt::any positions,
+                                 ccxt::any symbols = ccxt::any{},
+                                 ccxt::any params = ccxt::dict{});
 
-virtual std::any parseADLRank(std::any info, std::any market = std::any{});
+virtual ccxt::any parseADLRank(ccxt::any info, ccxt::any market = ccxt::any{});
 
-virtual std::any parseADLRanks(std::any ranks, std::any symbols = std::any{},
-                               std::any params = ccxt::dict{});
+virtual ccxt::any parseADLRanks(ccxt::any ranks,
+                                ccxt::any symbols = ccxt::any{},
+                                ccxt::any params = ccxt::dict{});
 
-virtual std::any parseAccounts(std::any accounts,
-                               std::any params = ccxt::dict{});
+virtual ccxt::any parseAccounts(ccxt::any accounts,
+                                ccxt::any params = ccxt::dict{});
 
-virtual std::any parseTradesHelper(std::any isWs, std::any trades,
-                                   std::any market = std::any{},
-                                   std::any since = std::any{},
-                                   std::any limit = std::any{},
-                                   std::any params = ccxt::dict{});
+virtual ccxt::any parseTradesHelper(ccxt::any isWs, ccxt::any trades,
+                                    ccxt::any market = ccxt::any{},
+                                    ccxt::any since = ccxt::any{},
+                                    ccxt::any limit = ccxt::any{},
+                                    ccxt::any params = ccxt::dict{});
 
-virtual std::any parseTrades(std::any trades, std::any market = std::any{},
-                             std::any since = std::any{},
-                             std::any limit = std::any{},
-                             std::any params = ccxt::dict{});
+virtual ccxt::any parseTrades(ccxt::any trades, ccxt::any market = ccxt::any{},
+                              ccxt::any since = ccxt::any{},
+                              ccxt::any limit = ccxt::any{},
+                              ccxt::any params = ccxt::dict{});
 
-virtual std::any parseWsTrades(std::any trades, std::any market = std::any{},
-                               std::any since = std::any{},
-                               std::any limit = std::any{},
-                               std::any params = ccxt::dict{});
+virtual ccxt::any parseWsTrades(ccxt::any trades,
+                                ccxt::any market = ccxt::any{},
+                                ccxt::any since = ccxt::any{},
+                                ccxt::any limit = ccxt::any{},
+                                ccxt::any params = ccxt::dict{});
 
-virtual std::any parseTransactions(std::any transactions,
-                                   std::any currency = std::any{},
-                                   std::any since = std::any{},
-                                   std::any limit = std::any{},
-                                   std::any params = ccxt::dict{});
+virtual ccxt::any parseTransactions(ccxt::any transactions,
+                                    ccxt::any currency = ccxt::any{},
+                                    ccxt::any since = ccxt::any{},
+                                    ccxt::any limit = ccxt::any{},
+                                    ccxt::any params = ccxt::dict{});
 
-virtual std::any parseTransfers(std::any transfers,
-                                std::any currency = std::any{},
-                                std::any since = std::any{},
-                                std::any limit = std::any{},
-                                std::any params = ccxt::dict{});
+virtual ccxt::any parseTransfers(ccxt::any transfers,
+                                 ccxt::any currency = ccxt::any{},
+                                 ccxt::any since = ccxt::any{},
+                                 ccxt::any limit = ccxt::any{},
+                                 ccxt::any params = ccxt::dict{});
 
-virtual std::any parseLedger(std::any data, std::any currency = std::any{},
-                             std::any since = std::any{},
-                             std::any limit = std::any{},
-                             std::any params = ccxt::dict{});
+virtual ccxt::any parseLedger(ccxt::any data, ccxt::any currency = ccxt::any{},
+                              ccxt::any since = ccxt::any{},
+                              ccxt::any limit = ccxt::any{},
+                              ccxt::any params = ccxt::dict{});
 
-virtual std::any nonce();
+virtual ccxt::any nonce();
 
-virtual std::any setHeaders(std::any headers);
+virtual ccxt::any setHeaders(ccxt::any headers);
 
-virtual std::any currencyId(std::any code);
+virtual ccxt::any currencyId(ccxt::any code);
 
-virtual std::any marketId(std::any symbol);
+virtual ccxt::any marketId(ccxt::any symbol);
 
-virtual std::any symbol(std::any symbol);
-
-/* eslint-disable no-unused-vars */
-/* eslint-enable no-unused-vars */
-virtual std::any handleParamString(std::any params, std::any paramName,
-                                   std::any defaultValue = std::any{});
+virtual ccxt::any symbol(ccxt::any symbol);
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-virtual std::any handleParamString2(std::any params, std::any paramName1,
-                                    std::any paramName2,
-                                    std::any defaultValue = std::any{});
+virtual ccxt::any handleParamString(ccxt::any params, ccxt::any paramName,
+                                    ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any handleParamInteger(std::any params, std::any paramName,
-                                    std::any defaultValue = std::any{});
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+virtual ccxt::any handleParamString2(ccxt::any params, ccxt::any paramName1,
+                                     ccxt::any paramName2,
+                                     ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any handleParamInteger2(std::any params, std::any paramName1,
-                                     std::any paramName2,
-                                     std::any defaultValue = std::any{});
+virtual ccxt::any handleParamInteger(ccxt::any params, ccxt::any paramName,
+                                     ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any handleParamBool(std::any params, std::any paramName,
-                                 std::any defaultValue = std::any{});
+virtual ccxt::any handleParamInteger2(ccxt::any params, ccxt::any paramName1,
+                                      ccxt::any paramName2,
+                                      ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any handleParamBool2(std::any params, std::any paramName1,
-                                  std::any paramName2,
-                                  std::any defaultValue = std::any{});
+virtual ccxt::any handleParamBool(ccxt::any params, ccxt::any paramName,
+                                  ccxt::any defaultValue = ccxt::any{});
+
+virtual ccxt::any handleParamBool2(ccxt::any params, ccxt::any paramName1,
+                                   ccxt::any paramName2,
+                                   ccxt::any defaultValue = ccxt::any{});
 
 /**
  * @param {object} params - extra parameters
@@ -1513,84 +1532,84 @@ virtual std::any handleParamBool2(std::any params, std::any paramName1,
  * @returns {object[]} - returns [request, params] where request is the modified
  * request object and params is the modified params object
  */
-virtual std::any handleRequestNetwork(std::any params, std::any request,
-                                      std::any exchangeSpecificKey,
-                                      std::any currencyCode = std::any{},
-                                      std::any isRequired = false);
+virtual ccxt::any handleRequestNetwork(ccxt::any params, ccxt::any request,
+                                       ccxt::any exchangeSpecificKey,
+                                       ccxt::any currencyCode = ccxt::any{},
+                                       ccxt::any isRequired = false);
 
-virtual std::any resolvePath(std::any path, std::any params);
+virtual ccxt::any resolvePath(ccxt::any path, ccxt::any params);
 
-virtual std::any getListFromObjectValues(std::any objects, std::any key);
+virtual ccxt::any getListFromObjectValues(ccxt::any objects, ccxt::any key);
 
-virtual std::any
-getSymbolsForMarketType(std::any marketType = std::any{},
-                        std::any subType = std::any{},
-                        std::any symbolWithActiveStatus = true,
-                        std::any symbolWithUnknownStatus = true);
+virtual ccxt::any
+getSymbolsForMarketType(ccxt::any marketType = ccxt::any{},
+                        ccxt::any subType = ccxt::any{},
+                        ccxt::any symbolWithActiveStatus = true,
+                        ccxt::any symbolWithUnknownStatus = true);
 
-virtual std::any filterByArray(std::any objects, std::any key,
-                               std::any values = std::any{},
-                               std::any indexed = true);
+virtual ccxt::any filterByArray(ccxt::any objects, ccxt::any key,
+                                ccxt::any values = ccxt::any{},
+                                ccxt::any indexed = true);
 
-virtual std::any filterOutByArray(std::any objects, std::any key,
-                                  std::any values = std::any{},
-                                  std::any indexed = true);
+virtual ccxt::any filterOutByArray(ccxt::any objects, ccxt::any key,
+                                   ccxt::any values = ccxt::any{},
+                                   ccxt::any indexed = true);
 
-virtual std::shared_future<std::any>
-fetch2(std::any path, std::any api = std::string("public"),
-       std::any method = std::string("GET"), std::any params = ccxt::dict{},
-       std::any headers = std::any{}, std::any body = std::any{},
-       std::any config = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetch2(ccxt::any path, ccxt::any api = std::string("public"),
+       ccxt::any method = std::string("GET"), ccxt::any params = ccxt::dict{},
+       ccxt::any headers = ccxt::any{}, ccxt::any body = ccxt::any{},
+       ccxt::any config = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(this->enableRateLimit)) {
-                 std::any cost = this->calculateRateLimiterCost(
+                 ccxt::any cost = this->calculateRateLimiterCost(
                      api, method, path, params, config);
                  awaitValue(this->throttle(cost));
                }
-               std::any retries = 0;
-               std::any retriesparamsVariable = this->handleOptionAndParams(
+               ccxt::any retries = 0;
+               ccxt::any retriesparamsVariable = this->handleOptionAndParams(
                    params, path, std::string("maxRetriesOnFailure"), retries);
                retries = ::getValue(retriesparamsVariable, 0);
                params = ::getValue(retriesparamsVariable, 1);
-               std::any retryDelay = 0;
-               std::any retryDelayparamsVariable = this->handleOptionAndParams(
+               ccxt::any retryDelay = 0;
+               ccxt::any retryDelayparamsVariable = this->handleOptionAndParams(
                    params, path, std::string("maxRetriesOnFailureDelay"),
                    retryDelay);
                retryDelay = ::getValue(retryDelayparamsVariable, 0);
                params = ::getValue(retryDelayparamsVariable, 1);
-               std::any fetchData = std::any{};
-               std::any fetchDataCacheEnabled =
+               ccxt::any fetchData = ccxt::any{};
+               ccxt::any fetchDataCacheEnabled =
                    isGreaterThan(this->fetchHistoryCacheSize, 0);
-               for (std::any i = 0; isLessThan(i, add(retries, 1));
+               for (ccxt::any i = 0; isLessThan(i, add(retries, 1));
                     postFixIncrement(i)) {
                  if (isTrue(fetchDataCacheEnabled)) {
                    fetchData = ccxt::dict{
-                       {std::string("request"), std::any{}},
+                       {std::string("request"), ccxt::any{}},
                        {std::string("response"),
                         ccxt::dict{
-                            {std::string("body"), std::any{}},
+                            {std::string("body"), ccxt::any{}},
                         }},
-                       {std::string("error"), std::any{}},
+                       {std::string("error"), ccxt::any{}},
                    };
                  }
                  try {
                    this->setLastRestRequestTimestamp();
-                   std::any request =
+                   ccxt::any request =
                        this->sign(path, api, method, params, headers, body);
                    if (isTrue(isTrue(fetchDataCacheEnabled) &&
-                              isTrue((!isEqual(fetchData, std::any{}))))) {
+                              isTrue((!isEqual(fetchData, ccxt::any{}))))) {
                      ::setValue(fetchData, std::string("request"), request);
                    }
                    this->setLastRequest(request);
-                   std::any response = awaitValue(
+                   ccxt::any response = awaitValue(
                        this->fetch(::getValue(request, std::string("url")),
                                    ::getValue(request, std::string("method")),
                                    ::getValue(request, std::string("headers")),
                                    ::getValue(request, std::string("body"))));
                    if (isTrue(isTrue(fetchDataCacheEnabled) &&
-                              isTrue((!isEqual(fetchData, std::any{}))))) {
+                              isTrue((!isEqual(fetchData, ccxt::any{}))))) {
                      ::setValue(::getValue(fetchData, std::string("response")),
                                 std::string("body"), response);
                      this->addFetchCache(fetchData);
@@ -1598,14 +1617,14 @@ fetch2(std::any path, std::any api = std::string("public"),
                    return response;
                  } catch (const std::exception &e) {
                    if (isTrue(isTrue(fetchDataCacheEnabled) &&
-                              isTrue((!isEqual(fetchData, std::any{}))))) {
+                              isTrue((!isEqual(fetchData, ccxt::any{}))))) {
                      ::setValue(fetchData, std::string("error"), e);
                      this->addFetchCache(fetchData);
                    }
                    if (isTrue(isInstanceOf<OperationFailed>(e))) {
                      if (isTrue(isLessThan(i, retries))) {
                        if (isTrue(this->verbose)) {
-                         std::any index = add(i, 1);
+                         ccxt::any index = add(i, 1);
                          this->log(
                              add(add(add(add(add(add(std::string(
                                                          "Request failed with "
@@ -1617,7 +1636,7 @@ fetch2(std::any path, std::any api = std::string("public"),
                                      toString(retries)),
                                  std::string("...")));
                        }
-                       if (isTrue(isTrue((!isEqual(retryDelay, std::any{}))) &&
+                       if (isTrue(isTrue((!isEqual(retryDelay, ccxt::any{}))) &&
                                   isTrue((!isEqual(retryDelay, 0))))) {
                          awaitValue(this->sleep(retryDelay));
                        }
@@ -1629,34 +1648,34 @@ fetch2(std::any path, std::any api = std::string("public"),
                    }
                  }
                }
-               return std::any{}; // this line is never reached, but exists for
-                                  // c# value return requirement
+               return ccxt::any{}; // this line is never reached, but exists for
+                                   // c# value return requirement
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-request(std::any path, std::any api = std::string("public"),
-        std::any method = std::string("GET"), std::any params = ccxt::dict{},
-        std::any headers = std::any{}, std::any body = std::any{},
-        std::any config = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+request(ccxt::any path, ccxt::any api = std::string("public"),
+        ccxt::any method = std::string("GET"), ccxt::any params = ccxt::dict{},
+        ccxt::any headers = ccxt::any{}, ccxt::any body = ccxt::any{},
+        ccxt::any config = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->fetch2(path, api, method, params,
                                                      headers, body, config));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-loadAccounts(std::any reload = false, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+loadAccounts(ccxt::any reload = false, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       if (isTrue(reload)) {
                         this->accounts =
                             awaitValue(this->fetchAccounts(params));
                       } else {
-                        if (isTrue(!isEqual(this->accounts, std::any{}))) {
+                        if (isTrue(!isEqual(this->accounts, ccxt::any{}))) {
                           return this->accounts;
                         } else {
                           this->accounts =
@@ -1670,178 +1689,180 @@ loadAccounts(std::any reload = false, std::any params = ccxt::dict{}) {
       .share();
 }
 
-virtual std::any buildOHLCVC(std::any trades,
-                             std::any timeframe = std::string("1m"),
-                             std::any since = 0, std::any limit = 2147483647);
+virtual ccxt::any buildOHLCVC(ccxt::any trades,
+                              ccxt::any timeframe = std::string("1m"),
+                              ccxt::any since = 0,
+                              ccxt::any limit = 2147483647);
 
-virtual std::any parseTradingViewOHLCV(std::any ohlcvs,
-                                       std::any market = std::any{},
-                                       std::any timeframe = std::string("1m"),
-                                       std::any since = std::any{},
-                                       std::any limit = std::any{});
+virtual ccxt::any parseTradingViewOHLCV(ccxt::any ohlcvs,
+                                        ccxt::any market = ccxt::any{},
+                                        ccxt::any timeframe = std::string("1m"),
+                                        ccxt::any since = ccxt::any{},
+                                        ccxt::any limit = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchBorrowInterest(std::any code = std::any{}, std::any symbol = std::any{},
-                    std::any since = std::any{}, std::any limit = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchBorrowInterest(
+    ccxt::any code = ccxt::any{}, ccxt::any symbol = ccxt::any{},
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " fetchBorrowInterest() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchLedger(std::any code = std::any{}, std::any since = std::any{},
-            std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchLedger(ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+            ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" fetchLedger() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchLedgerEntry(std::any id, std::any code = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchLedgerEntry(ccxt::any id, ccxt::any code = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchLedgerEntry() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any parseOrderBookBidAsk(std::any bidask, std::any priceKey = 0,
-                                      std::any amountKey = 1,
-                                      std::any countOrIdKey = 2);
+virtual ccxt::any parseOrderBookBidAsk(ccxt::any bidask, ccxt::any priceKey = 0,
+                                       ccxt::any amountKey = 1,
+                                       ccxt::any countOrIdKey = 2);
 
-virtual std::any safeCurrency(std::any currencyId,
-                              std::any currency = std::any{});
+virtual ccxt::any safeCurrency(ccxt::any currencyId,
+                               ccxt::any currency = ccxt::any{});
 
-virtual std::any safeMarket(std::any marketId = std::any{},
-                            std::any market = std::any{},
-                            std::any delimiter = std::any{},
-                            std::any marketType = std::any{});
+virtual ccxt::any safeMarket(ccxt::any marketId = ccxt::any{},
+                             ccxt::any market = ccxt::any{},
+                             ccxt::any delimiter = ccxt::any{},
+                             ccxt::any marketType = ccxt::any{});
 
-virtual std::any marketOrNull(std::any symbol = std::any{});
+virtual ccxt::any marketOrNull(ccxt::any symbol = ccxt::any{});
 
-virtual std::any checkRequiredCredentials(std::any error = true);
+virtual ccxt::any checkRequiredCredentials(ccxt::any error = true);
 
-virtual std::any oath();
+virtual ccxt::any oath();
 
-virtual std::shared_future<std::any>
-fetchBalance(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchBalance(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchBalance() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchBalanceWs(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchBalanceWs(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchBalanceWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any parseBalance(std::any response);
+virtual ccxt::any parseBalance(ccxt::any response);
 
-virtual std::shared_future<std::any>
-watchBalance(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchBalance(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" watchBalance() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPartialBalance(std::any part, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPartialBalance(ccxt::any part, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
-                      std::any balance = awaitValue(this->fetchBalance(params));
+                    [=]() mutable -> ccxt::any {
+                      ccxt::any balance =
+                          awaitValue(this->fetchBalance(params));
                       return ::getValue(balance, part);
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchFreeBalance(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchFreeBalance(ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->fetchPartialBalance(
                           std::string("free"), params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchUsedBalance(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchUsedBalance(ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->fetchPartialBalance(
                           std::string("used"), params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTotalBalance(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTotalBalance(ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->fetchPartialBalance(
                           std::string("total"), params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchStatus(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchStatus(ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" fetchStatus() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTransactionFee(std::any code, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTransactionFee(ccxt::any code, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("fetchTransactionFees")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("fetchTransactionFees")),
@@ -1857,46 +1878,46 @@ fetchTransactionFee(std::any code, std::any params = ccxt::dict{}) {
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTransactionFees(std::any codes = std::any{},
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTransactionFees(ccxt::any codes = ccxt::any{},
+                     ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchTransactionFees() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchDepositWithdrawFees(std::any codes = std::any{},
-                         std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchDepositWithdrawFees(ccxt::any codes = ccxt::any{},
+                         ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchDepositWithdrawFees() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchDepositWithdrawFee(std::any code, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchDepositWithdrawFee(ccxt::any code, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(
                        isTrue(isEqual(
                            ::getValue(this->has,
                                       std::string("fetchDepositWithdrawFees")),
-                           std::any{})) ||
+                           ccxt::any{})) ||
                        isTrue(isEqual(
                            ::getValue(this->has,
                                       std::string("fetchDepositWithdrawFees")),
@@ -1906,26 +1927,26 @@ fetchDepositWithdrawFee(std::any code, std::any params = ccxt::dict{}) {
                      std::string(
                          " fetchDepositWithdrawFee() is not supported yet"))));
                }
-               std::any fees = awaitValue(
+               ccxt::any fees = awaitValue(
                    this->fetchDepositWithdrawFees(ccxt::list{code}, params));
                return this->safeValue(fees, code);
              })
       .share();
 }
 
-virtual std::any getSupportedMapping(std::any key,
-                                     std::any mapping = ccxt::dict{});
+virtual ccxt::any getSupportedMapping(ccxt::any key,
+                                      ccxt::any mapping = ccxt::dict{});
 
-virtual std::shared_future<std::any>
-fetchCrossBorrowRate(std::any code, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchCrossBorrowRate(ccxt::any code, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                awaitValue(this->loadMarkets());
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("fetchBorrowRates")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("fetchBorrowRates")),
@@ -1935,10 +1956,10 @@ fetchCrossBorrowRate(std::any code, std::any params = ccxt::dict{}) {
                          std::string(
                              " fetchCrossBorrowRate() is not supported yet"))));
                }
-               std::any borrowRates =
+               ccxt::any borrowRates =
                    awaitValue(this->fetchCrossBorrowRates(params));
-               std::any rate = this->safeValue(borrowRates, code);
-               if (isTrue(isEqual(rate, std::any{}))) {
+               ccxt::any rate = this->safeValue(borrowRates, code);
+               if (isTrue(isEqual(rate, ccxt::any{}))) {
                  throw ExchangeError(toString(add(
                      add(this->id,
                          std::string(" fetchCrossBorrowRate() could not find "
@@ -1950,16 +1971,16 @@ fetchCrossBorrowRate(std::any code, std::any params = ccxt::dict{}) {
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchIsolatedBorrowRate(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchIsolatedBorrowRate(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                awaitValue(this->loadMarkets());
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("fetchBorrowRates")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("fetchBorrowRates")),
@@ -1969,10 +1990,10 @@ fetchIsolatedBorrowRate(std::any symbol, std::any params = ccxt::dict{}) {
                      std::string(
                          " fetchIsolatedBorrowRate() is not supported yet"))));
                }
-               std::any borrowRates =
+               ccxt::any borrowRates =
                    awaitValue(this->fetchIsolatedBorrowRates(params));
-               std::any rate = this->safeDict(borrowRates, symbol);
-               if (isTrue(isEqual(rate, std::any{}))) {
+               ccxt::any rate = this->safeDict(borrowRates, symbol);
+               if (isTrue(isEqual(rate, ccxt::any{}))) {
                  throw ExchangeError(toString(
                      add(add(this->id,
                              std::string(
@@ -1987,245 +2008,248 @@ fetchIsolatedBorrowRate(std::any symbol, std::any params = ccxt::dict{}) {
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-virtual std::any requireValue(std::any value, std::any message = std::any{});
+virtual ccxt::any requireValue(ccxt::any value,
+                               ccxt::any message = ccxt::any{});
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-virtual std::any handleOptionAndParams(std::any params, std::any methodName,
-                                       std::any optionName,
-                                       std::any defaultValue = std::any{});
+virtual ccxt::any handleOptionAndParams(ccxt::any params, ccxt::any methodName,
+                                        ccxt::any optionName,
+                                        ccxt::any defaultValue = ccxt::any{});
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-virtual std::any handleOptionAndParams2(std::any params, std::any methodName1,
-                                        std::any optionName1,
-                                        std::any optionName2,
-                                        std::any defaultValue = std::any{});
+virtual ccxt::any handleOptionAndParams2(ccxt::any params,
+                                         ccxt::any methodName1,
+                                         ccxt::any optionName1,
+                                         ccxt::any optionName2,
+                                         ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any handleOption(std::any methodName, std::any optionName,
-                              std::any defaultValue = std::any{});
+virtual ccxt::any handleOption(ccxt::any methodName, ccxt::any optionName,
+                               ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any handleMarketTypeAndParams(std::any methodName,
-                                           std::any market = std::any{},
-                                           std::any params = ccxt::dict{},
-                                           std::any defaultValue = std::any{});
+virtual ccxt::any
+handleMarketTypeAndParams(ccxt::any methodName, ccxt::any market = ccxt::any{},
+                          ccxt::any params = ccxt::dict{},
+                          ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any handleSubTypeAndParams(std::any methodName,
-                                        std::any market = std::any{},
-                                        std::any params = ccxt::dict{},
-                                        std::any defaultValue = std::any{});
+virtual ccxt::any handleSubTypeAndParams(ccxt::any methodName,
+                                         ccxt::any market = ccxt::any{},
+                                         ccxt::any params = ccxt::dict{},
+                                         ccxt::any defaultValue = ccxt::any{});
 
-virtual std::any handleMarginModeAndParams(std::any methodName,
-                                           std::any params = ccxt::dict{},
-                                           std::any defaultValue = std::any{});
+virtual ccxt::any
+handleMarginModeAndParams(ccxt::any methodName, ccxt::any params = ccxt::dict{},
+                          ccxt::any defaultValue = ccxt::any{});
 
-virtual void throwExactlyMatchedException(std::any exact, std::any string,
-                                          std::any message);
+virtual void throwExactlyMatchedException(ccxt::any exact, ccxt::any string,
+                                          ccxt::any message);
 
-virtual void throwBroadlyMatchedException(std::any broad, std::any string,
-                                          std::any message);
+virtual void throwBroadlyMatchedException(ccxt::any broad, ccxt::any string,
+                                          ccxt::any message);
 
-virtual std::any findBroadlyMatchedKey(std::any broad, std::any string);
+virtual ccxt::any findBroadlyMatchedKey(ccxt::any broad, ccxt::any string);
 
-virtual std::any handleErrors(std::any statusCode, std::any statusText,
-                              std::any url, std::any method,
-                              std::any responseHeaders, std::any responseBody,
-                              std::any response, std::any requestHeaders,
-                              std::any requestBody);
+virtual ccxt::any handleErrors(ccxt::any statusCode, ccxt::any statusText,
+                               ccxt::any url, ccxt::any method,
+                               ccxt::any responseHeaders,
+                               ccxt::any responseBody, ccxt::any response,
+                               ccxt::any requestHeaders, ccxt::any requestBody);
 
-virtual std::any calculateRateLimiterCost(std::any api, std::any method,
-                                          std::any path, std::any params,
-                                          std::any config = ccxt::dict{});
+virtual ccxt::any calculateRateLimiterCost(ccxt::any api, ccxt::any method,
+                                           ccxt::any path, ccxt::any params,
+                                           ccxt::any config = ccxt::dict{});
 
-virtual std::shared_future<std::any>
-fetchSpotTickers(std::any symbols = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchSpotTickers(ccxt::any symbols = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchSpotTickers() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchContractTickers(std::any symbols = std::any{},
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchContractTickers(ccxt::any symbols = ccxt::any{},
+                     ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchContractTickers() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrderBooks(std::any symbols = std::any{}, std::any limit = std::any{},
-                std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrderBooks(ccxt::any symbols = ccxt::any{}, ccxt::any limit = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchOrderBooks() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchTickers(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchTickers(ccxt::any symbols = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" unWatchTickers() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchFundingRate(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchFundingRate(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" unWatchFundingRate() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createTwapOrder(std::any symbol, std::any side, std::any amount,
-                std::any duration, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTwapOrder(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                ccxt::any duration, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" createTwapOrder() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createConvertTrade(std::any id, std::any fromCode, std::any toCode,
-                   std::any amount = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createConvertTrade(ccxt::any id, ccxt::any fromCode, ccxt::any toCode,
+                   ccxt::any amount = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" createConvertTrade() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchConvertTrade(std::any id, std::any code = std::any{},
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchConvertTrade(ccxt::any id, ccxt::any code = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchConvertTrade() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchConvertTradeHistory(
-    std::any code = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchConvertTradeHistory(
+    ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchConvertTradeHistory() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionMode(std::any symbol = std::any{},
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionMode(ccxt::any symbol = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchPositionMode() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchADLRank(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchADLRank(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchADLRank() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionsADLRank(std::any symbols = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionsADLRank(ccxt::any symbols = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchPositionsADLRank() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionADLRank(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionADLRank(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchPositionsADLRank")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchPositionsADLRank")),
                               false)))) {
                  awaitValue(this->loadMarkets());
-                 std::any market = this->market(symbol);
+                 ccxt::any market = this->market(symbol);
                  symbol = ::getValue(market, std::string("symbol"));
-                 std::any ranks = awaitValue(
+                 ccxt::any ranks = awaitValue(
                      this->fetchPositionsADLRank(ccxt::list{symbol}, params));
-                 std::any rank = this->safeDict(ranks, 0);
-                 if (isTrue(isEqual(rank, std::any{}))) {
+                 ccxt::any rank = this->safeDict(ranks, 0);
+                 if (isTrue(isEqual(rank, ccxt::any{}))) {
                    throw NullResponse(toString(add(
                        add(this->id, std::string(" fetchPositionsADLRank() "
                                                  "could not find a rank for ")),
@@ -2239,344 +2263,347 @@ fetchPositionADLRank(std::any symbol, std::any params = ccxt::dict{}) {
                      std::string(
                          " fetchPositionsADLRank() is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any setTakeProfitAndStopLossParams(
-    std::any symbol, std::any type, std::any side, std::any amount,
-    std::any price = std::any{}, std::any takeProfit = std::any{},
-    std::any stopLoss = std::any{}, std::any params = ccxt::dict{});
+virtual ccxt::any setTakeProfitAndStopLossParams(
+    ccxt::any symbol, ccxt::any type, ccxt::any side, ccxt::any amount,
+    ccxt::any price = ccxt::any{}, ccxt::any takeProfit = ccxt::any{},
+    ccxt::any stopLoss = ccxt::any{}, ccxt::any params = ccxt::dict{});
 
-virtual std::shared_future<std::any>
-createSpotOrders(std::any orders, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createSpotOrders(ccxt::any orders, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" createSpotOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createContractOrders(std::any orders, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createContractOrders(ccxt::any orders, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " createContractOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelSpotOrder(std::any id, std::any symbol = std::any{},
-                std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelSpotOrder(ccxt::any id, ccxt::any symbol = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" cancelSpotOrder() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelContractOrder(std::any id, std::any symbol = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelContractOrder(ccxt::any id, ccxt::any symbol = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " cancelContractOrder() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelAllSpotOrders(std::any symbol = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelAllSpotOrders(ccxt::any symbol = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " cancelAllSpotOrders() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelAllContractOrders(std::any symbol = std::any{},
-                        std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelAllContractOrders(ccxt::any symbol = ccxt::any{},
+                        ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " cancelAllContractOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelAllOrdersAfter(std::any timeout, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelAllOrdersAfter(ccxt::any timeout, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " cancelAllOrdersAfter() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelOrdersForSymbols(std::any orders, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelOrdersForSymbols(ccxt::any orders, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " cancelOrdersForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchMyLiquidations(std::any symbol = std::any{}, std::any since = std::any{},
-                    std::any limit = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchMyLiquidations(
+    ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " fetchMyLiquidations() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchLiquidations(std::any symbol, std::any since = std::any{},
-                  std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchLiquidations(ccxt::any symbol, ccxt::any since = ccxt::any{},
+                  ccxt::any limit = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchLiquidations() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchGreeks(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchGreeks(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" fetchGreeks() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchAllGreeks(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchAllGreeks(ccxt::any symbols = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchAllGreeks() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOptionChain(std::any code, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOptionChain(ccxt::any code, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchOptionChain() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOption(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOption(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" fetchOption() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchConvertQuote(std::any fromCode, std::any toCode,
-                  std::any amount = std::any{},
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchConvertQuote(ccxt::any fromCode, ccxt::any toCode,
+                  ccxt::any amount = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchConvertQuote() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchDepositsWithdrawals(
-    std::any code = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchDepositsWithdrawals(
+    ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchDepositsWithdrawals() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchDeposits(std::any code = std::any{}, std::any since = std::any{},
-              std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchDeposits(ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+              ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchDeposits() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchWithdrawals(std::any code = std::any{}, std::any since = std::any{},
-                 std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchWithdrawals(ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+                 ccxt::any limit = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchWithdrawals() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchDepositsWs(std::any code = std::any{}, std::any since = std::any{},
-                std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchDepositsWs(ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+                ccxt::any limit = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchDepositsWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchWithdrawalsWs(std::any code = std::any{}, std::any since = std::any{},
-                   std::any limit = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchWithdrawalsWs(ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+                   ccxt::any limit = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchWithdrawalsWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchFundingRateHistory(
-    std::any symbol = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchFundingRateHistory(
+    ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchFundingRateHistory() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchFundingHistory(std::any symbol = std::any{}, std::any since = std::any{},
-                    std::any limit = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchFundingHistory(
+    ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " fetchFundingHistory() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::any parseLastPrice(std::any price, std::any market = std::any{});
+virtual ccxt::any parseLastPrice(ccxt::any price,
+                                 ccxt::any market = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchDepositAddress(std::any code, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchDepositAddress(ccxt::any code, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchDepositAddresses")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchDepositAddresses")),
                               false)))) {
-                 std::any depositAddresses = awaitValue(
+                 ccxt::any depositAddresses = awaitValue(
                      this->fetchDepositAddresses(ccxt::list{code}, params));
-                 std::any depositAddress =
+                 ccxt::any depositAddress =
                      this->safeValue(depositAddresses, code);
-                 if (isTrue(isEqual(depositAddress, std::any{}))) {
+                 if (isTrue(isEqual(depositAddress, ccxt::any{}))) {
                    throw InvalidAddress(toString(add(
                        add(add(this->id,
                                std::string(" fetchDepositAddress() could not "
@@ -2593,23 +2620,23 @@ fetchDepositAddress(std::any code, std::any params = ccxt::dict{}) {
                                          this->has,
                                          std::string(
                                              "fetchDepositAddressesByNetwork")),
-                                     std::any{})) &&
+                                     ccxt::any{})) &&
                                  isTrue(!isEqual(
                                      ::getValue(
                                          this->has,
                                          std::string(
                                              "fetchDepositAddressesByNetwork")),
                                      false)))) {
-                 std::any network =
+                 ccxt::any network =
                      this->safeString(params, std::string("network"));
                  params = this->omit(params, std::string("network"));
-                 std::any addressStructures = awaitValue(
+                 ccxt::any addressStructures = awaitValue(
                      this->fetchDepositAddressesByNetwork(code, params));
-                 if (isTrue(!isEqual(network, std::any{}))) {
+                 if (isTrue(!isEqual(network, ccxt::any{}))) {
                    return this->safeDict(addressStructures, network);
                  } else {
-                   std::any keys = getObjectKeys(addressStructures);
-                   std::any key = ::getValue(keys, 0);
+                   ccxt::any keys = getObjectKeys(addressStructures);
+                   ccxt::any key = ::getValue(keys, 0);
                    return this->safeDict(addressStructures, key);
                  }
                } else {
@@ -2618,78 +2645,78 @@ fetchDepositAddress(std::any code, std::any params = ccxt::dict{}) {
                          std::string(
                              " fetchDepositAddress() is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchContractDepositAddress(std::any code, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchContractDepositAddress(ccxt::any code, ccxt::any params = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
-            [=]() mutable -> std::any {
+            [=]() mutable -> ccxt::any {
               throw NotSupported(toString(add(
                   this->id,
                   std::string(
                       " fetchContractDepositAddress() is not supported yet"))));
-              return std::any{};
+              return ccxt::any{};
             })
           .share();
 }
 
-virtual std::any account();
+virtual ccxt::any account();
 
-virtual std::any commonCurrencyCode(std::any code);
+virtual ccxt::any commonCurrencyCode(ccxt::any code);
 
-virtual std::any currency(std::any code);
+virtual ccxt::any currency(ccxt::any code);
 
-virtual std::any market(std::any symbol);
+virtual ccxt::any market(ccxt::any symbol);
 
-virtual std::any createExpiredOptionMarket(std::any symbol);
+virtual ccxt::any createExpiredOptionMarket(ccxt::any symbol);
 
-virtual std::any isLeveragedCurrency(std::any currencyCode,
-                                     std::any checkBaseCoin = false,
-                                     std::any existingCurrencies = std::any{});
+virtual ccxt::any
+isLeveragedCurrency(ccxt::any currencyCode, ccxt::any checkBaseCoin = false,
+                    ccxt::any existingCurrencies = ccxt::any{});
 
-virtual std::any handleWithdrawTagAndParams(std::any tag, std::any params);
+virtual ccxt::any handleWithdrawTagAndParams(ccxt::any tag, ccxt::any params);
 
-virtual std::any costToPrecision(std::any symbol, std::any cost);
+virtual ccxt::any costToPrecision(ccxt::any symbol, ccxt::any cost);
 
-virtual std::any priceToPrecision(std::any symbol, std::any price);
+virtual ccxt::any priceToPrecision(ccxt::any symbol, ccxt::any price);
 
-virtual std::any amountToPrecision(std::any symbol, std::any amount);
+virtual ccxt::any amountToPrecision(ccxt::any symbol, ccxt::any amount);
 
-virtual std::any feeToPrecision(std::any symbol, std::any fee);
+virtual ccxt::any feeToPrecision(ccxt::any symbol, ccxt::any fee);
 
-virtual std::any currencyToPrecision(std::any code, std::any fee,
-                                     std::any networkCode = std::any{});
+virtual ccxt::any currencyToPrecision(ccxt::any code, ccxt::any fee,
+                                      ccxt::any networkCode = ccxt::any{});
 
-virtual std::any forceString(std::any value);
+virtual ccxt::any forceString(ccxt::any value);
 
-virtual std::any isTickPrecision();
+virtual ccxt::any isTickPrecision();
 
-virtual std::any isDecimalPrecision();
+virtual ccxt::any isDecimalPrecision();
 
-virtual std::any isSignificantPrecision();
+virtual ccxt::any isSignificantPrecision();
 
-virtual std::any safeNumber(std::any obj, std::any key,
-                            std::any defaultNumber = std::any{});
+virtual ccxt::any safeNumber(ccxt::any obj, ccxt::any key,
+                             ccxt::any defaultNumber = ccxt::any{});
 
-virtual std::any safeNumberN(std::any obj, std::any arr,
-                             std::any defaultNumber = std::any{});
+virtual ccxt::any safeNumberN(ccxt::any obj, ccxt::any arr,
+                              ccxt::any defaultNumber = ccxt::any{});
 
-virtual std::any parsePrecision(std::any precision);
+virtual ccxt::any parsePrecision(ccxt::any precision);
 
-virtual std::any integerPrecisionToAmount(std::any precision);
+virtual ccxt::any integerPrecisionToAmount(ccxt::any precision);
 
-virtual std::shared_future<std::any>
-loadTimeDifference(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+loadTimeDifference(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any serverTime = awaitValue(this->fetchTime(params));
-               std::any after = this->milliseconds();
-               if (isTrue(isEqual(serverTime, std::any{}))) {
+             [=]() mutable -> ccxt::any {
+               ccxt::any serverTime = awaitValue(this->fetchTime(params));
+               ccxt::any after = this->milliseconds();
+               if (isTrue(isEqual(serverTime, ccxt::any{}))) {
                  throw ExchangeError(toString(add(
                      this->id,
                      std::string(" loadTimeDifference() missing serverTime"))));
@@ -2701,22 +2728,22 @@ loadTimeDifference(std::any params = ccxt::dict{}) {
       .share();
 }
 
-virtual std::any implodeHostname(std::any url);
+virtual ccxt::any implodeHostname(ccxt::any url);
 
-virtual std::shared_future<std::any>
-fetchMarketLeverageTiers(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchMarketLeverageTiers(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchLeverageTiers")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchLeverageTiers")),
                               false)))) {
-                 std::any market = this->market(symbol);
+                 ccxt::any market = this->market(symbol);
                  if (isTrue(!isEqual(
                          ::getValue(market, std::string("contract")), true))) {
                    throw BadSymbol(toString(
@@ -2724,7 +2751,7 @@ fetchMarketLeverageTiers(std::any symbol, std::any params = ccxt::dict{}) {
                            std::string(" fetchMarketLeverageTiers() supports "
                                        "contract markets only"))));
                  }
-                 std::any tiers =
+                 ccxt::any tiers =
                      awaitValue(this->fetchLeverageTiers(ccxt::list{symbol}));
                  return this->safeValue(tiers, symbol);
                } else {
@@ -2733,189 +2760,193 @@ fetchMarketLeverageTiers(std::any symbol, std::any params = ccxt::dict{}) {
                      std::string(
                          " fetchMarketLeverageTiers() is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createSubAccount(std::any name, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createSubAccount(ccxt::any name, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" createSubAccount() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any safeCurrencyCode(std::any currencyId,
-                                  std::any currency = std::any{});
+virtual ccxt::any safeCurrencyCode(ccxt::any currencyId,
+                                   ccxt::any currency = ccxt::any{});
 
-virtual std::any filterBySymbolSinceLimit(std::any array,
-                                          std::any symbol = std::any{},
-                                          std::any since = std::any{},
-                                          std::any limit = std::any{},
-                                          std::any tail = false);
+virtual ccxt::any filterBySymbolSinceLimit(ccxt::any array,
+                                           ccxt::any symbol = ccxt::any{},
+                                           ccxt::any since = ccxt::any{},
+                                           ccxt::any limit = ccxt::any{},
+                                           ccxt::any tail = false);
 
-virtual std::any filterByCurrencySinceLimit(std::any array,
-                                            std::any code = std::any{},
-                                            std::any since = std::any{},
-                                            std::any limit = std::any{},
-                                            std::any tail = false);
+virtual ccxt::any filterByCurrencySinceLimit(ccxt::any array,
+                                             ccxt::any code = ccxt::any{},
+                                             ccxt::any since = ccxt::any{},
+                                             ccxt::any limit = ccxt::any{},
+                                             ccxt::any tail = false);
 
-virtual std::any filterBySymbolsSinceLimit(std::any array,
-                                           std::any symbols = std::any{},
-                                           std::any since = std::any{},
-                                           std::any limit = std::any{},
-                                           std::any tail = false);
+virtual ccxt::any filterBySymbolsSinceLimit(ccxt::any array,
+                                            ccxt::any symbols = ccxt::any{},
+                                            ccxt::any since = ccxt::any{},
+                                            ccxt::any limit = ccxt::any{},
+                                            ccxt::any tail = false);
 
-virtual std::any parseLastPrices(std::any pricesData,
-                                 std::any symbols = std::any{},
-                                 std::any params = ccxt::dict{});
+virtual ccxt::any parseLastPrices(ccxt::any pricesData,
+                                  ccxt::any symbols = ccxt::any{},
+                                  ccxt::any params = ccxt::dict{});
 
-virtual std::any parseTickers(std::any tickers, std::any symbols = std::any{},
-                              std::any params = ccxt::dict{});
+virtual ccxt::any parseTickers(ccxt::any tickers,
+                               ccxt::any symbols = ccxt::any{},
+                               ccxt::any params = ccxt::dict{});
 
-virtual std::any parseDepositAddresses(std::any addresses,
-                                       std::any codes = std::any{},
-                                       std::any indexed = true,
-                                       std::any params = ccxt::dict{});
+virtual ccxt::any parseDepositAddresses(ccxt::any addresses,
+                                        ccxt::any codes = ccxt::any{},
+                                        ccxt::any indexed = true,
+                                        ccxt::any params = ccxt::dict{});
 
-virtual std::any parseBorrowInterests(std::any response,
-                                      std::any market = std::any{});
+virtual ccxt::any parseBorrowInterests(ccxt::any response,
+                                       ccxt::any market = ccxt::any{});
 
-virtual std::any parseBorrowRate(std::any info, std::any currency = std::any{});
+virtual ccxt::any parseBorrowRate(ccxt::any info,
+                                  ccxt::any currency = ccxt::any{});
 
-virtual std::any parseBorrowRateHistory(std::any response, std::any code,
-                                        std::any since, std::any limit);
+virtual ccxt::any parseBorrowRateHistory(ccxt::any response, ccxt::any code,
+                                         ccxt::any since, ccxt::any limit);
 
-virtual std::any parseIsolatedBorrowRates(std::any info);
+virtual ccxt::any parseIsolatedBorrowRates(ccxt::any info);
 
-virtual std::any parseFundingRateHistories(std::any response,
-                                           std::any market = std::any{},
-                                           std::any since = std::any{},
-                                           std::any limit = std::any{});
+virtual ccxt::any parseFundingRateHistories(ccxt::any response,
+                                            ccxt::any market = ccxt::any{},
+                                            ccxt::any since = ccxt::any{},
+                                            ccxt::any limit = ccxt::any{});
 
-virtual std::any safeSymbol(std::any marketId, std::any market = std::any{},
-                            std::any delimiter = std::any{},
-                            std::any marketType = std::any{});
+virtual ccxt::any safeSymbol(ccxt::any marketId, ccxt::any market = ccxt::any{},
+                             ccxt::any delimiter = ccxt::any{},
+                             ccxt::any marketType = ccxt::any{});
 
-virtual std::any parseFundingRate(std::any contract,
-                                  std::any market = std::any{});
+virtual ccxt::any parseFundingRate(ccxt::any contract,
+                                   ccxt::any market = ccxt::any{});
 
-virtual std::any parseFundingRates(std::any response,
-                                   std::any symbols = std::any{});
+virtual ccxt::any parseFundingRates(ccxt::any response,
+                                    ccxt::any symbols = ccxt::any{});
 
-virtual std::any parseLongShortRatio(std::any info,
-                                     std::any market = std::any{});
+virtual ccxt::any parseLongShortRatio(ccxt::any info,
+                                      ccxt::any market = ccxt::any{});
 
-virtual std::any parseLongShortRatioHistory(std::any response,
-                                            std::any market = std::any{},
-                                            std::any since = std::any{},
-                                            std::any limit = std::any{});
+virtual ccxt::any parseLongShortRatioHistory(ccxt::any response,
+                                             ccxt::any market = ccxt::any{},
+                                             ccxt::any since = ccxt::any{},
+                                             ccxt::any limit = ccxt::any{});
 
-virtual std::any handleTriggerPricesAndParams(std::any symbol, std::any params,
-                                              std::any omitParams = true);
+virtual ccxt::any handleTriggerPricesAndParams(ccxt::any symbol,
+                                               ccxt::any params,
+                                               ccxt::any omitParams = true);
 
-virtual std::any
-handleTriggerDirectionAndParams(std::any params,
-                                std::any exchangeSpecificKey = std::any{},
-                                std::any allowEmpty = false);
+virtual ccxt::any
+handleTriggerDirectionAndParams(ccxt::any params,
+                                ccxt::any exchangeSpecificKey = ccxt::any{},
+                                ccxt::any allowEmpty = false);
 
-virtual std::any handleTriggerAndParams(std::any params);
+virtual ccxt::any handleTriggerAndParams(ccxt::any params);
 
-virtual std::any isTriggerOrder(std::any params);
+virtual ccxt::any isTriggerOrder(ccxt::any params);
 
-virtual std::any isPostOnly(std::any isMarketOrder,
-                            std::any exchangeSpecificParam,
-                            std::any params = ccxt::dict{});
+virtual ccxt::any isPostOnly(ccxt::any isMarketOrder,
+                             ccxt::any exchangeSpecificParam,
+                             ccxt::any params = ccxt::dict{});
 
-virtual std::any handlePostOnly(std::any isMarketOrder,
-                                std::any exchangeSpecificPostOnlyOption,
-                                std::any params = ccxt::dict{});
+virtual ccxt::any handlePostOnly(ccxt::any isMarketOrder,
+                                 ccxt::any exchangeSpecificPostOnlyOption,
+                                 ccxt::any params = ccxt::dict{});
 
-virtual std::shared_future<std::any>
-fetchLastPrices(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchLastPrices(ccxt::any symbols = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchLastPrices() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTradingFees(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTradingFees(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchTradingFees() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTradingFeesWs(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTradingFeesWs(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchTradingFeesWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchConvertCurrencies(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchConvertCurrencies(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchConvertCurrencies() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any parseOpenInterest(std::any interest,
-                                   std::any market = std::any{});
+virtual ccxt::any parseOpenInterest(ccxt::any interest,
+                                    ccxt::any market = ccxt::any{});
 
-virtual std::any parseOpenInterests(std::any response,
-                                    std::any symbols = std::any{});
+virtual ccxt::any parseOpenInterests(ccxt::any response,
+                                     ccxt::any symbols = ccxt::any{});
 
-virtual std::any parseOpenInterestsHistory(std::any response,
-                                           std::any market = std::any{},
-                                           std::any since = std::any{},
-                                           std::any limit = std::any{});
+virtual ccxt::any parseOpenInterestsHistory(ccxt::any response,
+                                            ccxt::any market = ccxt::any{},
+                                            ccxt::any since = ccxt::any{},
+                                            ccxt::any limit = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchFundingRate(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchFundingRate(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchFundingRates")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchFundingRates")),
                               false)))) {
                  awaitValue(this->loadMarkets());
-                 std::any market = this->market(symbol);
+                 ccxt::any market = this->market(symbol);
                  symbol = ::getValue(market, std::string("symbol"));
                  if (isTrue(!isEqual(
                          ::getValue(market, std::string("contract")), true))) {
@@ -2923,10 +2954,10 @@ fetchFundingRate(std::any symbol, std::any params = ccxt::dict{}) {
                        add(this->id, std::string(" fetchFundingRate() supports "
                                                  "contract markets only"))));
                  }
-                 std::any rates = awaitValue(
+                 ccxt::any rates = awaitValue(
                      this->fetchFundingRates(ccxt::list{symbol}, params));
-                 std::any rate = this->safeValue(rates, symbol);
-                 if (isTrue(isEqual(rate, std::any{}))) {
+                 ccxt::any rate = this->safeValue(rates, symbol);
+                 if (isTrue(isEqual(rate, ccxt::any{}))) {
                    throw NullResponse(toString(add(
                        add(this->id,
                            std::string(
@@ -2941,26 +2972,26 @@ fetchFundingRate(std::any symbol, std::any params = ccxt::dict{}) {
                          std::string(
                              " fetchFundingRate () is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchFundingInterval(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchFundingInterval(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
-            [=]() mutable -> std::any {
+            [=]() mutable -> ccxt::any {
               if (isTrue(isTrue(!isEqual(
                              ::getValue(this->has,
                                         std::string("fetchFundingIntervals")),
-                             std::any{})) &&
+                             ccxt::any{})) &&
                          isTrue(!isEqual(
                              ::getValue(this->has,
                                         std::string("fetchFundingIntervals")),
                              false)))) {
                 awaitValue(this->loadMarkets());
-                std::any market = this->market(symbol);
+                ccxt::any market = this->market(symbol);
                 symbol = ::getValue(market, std::string("symbol"));
                 if (isTrue(!isEqual(::getValue(market, std::string("contract")),
                                     true))) {
@@ -2968,10 +2999,10 @@ fetchFundingInterval(std::any symbol, std::any params = ccxt::dict{}) {
                       this->id, std::string(" fetchFundingInterval() supports "
                                             "contract markets only"))));
                 }
-                std::any rates = awaitValue(
+                ccxt::any rates = awaitValue(
                     this->fetchFundingIntervals(ccxt::list{symbol}, params));
-                std::any rate = this->safeValue(rates, symbol);
-                if (isTrue(isEqual(rate, std::any{}))) {
+                ccxt::any rate = this->safeValue(rates, symbol);
+                if (isTrue(isEqual(rate, ccxt::any{}))) {
                   throw NullResponse(toString(add(
                       add(this->id,
                           std::string(
@@ -2986,18 +3017,18 @@ fetchFundingInterval(std::any symbol, std::any params = ccxt::dict{}) {
                         std::string(
                             " fetchFundingInterval() is not supported yet"))));
               }
-              return std::any{};
+              return ccxt::any{};
             })
           .share();
 }
 
-virtual std::shared_future<std::any>
-fetchMarkOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-               std::any since = std::any{}, std::any limit = std::any{},
-               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchMarkOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+               ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name exchange#fetchMarkOHLCV
@@ -3018,11 +3049,11 @@ fetchMarkOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
                if (isTrue(
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchMarkOHLCV")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchMarkOHLCV")),
                            false)))) {
-                 std::any request = ccxt::dict{
+                 ccxt::any request = ccxt::dict{
                      {std::string("price"), std::string("mark")},
                  };
                  return awaitValue(
@@ -3033,18 +3064,18 @@ fetchMarkOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
                      this->id,
                      std::string(" fetchMarkOHLCV () is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchIndexOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-                std::any since = std::any{}, std::any limit = std::any{},
-                std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchIndexOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+                ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name exchange#fetchIndexOHLCV
@@ -3065,12 +3096,12 @@ fetchIndexOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchIndexOHLCV")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchIndexOHLCV")),
                               false)))) {
-                 std::any request = ccxt::dict{
+                 ccxt::any request = ccxt::dict{
                      {std::string("price"), std::string("index")},
                  };
                  return awaitValue(
@@ -3081,18 +3112,18 @@ fetchIndexOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
                      this->id,
                      std::string(" fetchIndexOHLCV () is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPremiumIndexOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-                       std::any since = std::any{}, std::any limit = std::any{},
-                       std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchPremiumIndexOHLCV(
+    ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name exchange#fetchPremiumIndexOHLCV
@@ -3114,12 +3145,12 @@ fetchPremiumIndexOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchPremiumIndexOHLCV")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchPremiumIndexOHLCV")),
                               false)))) {
-                 std::any request = ccxt::dict{
+                 ccxt::any request = ccxt::dict{
                      {std::string("price"), std::string("premiumIndex")},
                  };
                  return awaitValue(
@@ -3131,53 +3162,57 @@ fetchPremiumIndexOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
                      std::string(
                          " fetchPremiumIndexOHLCV () is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any handleTimeInForce(std::any params = ccxt::dict{});
+virtual ccxt::any handleTimeInForce(ccxt::any params = ccxt::dict{});
 
-virtual std::any convertTypeToAccount(std::any account);
+virtual ccxt::any convertTypeToAccount(ccxt::any account);
 
-virtual void checkRequiredArgument(std::any methodName, std::any argument,
-                                   std::any argumentName,
-                                   std::any options = ccxt::list{});
+virtual void checkRequiredArgument(ccxt::any methodName, ccxt::any argument,
+                                   ccxt::any argumentName,
+                                   ccxt::any options = ccxt::list{});
 
-virtual void checkRequiredMarginArgument(std::any methodName, std::any symbol,
-                                         std::any marginMode);
+virtual void checkRequiredMarginArgument(ccxt::any methodName, ccxt::any symbol,
+                                         ccxt::any marginMode);
 
-virtual std::any parseDepositWithdrawFees(std::any response,
-                                          std::any codes = std::any{},
-                                          std::any currencyIdKey = std::any{});
+virtual ccxt::any
+parseDepositWithdrawFees(ccxt::any response, ccxt::any codes = ccxt::any{},
+                         ccxt::any currencyIdKey = ccxt::any{});
 
-virtual std::any parseDepositWithdrawFee(std::any fee,
-                                         std::any currency = std::any{});
+virtual ccxt::any parseDepositWithdrawFee(ccxt::any fee,
+                                          ccxt::any currency = ccxt::any{});
 
-virtual std::any depositWithdrawFee(std::any info);
+virtual ccxt::any depositWithdrawFee(ccxt::any info);
 
-virtual std::any
-assignDefaultDepositWithdrawFees(std::any fee, std::any currency = std::any{});
+virtual ccxt::any
+assignDefaultDepositWithdrawFees(ccxt::any fee,
+                                 ccxt::any currency = ccxt::any{});
 
-virtual std::any parseIncome(std::any info, std::any market = std::any{});
+virtual ccxt::any parseIncome(ccxt::any info, ccxt::any market = ccxt::any{});
 
-virtual std::any parseIncomes(std::any incomes, std::any market = std::any{},
-                              std::any since = std::any{},
-                              std::any limit = std::any{});
+virtual ccxt::any parseIncomes(ccxt::any incomes,
+                               ccxt::any market = ccxt::any{},
+                               ccxt::any since = ccxt::any{},
+                               ccxt::any limit = ccxt::any{});
 
-virtual std::any getMarketFromSymbols(std::any symbols = std::any{});
+virtual ccxt::any getMarketFromSymbols(ccxt::any symbols = ccxt::any{});
 
-virtual std::any parseWsOHLCVs(std::any ohlcvs, std::any market = std::any{},
-                               std::any timeframe = std::string("1m"),
-                               std::any since = std::any{},
-                               std::any limit = std::any{});
+virtual ccxt::any parseWsOHLCVs(ccxt::any ohlcvs,
+                                ccxt::any market = ccxt::any{},
+                                ccxt::any timeframe = std::string("1m"),
+                                ccxt::any since = ccxt::any{},
+                                ccxt::any limit = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchTransactions(std::any code = std::any{}, std::any since = std::any{},
-                  std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTransactions(ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+                  ccxt::any limit = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name exchange#fetchTransactions
@@ -3198,7 +3233,7 @@ fetchTransactions(std::any code = std::any{}, std::any since = std::any{},
                        isTrue(!isEqual(
                            ::getValue(this->has,
                                       std::string("fetchDepositsWithdrawals")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has,
                                       std::string("fetchDepositsWithdrawals")),
@@ -3211,75 +3246,76 @@ fetchTransactions(std::any code = std::any{}, std::any since = std::any{},
                          std::string(
                              " fetchTransactions () is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::any filterByArrayPositions(std::any objects, std::any key,
-                                        std::any values = std::any{},
-                                        std::any indexed = true);
+virtual ccxt::any filterByArrayPositions(ccxt::any objects, ccxt::any key,
+                                         ccxt::any values = ccxt::any{},
+                                         ccxt::any indexed = true);
 
-virtual std::any filterByArrayTickers(std::any objects, std::any key,
-                                      std::any values = std::any{},
-                                      std::any indexed = true);
+virtual ccxt::any filterByArrayTickers(ccxt::any objects, ccxt::any key,
+                                       ccxt::any values = ccxt::any{},
+                                       ccxt::any indexed = true);
 
-virtual std::any filterByArrayADLRanks(std::any objects, std::any key,
-                                       std::any values = std::any{},
-                                       std::any indexed = true);
+virtual ccxt::any filterByArrayADLRanks(ccxt::any objects, ccxt::any key,
+                                        ccxt::any values = ccxt::any{},
+                                        ccxt::any indexed = true);
 
-virtual std::any createOHLCVObject(std::any symbol, std::any timeframe,
-                                   std::any data);
+virtual ccxt::any createOHLCVObject(ccxt::any symbol, ccxt::any timeframe,
+                                    ccxt::any data);
 
-virtual std::any
-handleMaxEntriesPerRequestAndParams(std::any method,
-                                    std::any maxEntriesPerRequest = std::any{},
-                                    std::any params = ccxt::dict{});
+virtual ccxt::any handleMaxEntriesPerRequestAndParams(
+    ccxt::any method, ccxt::any maxEntriesPerRequest = ccxt::any{},
+    ccxt::any params = ccxt::dict{});
 
-virtual std::shared_future<std::any> fetchPaginatedCallDynamic(
-    std::any method, std::any symbol = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any params = ccxt::dict{},
-    std::any maxEntriesPerRequest = std::any{},
-    std::any removeRepeated = true) {
+virtual std::shared_future<ccxt::any>
+fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
+                          ccxt::any since = ccxt::any{},
+                          ccxt::any limit = ccxt::any{},
+                          ccxt::any params = ccxt::dict{},
+                          ccxt::any maxEntriesPerRequest = ccxt::any{},
+                          ccxt::any removeRepeated = true) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any maxCalls = 10;
-               std::any maxCallsparamsVariable = this->handleOptionAndParams(
+             [=]() mutable -> ccxt::any {
+               ccxt::any maxCalls = 10;
+               ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
                    params, method, std::string("paginationCalls"), maxCalls);
                maxCalls = ::getValue(maxCallsparamsVariable, 0);
                params = ::getValue(maxCallsparamsVariable, 1);
-               std::any maxRetries = 3;
-               std::any maxRetriesparamsVariable = this->handleOptionAndParams(
+               ccxt::any maxRetries = 3;
+               ccxt::any maxRetriesparamsVariable = this->handleOptionAndParams(
                    params, method, std::string("maxRetries"), maxRetries);
                maxRetries = ::getValue(maxRetriesparamsVariable, 0);
                params = ::getValue(maxRetriesparamsVariable, 1);
-               std::any paginationDirection = std::any{};
-               std::any paginationDirectionparamsVariable =
+               ccxt::any paginationDirection = ccxt::any{};
+               ccxt::any paginationDirectionparamsVariable =
                    this->handleOptionAndParams(
                        params, method, std::string("paginationDirection"),
                        std::string("backward"));
                paginationDirection =
                    ::getValue(paginationDirectionparamsVariable, 0);
                params = ::getValue(paginationDirectionparamsVariable, 1);
-               std::any paginationTimestamp = std::any{};
-               std::any removeRepeatedOption = removeRepeated;
-               std::any removeRepeatedOptionparamsVariable =
+               ccxt::any paginationTimestamp = ccxt::any{};
+               ccxt::any removeRepeatedOption = removeRepeated;
+               ccxt::any removeRepeatedOptionparamsVariable =
                    this->handleOptionAndParams(params, method,
                                                std::string("removeRepeated"),
                                                removeRepeated);
                removeRepeatedOption =
                    ::getValue(removeRepeatedOptionparamsVariable, 0);
                params = ::getValue(removeRepeatedOptionparamsVariable, 1);
-               std::any calls = 0;
-               std::any result = ccxt::list{};
-               std::any errors = 0;
-               std::any until = this->safeIntegerN(
+               ccxt::any calls = 0;
+               ccxt::any result = ccxt::list{};
+               ccxt::any errors = 0;
+               ccxt::any until = this->safeIntegerN(
                    params,
                    ccxt::list{
                        std::string("until"), std::string("untill"),
                        std::string("till")}); // do not omit it from params here
-               std::any maxEntriesPerRequestparamsVariable =
+               ccxt::any maxEntriesPerRequestparamsVariable =
                    this->handleMaxEntriesPerRequestAndParams(
                        method, maxEntriesPerRequest, params);
                maxEntriesPerRequest =
@@ -3287,7 +3323,7 @@ virtual std::shared_future<std::any> fetchPaginatedCallDynamic(
                params = ::getValue(maxEntriesPerRequestparamsVariable, 1);
                if (isTrue((
                        isEqual(paginationDirection, std::string("forward"))))) {
-                 if (isTrue(isEqual(since, std::any{}))) {
+                 if (isTrue(isEqual(since, ccxt::any{}))) {
                    throw ArgumentsRequired(toString(add(
                        this->id,
                        std::string(" pagination requires a since argument when "
@@ -3302,17 +3338,17 @@ virtual std::shared_future<std::any> fetchPaginatedCallDynamic(
                                       std::string("backward")))) {
                      // do it backwards, starting from the last
                      // UNTIL filtering is required in order to work
-                     if (isTrue(!isEqual(paginationTimestamp, std::any{}))) {
+                     if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
                        ::setValue(params, std::string("until"),
                                   subtract(paginationTimestamp, 1));
                      }
-                     std::any response = awaitValue(callDynamically(
+                     ccxt::any response = awaitValue(callDynamically(
                          this, method,
-                         ccxt::list{symbol, std::any{}, maxEntriesPerRequest,
+                         ccxt::list{symbol, ccxt::any{}, maxEntriesPerRequest,
                                     params}));
-                     std::any responseLength = getArrayLength(response);
+                     ccxt::any responseLength = getArrayLength(response);
                      if (isTrue(this->verbose)) {
-                       std::any backwardMessage =
+                       ccxt::any backwardMessage =
                            add(add(add(add(add(std::string(
                                                    "Dynamic pagination call "),
                                                this->numberToString(calls)),
@@ -3320,7 +3356,7 @@ virtual std::shared_future<std::any> fetchPaginatedCallDynamic(
                                        method),
                                    std::string(" response length ")),
                                this->numberToString(responseLength));
-                       if (isTrue(!isEqual(paginationTimestamp, std::any{}))) {
+                       if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
                          backwardMessage = add(
                              backwardMessage,
                              add(std::string(" timestamp "),
@@ -3333,26 +3369,26 @@ virtual std::shared_future<std::any> fetchPaginatedCallDynamic(
                      }
                      errors = 0;
                      result = this->arrayConcat(result, response);
-                     std::any firstElement = this->safeValue(response, 0);
+                     ccxt::any firstElement = this->safeValue(response, 0);
                      paginationTimestamp = this->safeInteger2(
                          firstElement, std::string("timestamp"), 0);
-                     if (isTrue(isEqual(paginationTimestamp, std::any{}))) {
+                     if (isTrue(isEqual(paginationTimestamp, ccxt::any{}))) {
                        break;
                      }
-                     if (isTrue(isTrue((!isEqual(since, std::any{}))) &&
+                     if (isTrue(isTrue((!isEqual(since, ccxt::any{}))) &&
                                 isTrue((isLessThanOrEqual(paginationTimestamp,
                                                           since))))) {
                        break;
                      }
                    } else {
                      // do it forwards, starting from the since
-                     std::any response = awaitValue(callDynamically(
+                     ccxt::any response = awaitValue(callDynamically(
                          this, method,
                          ccxt::list{symbol, paginationTimestamp,
                                     maxEntriesPerRequest, params}));
-                     std::any responseLength = getArrayLength(response);
+                     ccxt::any responseLength = getArrayLength(response);
                      if (isTrue(this->verbose)) {
-                       std::any forwardMessage =
+                       ccxt::any forwardMessage =
                            add(add(add(add(add(std::string(
                                                    "Dynamic pagination call "),
                                                this->numberToString(calls)),
@@ -3360,7 +3396,7 @@ virtual std::shared_future<std::any> fetchPaginatedCallDynamic(
                                        method),
                                    std::string(" response length ")),
                                this->numberToString(responseLength));
-                       if (isTrue(!isEqual(paginationTimestamp, std::any{}))) {
+                       if (isTrue(!isEqual(paginationTimestamp, ccxt::any{}))) {
                          forwardMessage = add(
                              forwardMessage,
                              add(std::string(" timestamp "),
@@ -3373,16 +3409,16 @@ virtual std::shared_future<std::any> fetchPaginatedCallDynamic(
                      }
                      errors = 0;
                      result = this->arrayConcat(result, response);
-                     std::any last =
+                     ccxt::any last =
                          this->safeValue(response, subtract(responseLength, 1));
-                     std::any lastTimestamp =
+                     ccxt::any lastTimestamp =
                          this->safeInteger(last, std::string("timestamp"), 0);
-                     if (isTrue(isEqual(lastTimestamp, std::any{}))) {
+                     if (isTrue(isEqual(lastTimestamp, ccxt::any{}))) {
                        break;
                      }
-                     std::any nextPaginationTimestamp = add(lastTimestamp, 1);
+                     ccxt::any nextPaginationTimestamp = add(lastTimestamp, 1);
                      paginationTimestamp = nextPaginationTimestamp;
-                     if (isTrue(isTrue((!isEqual(until, std::any{}))) &&
+                     if (isTrue(isTrue((!isEqual(until, ccxt::any{}))) &&
                                 isTrue((isGreaterThanOrEqual(
                                     nextPaginationTimestamp, until))))) {
                        break;
@@ -3395,42 +3431,42 @@ virtual std::shared_future<std::any> fetchPaginatedCallDynamic(
                    }
                  }
                }
-               std::any uniqueResults = result;
+               ccxt::any uniqueResults = result;
                if (isTrue(removeRepeatedOption)) {
                  uniqueResults = this->removeRepeatedElementsFromArray(result);
                }
-               std::any key =
+               ccxt::any key =
                    (isTrue((isEqual(method, std::string("fetchOHLCV"))))
-                        ? std::any(0)
-                        : std::any(std::string("timestamp")));
-               std::any sortedRes = this->sortBy(uniqueResults, key);
+                        ? ccxt::any(0)
+                        : ccxt::any(std::string("timestamp")));
+               ccxt::any sortedRes = this->sortBy(uniqueResults, key);
                return this->filterBySinceLimit(sortedRes, since, limit, key);
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-safeDeterministicCall(std::any method, std::any symbol = std::any{},
-                      std::any since = std::any{}, std::any limit = std::any{},
-                      std::any timeframe = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> safeDeterministicCall(
+    ccxt::any method, ccxt::any symbol = ccxt::any{},
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any timeframe = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any maxRetries = 3;
-               std::any maxRetriesparamsVariable = this->handleOptionAndParams(
+             [=]() mutable -> ccxt::any {
+               ccxt::any maxRetries = 3;
+               ccxt::any maxRetriesparamsVariable = this->handleOptionAndParams(
                    params, method, std::string("maxRetries"), maxRetries);
                maxRetries = ::getValue(maxRetriesparamsVariable, 0);
                params = ::getValue(maxRetriesparamsVariable, 1);
-               std::any errors = 0;
+               ccxt::any errors = 0;
                while (isLessThanOrEqual(errors, maxRetries)) {
                  try {
-                   if (isTrue(isTrue((isTrue(!isEqual(timeframe, std::any{})) &&
-                                      isTrue(!isEqual(timeframe,
-                                                      std::string(""))))) &&
-                              isTrue(!isEqual(
-                                  method,
-                                  std::string("fetchFundingRateHistory"))))) {
+                   if (isTrue(
+                           isTrue((
+                               isTrue(!isEqual(timeframe, ccxt::any{})) &&
+                               isTrue(!isEqual(timeframe, std::string(""))))) &&
+                           isTrue(!isEqual(
+                               method,
+                               std::string("fetchFundingRateHistory"))))) {
                      return awaitValue(callDynamically(
                          this, method,
                          ccxt::list{symbol, timeframe, since, limit, params}));
@@ -3454,20 +3490,20 @@ safeDeterministicCall(std::any method, std::any symbol = std::any{},
       .share();
 }
 
-virtual std::shared_future<std::any> fetchPaginatedCallDeterministic(
-    std::any method, std::any symbol = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any timeframe = std::any{},
-    std::any params = ccxt::dict{},
-    std::any maxEntriesPerRequest = std::any{}) {
+virtual std::shared_future<ccxt::any> fetchPaginatedCallDeterministic(
+    ccxt::any method, ccxt::any symbol = ccxt::any{},
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any timeframe = ccxt::any{}, ccxt::any params = ccxt::dict{},
+    ccxt::any maxEntriesPerRequest = ccxt::any{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any maxCalls = 10;
-               std::any maxCallsparamsVariable = this->handleOptionAndParams(
+             [=]() mutable -> ccxt::any {
+               ccxt::any maxCalls = 10;
+               ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
                    params, method, std::string("paginationCalls"), maxCalls);
                maxCalls = ::getValue(maxCallsparamsVariable, 0);
                params = ::getValue(maxCallsparamsVariable, 1);
-               std::any maxEntriesPerRequestparamsVariable =
+               ccxt::any maxEntriesPerRequestparamsVariable =
                    this->handleMaxEntriesPerRequestAndParams(
                        method, maxEntriesPerRequest, params);
                maxEntriesPerRequest =
@@ -3479,21 +3515,21 @@ virtual std::shared_future<std::any> fetchPaginatedCallDeterministic(
                // leaking an unrecognized param into the underlying exchange
                // request (e.g. binance -1104 errors)
                params = this->omit(params, std::string("paginationDirection"));
-               std::any current = this->milliseconds();
-               std::any tasks = ccxt::list{};
-               std::any time = multiply(this->parseTimeframe(timeframe), 1000);
+               ccxt::any current = this->milliseconds();
+               ccxt::any tasks = ccxt::list{};
+               ccxt::any time = multiply(this->parseTimeframe(timeframe), 1000);
                maxEntriesPerRequest = this->requireValue(
                    maxEntriesPerRequest,
                    std::string("fetchPaginatedCallDeterministic() "
                                "maxEntriesPerRequest is required"));
-               std::any step = multiply(time, maxEntriesPerRequest);
-               std::any until = this->safeInteger2(
+               ccxt::any step = multiply(time, maxEntriesPerRequest);
+               ccxt::any until = this->safeInteger2(
                    params, std::string("until"),
                    std::string("till")); // do not omit it here
-               std::any currentSince =
+               ccxt::any currentSince =
                    subtract(subtract(current, (multiply(maxCalls, step))), 1);
-               if (isTrue(!isEqual(since, std::any{}))) {
-                 if (isTrue(!isEqual(until, std::any{}))) {
+               if (isTrue(!isEqual(since, ccxt::any{}))) {
+                 if (isTrue(!isEqual(until, ccxt::any{}))) {
                    // the recent-window floor below would jump past a
                    // fully-historical [ since, until ] range and return an
                    // empty result - requiredCalls is validated against maxCalls
@@ -3508,15 +3544,15 @@ virtual std::shared_future<std::any> fetchPaginatedCallDeterministic(
                      mathMax(currentSince,
                              1241440531000); // avoid timestamps older than 2009
                }
-               if (isTrue(!isEqual(until, std::any{}))) {
-                 if (isTrue(isEqual(since, std::any{}))) {
+               if (isTrue(!isEqual(until, ccxt::any{}))) {
+                 if (isTrue(isEqual(since, ccxt::any{}))) {
                    throw ArgumentsRequired(toString(
                        add(this->id,
                            std::string(
                                " fetchPaginatedCallDeterministic() requires a "
                                "since argument when until is set"))));
                  }
-                 std::any requiredCalls =
+                 ccxt::any requiredCalls =
                      mathCeil(divide((subtract(until, since)), step));
                  if (isTrue(isGreaterThan(requiredCalls, maxCalls))) {
                    throw BadRequest(toString(
@@ -3533,10 +3569,10 @@ virtual std::shared_future<std::any> fetchPaginatedCallDeterministic(
                            toString(requiredCalls))));
                  }
                }
-               for (std::any i = 0; isLessThan(i, maxCalls);
+               for (ccxt::any i = 0; isLessThan(i, maxCalls);
                     postFixIncrement(i)) {
                  if (isTrue(
-                         isTrue((!isEqual(until, std::any{}))) &&
+                         isTrue((!isEqual(until, ccxt::any{}))) &&
                          isTrue((isGreaterThanOrEqual(currentSince, until))))) {
                    break;
                  }
@@ -3548,18 +3584,18 @@ virtual std::shared_future<std::any> fetchPaginatedCallDeterministic(
                                       maxEntriesPerRequest, timeframe, params));
                  currentSince = subtract(this->sum(currentSince, step), 1);
                }
-               std::any results = awaitValue(promiseAll(tasks));
-               std::any result = ccxt::list{};
-               for (std::any i = 0; isLessThan(i, getArrayLength(results));
+               ccxt::any results = awaitValue(promiseAll(tasks));
+               ccxt::any result = ccxt::list{};
+               for (ccxt::any i = 0; isLessThan(i, getArrayLength(results));
                     postFixIncrement(i)) {
                  result = this->arrayConcat(result, ::getValue(results, i));
                }
-               std::any uniqueResults =
+               ccxt::any uniqueResults =
                    this->removeRepeatedElementsFromArray(result);
-               std::any key =
+               ccxt::any key =
                    (isTrue((isEqual(method, std::string("fetchOHLCV"))))
-                        ? std::any(0)
-                        : std::any(std::string("timestamp")));
+                        ? ccxt::any(0)
+                        : ccxt::any(std::string("timestamp")));
                return this->filterBySinceLimit(uniqueResults, since, limit,
                                                key);
              })
@@ -3569,36 +3605,36 @@ virtual std::shared_future<std::any> fetchPaginatedCallDeterministic(
 // the 'symbol' slot is forwarded to `this[method]` untouched and is only
 // compared against undefined here, so fetchPositions/fetchPositionsHistory
 // legitimately pass a symbol list
-virtual std::shared_future<std::any> fetchPaginatedCallCursor(
-    std::any method, std::any symbol = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any params = ccxt::dict{},
-    std::any cursorReceived = std::any{}, std::any cursorSent = std::any{},
-    std::any cursorIncrement = std::any{},
-    std::any maxEntriesPerRequest = std::any{}) {
+virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
+    ccxt::any method, ccxt::any symbol = ccxt::any{},
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any params = ccxt::dict{}, ccxt::any cursorReceived = ccxt::any{},
+    ccxt::any cursorSent = ccxt::any{}, ccxt::any cursorIncrement = ccxt::any{},
+    ccxt::any maxEntriesPerRequest = ccxt::any{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any maxCalls = 10;
-               std::any maxCallsparamsVariable = this->handleOptionAndParams(
+             [=]() mutable -> ccxt::any {
+               ccxt::any maxCalls = 10;
+               ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
                    params, method, std::string("paginationCalls"), maxCalls);
                maxCalls = ::getValue(maxCallsparamsVariable, 0);
                params = ::getValue(maxCallsparamsVariable, 1);
-               std::any maxRetries = 3;
-               std::any maxRetriesparamsVariable = this->handleOptionAndParams(
+               ccxt::any maxRetries = 3;
+               ccxt::any maxRetriesparamsVariable = this->handleOptionAndParams(
                    params, method, std::string("maxRetries"), maxRetries);
                maxRetries = ::getValue(maxRetriesparamsVariable, 0);
                params = ::getValue(maxRetriesparamsVariable, 1);
-               std::any maxEntriesPerRequestparamsVariable =
+               ccxt::any maxEntriesPerRequestparamsVariable =
                    this->handleMaxEntriesPerRequestAndParams(
                        method, maxEntriesPerRequest, params);
                maxEntriesPerRequest =
                    ::getValue(maxEntriesPerRequestparamsVariable, 0);
                params = ::getValue(maxEntriesPerRequestparamsVariable, 1);
-               std::any cursorValue = std::any{};
-               std::any i = 0;
-               std::any errors = 0;
-               std::any result = ccxt::list{};
-               std::any timeframe =
+               ccxt::any cursorValue = ccxt::any{};
+               ccxt::any i = 0;
+               ccxt::any errors = 0;
+               ccxt::any result = ccxt::list{};
+               ccxt::any timeframe =
                    this->safeString(params, std::string("timeframe"));
                params = this->omit(
                    params,
@@ -3607,14 +3643,14 @@ virtual std::shared_future<std::any> fetchPaginatedCallCursor(
                                               // changing the signature
                while (isLessThan(i, maxCalls)) {
                  try {
-                   if (isTrue(!isEqual(cursorValue, std::any{}))) {
-                     if (isTrue(!isEqual(cursorIncrement, std::any{}))) {
+                   if (isTrue(!isEqual(cursorValue, ccxt::any{}))) {
+                     if (isTrue(!isEqual(cursorIncrement, ccxt::any{}))) {
                        cursorValue =
                            add(this->parseToInt(cursorValue), cursorIncrement);
                      }
                      ::setValue(params, cursorSent, cursorValue);
                    }
-                   std::any response = std::any{};
+                   ccxt::any response = ccxt::any{};
                    if (isTrue(isEqual(method, std::string("fetchAccounts")))) {
                      response = awaitValue(
                          callDynamically(this, method, ccxt::list{params}));
@@ -3636,7 +3672,7 @@ virtual std::shared_future<std::any> fetchPaginatedCallCursor(
                                std::string(" fetchPaginatedCallCursor() "
                                            "requires a symbol argument"))));
                      }
-                     if (isTrue(isEqual(timeframe, std::any{}))) {
+                     if (isTrue(isEqual(timeframe, ccxt::any{}))) {
                        throw ArgumentsRequired(toString(
                            add(this->id,
                                std::string(" fetchPaginatedCallCursor() "
@@ -3653,19 +3689,19 @@ virtual std::shared_future<std::any> fetchPaginatedCallCursor(
                                     params}));
                    }
                    errors = 0;
-                   if (isTrue(isEqual(response, std::any{}))) {
+                   if (isTrue(isEqual(response, ccxt::any{}))) {
                      throw NullResponse(toString(add(
                          this->id, std::string(" fetchPaginatedCallCursor() "
                                                "returned empty response"))));
                    }
-                   std::any responseLength = getArrayLength(response);
+                   ccxt::any responseLength = getArrayLength(response);
                    if (isTrue(this->verbose)) {
-                     std::any cursorString =
-                         (isTrue((isEqual(cursorValue, std::any{})))
-                              ? std::any(std::string(""))
-                              : std::any(cursorValue));
-                     std::any iteration = (add(i, 1));
-                     std::any cursorMessage = add(
+                     ccxt::any cursorString =
+                         (isTrue((isEqual(cursorValue, ccxt::any{})))
+                              ? ccxt::any(std::string(""))
+                              : ccxt::any(cursorValue));
+                     ccxt::any iteration = (add(i, 1));
+                     ccxt::any cursorMessage = add(
                          add(add(add(add(add(add(std::string(
                                                      "Cursor pagination call "),
                                                  toString(iteration)),
@@ -3680,40 +3716,41 @@ virtual std::shared_future<std::any> fetchPaginatedCallCursor(
                    if (isTrue(isEqual(responseLength, 0))) {
                      break;
                    }
-                   if (isTrue(!isEqual(response, std::any{}))) {
+                   if (isTrue(!isEqual(response, ccxt::any{}))) {
                      result = this->arrayConcat(result, response);
                    }
-                   std::any last =
+                   ccxt::any last =
                        this->safeDict(response, subtract(responseLength, 1));
                    // cursorValue = this.safeValue (last['info'],
                    // cursorReceived);
-                   cursorValue = std::any{}; // search for the cursor
-                   for (std::any j = 0; isLessThan(j, responseLength);
+                   cursorValue = ccxt::any{}; // search for the cursor
+                   for (ccxt::any j = 0; isLessThan(j, responseLength);
                         postFixIncrement(j)) {
-                     std::any index = subtract(subtract(responseLength, j), 1);
-                     std::any entry = this->safeDict(response, index);
-                     std::any info = this->safeDict(entry, std::string("info"));
-                     std::any cursor =
-                         (isTrue((isEqual(cursorReceived, std::any{})))
-                              ? std::any(std::any{})
-                              : std::any(
+                     ccxt::any index = subtract(subtract(responseLength, j), 1);
+                     ccxt::any entry = this->safeDict(response, index);
+                     ccxt::any info =
+                         this->safeDict(entry, std::string("info"));
+                     ccxt::any cursor =
+                         (isTrue((isEqual(cursorReceived, ccxt::any{})))
+                              ? ccxt::any(ccxt::any{})
+                              : ccxt::any(
                                     this->safeValue(info, cursorReceived)));
-                     if (isTrue(!isEqual(cursor, std::any{}))) {
+                     if (isTrue(!isEqual(cursor, ccxt::any{}))) {
                        cursorValue = cursor;
                        break;
                      }
                    }
-                   if (isTrue(isEqual(cursorValue, std::any{}))) {
+                   if (isTrue(isEqual(cursorValue, ccxt::any{}))) {
                      break;
                    }
-                   std::any lastTimestamp =
+                   ccxt::any lastTimestamp =
                        this->safeInteger(last, std::string("timestamp"));
-                   if (isTrue(isEqual(since, std::any{}))) {
+                   if (isTrue(isEqual(since, ccxt::any{}))) {
                      throw ArgumentsRequired(toString(add(
                          this->id, std::string(" fetchPaginatedCallCursor() "
                                                "requires a since argument"))));
                    }
-                   if (isTrue(isTrue(!isEqual(lastTimestamp, std::any{})) &&
+                   if (isTrue(isTrue(!isEqual(lastTimestamp, ccxt::any{})) &&
                               isTrue(isLessThan(lastTimestamp, since)))) {
                      break;
                    }
@@ -3725,54 +3762,55 @@ virtual std::shared_future<std::any> fetchPaginatedCallCursor(
                  }
                  i = add(i, 1);
                }
-               std::any sorted = this->sortCursorPaginatedResult(result);
-               std::any key =
+               ccxt::any sorted = this->sortCursorPaginatedResult(result);
+               ccxt::any key =
                    (isTrue((isEqual(method, std::string("fetchOHLCV"))))
-                        ? std::any(0)
-                        : std::any(std::string("timestamp")));
+                        ? ccxt::any(0)
+                        : ccxt::any(std::string("timestamp")));
                return this->filterBySinceLimit(sorted, since, limit, key);
              })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchPaginatedCallIncremental(
-    std::any method, std::any symbol = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any params = ccxt::dict{},
-    std::any pageKey = std::any{}, std::any maxEntriesPerRequest = std::any{}) {
+virtual std::shared_future<ccxt::any> fetchPaginatedCallIncremental(
+    ccxt::any method, ccxt::any symbol = ccxt::any{},
+    ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+    ccxt::any params = ccxt::dict{}, ccxt::any pageKey = ccxt::any{},
+    ccxt::any maxEntriesPerRequest = ccxt::any{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any maxCalls = 10;
-               std::any maxCallsparamsVariable = this->handleOptionAndParams(
+             [=]() mutable -> ccxt::any {
+               ccxt::any maxCalls = 10;
+               ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
                    params, method, std::string("paginationCalls"), maxCalls);
                maxCalls = ::getValue(maxCallsparamsVariable, 0);
                params = ::getValue(maxCallsparamsVariable, 1);
-               std::any maxRetries = 3;
-               std::any maxRetriesparamsVariable = this->handleOptionAndParams(
+               ccxt::any maxRetries = 3;
+               ccxt::any maxRetriesparamsVariable = this->handleOptionAndParams(
                    params, method, std::string("maxRetries"), maxRetries);
                maxRetries = ::getValue(maxRetriesparamsVariable, 0);
                params = ::getValue(maxRetriesparamsVariable, 1);
-               std::any maxEntriesPerRequestparamsVariable =
+               ccxt::any maxEntriesPerRequestparamsVariable =
                    this->handleMaxEntriesPerRequestAndParams(
                        method, maxEntriesPerRequest, params);
                maxEntriesPerRequest =
                    ::getValue(maxEntriesPerRequestparamsVariable, 0);
                params = ::getValue(maxEntriesPerRequestparamsVariable, 1);
-               std::any i = 0;
-               std::any errors = 0;
-               std::any result = ccxt::list{};
+               ccxt::any i = 0;
+               ccxt::any errors = 0;
+               ccxt::any result = ccxt::list{};
                while (isLessThan(i, maxCalls)) {
                  try {
                    ::setValue(params, pageKey, add(i, 1));
-                   std::any response = awaitValue(callDynamically(
+                   ccxt::any response = awaitValue(callDynamically(
                        this, method,
                        ccxt::list{symbol, since, maxEntriesPerRequest,
                                   params}));
                    errors = 0;
-                   std::any responseLength = getArrayLength(response);
+                   ccxt::any responseLength = getArrayLength(response);
                    if (isTrue(this->verbose)) {
-                     std::any iteration = toString((add(i, 1)));
-                     std::any incrementalMessage = add(
+                     ccxt::any iteration = toString((add(i, 1)));
+                     ccxt::any incrementalMessage = add(
                          add(add(add(add(std::string(
                                              "Incremental pagination call "),
                                          iteration),
@@ -3794,212 +3832,217 @@ virtual std::shared_future<std::any> fetchPaginatedCallIncremental(
                  }
                  i = add(i, 1);
                }
-               std::any sorted = this->sortCursorPaginatedResult(result);
-               std::any key =
+               ccxt::any sorted = this->sortCursorPaginatedResult(result);
+               ccxt::any key =
                    (isTrue((isEqual(method, std::string("fetchOHLCV"))))
-                        ? std::any(0)
-                        : std::any(std::string("timestamp")));
+                        ? ccxt::any(0)
+                        : ccxt::any(std::string("timestamp")));
                return this->filterBySinceLimit(sorted, since, limit, key);
              })
       .share();
 }
 
-virtual std::any sortCursorPaginatedResult(std::any result);
+virtual ccxt::any sortCursorPaginatedResult(ccxt::any result);
 
-virtual std::any
-removeRepeatedElementsFromArray(std::any input,
-                                std::any fallbackToTimestamp = true);
+virtual ccxt::any
+removeRepeatedElementsFromArray(ccxt::any input,
+                                ccxt::any fallbackToTimestamp = true);
 
-virtual std::any removeRepeatedTradesFromArray(std::any input);
+virtual ccxt::any removeRepeatedTradesFromArray(ccxt::any input);
 
-virtual std::any removeKeysFromDict(std::any dict, std::any removeKeys);
+virtual ccxt::any removeKeysFromDict(ccxt::any dict, ccxt::any removeKeys);
 
-virtual std::any handleUntilOption(std::any key, std::any request,
-                                   std::any params, std::any multiplier = 1);
+virtual ccxt::any handleUntilOption(ccxt::any key, ccxt::any request,
+                                    ccxt::any params, ccxt::any multiplier = 1);
 
-virtual std::any safeOpenInterest(std::any interest,
-                                  std::any market = std::any{});
+virtual ccxt::any safeOpenInterest(ccxt::any interest,
+                                   ccxt::any market = ccxt::any{});
 
-virtual std::any parseLiquidation(std::any liquidation,
-                                  std::any market = std::any{});
+virtual ccxt::any parseLiquidation(ccxt::any liquidation,
+                                   ccxt::any market = ccxt::any{});
 
-virtual std::any parseLiquidations(std::any liquidations,
-                                   std::any market = std::any{},
-                                   std::any since = std::any{},
-                                   std::any limit = std::any{});
+virtual ccxt::any parseLiquidations(ccxt::any liquidations,
+                                    ccxt::any market = ccxt::any{},
+                                    ccxt::any since = ccxt::any{},
+                                    ccxt::any limit = ccxt::any{});
 
-virtual std::any parseGreeks(std::any greeks, std::any market = std::any{});
+virtual ccxt::any parseGreeks(ccxt::any greeks, ccxt::any market = ccxt::any{});
 
-virtual std::any parseAllGreeks(std::any greeks, std::any symbols = std::any{},
-                                std::any params = ccxt::dict{});
+virtual ccxt::any parseAllGreeks(ccxt::any greeks,
+                                 ccxt::any symbols = ccxt::any{},
+                                 ccxt::any params = ccxt::dict{});
 
-virtual std::any parseOption(std::any chain, std::any currency = std::any{},
-                             std::any market = std::any{});
+virtual ccxt::any parseOption(ccxt::any chain, ccxt::any currency = ccxt::any{},
+                              ccxt::any market = ccxt::any{});
 
-virtual std::any parseOptionChain(std::any response,
-                                  std::any currencyKey = std::any{},
-                                  std::any symbolKey = std::any{});
+virtual ccxt::any parseOptionChain(ccxt::any response,
+                                   ccxt::any currencyKey = ccxt::any{},
+                                   ccxt::any symbolKey = ccxt::any{});
 
-virtual std::any parseMarginModes(std::any response,
-                                  std::any symbols = std::any{},
-                                  std::any symbolKey = std::any{},
-                                  std::any marketType = std::any{});
+virtual ccxt::any parseMarginModes(ccxt::any response,
+                                   ccxt::any symbols = ccxt::any{},
+                                   ccxt::any symbolKey = ccxt::any{},
+                                   ccxt::any marketType = ccxt::any{});
 
-virtual std::any parseMarginMode(std::any marginMode,
-                                 std::any market = std::any{});
+virtual ccxt::any parseMarginMode(ccxt::any marginMode,
+                                  ccxt::any market = ccxt::any{});
 
-virtual std::any parseLeverages(std::any response,
-                                std::any symbols = std::any{},
-                                std::any symbolKey = std::any{},
-                                std::any marketType = std::any{});
+virtual ccxt::any parseLeverages(ccxt::any response,
+                                 ccxt::any symbols = ccxt::any{},
+                                 ccxt::any symbolKey = ccxt::any{},
+                                 ccxt::any marketType = ccxt::any{});
 
-virtual std::any parseLeverage(std::any leverage, std::any market = std::any{});
+virtual ccxt::any parseLeverage(ccxt::any leverage,
+                                ccxt::any market = ccxt::any{});
 
-virtual std::any parseConversions(std::any conversions,
-                                  std::any code = std::any{},
-                                  std::any fromCurrencyKey = std::any{},
-                                  std::any toCurrencyKey = std::any{},
-                                  std::any since = std::any{},
-                                  std::any limit = std::any{},
-                                  std::any params = ccxt::dict{});
+virtual ccxt::any parseConversions(ccxt::any conversions,
+                                   ccxt::any code = ccxt::any{},
+                                   ccxt::any fromCurrencyKey = ccxt::any{},
+                                   ccxt::any toCurrencyKey = ccxt::any{},
+                                   ccxt::any since = ccxt::any{},
+                                   ccxt::any limit = ccxt::any{},
+                                   ccxt::any params = ccxt::dict{});
 
-virtual std::any parseConversion(std::any conversion,
-                                 std::any fromCurrency = std::any{},
-                                 std::any toCurrency = std::any{});
+virtual ccxt::any parseConversion(ccxt::any conversion,
+                                  ccxt::any fromCurrency = ccxt::any{},
+                                  ccxt::any toCurrency = ccxt::any{});
 
-virtual std::any convertExpireDate(std::any date);
+virtual ccxt::any convertExpireDate(ccxt::any date);
 
-virtual std::any convertExpireDateToMarketIdDate(std::any date);
+virtual ccxt::any convertExpireDateToMarketIdDate(ccxt::any date);
 
-virtual std::any convertMarketIdExpireDate(std::any date);
+virtual ccxt::any convertMarketIdExpireDate(ccxt::any date);
 
-virtual std::shared_future<std::any> loadMarketsAndSignIn() {
+virtual std::shared_future<ccxt::any> loadMarketsAndSignIn() {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       awaitValue(promiseAll(
                           ccxt::list{this->loadMarkets(), this->signIn()}));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::any parseMarginModification(std::any data,
-                                         std::any market = std::any{});
+virtual ccxt::any parseMarginModification(ccxt::any data,
+                                          ccxt::any market = ccxt::any{});
 
-virtual std::any parseMarginModifications(std::any response,
-                                          std::any symbols = std::any{},
-                                          std::any symbolKey = std::any{},
-                                          std::any marketType = std::any{});
+virtual ccxt::any parseMarginModifications(ccxt::any response,
+                                           ccxt::any symbols = ccxt::any{},
+                                           ccxt::any symbolKey = ccxt::any{},
+                                           ccxt::any marketType = ccxt::any{});
 
-virtual std::shared_future<std::any>
-fetchTransfer(std::any id, std::any code = std::any{},
-              std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTransfer(ccxt::any id, ccxt::any code = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchTransfer () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTransfers(std::any code = std::any{}, std::any since = std::any{},
-               std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTransfers(ccxt::any code = ccxt::any{}, ccxt::any since = ccxt::any{},
+               ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchTransfers () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-             std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" unWatchOHLCV () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-withdrawWs(std::any code, std::any amount, std::any address,
-           std::any tag = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+withdrawWs(ccxt::any code, ccxt::any amount, ccxt::any address,
+           ccxt::any tag = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" withdrawWs () is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchMyTrades(std::any symbol = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchMyTrades(ccxt::any symbol = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" unWatchMyTrades () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrdersByStatusWs(std::any status, std::any symbol = std::any{},
-                      std::any since = std::any{}, std::any limit = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrdersByStatusWs(ccxt::any status, ccxt::any symbol = ccxt::any{},
+                      ccxt::any since = ccxt::any{},
+                      ccxt::any limit = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchOrdersByStatusWs () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-unWatchBidsAsks(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+unWatchBidsAsks(ccxt::any symbols = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" unWatchBidsAsks () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual void cleanUnsubscription(std::any client, std::any subHash,
-                                 std::any unsubHash,
-                                 std::any subHashIsPrefix = false);
+virtual void cleanUnsubscription(ccxt::any client, ccxt::any subHash,
+                                 ccxt::any unsubHash,
+                                 ccxt::any subHashIsPrefix = false);
 
-virtual void cleanCache(std::any subscription);
+virtual void cleanCache(ccxt::any subscription);
 
-virtual std::any timeframeFromMilliseconds(std::any ms);
+virtual ccxt::any timeframeFromMilliseconds(ccxt::any ms);
 
-virtual std::shared_future<std::any>
-isUTAEnabled(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+isUTAEnabled(ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return false; // stub
                     })
       .share();

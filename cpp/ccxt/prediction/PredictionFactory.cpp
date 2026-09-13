@@ -17,7 +17,7 @@ void registerPredictionExchange (const std::string& id, Creator creator) {
     registry ()[id] = std::move (creator);
 }
 
-std::shared_ptr<ExchangeBase> createPredictionExchange (const std::string& id, std::any config) {
+std::shared_ptr<ExchangeBase> createPredictionExchange (const std::string& id, ccxt::any config) {
     const auto& reg = registry ();
     const auto it = reg.find (id);
     if (it == reg.end ()) {

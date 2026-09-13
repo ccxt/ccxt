@@ -16,375 +16,375 @@ namespace prediction {
 class kalshiApi : public PredictionExchange {
 public:
     kalshiApi () = default;
-    explicit kalshiApi (std::any config) : PredictionExchange (config) {}
+    explicit kalshiApi (ccxt::any config) : PredictionExchange (config) {}
 
     // Calls the kalshiPublicGetEvents endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetEvents (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetEvents (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetEvents"), parameters);
     }
 
     // Calls the kalshiPublicGetEventsMultivariate endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetEventsMultivariate (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetEventsMultivariate (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetEventsMultivariate"), parameters);
     }
 
     // Calls the kalshiPublicGetEventsFeeChanges endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetEventsFeeChanges (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetEventsFeeChanges (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetEventsFeeChanges"), parameters);
     }
 
     // Calls the kalshiPublicGetEventsEventTicker endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetEventsEventTicker (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetEventsEventTicker (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetEventsEventTicker"), parameters);
     }
 
     // Calls the kalshiPublicGetEventsEventTickerMetadata endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetEventsEventTickerMetadata (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetEventsEventTickerMetadata (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetEventsEventTickerMetadata"), parameters);
     }
 
     // Calls the kalshiPublicGetSeries endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetSeries (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetSeries (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetSeries"), parameters);
     }
 
     // Calls the kalshiPublicGetSeriesFeeChanges endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetSeriesFeeChanges (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetSeriesFeeChanges (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetSeriesFeeChanges"), parameters);
     }
 
     // Calls the kalshiPublicGetSeriesSeriesTicker endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetSeriesSeriesTicker (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetSeriesSeriesTicker (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetSeriesSeriesTicker"), parameters);
     }
 
     // Calls the kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks"), parameters);
     }
 
     // Calls the kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks"), parameters);
     }
 
     // Calls the kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory"), parameters);
     }
 
     // Calls the kalshiPublicGetMarkets endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMarkets (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMarkets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMarkets"), parameters);
     }
 
     // Calls the kalshiPublicGetMarketsTrades endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMarketsTrades (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMarketsTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMarketsTrades"), parameters);
     }
 
     // Calls the kalshiPublicGetMarketsOrderbooks endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMarketsOrderbooks (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMarketsOrderbooks (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMarketsOrderbooks"), parameters);
     }
 
     // Calls the kalshiPublicGetMarketsCandlesticks endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMarketsCandlesticks (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMarketsCandlesticks (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMarketsCandlesticks"), parameters);
     }
 
     // Calls the kalshiPublicGetMarketsTicker endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMarketsTicker (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMarketsTicker (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMarketsTicker"), parameters);
     }
 
     // Calls the kalshiPublicGetMarketsTickerOrderbook endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMarketsTickerOrderbook (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMarketsTickerOrderbook (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMarketsTickerOrderbook"), parameters);
     }
 
     // Calls the kalshiPublicGetExchangeStatus endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetExchangeStatus (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetExchangeStatus (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetExchangeStatus"), parameters);
     }
 
     // Calls the kalshiPublicGetExchangeSchedule endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetExchangeSchedule (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetExchangeSchedule (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetExchangeSchedule"), parameters);
     }
 
     // Calls the kalshiPublicGetExchangeAnnouncements endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetExchangeAnnouncements (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetExchangeAnnouncements (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetExchangeAnnouncements"), parameters);
     }
 
     // Calls the kalshiPublicGetExchangeUserDataTimestamp endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetExchangeUserDataTimestamp (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetExchangeUserDataTimestamp (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetExchangeUserDataTimestamp"), parameters);
     }
 
     // Calls the kalshiPublicGetMilestones endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMilestones (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMilestones (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMilestones"), parameters);
     }
 
     // Calls the kalshiPublicGetMilestonesMilestoneId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMilestonesMilestoneId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMilestonesMilestoneId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMilestonesMilestoneId"), parameters);
     }
 
     // Calls the kalshiPublicGetStructuredTargets endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetStructuredTargets (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetStructuredTargets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetStructuredTargets"), parameters);
     }
 
     // Calls the kalshiPublicGetStructuredTargetsStructuredTargetId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetStructuredTargetsStructuredTargetId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetStructuredTargetsStructuredTargetId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetStructuredTargetsStructuredTargetId"), parameters);
     }
 
     // Calls the kalshiPublicGetSearchFiltersBySport endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetSearchFiltersBySport (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetSearchFiltersBySport (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetSearchFiltersBySport"), parameters);
     }
 
     // Calls the kalshiPublicGetSearchTagsByCategories endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetSearchTagsByCategories (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetSearchTagsByCategories (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetSearchTagsByCategories"), parameters);
     }
 
     // Calls the kalshiPublicGetLiveDataBatch endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetLiveDataBatch (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetLiveDataBatch (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetLiveDataBatch"), parameters);
     }
 
     // Calls the kalshiPublicGetLiveDataMilestoneMilestoneId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetLiveDataMilestoneMilestoneId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetLiveDataMilestoneMilestoneId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetLiveDataMilestoneMilestoneId"), parameters);
     }
 
     // Calls the kalshiPublicGetHistoricalMarkets endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetHistoricalMarkets (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetHistoricalMarkets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetHistoricalMarkets"), parameters);
     }
 
     // Calls the kalshiPublicGetHistoricalMarketsTickerCandlesticks endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetHistoricalMarketsTickerCandlesticks (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetHistoricalMarketsTickerCandlesticks (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetHistoricalMarketsTickerCandlesticks"), parameters);
     }
 
     // Calls the kalshiPublicGetHistoricalTrades endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetHistoricalTrades (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetHistoricalTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetHistoricalTrades"), parameters);
     }
 
     // Calls the kalshiPublicGetHistoricalCutoffTimestamps endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetHistoricalCutoffTimestamps (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetHistoricalCutoffTimestamps (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetHistoricalCutoffTimestamps"), parameters);
     }
 
     // Calls the kalshiPublicGetMultivariateEventCollections endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMultivariateEventCollections (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMultivariateEventCollections (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMultivariateEventCollections"), parameters);
     }
 
     // Calls the kalshiPublicGetMultivariateEventCollectionsCollectionTicker endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMultivariateEventCollectionsCollectionTicker (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMultivariateEventCollectionsCollectionTicker (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMultivariateEventCollectionsCollectionTicker"), parameters);
     }
 
     // Calls the kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup"), parameters);
     }
 
     // Calls the kalshiPublicGetIncentivePrograms endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPublicGetIncentivePrograms (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPublicGetIncentivePrograms (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPublicGetIncentivePrograms"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioBalance endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioBalance (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioBalance (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioBalance"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioOrders endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioOrders (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioOrders"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioOrdersOrderId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioOrdersOrderId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioOrdersOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioOrdersOrderId"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioOrdersQueuePositions endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioOrdersQueuePositions (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioOrdersQueuePositions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioOrdersQueuePositions"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioPositions endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioPositions (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioPositions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioPositions"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioFills endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioFills (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioFills (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioFills"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioSettlements endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioSettlements (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioSettlements (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioSettlements"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioDeposits endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioDeposits (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioDeposits (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioDeposits"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioWithdrawals endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioWithdrawals (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioWithdrawals (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioWithdrawals"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioOrderGroups endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioOrderGroups (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioOrderGroups (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioOrderGroups"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioOrderGroupsOrderGroupId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioOrderGroupsOrderGroupId"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioSubaccountsBalances endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioSubaccountsBalances (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioSubaccountsBalances (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioSubaccountsBalances"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioSubaccountsNetting endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioSubaccountsNetting (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioSubaccountsNetting (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioSubaccountsNetting"), parameters);
     }
 
     // Calls the kalshiPrivateGetPortfolioSubaccountsTransfers endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetPortfolioSubaccountsTransfers (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetPortfolioSubaccountsTransfers (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetPortfolioSubaccountsTransfers"), parameters);
     }
 
     // Calls the kalshiPrivateGetHistoricalFills endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetHistoricalFills (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetHistoricalFills (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetHistoricalFills"), parameters);
     }
 
     // Calls the kalshiPrivateGetHistoricalOrders endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateGetHistoricalOrders (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateGetHistoricalOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateGetHistoricalOrders"), parameters);
     }
 
     // Calls the kalshiPrivatePostPortfolioOrders endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostPortfolioOrders (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostPortfolioOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostPortfolioOrders"), parameters);
     }
 
     // Calls the kalshiPrivatePostPortfolioEventsOrders endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostPortfolioEventsOrders (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostPortfolioEventsOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostPortfolioEventsOrders"), parameters);
     }
 
     // Calls the kalshiPrivatePostPortfolioOrdersBatched endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostPortfolioOrdersBatched (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostPortfolioOrdersBatched (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostPortfolioOrdersBatched"), parameters);
     }
 
     // Calls the kalshiPrivatePostPortfolioOrdersOrderIdAmend endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostPortfolioOrdersOrderIdAmend (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostPortfolioOrdersOrderIdAmend (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostPortfolioOrdersOrderIdAmend"), parameters);
     }
 
     // Calls the kalshiPrivatePostPortfolioOrdersOrderIdDecrease endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostPortfolioOrdersOrderIdDecrease (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostPortfolioOrdersOrderIdDecrease (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostPortfolioOrdersOrderIdDecrease"), parameters);
     }
 
     // Calls the kalshiPrivatePostPortfolioOrderGroupsCreate endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostPortfolioOrderGroupsCreate (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostPortfolioOrderGroupsCreate (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostPortfolioOrderGroupsCreate"), parameters);
     }
 
     // Calls the kalshiPrivatePostPortfolioSubaccounts endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostPortfolioSubaccounts (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostPortfolioSubaccounts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostPortfolioSubaccounts"), parameters);
     }
 
     // Calls the kalshiPrivatePostPortfolioSubaccountsTransfer endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostPortfolioSubaccountsTransfer (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostPortfolioSubaccountsTransfer (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostPortfolioSubaccountsTransfer"), parameters);
     }
 
     // Calls the kalshiPrivatePostMultivariateEventCollectionsCollectionTicker endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePostMultivariateEventCollectionsCollectionTicker"), parameters);
     }
 
     // Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset"), parameters);
     }
 
     // Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger"), parameters);
     }
 
     // Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit"), parameters);
     }
 
     // Calls the kalshiPrivatePutPortfolioSubaccountsNetting endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePutPortfolioSubaccountsNetting (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePutPortfolioSubaccountsNetting (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePutPortfolioSubaccountsNetting"), parameters);
     }
 
     // Calls the kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup"), parameters);
     }
 
     // Calls the kalshiPrivateDeletePortfolioOrdersOrderId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateDeletePortfolioOrdersOrderId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateDeletePortfolioOrdersOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateDeletePortfolioOrdersOrderId"), parameters);
     }
 
     // Calls the kalshiPrivateDeletePortfolioOrdersBatched endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateDeletePortfolioOrdersBatched (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateDeletePortfolioOrdersBatched (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateDeletePortfolioOrdersBatched"), parameters);
     }
 
     // Calls the kalshiPrivateDeletePortfolioEventsOrdersOrderId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateDeletePortfolioEventsOrdersOrderId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateDeletePortfolioEventsOrdersOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateDeletePortfolioEventsOrdersOrderId"), parameters);
     }
 
     // Calls the kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId"), parameters);
     }
 
     // Calls the electionsPublicGetSearchSeries endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> electionsPublicGetSearchSeries (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> electionsPublicGetSearchSeries (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("electionsPublicGetSearchSeries"), parameters);
     }
 

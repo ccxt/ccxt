@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_fmfwio(std::any config) {
+std::shared_ptr<ExchangeBase> create_fmfwio(ccxt::any config) {
   return newExchange<fmfwio>(config);
 }
 

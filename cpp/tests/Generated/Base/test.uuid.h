@@ -13,11 +13,11 @@ void testUuid() {
       {std::string("id"), std::string("sampleexchange")},
   });
   // uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
-  std::any id1 = exchange.uuid(); // need type for .length understanding
-  std::any id2 = exchange.uuid();
-  assertTrue(!isEqual(id1, std::any{}),
+  ccxt::any id1 = exchange.uuid(); // need type for .length understanding
+  ccxt::any id2 = exchange.uuid();
+  assertTrue(!isEqual(id1, ccxt::any{}),
              std::string("uuid 1 must return a value"));
-  assertTrue(!isEqual(id2, std::any{}),
+  assertTrue(!isEqual(id2, ccxt::any{}),
              std::string("uuid 2 must return a value"));
   assertTrue(!isEqual(id1, id2),
              std::string("uuid() must return unique values on each call"));
@@ -38,11 +38,11 @@ void testUuid() {
   assertTrue(isEqual(getIndexOf(id1, std::string("-")), 8),
              add(std::string("uuid() must have dash, returned id1: "), id1));
   // uuid16() - 16-char hex string
-  std::any id16a = exchange.uuid16();
-  std::any id16b = exchange.uuid16();
-  assertTrue(!isEqual(id16a, std::any{}),
+  ccxt::any id16a = exchange.uuid16();
+  ccxt::any id16b = exchange.uuid16();
+  assertTrue(!isEqual(id16a, ccxt::any{}),
              std::string("uuid16 1 must return a value"));
-  assertTrue(!isEqual(id16b, std::any{}),
+  assertTrue(!isEqual(id16b, ccxt::any{}),
              std::string("uuid16 2 must return a value"));
   assertTrue(!isEqual(id16a, id16b),
              add(add(add(std::string("uuid16() must return unique values on "
@@ -67,11 +67,11 @@ void testUuid() {
               "uuid16() must return a 16-character string, returned id16b: "),
           id16b));
   // uuid22() - 22-char hex string
-  std::any id22a = exchange.uuid22();
-  std::any id22b = exchange.uuid22();
-  assertTrue(!isEqual(id22a, std::any{}),
+  ccxt::any id22a = exchange.uuid22();
+  ccxt::any id22b = exchange.uuid22();
+  assertTrue(!isEqual(id22a, ccxt::any{}),
              std::string("uuid22 1 must return a value"));
-  assertTrue(!isEqual(id22b, std::any{}),
+  assertTrue(!isEqual(id22b, ccxt::any{}),
              std::string("uuid22 2 must return a value"));
   assertTrue(!isEqual(id22a, id22b),
              std::string("uuid22() must return unique values on each call"));

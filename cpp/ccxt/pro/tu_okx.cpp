@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_okx(std::any config) {
+std::shared_ptr<ExchangeBase> create_okx(ccxt::any config) {
   return newExchange<ccxt::pro::okx>(config);
 }
 

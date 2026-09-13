@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_okxus(std::any config) {
+std::shared_ptr<ExchangeBase> create_okxus(ccxt::any config) {
   return newExchange<okxus>(config);
 }
 

@@ -14,270 +14,270 @@ namespace ccxt {
 class upbitApi : public Exchange {
 public:
     upbitApi () = default;
-    explicit upbitApi (std::any config) : Exchange (config) {}
+    explicit upbitApi (ccxt::any config) : Exchange (config) {}
 
     // Calls the publicGetMarketAll endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetMarketAll (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetMarketAll (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetMarketAll"), parameters);
     }
 
     // Calls the publicGetCandlesTimeframe endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesTimeframe (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesTimeframe (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesTimeframe"), parameters);
     }
 
     // Calls the publicGetCandlesTimeframeUnit endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesTimeframeUnit (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesTimeframeUnit (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesTimeframeUnit"), parameters);
     }
 
     // Calls the publicGetCandlesSeconds endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesSeconds (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesSeconds (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesSeconds"), parameters);
     }
 
     // Calls the publicGetCandlesMinutesUnit endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutesUnit (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutesUnit (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutesUnit"), parameters);
     }
 
     // Calls the publicGetCandlesMinutes1 endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutes1 (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutes1 (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutes1"), parameters);
     }
 
     // Calls the publicGetCandlesMinutes3 endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutes3 (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutes3 (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutes3"), parameters);
     }
 
     // Calls the publicGetCandlesMinutes5 endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutes5 (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutes5 (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutes5"), parameters);
     }
 
     // Calls the publicGetCandlesMinutes10 endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutes10 (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutes10 (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutes10"), parameters);
     }
 
     // Calls the publicGetCandlesMinutes15 endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutes15 (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutes15 (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutes15"), parameters);
     }
 
     // Calls the publicGetCandlesMinutes30 endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutes30 (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutes30 (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutes30"), parameters);
     }
 
     // Calls the publicGetCandlesMinutes60 endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutes60 (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutes60 (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutes60"), parameters);
     }
 
     // Calls the publicGetCandlesMinutes240 endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMinutes240 (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMinutes240 (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMinutes240"), parameters);
     }
 
     // Calls the publicGetCandlesDays endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesDays (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesDays (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesDays"), parameters);
     }
 
     // Calls the publicGetCandlesWeeks endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesWeeks (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesWeeks (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesWeeks"), parameters);
     }
 
     // Calls the publicGetCandlesMonths endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesMonths (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesMonths (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesMonths"), parameters);
     }
 
     // Calls the publicGetCandlesYears endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetCandlesYears (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetCandlesYears (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetCandlesYears"), parameters);
     }
 
     // Calls the publicGetTradesTicks endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetTradesTicks (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetTradesTicks (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetTradesTicks"), parameters);
     }
 
     // Calls the publicGetTicker endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetTicker (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetTicker (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetTicker"), parameters);
     }
 
     // Calls the publicGetTickerAll endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetTickerAll (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetTickerAll (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetTickerAll"), parameters);
     }
 
     // Calls the publicGetOrderbook endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetOrderbook (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetOrderbook (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetOrderbook"), parameters);
     }
 
     // Calls the publicGetOrderbookInstruments endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetOrderbookInstruments (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> publicGetOrderbookInstruments (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetOrderbookInstruments"), parameters);
     }
 
     // Calls the privateGetAccounts endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateGetAccounts (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetAccounts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetAccounts"), parameters);
     }
 
     // Calls the privateGetOrdersChance endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateGetOrdersChance (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetOrdersChance (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetOrdersChance"), parameters);
     }
 
     // Calls the privateGetOrder endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateGetOrder (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetOrder"), parameters);
     }
 
     // Calls the privateGetOrdersClosed endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetOrdersClosed (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetOrdersClosed (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetOrdersClosed"), parameters);
     }
 
     // Calls the privateGetOrdersOpen endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetOrdersOpen (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetOrdersOpen (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetOrdersOpen"), parameters);
     }
 
     // Calls the privateGetOrdersUuids endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetOrdersUuids (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetOrdersUuids (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetOrdersUuids"), parameters);
     }
 
     // Calls the privateGetWithdraws endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetWithdraws (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetWithdraws (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWithdraws"), parameters);
     }
 
     // Calls the privateGetWithdraw endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateGetWithdraw (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetWithdraw (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWithdraw"), parameters);
     }
 
     // Calls the privateGetWithdrawsChance endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateGetWithdrawsChance (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetWithdrawsChance (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWithdrawsChance"), parameters);
     }
 
     // Calls the privateGetWithdrawsCoinAddresses endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetWithdrawsCoinAddresses (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetWithdrawsCoinAddresses (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWithdrawsCoinAddresses"), parameters);
     }
 
     // Calls the privateGetDeposits endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetDeposits (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetDeposits (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetDeposits"), parameters);
     }
 
     // Calls the privateGetDepositsChanceCoin endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateGetDepositsChanceCoin (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetDepositsChanceCoin (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetDepositsChanceCoin"), parameters);
     }
 
     // Calls the privateGetDeposit endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateGetDeposit (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetDeposit (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetDeposit"), parameters);
     }
 
     // Calls the privateGetDepositsCoinAddresses endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetDepositsCoinAddresses (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetDepositsCoinAddresses (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetDepositsCoinAddresses"), parameters);
     }
 
     // Calls the privateGetDepositsCoinAddress endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateGetDepositsCoinAddress (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetDepositsCoinAddress (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetDepositsCoinAddress"), parameters);
     }
 
     // Calls the privateGetTravelRuleVasps endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetTravelRuleVasps (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetTravelRuleVasps (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetTravelRuleVasps"), parameters);
     }
 
     // Calls the privateGetStatusWallet endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetStatusWallet (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetStatusWallet (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetStatusWallet"), parameters);
     }
 
     // Calls the privateGetApiKeys endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privateGetApiKeys (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateGetApiKeys (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetApiKeys"), parameters);
     }
 
     // Calls the privatePostOrders endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostOrders (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostOrders"), parameters);
     }
 
     // Calls the privatePostOrdersTest endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostOrdersTest (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostOrdersTest (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostOrdersTest"), parameters);
     }
 
     // Calls the privatePostOrdersCancelAndNew endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostOrdersCancelAndNew (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostOrdersCancelAndNew (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostOrdersCancelAndNew"), parameters);
     }
 
     // Calls the privatePostWithdrawsCoin endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostWithdrawsCoin (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostWithdrawsCoin (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostWithdrawsCoin"), parameters);
     }
 
     // Calls the privatePostWithdrawsKrw endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostWithdrawsKrw (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostWithdrawsKrw (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostWithdrawsKrw"), parameters);
     }
 
     // Calls the privatePostDepositsKrw endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostDepositsKrw (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostDepositsKrw (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostDepositsKrw"), parameters);
     }
 
     // Calls the privatePostDepositsGenerateCoinAddress endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostDepositsGenerateCoinAddress (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostDepositsGenerateCoinAddress (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostDepositsGenerateCoinAddress"), parameters);
     }
 
     // Calls the privatePostTravelRuleDepositUuid endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostTravelRuleDepositUuid (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostTravelRuleDepositUuid (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTravelRuleDepositUuid"), parameters);
     }
 
     // Calls the privatePostTravelRuleDepositTxid endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostTravelRuleDepositTxid (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privatePostTravelRuleDepositTxid (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTravelRuleDepositTxid"), parameters);
     }
 
     // Calls the privateDeleteOrder endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateDeleteOrder (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateDeleteOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteOrder"), parameters);
     }
 
     // Calls the privateDeleteOrdersOpen endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateDeleteOrdersOpen (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateDeleteOrdersOpen (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteOrdersOpen"), parameters);
     }
 
     // Calls the privateDeleteOrdersUuids endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateDeleteOrdersUuids (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateDeleteOrdersUuids (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteOrdersUuids"), parameters);
     }
 
     // Calls the privateDeleteWithdrawsCoin endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privateDeleteWithdrawsCoin (std::any parameters = ccxt::dict {}) {
+    virtual std::shared_future<ccxt::any> privateDeleteWithdrawsCoin (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteWithdrawsCoin"), parameters);
     }
 

@@ -13,12 +13,12 @@ namespace pro {
 class gate : public ccxt::gate {
 public:
   using ccxt::gate::gate;
-  std::any describe() override {
-    std::any superDescribe = ccxt::gate::describe();
+  ccxt::any describe() override {
+    ccxt::any superDescribe = ccxt::gate::describe();
     return this->deepExtend(superDescribe, this->describeData());
   }
 
-  virtual std::any describeData() {
+  virtual ccxt::any describeData() {
     return ccxt::dict{
         {std::string("has"),
          ccxt::dict{
@@ -228,28 +228,28 @@ public:
    * @returns {object|undefined} [An order structure]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  createOrderWs(std::any symbol, std::any type, std::any side, std::any amount,
-                std::any price = std::any{},
-                std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  createOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side, ccxt::any amount,
+                ccxt::any price = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
-                        if (isTrue(isEqual(this->markets, std::any{}))) {
+                      [=]() mutable -> ccxt::any {
+                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                           awaitValue(this->loadMarkets());
                         }
-                        std::any market = this->market(symbol);
+                        ccxt::any market = this->market(symbol);
                         symbol = ::getValue(market, std::string("symbol"));
-                        std::any messageType = this->getTypeByMarket(market);
-                        std::any channel =
+                        ccxt::any messageType = this->getTypeByMarket(market);
+                        ccxt::any channel =
                             add(messageType, std::string(".order_place"));
-                        std::any url = this->getUrlByMarket(market);
+                        ccxt::any url = this->getUrlByMarket(market);
                         ::setValue(params, std::string("textIsRequired"), true);
-                        std::any request = this->createOrderRequest(
+                        ccxt::any request = this->createOrderRequest(
                             symbol, type, side, amount, price, params);
                         awaitValue(this->authenticate(url, messageType));
-                        std::any rawOrder = awaitValue(
+                        ccxt::any rawOrder = awaitValue(
                             this->requestPrivate(url, request, channel));
-                        std::any order = this->parseOrder(rawOrder, market);
+                        ccxt::any order = this->parseOrder(rawOrder, market);
                         return order;
                       })
         .share();
@@ -268,17 +268,17 @@ public:
    * @returns {object} an [order structure]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  createOrdersWs(std::any orders, std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  createOrdersWs(ccxt::any orders, ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any request = this->createOrdersRequest(orders, params);
-                 std::any firstOrder = ::getValue(orders, 0);
-                 std::any market = this->market(
+                 ccxt::any request = this->createOrdersRequest(orders, params);
+                 ccxt::any firstOrder = ::getValue(orders, 0);
+                 ccxt::any market = this->market(
                      ::getValue(firstOrder, std::string("symbol")));
                  if (isTrue(!isEqual(::getValue(market, std::string("swap")),
                                      true))) {
@@ -287,12 +287,12 @@ public:
                                              "for swap markets"))));
                  }
                  // todo add swap support
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any channel =
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any channel =
                      add(messageType, std::string(".order_batch_place"));
-                 std::any url = this->getUrlByMarket(market);
+                 ccxt::any url = this->getUrlByMarket(market);
                  awaitValue(this->authenticate(url, messageType));
-                 std::any rawOrders =
+                 ccxt::any rawOrders =
                      awaitValue(this->requestPrivate(url, request, channel));
                  return this->parseOrders(rawOrders, market);
                })
@@ -316,51 +316,51 @@ public:
    * @returns {object[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  cancelAllOrdersWs(std::any symbol = std::any{},
-                    std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  cancelAllOrdersWs(ccxt::any symbol = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) override {
     return std::
         async(std::launch::deferred,
-              [=]() mutable -> std::any {
-                if (isTrue(isEqual(symbol, std::any{}))) {
+              [=]() mutable -> ccxt::any {
+                if (isTrue(isEqual(symbol, ccxt::any{}))) {
                   throw ArgumentsRequired(toString(add(
                       this->id,
                       std::string(
                           " cancelAllOrdersWs() requires a symbol argument"))));
                 }
-                if (isTrue(isEqual(this->markets, std::any{}))) {
+                if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                   awaitValue(this->loadMarkets());
                 }
-                std::any market = (isTrue((isEqual(symbol, std::any{})))
-                                       ? std::any(std::any{})
-                                       : std::any(this->market(symbol)));
-                std::any trigger = this->safeBool2(params, std::string("stop"),
+                ccxt::any market = (isTrue((isEqual(symbol, ccxt::any{})))
+                                       ? ccxt::any(ccxt::any{})
+                                       : ccxt::any(this->market(symbol)));
+                ccxt::any trigger = this->safeBool2(params, std::string("stop"),
                                                    std::string("trigger"));
-                std::any messageType = this->getTypeByMarket(market);
-                std::any channel =
+                ccxt::any messageType = this->getTypeByMarket(market);
+                ccxt::any channel =
                     add(messageType, std::string(".order_cancel_cp"));
-                std::any channelparamsVariable = this->handleOptionAndParams(
+                ccxt::any channelparamsVariable = this->handleOptionAndParams(
                     params, std::string("cancelAllOrdersWs"),
                     std::string("channel"), channel);
                 channel = ::getValue(channelparamsVariable, 0);
                 params = ::getValue(channelparamsVariable, 1);
-                std::any url = this->getUrlByMarket(market);
+                ccxt::any url = this->getUrlByMarket(market);
                 params = this->omit(params, ccxt::list{std::string("stop"),
                                                        std::string("trigger")});
-                std::any typequeryVariable = this->handleMarketTypeAndParams(
+                ccxt::any typequeryVariable = this->handleMarketTypeAndParams(
                     std::string("cancelAllOrders"), market, params);
-                std::any type = ::getValue(typequeryVariable, 0);
-                std::any query = ::getValue(typequeryVariable, 1);
-                std::any requestrequestParamsVariable =
+                ccxt::any type = ::getValue(typequeryVariable, 0);
+                ccxt::any query = ::getValue(typequeryVariable, 1);
+                ccxt::any requestrequestParamsVariable =
                     (isTrue((isEqual(type, std::string("spot"))))
-                         ? std::any(this->multiOrderSpotPrepareRequest(
+                         ? ccxt::any(this->multiOrderSpotPrepareRequest(
                                market, trigger, query))
-                         : std::any(this->prepareRequest(market, type, query)));
-                std::any request = ::getValue(requestrequestParamsVariable, 0);
-                std::any requestParams =
+                         : ccxt::any(this->prepareRequest(market, type, query)));
+                ccxt::any request = ::getValue(requestrequestParamsVariable, 0);
+                ccxt::any requestParams =
                     ::getValue(requestrequestParamsVariable, 1);
                 awaitValue(this->authenticate(url, messageType));
-                std::any rawOrders = awaitValue(this->requestPrivate(
+                ccxt::any rawOrders = awaitValue(this->requestPrivate(
                     url, this->extend(request, requestParams), channel));
                 return this->parseOrders(rawOrders, market);
               })
@@ -381,19 +381,19 @@ public:
    * @returns An [order structure]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  cancelOrderWs(std::any id, std::any symbol = std::any{},
-                std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  cancelOrderWs(ccxt::any id, ccxt::any symbol = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any market = (isTrue((isEqual(symbol, std::any{})))
-                                        ? std::any(std::any{})
-                                        : std::any(this->market(symbol)));
-                 std::any trigger = this->safeValueN(
+                 ccxt::any market = (isTrue((isEqual(symbol, ccxt::any{})))
+                                        ? ccxt::any(ccxt::any{})
+                                        : ccxt::any(this->market(symbol)));
+                 ccxt::any trigger = this->safeValueN(
                      params,
                      ccxt::list{std::string("is_stop_order"),
                                 std::string("stop"), std::string("trigger")},
@@ -402,27 +402,27 @@ public:
                      this->omit(params, ccxt::list{std::string("is_stop_order"),
                                                    std::string("stop"),
                                                    std::string("trigger")});
-                 std::any typequeryVariable = this->handleMarketTypeAndParams(
+                 ccxt::any typequeryVariable = this->handleMarketTypeAndParams(
                      std::string("cancelOrder"), market, params);
-                 std::any type = ::getValue(typequeryVariable, 0);
-                 std::any query = ::getValue(typequeryVariable, 1);
-                 std::any requestrequestParamsVariable =
+                 ccxt::any type = ::getValue(typequeryVariable, 0);
+                 ccxt::any query = ::getValue(typequeryVariable, 1);
+                 ccxt::any requestrequestParamsVariable =
                      (isTrue((isTrue(isEqual(type, std::string("spot"))) ||
                               isTrue(isEqual(type, std::string("margin")))))
-                          ? std::any(this->spotOrderPrepareRequest(
+                          ? ccxt::any(this->spotOrderPrepareRequest(
                                 market, trigger, query))
-                          : std::any(
+                          : ccxt::any(
                                 this->prepareRequest(market, type, query)));
-                 std::any request = ::getValue(requestrequestParamsVariable, 0);
-                 std::any requestParams =
+                 ccxt::any request = ::getValue(requestrequestParamsVariable, 0);
+                 ccxt::any requestParams =
                      ::getValue(requestrequestParamsVariable, 1);
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any channel =
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any channel =
                      add(messageType, std::string(".order_cancel"));
-                 std::any url = this->getUrlByMarket(market);
+                 ccxt::any url = this->getUrlByMarket(market);
                  awaitValue(this->authenticate(url, messageType));
                  ::setValue(request, std::string("order_id"), toString(id));
-                 std::any res = awaitValue(this->requestPrivate(
+                 ccxt::any res = awaitValue(this->requestPrivate(
                      url, this->extend(request, requestParams), channel));
                  return this->parseOrder(res, market);
                })
@@ -449,24 +449,24 @@ public:
    * @returns {object} an [order structure]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  editOrderWs(std::any id, std::any symbol, std::any type, std::any side,
-              std::any amount = std::any{}, std::any price = std::any{},
-              std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  editOrderWs(ccxt::any id, ccxt::any symbol, ccxt::any type, ccxt::any side,
+              ccxt::any amount = ccxt::any{}, ccxt::any price = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
-                        if (isTrue(isEqual(this->markets, std::any{}))) {
+                      [=]() mutable -> ccxt::any {
+                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                           awaitValue(this->loadMarkets());
                         }
-                        std::any market = this->market(symbol);
-                        std::any extendedRequest = this->editOrderRequest(
+                        ccxt::any market = this->market(symbol);
+                        ccxt::any extendedRequest = this->editOrderRequest(
                             id, symbol, type, side, amount, price, params);
-                        std::any messageType = this->getTypeByMarket(market);
-                        std::any channel =
+                        ccxt::any messageType = this->getTypeByMarket(market);
+                        ccxt::any channel =
                             add(messageType, std::string(".order_amend"));
-                        std::any url = this->getUrlByMarket(market);
+                        ccxt::any url = this->getUrlByMarket(market);
                         awaitValue(this->authenticate(url, messageType));
-                        std::any rawOrder = awaitValue(this->requestPrivate(
+                        ccxt::any rawOrder = awaitValue(this->requestPrivate(
                             url, extendedRequest, channel));
                         return this->parseOrder(rawOrder, market);
                       })
@@ -496,29 +496,29 @@ public:
    * @returns An [order structure]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  fetchOrderWs(std::any id, std::any symbol = std::any{},
-               std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  fetchOrderWs(ccxt::any id, ccxt::any symbol = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any market = (isTrue((isEqual(symbol, std::any{})))
-                                        ? std::any(std::any{})
-                                        : std::any(this->market(symbol)));
-                 std::any requestrequestParamsVariable =
+                 ccxt::any market = (isTrue((isEqual(symbol, ccxt::any{})))
+                                        ? ccxt::any(ccxt::any{})
+                                        : ccxt::any(this->market(symbol)));
+                 ccxt::any requestrequestParamsVariable =
                      this->fetchOrderRequest(id, symbol, params);
-                 std::any request = ::getValue(requestrequestParamsVariable, 0);
-                 std::any requestParams =
+                 ccxt::any request = ::getValue(requestrequestParamsVariable, 0);
+                 ccxt::any requestParams =
                      ::getValue(requestrequestParamsVariable, 1);
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any channel =
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any channel =
                      add(messageType, std::string(".order_status"));
-                 std::any url = this->getUrlByMarket(market);
+                 ccxt::any url = this->getUrlByMarket(market);
                  awaitValue(this->authenticate(url, messageType));
-                 std::any rawOrder = awaitValue(this->requestPrivate(
+                 ccxt::any rawOrder = awaitValue(this->requestPrivate(
                      url, this->extend(request, requestParams), channel));
                  return this->parseOrder(rawOrder, market);
                })
@@ -539,12 +539,12 @@ public:
    * @returns {Order[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  fetchOpenOrdersWs(std::any symbol = std::any{}, std::any since = std::any{},
-                    std::any limit = std::any{},
-                    std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  fetchOpenOrdersWs(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+                    ccxt::any limit = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
+                      [=]() mutable -> ccxt::any {
                         return awaitValue(this->fetchOrdersByStatusWs(
                             std::string("open"), symbol, since, limit, params));
                       })
@@ -565,13 +565,13 @@ public:
    * @returns {Order[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  fetchClosedOrdersWs(std::any symbol = std::any{}, std::any since = std::any{},
-                      std::any limit = std::any{},
-                      std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  fetchClosedOrdersWs(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+                      ccxt::any limit = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
+               [=]() mutable -> ccxt::any {
                  return awaitValue(this->fetchOrdersByStatusWs(
                      std::string("finished"), symbol, since, limit, params));
                })
@@ -598,19 +598,19 @@ public:
    * @returns {object[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  fetchOrdersByStatusWs(std::any status, std::any symbol = std::any{},
-                        std::any since = std::any{},
-                        std::any limit = std::any{},
-                        std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  fetchOrdersByStatusWs(ccxt::any status, ccxt::any symbol = ccxt::any{},
+                        ccxt::any since = ccxt::any{},
+                        ccxt::any limit = ccxt::any{},
+                        ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any market = std::any{};
-                 if (isTrue(!isEqual(symbol, std::any{}))) {
+                 ccxt::any market = ccxt::any{};
+                 if (isTrue(!isEqual(symbol, ccxt::any{}))) {
                    market = this->market(symbol);
                    symbol = ::getValue(market, std::string("symbol"));
                    if (isTrue(!isEqual(::getValue(market, std::string("swap")),
@@ -622,22 +622,22 @@ public:
                              "markets. Use rest API for other markets"))));
                    }
                  }
-                 std::any requestrequestParamsVariable =
+                 ccxt::any requestrequestParamsVariable =
                      this->prepareOrdersByStatusRequest(status, symbol, since,
                                                         limit, params);
-                 std::any request = ::getValue(requestrequestParamsVariable, 0);
-                 std::any requestParams =
+                 ccxt::any request = ::getValue(requestrequestParamsVariable, 0);
+                 ccxt::any requestParams =
                      ::getValue(requestrequestParamsVariable, 1);
-                 std::any newRequest =
+                 ccxt::any newRequest =
                      this->omit(request, ccxt::list{std::string("settle")});
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any channel =
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any channel =
                      add(messageType, std::string(".order_list"));
-                 std::any url = this->getUrlByMarket(market);
+                 ccxt::any url = this->getUrlByMarket(market);
                  awaitValue(this->authenticate(url, messageType));
-                 std::any rawOrders = awaitValue(this->requestPrivate(
+                 ccxt::any rawOrders = awaitValue(this->requestPrivate(
                      url, this->extend(newRequest, requestParams), channel));
-                 std::any orders = this->parseOrders(rawOrders, market);
+                 ccxt::any orders = this->parseOrders(rawOrders, market);
                  return this->filterBySymbolSinceLimit(orders, symbol, since,
                                                        limit);
                })
@@ -663,47 +663,47 @@ public:
    * @returns {object} an [order book structure]{@link
    * https://docs.ccxt.com/?id=order-book-structure}
    */
-  std::shared_future<std::any>
-  watchOrderBook(std::any symbol, std::any limit = std::any{},
-                 std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchOrderBook(ccxt::any symbol, ccxt::any limit = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any market = this->market(symbol);
+                 ccxt::any market = this->market(symbol);
                  symbol = ::getValue(market, std::string("symbol"));
-                 std::any marketId = ::getValue(market, std::string("id"));
-                 std::any url = this->getUrlByMarket(market);
-                 std::any isEuUrl = isGreaterThanOrEqual(
+                 ccxt::any marketId = ::getValue(market, std::string("id"));
+                 ccxt::any url = this->getUrlByMarket(market);
+                 ccxt::any isEuUrl = isGreaterThanOrEqual(
                      getIndexOf(url, std::string("gateeu")), 0);
-                 std::any isNonEuSpot =
+                 ccxt::any isNonEuSpot =
                      isTrue((isEqual(::getValue(market, std::string("spot")),
                                      true))) &&
                      !isTrue(isEuUrl);
-                 std::any intervalDefault =
-                     (isTrue(isNonEuSpot) ? std::any(std::string("50"))
-                                          : std::any(std::string("100ms")));
-                 std::any intervalqueryVariable = this->handleOptionAndParams(
+                 ccxt::any intervalDefault =
+                     (isTrue(isNonEuSpot) ? ccxt::any(std::string("50"))
+                                          : ccxt::any(std::string("100ms")));
+                 ccxt::any intervalqueryVariable = this->handleOptionAndParams(
                      params, std::string("watchOrderBook"),
                      std::string("interval"), intervalDefault);
-                 std::any interval = ::getValue(intervalqueryVariable, 0);
-                 std::any query = ::getValue(intervalqueryVariable, 1);
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any messageHash = add(
+                 ccxt::any interval = ::getValue(intervalqueryVariable, 0);
+                 ccxt::any query = ::getValue(intervalqueryVariable, 1);
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any messageHash = add(
                      add(std::string("orderbook"), std::string(":")), symbol);
-                 if (isTrue(isEqual(limit, std::any{}))) {
+                 if (isTrue(isEqual(limit, ccxt::any{}))) {
                    limit = (isTrue((isEqual(
                                 ::getValue(market, std::string("spot")), true)))
-                                ? std::any(50)
-                                : std::any(100)); // max 100 atm
+                                ? ccxt::any(50)
+                                : ccxt::any(100)); // max 100 atm
                    if (isTrue(isEqual(messageType, std::string("options")))) {
                      limit = 50; // max 50 for options
                    }
                  }
-                 std::any payload = ccxt::list{};
-                 std::any channel = std::string("");
+                 ccxt::any payload = ccxt::list{};
+                 ccxt::any channel = std::string("");
                  if (isTrue(isEuUrl)) {
                    channel = std::string("spot.order_book_update");
                    payload = ccxt::list{marketId, interval};
@@ -711,7 +711,7 @@ public:
                                 isEqual(::getValue(market, std::string("spot")),
                                         true))) {
                    channel = std::string("spot.obu");
-                   std::any finalInterval = interval;
+                   ccxt::any finalInterval = interval;
                    if (isTrue(isEqual(limit, 400))) {
                      finalInterval = std::string("400");
                    }
@@ -724,14 +724,14 @@ public:
                    channel =
                        add(messageType, std::string(".order_book_update"));
                    payload = ccxt::list{marketId, interval};
-                   std::any stringLimit = toString(limit);
+                   ccxt::any stringLimit = toString(limit);
                    arrayPush(payload, stringLimit);
                  }
-                 std::any subscription = ccxt::dict{
+                 ccxt::any subscription = ccxt::dict{
                      {std::string("symbol"), symbol},
                      {std::string("limit"), limit},
                  };
-                 std::any orderbook = awaitValue(this->subscribePublic(
+                 ccxt::any orderbook = awaitValue(this->subscribePublic(
                      url, messageHash, payload, channel, query, subscription));
                  return ::wsLimit(orderbook);
                })
@@ -750,47 +750,47 @@ public:
    * @returns {object} A dictionary of [order book structures]{@link
    * https://docs.ccxt.com/?id=order-book-structure}
    */
-  std::shared_future<std::any>
-  unWatchOrderBook(std::any symbol, std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  unWatchOrderBook(ccxt::any symbol, ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any market = this->market(symbol);
-                 std::any url = this->getUrlByMarket(market);
+                 ccxt::any market = this->market(symbol);
+                 ccxt::any url = this->getUrlByMarket(market);
                  symbol = ::getValue(market, std::string("symbol"));
-                 std::any marketId = ::getValue(market, std::string("id"));
-                 std::any isEuUrl = isGreaterThanOrEqual(
+                 ccxt::any marketId = ::getValue(market, std::string("id"));
+                 ccxt::any isEuUrl = isGreaterThanOrEqual(
                      getIndexOf(url, std::string("gateeu")), 0);
-                 std::any isNonEuSpot =
+                 ccxt::any isNonEuSpot =
                      isTrue((isEqual(::getValue(market, std::string("spot")),
                                      true))) &&
                      !isTrue(isEuUrl);
-                 std::any intervalDefault =
-                     (isTrue(isNonEuSpot) ? std::any(std::string("50"))
-                                          : std::any(std::string("100ms")));
-                 std::any interval = intervalDefault;
-                 std::any intervalparamsVariable = this->handleOptionAndParams(
+                 ccxt::any intervalDefault =
+                     (isTrue(isNonEuSpot) ? ccxt::any(std::string("50"))
+                                          : ccxt::any(std::string("100ms")));
+                 ccxt::any interval = intervalDefault;
+                 ccxt::any intervalparamsVariable = this->handleOptionAndParams(
                      params, std::string("watchOrderBook"),
                      std::string("interval"), interval);
                  interval = ::getValue(intervalparamsVariable, 0);
                  params = ::getValue(intervalparamsVariable, 1);
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any limit =
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any limit =
                      this->safeInteger(params, std::string("limit"));
-                 if (isTrue(isEqual(limit, std::any{}))) {
+                 if (isTrue(isEqual(limit, ccxt::any{}))) {
                    limit = (isTrue((isEqual(
                                 ::getValue(market, std::string("spot")), true)))
-                                ? std::any(50)
-                                : std::any(100)); // max 100 atm
+                                ? ccxt::any(50)
+                                : ccxt::any(100)); // max 100 atm
                    if (isTrue(isEqual(messageType, std::string("options")))) {
                      limit = 50; // max 50 for options
                    }
                  }
-                 std::any payload = ccxt::list{};
-                 std::any channel = std::string("");
+                 ccxt::any payload = ccxt::list{};
+                 ccxt::any channel = std::string("");
                  if (isTrue(isEuUrl)) {
                    channel = std::string("spot.order_book_update");
                    payload = ccxt::list{marketId, interval};
@@ -798,7 +798,7 @@ public:
                                 isEqual(::getValue(market, std::string("spot")),
                                         true))) {
                    channel = std::string("spot.obu");
-                   std::any finalInterval = interval;
+                   ccxt::any finalInterval = interval;
                    if (isTrue(isEqual(limit, 400))) {
                      finalInterval = std::string("400");
                    }
@@ -811,12 +811,12 @@ public:
                    channel =
                        add(messageType, std::string(".order_book_update"));
                    payload = ccxt::list{marketId, interval};
-                   std::any stringLimit = toString(limit);
+                   ccxt::any stringLimit = toString(limit);
                    arrayPush(payload, stringLimit);
                  }
-                 std::any subMessageHash = add(
+                 ccxt::any subMessageHash = add(
                      add(std::string("orderbook"), std::string(":")), symbol);
-                 std::any messageHash =
+                 ccxt::any messageHash =
                      add(add(std::string("unsubscribe:orderbook"),
                              std::string(":")),
                          symbol);
@@ -828,17 +828,17 @@ public:
         .share();
   }
 
-  virtual void handleOrderBookSubscription(std::any client, std::any message,
-                                           std::any subscription) {
-    std::any symbol = this->safeString(subscription, std::string("symbol"));
-    std::any limit = this->safeInteger(subscription, std::string("limit"));
-    if (isTrue(!isEqual(symbol, std::any{}))) {
+  virtual void handleOrderBookSubscription(ccxt::any client, ccxt::any message,
+                                           ccxt::any subscription) {
+    ccxt::any symbol = this->safeString(subscription, std::string("symbol"));
+    ccxt::any limit = this->safeInteger(subscription, std::string("limit"));
+    if (isTrue(!isEqual(symbol, ccxt::any{}))) {
       ::setValue(this->orderbooks, symbol,
                  this->orderBook(ccxt::dict{}, limit));
     }
   }
 
-  virtual void handleNewSpotOrderBook(std::any client, std::any message) {
+  virtual void handleNewSpotOrderBook(ccxt::any client, ccxt::any message) {
     //
     //   {
     //      "channel":"spot.obu",
@@ -863,36 +863,36 @@ public:
     //      "time_ms":1777275365214,
     //      "event":"update"
     //   }
-    std::any result =
+    ccxt::any result =
         this->safeDict(message, std::string("result"), ccxt::dict{});
-    std::any full = this->safeBool(result, std::string("full"), false);
-    std::any marketIdWithPrefix = this->safeString(result, std::string("s"));
-    if (isTrue(isEqual(marketIdWithPrefix, std::any{}))) {
+    ccxt::any full = this->safeBool(result, std::string("full"), false);
+    ccxt::any marketIdWithPrefix = this->safeString(result, std::string("s"));
+    if (isTrue(isEqual(marketIdWithPrefix, ccxt::any{}))) {
       return;
     }
-    std::any marketIdParts = split(marketIdWithPrefix, std::string("."));
-    std::any marketId = this->safeString(marketIdParts, 1);
-    std::any symbol = this->safeSymbol(marketId, std::any{}, std::string("_"),
+    ccxt::any marketIdParts = split(marketIdWithPrefix, std::string("."));
+    ccxt::any marketId = this->safeString(marketIdParts, 1);
+    ccxt::any symbol = this->safeSymbol(marketId, ccxt::any{}, std::string("_"),
                                        std::string("spot"));
-    std::any messageHash = add(std::string("orderbook:"), symbol);
+    ccxt::any messageHash = add(std::string("orderbook:"), symbol);
     if (isTrue(
-            isEqual(this->safeValue(this->orderbooks, symbol), std::any{}))) {
+            isEqual(this->safeValue(this->orderbooks, symbol), ccxt::any{}))) {
       ::setValue(this->orderbooks, symbol, this->orderBook(ccxt::dict{}, 1000));
     }
-    std::any orderbook = ::getValue(this->orderbooks, symbol);
+    ccxt::any orderbook = ::getValue(this->orderbooks, symbol);
     if (isTrue(isEqual(full, true))) {
-      std::any snapshopt = this->parseOrderBook(
-          result, symbol, std::any{}, std::string("b"), std::string("a"));
+      ccxt::any snapshopt = this->parseOrderBook(
+          result, symbol, ccxt::any{}, std::string("b"), std::string("a"));
       ::setValue(snapshopt, std::string("nonce"),
                  this->safeInteger(result, std::string("u")));
       ::setValue(snapshopt, std::string("timestamp"),
                  this->safeInteger(result, std::string("t")));
       ::resetOrderBook(orderbook, snapshopt);
     } else {
-      std::any nonce = this->safeInteger(orderbook, std::string("nonce"));
-      std::any deltaStart = this->safeInteger(result, std::string("u"));
-      if (isTrue(isTrue((isEqual(nonce, std::any{}))) ||
-                 isTrue((isTrue((!isEqual(deltaStart, std::any{}))) &&
+      ccxt::any nonce = this->safeInteger(orderbook, std::string("nonce"));
+      ccxt::any deltaStart = this->safeInteger(result, std::string("u"));
+      if (isTrue(isTrue((isEqual(nonce, ccxt::any{}))) ||
+                 isTrue((isTrue((!isEqual(deltaStart, ccxt::any{}))) &&
                          isTrue((isGreaterThanOrEqual(nonce, deltaStart))))))) {
         return;
       }
@@ -901,7 +901,7 @@ public:
     this->resolve(orderbook, messageHash);
   }
 
-  virtual void handleOrderBook(std::any client, std::any message) {
+  virtual void handleOrderBook(ccxt::any client, ccxt::any message) {
     //
     // spot
     //
@@ -955,58 +955,58 @@ public:
     //         }
     //     }
     //
-    std::any channel = this->safeString(message, std::string("channel"));
+    ccxt::any channel = this->safeString(message, std::string("channel"));
     if (isTrue(isEqual(channel, std::string("spot.obu")))) {
       this->handleNewSpotOrderBook(client, message);
       return;
     }
-    std::any channelParts = split(channel, std::string("."));
-    std::any rawMarketType = this->safeString(channelParts, 0);
-    std::any isSpot = isEqual(rawMarketType, std::string("spot"));
-    std::any marketType = (isTrue(isSpot) ? std::any(std::string("spot"))
-                                          : std::any(std::string("contract")));
-    std::any delta = this->safeValue(message, std::string("result"));
-    std::any deltaStart = this->safeInteger(delta, std::string("U"));
-    std::any deltaEnd = this->safeInteger(delta, std::string("u"));
-    std::any marketId = this->safeString(delta, std::string("s"));
-    std::any symbol =
-        this->safeSymbol(marketId, std::any{}, std::string("_"), marketType);
-    std::any messageHash = add(std::string("orderbook:"), symbol);
-    std::any storedOrderBook = this->safeValue(this->orderbooks, symbol,
+    ccxt::any channelParts = split(channel, std::string("."));
+    ccxt::any rawMarketType = this->safeString(channelParts, 0);
+    ccxt::any isSpot = isEqual(rawMarketType, std::string("spot"));
+    ccxt::any marketType = (isTrue(isSpot) ? ccxt::any(std::string("spot"))
+                                          : ccxt::any(std::string("contract")));
+    ccxt::any delta = this->safeValue(message, std::string("result"));
+    ccxt::any deltaStart = this->safeInteger(delta, std::string("U"));
+    ccxt::any deltaEnd = this->safeInteger(delta, std::string("u"));
+    ccxt::any marketId = this->safeString(delta, std::string("s"));
+    ccxt::any symbol =
+        this->safeSymbol(marketId, ccxt::any{}, std::string("_"), marketType);
+    ccxt::any messageHash = add(std::string("orderbook:"), symbol);
+    ccxt::any storedOrderBook = this->safeValue(this->orderbooks, symbol,
                                                this->orderBook(ccxt::dict{}));
-    std::any nonce = this->safeInteger(storedOrderBook, std::string("nonce"));
-    if (isTrue(isEqual(nonce, std::any{}))) {
-      std::any cacheLength = 0;
-      if (isTrue(!isEqual(storedOrderBook, std::any{}))) {
+    ccxt::any nonce = this->safeInteger(storedOrderBook, std::string("nonce"));
+    if (isTrue(isEqual(nonce, ccxt::any{}))) {
+      ccxt::any cacheLength = 0;
+      if (isTrue(!isEqual(storedOrderBook, ccxt::any{}))) {
         cacheLength =
             getArrayLength(::getValue(storedOrderBook, std::string("cache")));
       }
-      std::any snapshotDelay = this->handleOption(
+      ccxt::any snapshotDelay = this->handleOption(
           std::string("watchOrderBook"), std::string("snapshotDelay"), 10);
-      std::any waitAmount =
-          (isTrue(isSpot) ? std::any(snapshotDelay) : std::any(0));
+      ccxt::any waitAmount =
+          (isTrue(isSpot) ? ccxt::any(snapshotDelay) : ccxt::any(0));
       if (isTrue(isEqual(cacheLength, waitAmount))) {
         // max limit is 100
-        std::any subscription = ::getValue(
+        ccxt::any subscription = ::getValue(
             ::getValue(client, std::string("subscriptions")), messageHash);
-        std::any limit = this->safeInteger(subscription, std::string("limit"));
+        ccxt::any limit = this->safeInteger(subscription, std::string("limit"));
         this->spawn(
             std::string("loadOrderBook"), client, messageHash, symbol, limit,
             ccxt::dict{}); // needed for c#, number of args needs to match
       }
       arrayPush(::getValue(storedOrderBook, std::string("cache")), delta);
       return;
-    } else if (isTrue(isTrue((!isEqual(deltaEnd, std::any{}))) &&
+    } else if (isTrue(isTrue((!isEqual(deltaEnd, ccxt::any{}))) &&
                       isTrue((isGreaterThanOrEqual(nonce, deltaEnd))))) {
       return;
-    } else if (isTrue(isTrue((!isEqual(deltaStart, std::any{}))) &&
+    } else if (isTrue(isTrue((!isEqual(deltaStart, ccxt::any{}))) &&
                       isTrue((isGreaterThanOrEqual(
                           nonce, subtract(deltaStart, 1)))))) {
       this->handleDelta(storedOrderBook, delta);
     } else {
       deleteKey(::getValue(client, std::string("subscriptions")), messageHash);
       deleteKey(this->orderbooks, symbol);
-      std::any checksum = this->handleOption(std::string("watchOrderBook"),
+      ccxt::any checksum = this->handleOption(std::string("watchOrderBook"),
                                              std::string("checksum"), true);
       if (isTrue(isEqual(checksum, true))) {
         ChecksumError error =
@@ -1018,25 +1018,25 @@ public:
     this->resolve(storedOrderBook, messageHash);
   }
 
-  std::any getCacheIndex(std::any orderBook, std::any cache) override {
-    std::any nonce = this->safeInteger(orderBook, std::string("nonce"));
-    std::any firstDelta = ::getValue(cache, 0);
-    std::any firstDeltaStart = this->safeInteger(firstDelta, std::string("U"));
-    if (isTrue(isTrue(isTrue((!isEqual(nonce, std::any{}))) &&
-                      isTrue((!isEqual(firstDeltaStart, std::any{})))) &&
+  ccxt::any getCacheIndex(ccxt::any orderBook, ccxt::any cache) override {
+    ccxt::any nonce = this->safeInteger(orderBook, std::string("nonce"));
+    ccxt::any firstDelta = ::getValue(cache, 0);
+    ccxt::any firstDeltaStart = this->safeInteger(firstDelta, std::string("U"));
+    if (isTrue(isTrue(isTrue((!isEqual(nonce, ccxt::any{}))) &&
+                      isTrue((!isEqual(firstDeltaStart, ccxt::any{})))) &&
                isTrue((isLessThan(nonce, firstDeltaStart))))) {
       return -1;
     }
-    for (std::any i = 0; isLessThan(i, getArrayLength(cache));
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(cache));
          postFixIncrement(i)) {
-      std::any delta = ::getValue(cache, i);
-      std::any deltaStart = this->safeInteger(delta, std::string("U"));
-      std::any deltaEnd = this->safeInteger(delta, std::string("u"));
+      ccxt::any delta = ::getValue(cache, i);
+      ccxt::any deltaStart = this->safeInteger(delta, std::string("U"));
+      ccxt::any deltaEnd = this->safeInteger(delta, std::string("u"));
       if (isTrue(
               isTrue(
-                  isTrue(isTrue(isTrue((!isEqual(nonce, std::any{}))) &&
-                                isTrue((!isEqual(deltaStart, std::any{})))) &&
-                         isTrue((!isEqual(deltaEnd, std::any{})))) &&
+                  isTrue(isTrue(isTrue((!isEqual(nonce, ccxt::any{}))) &&
+                                isTrue((!isEqual(deltaStart, ccxt::any{})))) &&
+                         isTrue((!isEqual(deltaEnd, ccxt::any{})))) &&
                   isTrue((
                       isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))))) &&
               isTrue((isLessThan(nonce, deltaEnd))))) {
@@ -1046,30 +1046,30 @@ public:
     return getArrayLength(cache);
   }
 
-  virtual void handleBidAsks(std::any bookSide, std::any bidAsks) {
-    for (std::any i = 0; isLessThan(i, getArrayLength(bidAsks));
+  virtual void handleBidAsks(ccxt::any bookSide, ccxt::any bidAsks) {
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(bidAsks));
          postFixIncrement(i)) {
-      std::any bidAsk = ::getValue(bidAsks, i);
+      ccxt::any bidAsk = ::getValue(bidAsks, i);
       if (isTrue(isArray(bidAsk))) {
         ::wsStoreArray(bookSide, this->parseOrderBookBidAsk(bidAsk));
       } else {
-        std::any price = this->safeFloat(bidAsk, std::string("p"));
-        std::any amount = this->safeFloat(bidAsk, std::string("s"));
+        ccxt::any price = this->safeFloat(bidAsk, std::string("p"));
+        ccxt::any amount = this->safeFloat(bidAsk, std::string("s"));
         ::wsStore(bookSide, price, amount);
       }
     }
   }
 
-  void handleDelta(std::any orderbook, std::any delta) override {
-    std::any timestamp = this->safeInteger(delta, std::string("t"));
+  void handleDelta(ccxt::any orderbook, ccxt::any delta) override {
+    ccxt::any timestamp = this->safeInteger(delta, std::string("t"));
     ::setValue(orderbook, std::string("timestamp"), timestamp);
     ::setValue(orderbook, std::string("datetime"), this->iso8601(timestamp));
     ::setValue(orderbook, std::string("nonce"),
                this->safeInteger(delta, std::string("u")));
-    std::any bids = this->safeValue(delta, std::string("b"), ccxt::list{});
-    std::any asks = this->safeValue(delta, std::string("a"), ccxt::list{});
-    std::any storedBids = ::getValue(orderbook, std::string("bids"));
-    std::any storedAsks = ::getValue(orderbook, std::string("asks"));
+    ccxt::any bids = this->safeValue(delta, std::string("b"), ccxt::list{});
+    ccxt::any asks = this->safeValue(delta, std::string("a"), ccxt::list{});
+    ccxt::any storedBids = ::getValue(orderbook, std::string("bids"));
+    ccxt::any storedAsks = ::getValue(orderbook, std::string("asks"));
     this->handleBidAsks(storedBids, bids);
     this->handleBidAsks(storedAsks, asks);
   }
@@ -1088,18 +1088,18 @@ public:
    * @returns {object} a [ticker structure]{@link
    * https://docs.ccxt.com/?id=ticker-structure}
    */
-  std::shared_future<std::any>
-  watchTicker(std::any symbol, std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchTicker(ccxt::any symbol, ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
-                        if (isTrue(isEqual(this->markets, std::any{}))) {
+                      [=]() mutable -> ccxt::any {
+                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                           awaitValue(this->loadMarkets());
                         }
-                        std::any market = this->market(symbol);
+                        ccxt::any market = this->market(symbol);
                         symbol = ::getValue(market, std::string("symbol"));
                         ::setValue(params, std::string("callerMethodName"),
                                    std::string("watchTicker"));
-                        std::any result = awaitValue(
+                        ccxt::any result = awaitValue(
                             this->watchTickers(ccxt::list{symbol}, params));
                         return this->safeValue(result, symbol);
                       })
@@ -1122,12 +1122,12 @@ public:
    * @returns {object} a [ticker structure]{@link
    * https://docs.ccxt.com/?id=ticker-structure}
    */
-  std::shared_future<std::any>
-  watchTickers(std::any symbols = std::any{},
-               std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchTickers(ccxt::any symbols = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
+               [=]() mutable -> ccxt::any {
                  return awaitValue(this->subscribeWatchTickersAndBidsAsks(
                      symbols, std::string("watchTickers"),
                      this->extend(
@@ -1139,7 +1139,7 @@ public:
         .share();
   }
 
-  virtual void handleTicker(std::any client, std::any message) {
+  virtual void handleTicker(ccxt::any client, ccxt::any message) {
     //
     //    {
     //        "time": 1649326221,
@@ -1176,11 +1176,11 @@ public:
    * @returns {object} a [ticker structure]{@link
    * https://docs.ccxt.com/?id=ticker-structure}
    */
-  std::shared_future<std::any>
-  watchBidsAsks(std::any symbols = std::any{},
-                std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchBidsAsks(ccxt::any symbols = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
+                      [=]() mutable -> ccxt::any {
                         return awaitValue(
                             this->subscribeWatchTickersAndBidsAsks(
                                 symbols, std::string("watchBidsAsks"),
@@ -1194,7 +1194,7 @@ public:
         .share();
   }
 
-  virtual void handleBidAsk(std::any client, std::any message) {
+  virtual void handleBidAsk(ccxt::any client, ccxt::any message) {
     //
     //    {
     //        "time": 1671363004,
@@ -1215,111 +1215,111 @@ public:
     this->handleTickerAndBidAsk(std::string("bidask"), client, message);
   }
 
-  virtual std::shared_future<std::any>
-  subscribeWatchTickersAndBidsAsks(std::any symbols = std::any{},
-                                   std::any callerMethodName = std::any{},
-                                   std::any params = ccxt::dict{}) {
+  virtual std::shared_future<ccxt::any>
+  subscribeWatchTickersAndBidsAsks(ccxt::any symbols = ccxt::any{},
+                                   ccxt::any callerMethodName = ccxt::any{},
+                                   ccxt::any params = ccxt::dict{}) {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any callerMethodNameparamsVariable =
+                 ccxt::any callerMethodNameparamsVariable =
                      this->handleParamString(params,
                                              std::string("callerMethodName"),
                                              callerMethodName);
                  callerMethodName =
                      ::getValue(callerMethodNameparamsVariable, 0);
                  params = ::getValue(callerMethodNameparamsVariable, 1);
-                 symbols = this->marketSymbols(symbols, std::any{}, false);
-                 std::any market = this->market(::getValue(symbols, 0));
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any marketIds = this->marketIds(symbols);
-                 std::any channelName = std::any{};
-                 std::any channelNameparamsVariable =
+                 symbols = this->marketSymbols(symbols, ccxt::any{}, false);
+                 ccxt::any market = this->market(::getValue(symbols, 0));
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any marketIds = this->marketIds(symbols);
+                 ccxt::any channelName = ccxt::any{};
+                 ccxt::any channelNameparamsVariable =
                      this->handleOptionAndParams(params, callerMethodName,
                                                  std::string("method"));
                  channelName = ::getValue(channelNameparamsVariable, 0);
                  params = ::getValue(channelNameparamsVariable, 1);
-                 std::any url = this->getUrlByMarket(market);
-                 std::any channel =
+                 ccxt::any url = this->getUrlByMarket(market);
+                 ccxt::any channel =
                      add(add(messageType, std::string(".")), channelName);
-                 if (isTrue(isEqual(callerMethodName, std::any{}))) {
+                 if (isTrue(isEqual(callerMethodName, ccxt::any{}))) {
                    throw ArgumentsRequired(toString(add(
                        this->id,
                        std::string(" requires a callerMethodName argument"))));
                  }
-                 std::any isWatchTickers = isGreaterThanOrEqual(
+                 ccxt::any isWatchTickers = isGreaterThanOrEqual(
                      getIndexOf(callerMethodName, std::string("watchTicker")),
                      0);
-                 std::any prefix =
-                     (isTrue(isWatchTickers) ? std::any(std::string("ticker"))
-                                             : std::any(std::string("bidask")));
-                 std::any messageHashes = ccxt::list{};
-                 for (std::any i = 0; isLessThan(i, getArrayLength(symbols));
+                 ccxt::any prefix =
+                     (isTrue(isWatchTickers) ? ccxt::any(std::string("ticker"))
+                                             : ccxt::any(std::string("bidask")));
+                 ccxt::any messageHashes = ccxt::list{};
+                 for (ccxt::any i = 0; isLessThan(i, getArrayLength(symbols));
                       postFixIncrement(i)) {
-                   std::any symbol = ::getValue(symbols, i);
+                   ccxt::any symbol = ::getValue(symbols, i);
                    arrayPush(messageHashes,
                              add(add(prefix, std::string(":")), symbol));
                  }
-                 std::any tickerOrBidAsk =
+                 ccxt::any tickerOrBidAsk =
                      awaitValue(this->subscribePublicMultiple(
                          url, messageHashes, marketIds, channel, params));
                  if (isTrue(this->newUpdates)) {
-                   std::any items = ccxt::dict{};
+                   ccxt::any items = ccxt::dict{};
                    ::setValue(items,
                               ::getValue(tickerOrBidAsk, std::string("symbol")),
                               tickerOrBidAsk);
                    return items;
                  }
-                 std::any result =
-                     (isTrue(isWatchTickers) ? std::any(this->tickers)
-                                             : std::any(this->bidsasks));
+                 ccxt::any result =
+                     (isTrue(isWatchTickers) ? ccxt::any(this->tickers)
+                                             : ccxt::any(this->bidsasks));
                  return this->filterByArray(result, std::string("symbol"),
                                             symbols, true);
                })
         .share();
   }
 
-  virtual void handleTickerAndBidAsk(std::any objectName, std::any client,
-                                     std::any message) {
-    std::any channel = this->safeString(message, std::string("channel"));
-    std::any parts = split(channel, std::string("."));
-    std::any rawMarketType = this->safeString(parts, 0);
-    std::any marketType =
+  virtual void handleTickerAndBidAsk(ccxt::any objectName, ccxt::any client,
+                                     ccxt::any message) {
+    ccxt::any channel = this->safeString(message, std::string("channel"));
+    ccxt::any parts = split(channel, std::string("."));
+    ccxt::any rawMarketType = this->safeString(parts, 0);
+    ccxt::any marketType =
         (isTrue((isEqual(rawMarketType, std::string("futures"))))
-             ? std::any(std::string("contract"))
-             : std::any(std::string("spot")));
-    std::any result = this->safeValue(message, std::string("result"));
-    std::any results = ccxt::list{};
+             ? ccxt::any(std::string("contract"))
+             : ccxt::any(std::string("spot")));
+    ccxt::any result = this->safeValue(message, std::string("result"));
+    ccxt::any results = ccxt::list{};
     if (isTrue(isArray(result))) {
       results = this->safeList(message, std::string("result"), ccxt::list{});
     } else {
-      std::any rawTicker =
+      ccxt::any rawTicker =
           this->safeDict(message, std::string("result"), ccxt::dict{});
       results = ccxt::list{rawTicker};
     }
-    std::any isTicker = (isEqual(
+    ccxt::any isTicker = (isEqual(
         objectName, std::string("ticker"))); // whether ticker or bid-ask
-    for (std::any i = 0; isLessThan(i, getArrayLength(results));
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(results));
          postFixIncrement(i)) {
-      std::any rawTicker = ::getValue(results, i);
-      std::any marketId = this->safeString(rawTicker, std::string("s"));
-      std::any market =
-          this->safeMarket(marketId, std::any{}, std::string("_"), marketType);
-      std::any parsedItem = this->parseTicker(rawTicker, market);
-      std::any symbol = ::getValue(parsedItem, std::string("symbol"));
+      ccxt::any rawTicker = ::getValue(results, i);
+      ccxt::any marketId = this->safeString(rawTicker, std::string("s"));
+      ccxt::any market =
+          this->safeMarket(marketId, ccxt::any{}, std::string("_"), marketType);
+      ccxt::any parsedItem = this->parseTicker(rawTicker, market);
+      ccxt::any symbol = ::getValue(parsedItem, std::string("symbol"));
       if (isTrue(isTicker)) {
-        if (isTrue(!isEqual(symbol, std::any{}))) {
+        if (isTrue(!isEqual(symbol, ccxt::any{}))) {
           ::setValue(this->tickers, symbol, parsedItem);
         }
       } else {
-        if (isTrue(!isEqual(symbol, std::any{}))) {
+        if (isTrue(!isEqual(symbol, ccxt::any{}))) {
           ::setValue(this->bidsasks, symbol, parsedItem);
         }
       }
-      std::any messageHash = add(add(objectName, std::string(":")), symbol);
+      ccxt::any messageHash = add(add(objectName, std::string(":")), symbol);
       this->resolve(parsedItem, messageHash);
     }
   }
@@ -1342,12 +1342,12 @@ public:
    * @returns {object[]} a list of [trade structures]{@link
    * https://docs.ccxt.com/?id=public-trades}
    */
-  std::shared_future<std::any>
-  watchTrades(std::any symbol, std::any since = std::any{},
-              std::any limit = std::any{},
-              std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchTrades(ccxt::any symbol, ccxt::any since = ccxt::any{},
+              ccxt::any limit = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
+                      [=]() mutable -> ccxt::any {
                         return awaitValue(this->watchTradesForSymbols(
                             ccxt::list{symbol}, since, limit, params));
                       })
@@ -1372,34 +1372,34 @@ public:
    * @returns {object[]} a list of [trade structures]{@link
    * https://docs.ccxt.com/?id=public-trades}
    */
-  std::shared_future<std::any>
-  watchTradesForSymbols(std::any symbols, std::any since = std::any{},
-                        std::any limit = std::any{},
-                        std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchTradesForSymbols(ccxt::any symbols, ccxt::any since = ccxt::any{},
+                        ccxt::any limit = ccxt::any{},
+                        ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
                  symbols = this->marketSymbols(symbols);
-                 std::any marketIds = this->marketIds(symbols);
-                 std::any market = this->market(::getValue(symbols, 0));
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any channel = add(messageType, std::string(".trades"));
-                 std::any messageHashes = ccxt::list{};
-                 for (std::any i = 0; isLessThan(i, getArrayLength(symbols));
+                 ccxt::any marketIds = this->marketIds(symbols);
+                 ccxt::any market = this->market(::getValue(symbols, 0));
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any channel = add(messageType, std::string(".trades"));
+                 ccxt::any messageHashes = ccxt::list{};
+                 for (ccxt::any i = 0; isLessThan(i, getArrayLength(symbols));
                       postFixIncrement(i)) {
-                   std::any symbol = ::getValue(symbols, i);
+                   ccxt::any symbol = ::getValue(symbols, i);
                    arrayPush(messageHashes,
                              add(std::string("trades:"), symbol));
                  }
-                 std::any url = this->getUrlByMarket(market);
-                 std::any trades = awaitValue(this->subscribePublicMultiple(
+                 ccxt::any url = this->getUrlByMarket(market);
+                 ccxt::any trades = awaitValue(this->subscribePublicMultiple(
                      url, messageHashes, marketIds, channel, params));
                  if (isTrue(this->newUpdates)) {
-                   std::any first = this->safeValue(trades, 0);
-                   std::any tradeSymbol =
+                   ccxt::any first = this->safeValue(trades, 0);
+                   ccxt::any tradeSymbol =
                        this->safeString(first, std::string("symbol"));
                    limit = ::wsGetLimit(trades, tradeSymbol, limit);
                  }
@@ -1419,31 +1419,31 @@ public:
    * @returns {object[]} a list of [trade structures]{@link
    * https://docs.ccxt.com/?id=public-trades}
    */
-  std::shared_future<std::any>
-  unWatchTradesForSymbols(std::any symbols,
-                          std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  unWatchTradesForSymbols(ccxt::any symbols,
+                          ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
                  symbols = this->marketSymbols(symbols);
-                 std::any marketIds = this->marketIds(symbols);
-                 std::any market = this->market(::getValue(symbols, 0));
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any channel = add(messageType, std::string(".trades"));
-                 std::any subMessageHashes = ccxt::list{};
-                 std::any messageHashes = ccxt::list{};
-                 for (std::any i = 0; isLessThan(i, getArrayLength(symbols));
+                 ccxt::any marketIds = this->marketIds(symbols);
+                 ccxt::any market = this->market(::getValue(symbols, 0));
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any channel = add(messageType, std::string(".trades"));
+                 ccxt::any subMessageHashes = ccxt::list{};
+                 ccxt::any messageHashes = ccxt::list{};
+                 for (ccxt::any i = 0; isLessThan(i, getArrayLength(symbols));
                       postFixIncrement(i)) {
-                   std::any symbol = ::getValue(symbols, i);
+                   ccxt::any symbol = ::getValue(symbols, i);
                    arrayPush(subMessageHashes,
                              add(std::string("trades:"), symbol));
                    arrayPush(messageHashes,
                              add(std::string("unsubscribe:trades:"), symbol));
                  }
-                 std::any url = this->getUrlByMarket(market);
+                 ccxt::any url = this->getUrlByMarket(market);
                  return awaitValue(this->unSubscribePublicMultiple(
                      url, std::string("trades"), symbols, messageHashes,
                      subMessageHashes, marketIds, channel, params));
@@ -1461,17 +1461,17 @@ public:
    * @returns {object[]} a list of [trade structures]{@link
    * https://docs.ccxt.com/?id=public-trades}
    */
-  std::shared_future<std::any>
-  unWatchTrades(std::any symbol, std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  unWatchTrades(ccxt::any symbol, ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
+                      [=]() mutable -> ccxt::any {
                         return awaitValue(this->unWatchTradesForSymbols(
                             ccxt::list{symbol}, params));
                       })
         .share();
   }
 
-  virtual void handleTrades(std::any client, std::any message) {
+  virtual void handleTrades(ccxt::any client, ccxt::any message) {
     //
     // {
     //     "time": 1648725035,
@@ -1488,26 +1488,26 @@ public:
     //     }]
     // }
     //
-    std::any result = this->safeValue(message, std::string("result"));
+    ccxt::any result = this->safeValue(message, std::string("result"));
     if (!isTrue(isArray(result))) {
       result = ccxt::list{result};
     }
-    std::any parsedTrades = this->parseTrades(result);
-    for (std::any i = 0; isLessThan(i, getArrayLength(parsedTrades));
+    ccxt::any parsedTrades = this->parseTrades(result);
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(parsedTrades));
          postFixIncrement(i)) {
-      std::any trade = ::getValue(parsedTrades, i);
-      std::any symbol = ::getValue(trade, std::string("symbol"));
-      std::any cachedTrades = this->safeValue(this->trades, symbol);
-      if (isTrue(isEqual(cachedTrades, std::any{}))) {
-        std::any limit =
+      ccxt::any trade = ::getValue(parsedTrades, i);
+      ccxt::any symbol = ::getValue(trade, std::string("symbol"));
+      ccxt::any cachedTrades = this->safeValue(this->trades, symbol);
+      if (isTrue(isEqual(cachedTrades, ccxt::any{}))) {
+        ccxt::any limit =
             this->safeInteger(this->options, std::string("tradesLimit"), 1000);
         cachedTrades = ccxt::ws::ArrayCache(limit);
-        if (isTrue(!isEqual(symbol, std::any{}))) {
+        if (isTrue(!isEqual(symbol, ccxt::any{}))) {
           ::setValue(this->trades, symbol, cachedTrades);
         }
       }
       ::wsAppend(cachedTrades, trade);
-      std::any hash = add(std::string("trades:"), symbol);
+      ccxt::any hash = add(std::string("trades:"), symbol);
       this->resolve(cachedTrades, hash);
     }
   }
@@ -1529,32 +1529,32 @@ public:
    * @returns {int[][]} A list of candles ordered as timestamp, open, high, low,
    * close, volume
    */
-  std::shared_future<std::any>
-  watchOHLCV(std::any symbol, std::any timeframe = std::string("1m"),
-             std::any since = std::any{}, std::any limit = std::any{},
-             std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
+             ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+             ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
                  // todo add options support
-                 std::any market = this->market(symbol);
+                 ccxt::any market = this->market(symbol);
                  symbol = ::getValue(market, std::string("symbol"));
-                 std::any marketId = ::getValue(market, std::string("id"));
-                 std::any interval =
+                 ccxt::any marketId = ::getValue(market, std::string("id"));
+                 ccxt::any interval =
                      this->safeString(this->timeframes, timeframe, timeframe);
-                 std::any messageType = this->getTypeByMarket(market);
-                 std::any channel =
+                 ccxt::any messageType = this->getTypeByMarket(market);
+                 ccxt::any channel =
                      add(messageType, std::string(".candlesticks"));
-                 std::any messageHash =
+                 ccxt::any messageHash =
                      add(add(add(std::string("candles:"), interval),
                              std::string(":")),
                          ::getValue(market, std::string("symbol")));
-                 std::any url = this->getUrlByMarket(market);
-                 std::any payload = ccxt::list{interval, marketId};
-                 std::any ohlcv = awaitValue(this->subscribePublic(
+                 ccxt::any url = this->getUrlByMarket(market);
+                 ccxt::any payload = ccxt::list{interval, marketId};
+                 ccxt::any ohlcv = awaitValue(this->subscribePublic(
                      url, messageHash, payload, channel, params));
                  if (isTrue(this->newUpdates)) {
                    limit = ::wsGetLimit(ohlcv, symbol, limit);
@@ -1564,7 +1564,7 @@ public:
         .share();
   }
 
-  virtual void handleOHLCV(std::any client, std::any message) {
+  virtual void handleOHLCV(ccxt::any client, ccxt::any message) {
     //
     // {
     //     "time": 1606292600,
@@ -1581,57 +1581,57 @@ public:
     //     }
     //   }
     //
-    std::any channel = this->safeString(message, std::string("channel"));
-    std::any channelParts = split(channel, std::string("."));
-    std::any rawMarketType = this->safeString(channelParts, 0);
-    std::any marketType = (isTrue((isEqual(rawMarketType, std::string("spot"))))
-                               ? std::any(std::string("spot"))
-                               : std::any(std::string("contract")));
-    std::any result = this->safeValue(message, std::string("result"));
+    ccxt::any channel = this->safeString(message, std::string("channel"));
+    ccxt::any channelParts = split(channel, std::string("."));
+    ccxt::any rawMarketType = this->safeString(channelParts, 0);
+    ccxt::any marketType = (isTrue((isEqual(rawMarketType, std::string("spot"))))
+                               ? ccxt::any(std::string("spot"))
+                               : ccxt::any(std::string("contract")));
+    ccxt::any result = this->safeValue(message, std::string("result"));
     if (!isTrue(isArray(result))) {
       result = ccxt::list{result};
     }
-    std::any marketIds = ccxt::dict{};
-    for (std::any i = 0; isLessThan(i, getArrayLength(result));
+    ccxt::any marketIds = ccxt::dict{};
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
          postFixIncrement(i)) {
-      std::any ohlcv = ::getValue(result, i);
-      std::any subscription =
+      ccxt::any ohlcv = ::getValue(result, i);
+      ccxt::any subscription =
           this->safeString(ohlcv, std::string("n"), std::string(""));
-      std::any parts = split(subscription, std::string("_"));
-      std::any timeframeId = this->safeString(parts, 0);
-      std::any timeframe = this->findTimeframe(timeframeId);
-      std::any prefix = add(timeframe, std::string("_"));
-      std::any marketId = replace(subscription, prefix, std::string(""));
-      std::any symbol =
-          this->safeSymbol(marketId, std::any{}, std::string("_"), marketType);
-      std::any parsed = this->parseOHLCV(ohlcv);
+      ccxt::any parts = split(subscription, std::string("_"));
+      ccxt::any timeframeId = this->safeString(parts, 0);
+      ccxt::any timeframe = this->findTimeframe(timeframeId);
+      ccxt::any prefix = add(timeframe, std::string("_"));
+      ccxt::any marketId = replace(subscription, prefix, std::string(""));
+      ccxt::any symbol =
+          this->safeSymbol(marketId, ccxt::any{}, std::string("_"), marketType);
+      ccxt::any parsed = this->parseOHLCV(ohlcv);
       ::setValue(this->ohlcvs, symbol,
                  this->safeValue(this->ohlcvs, symbol, ccxt::dict{}));
-      std::any stored =
+      ccxt::any stored =
           this->safeValue(this->safeValue(this->ohlcvs, symbol), timeframe);
-      if (isTrue(isEqual(stored, std::any{}))) {
-        std::any limit =
+      if (isTrue(isEqual(stored, ccxt::any{}))) {
+        ccxt::any limit =
             this->safeInteger(this->options, std::string("OHLCVLimit"), 1000);
         stored = ccxt::ws::ArrayCacheByTimestamp(limit);
-        if (isTrue(isTrue(!isEqual(symbol, std::any{})) &&
-                   isTrue(!isEqual(timeframe, std::any{})))) {
+        if (isTrue(isTrue(!isEqual(symbol, ccxt::any{})) &&
+                   isTrue(!isEqual(timeframe, ccxt::any{})))) {
           ::setValue(::getValue(this->ohlcvs, symbol), timeframe, stored);
         }
       }
       ::wsAppend(stored, parsed);
       ::setValue(marketIds, symbol, timeframe);
     }
-    std::any keys = getObjectKeys(marketIds);
-    for (std::any i = 0; isLessThan(i, getArrayLength(keys));
+    ccxt::any keys = getObjectKeys(marketIds);
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));
          postFixIncrement(i)) {
-      std::any symbol = ::getValue(keys, i);
-      std::any timeframe = ::getValue(marketIds, symbol);
-      std::any interval = this->findTimeframe(timeframe);
-      std::any hash =
+      ccxt::any symbol = ::getValue(keys, i);
+      ccxt::any timeframe = ::getValue(marketIds, symbol);
+      ccxt::any interval = this->findTimeframe(timeframe);
+      ccxt::any hash =
           add(add(add(add(std::string("candles"), std::string(":")), interval),
                   std::string(":")),
               symbol);
-      std::any stored =
+      ccxt::any stored =
           this->safeValue(::getValue(this->ohlcvs, symbol), interval);
       this->resolve(stored, hash);
     }
@@ -1655,33 +1655,33 @@ public:
    * @returns {object[]} a list of [trade structures]{@link
    * https://docs.ccxt.com/?id=trade-structure}
    */
-  std::shared_future<std::any>
-  watchMyTrades(std::any symbol = std::any{}, std::any since = std::any{},
-                std::any limit = std::any{},
-                std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchMyTrades(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+                ccxt::any limit = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any subType = std::any{};
-                 std::any type = std::any{};
-                 std::any marketId = add(std::string("!"), std::string("all"));
-                 std::any market = std::any{};
-                 if (isTrue(!isEqual(symbol, std::any{}))) {
+                 ccxt::any subType = ccxt::any{};
+                 ccxt::any type = ccxt::any{};
+                 ccxt::any marketId = add(std::string("!"), std::string("all"));
+                 ccxt::any market = ccxt::any{};
+                 if (isTrue(!isEqual(symbol, ccxt::any{}))) {
                    market = this->market(symbol);
                    marketId = ::getValue(market, std::string("id"));
                  }
-                 std::any typeparamsVariable = this->handleMarketTypeAndParams(
+                 ccxt::any typeparamsVariable = this->handleMarketTypeAndParams(
                      std::string("watchMyTrades"), market, params);
                  type = ::getValue(typeparamsVariable, 0);
                  params = ::getValue(typeparamsVariable, 1);
-                 std::any subTypeparamsVariable = this->handleSubTypeAndParams(
+                 ccxt::any subTypeparamsVariable = this->handleSubTypeAndParams(
                      std::string("watchMyTrades"), market, params);
                  subType = ::getValue(subTypeparamsVariable, 0);
                  params = ::getValue(subTypeparamsVariable, 1);
-                 std::any messageType = this->getSupportedMapping(
+                 ccxt::any messageType = this->getSupportedMapping(
                      type, ccxt::dict{
                                {std::string("spot"), std::string("spot")},
                                {std::string("margin"), std::string("spot")},
@@ -1689,20 +1689,20 @@ public:
                                {std::string("swap"), std::string("futures")},
                                {std::string("option"), std::string("options")},
                            });
-                 std::any channel =
+                 ccxt::any channel =
                      add(messageType, std::string(".usertrades"));
-                 std::any messageHash = std::string("myTrades");
-                 if (isTrue(!isEqual(symbol, std::any{}))) {
+                 ccxt::any messageHash = std::string("myTrades");
+                 if (isTrue(!isEqual(symbol, ccxt::any{}))) {
                    messageHash =
                        add(messageHash, add(std::string(":"), symbol));
                  }
-                 std::any isInverse =
+                 ccxt::any isInverse =
                      (isEqual(subType, std::string("inverse")));
-                 std::any url = this->getUrlByMarketType(type, isInverse);
-                 std::any payload = ccxt::list{marketId};
+                 ccxt::any url = this->getUrlByMarketType(type, isInverse);
+                 ccxt::any payload = ccxt::list{marketId};
                  // uid required for non spot markets
-                 std::any requiresUid = (!isEqual(type, std::string("spot")));
-                 std::any trades = awaitValue(this->subscribePrivate(
+                 ccxt::any requiresUid = (!isEqual(type, std::string("spot")));
+                 ccxt::any trades = awaitValue(this->subscribePrivate(
                      url, messageHash, payload, channel, params, requiresUid));
                  if (isTrue(this->newUpdates)) {
                    limit = ::wsGetLimit(trades, symbol, limit);
@@ -1713,7 +1713,7 @@ public:
         .share();
   }
 
-  virtual void handleMyTrades(std::any client, std::any message) {
+  virtual void handleMyTrades(ccxt::any client, ccxt::any message) {
     //
     // {
     //     "time": 1543205083,
@@ -1734,35 +1734,35 @@ public:
     //     ]
     // }
     //
-    std::any result =
+    ccxt::any result =
         this->safeValue(message, std::string("result"), ccxt::list{});
-    std::any tradesLength = getArrayLength(result);
+    ccxt::any tradesLength = getArrayLength(result);
     if (isTrue(isEqual(tradesLength, 0))) {
       return;
     }
-    std::any cachedTrades = this->myTrades;
-    if (isTrue(isEqual(cachedTrades, std::any{}))) {
-      std::any limit =
+    ccxt::any cachedTrades = this->myTrades;
+    if (isTrue(isEqual(cachedTrades, ccxt::any{}))) {
+      ccxt::any limit =
           this->safeInteger(this->options, std::string("tradesLimit"), 1000);
       cachedTrades = ccxt::ws::ArrayCacheBySymbolById(limit);
       this->myTrades = cachedTrades;
     }
-    std::any parsed = this->parseTrades(result);
-    std::any marketIds = ccxt::dict{};
-    for (std::any i = 0; isLessThan(i, getArrayLength(parsed));
+    ccxt::any parsed = this->parseTrades(result);
+    ccxt::any marketIds = ccxt::dict{};
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(parsed));
          postFixIncrement(i)) {
-      std::any trade = ::getValue(parsed, i);
+      ccxt::any trade = ::getValue(parsed, i);
       ::wsAppend(cachedTrades, trade);
-      std::any symbol = ::getValue(trade, std::string("symbol"));
-      if (isTrue(!isEqual(symbol, std::any{}))) {
+      ccxt::any symbol = ::getValue(trade, std::string("symbol"));
+      if (isTrue(!isEqual(symbol, ccxt::any{}))) {
         ::setValue(marketIds, symbol, true);
       }
     }
-    std::any keys = getObjectKeys(marketIds);
-    for (std::any i = 0; isLessThan(i, getArrayLength(keys));
+    ccxt::any keys = getObjectKeys(marketIds);
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));
          postFixIncrement(i)) {
-      std::any market = ::getValue(keys, i);
-      std::any hash = add(std::string("myTrades:"), market);
+      ccxt::any market = ::getValue(keys, i);
+      ccxt::any hash = add(std::string("myTrades:"), market);
       this->resolve(cachedTrades, hash);
     }
     this->resolve(cachedTrades, std::string("myTrades"));
@@ -1782,29 +1782,29 @@ public:
    * @returns {object} a [balance structure]{@link
    * https://docs.ccxt.com/?id=balance-structure}
    */
-  std::shared_future<std::any>
-  watchBalance(std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchBalance(ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any type = std::any{};
-                 std::any subType = std::any{};
-                 std::any typeparamsVariable = this->handleMarketTypeAndParams(
-                     std::string("watchBalance"), std::any{}, params);
+                 ccxt::any type = ccxt::any{};
+                 ccxt::any subType = ccxt::any{};
+                 ccxt::any typeparamsVariable = this->handleMarketTypeAndParams(
+                     std::string("watchBalance"), ccxt::any{}, params);
                  type = ::getValue(typeparamsVariable, 0);
                  params = ::getValue(typeparamsVariable, 1);
-                 std::any subTypeparamsVariable = this->handleSubTypeAndParams(
-                     std::string("watchBalance"), std::any{}, params);
+                 ccxt::any subTypeparamsVariable = this->handleSubTypeAndParams(
+                     std::string("watchBalance"), ccxt::any{}, params);
                  subType = ::getValue(subTypeparamsVariable, 0);
                  params = ::getValue(subTypeparamsVariable, 1);
-                 std::any isInverse =
+                 ccxt::any isInverse =
                      (isEqual(subType, std::string("inverse")));
-                 std::any url = this->getUrlByMarketType(type, isInverse);
-                 std::any requiresUid = (!isEqual(type, std::string("spot")));
-                 std::any channelType = this->getSupportedMapping(
+                 ccxt::any url = this->getUrlByMarketType(type, isInverse);
+                 ccxt::any requiresUid = (!isEqual(type, std::string("spot")));
+                 ccxt::any channelType = this->getSupportedMapping(
                      type, ccxt::dict{
                                {std::string("spot"), std::string("spot")},
                                {std::string("margin"), std::string("spot")},
@@ -1813,16 +1813,16 @@ public:
                                {std::string("option"), std::string("options")},
                            });
                  // todo: add correct margin support
-                 std::any channel = add(channelType, std::string(".balances"));
-                 std::any messageHash = add(type, std::string(".balance"));
+                 ccxt::any channel = add(channelType, std::string(".balances"));
+                 ccxt::any messageHash = add(type, std::string(".balance"));
                  return awaitValue(this->subscribePrivate(url, messageHash,
-                                                          std::any{}, channel,
+                                                          ccxt::any{}, channel,
                                                           params, requiresUid));
                })
         .share();
   }
 
-  virtual void handleBalance(std::any client, std::any message) {
+  virtual void handleBalance(ccxt::any client, ccxt::any message) {
     //
     // spot order fill
     //     {
@@ -1887,18 +1887,18 @@ public:
     //       ]
     //   }
     //
-    std::any result =
+    ccxt::any result =
         this->safeValue(message, std::string("result"), ccxt::list{});
     ::setValue(this->balance, std::string("info"), result);
-    for (std::any i = 0; isLessThan(i, getArrayLength(result));
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
          postFixIncrement(i)) {
-      std::any rawBalance = ::getValue(result, i);
-      std::any account = this->account();
-      std::any currencyId =
+      ccxt::any rawBalance = ::getValue(result, i);
+      ccxt::any account = this->account();
+      ccxt::any currencyId =
           this->safeString(rawBalance, std::string("currency"),
                            std::string("USDT")); // when not present it is USDT
-      std::any code = this->safeCurrencyCode(currencyId);
-      std::any timestamp = this->safeInteger2(
+      ccxt::any code = this->safeCurrencyCode(currencyId);
+      ccxt::any timestamp = this->safeInteger2(
           rawBalance, std::string("time_ms"), std::string("timestamp_ms"));
       ::setValue(this->balance, std::string("timestamp"), timestamp);
       ::setValue(this->balance, std::string("datetime"),
@@ -1910,20 +1910,20 @@ public:
       ::setValue(account, std::string("total"),
                  this->safeString2(rawBalance, std::string("total"),
                                    std::string("balance")));
-      if (isTrue(!isEqual(code, std::any{}))) {
+      if (isTrue(!isEqual(code, ccxt::any{}))) {
         ::setValue(this->balance, code, account);
       }
     }
-    std::any channel = this->safeString(message, std::string("channel"));
-    std::any parts = split(channel, std::string("."));
-    std::any rawType = this->safeString(parts, 0);
-    std::any channelType = this->getSupportedMapping(
+    ccxt::any channel = this->safeString(message, std::string("channel"));
+    ccxt::any parts = split(channel, std::string("."));
+    ccxt::any rawType = this->safeString(parts, 0);
+    ccxt::any channelType = this->getSupportedMapping(
         rawType, ccxt::dict{
                      {std::string("spot"), std::string("spot")},
                      {std::string("futures"), std::string("swap")},
                      {std::string("options"), std::string("option")},
                  });
-    std::any messageHash = add(channelType, std::string(".balance"));
+    ccxt::any messageHash = add(channelType, std::string(".balance"));
     this->balance = this->safeBalance(this->balance);
     this->resolve(this->balance, messageHash);
   }
@@ -1946,41 +1946,41 @@ public:
    * @returns {object[]} a list of [position structure]{@link
    * https://docs.ccxt.com/en/latest/manual.html#position-structure}
    */
-  std::shared_future<std::any>
-  watchPositions(std::any symbols = std::any{}, std::any since = std::any{},
-                 std::any limit = std::any{},
-                 std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchPositions(ccxt::any symbols = ccxt::any{}, ccxt::any since = ccxt::any{},
+                 ccxt::any limit = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any market = std::any{};
+                 ccxt::any market = ccxt::any{};
                  symbols = this->marketSymbols(symbols);
-                 std::any payload =
+                 ccxt::any payload =
                      ccxt::list{add(std::string("!"), std::string("all"))};
                  if (!isTrue(this->isEmpty(symbols))) {
                    market = this->getMarketFromSymbols(symbols);
                  }
-                 std::any type = std::any{};
-                 std::any query = std::any{};
-                 std::any typequeryVariable = this->handleMarketTypeAndParams(
+                 ccxt::any type = ccxt::any{};
+                 ccxt::any query = ccxt::any{};
+                 ccxt::any typequeryVariable = this->handleMarketTypeAndParams(
                      std::string("watchPositions"), market, params);
                  type = ::getValue(typequeryVariable, 0);
                  query = ::getValue(typequeryVariable, 1);
                  if (isTrue(isEqual(type, std::string("spot")))) {
                    type = std::string("swap");
                  }
-                 std::any typeId = this->getSupportedMapping(
+                 ccxt::any typeId = this->getSupportedMapping(
                      type, ccxt::dict{
                                {std::string("future"), std::string("futures")},
                                {std::string("swap"), std::string("futures")},
                                {std::string("option"), std::string("options")},
                            });
-                 std::any messageHash = add(type, std::string(":positions"));
+                 ccxt::any messageHash = add(type, std::string(":positions"));
                  if (!isTrue(this->isEmpty(symbols))) {
-                   if (isTrue(isEqual(symbols, std::any{}))) {
+                   if (isTrue(isEqual(symbols, ccxt::any{}))) {
                      throw ArgumentsRequired(toString(
                          add(this->id,
                              std::string(
@@ -1990,34 +1990,34 @@ public:
                        add(messageHash, add(std::string("::"),
                                             join(symbols, std::string(","))));
                  }
-                 std::any channel = add(typeId, std::string(".positions"));
-                 std::any subType = std::any{};
-                 std::any subTypequeryVariable = this->handleSubTypeAndParams(
+                 ccxt::any channel = add(typeId, std::string(".positions"));
+                 ccxt::any subType = ccxt::any{};
+                 ccxt::any subTypequeryVariable = this->handleSubTypeAndParams(
                      std::string("watchPositions"), market, query);
                  subType = ::getValue(subTypequeryVariable, 0);
                  query = ::getValue(subTypequeryVariable, 1);
-                 std::any isInverse =
+                 ccxt::any isInverse =
                      (isEqual(subType, std::string("inverse")));
-                 std::any url = this->getUrlByMarketType(type, isInverse);
-                 std::any client = this->client(url);
+                 ccxt::any url = this->getUrlByMarketType(type, isInverse);
+                 ccxt::any client = this->client(url);
                  this->setPositionsCache(client, type, symbols);
-                 std::any fetchPositionsSnapshot = this->handleOption(
+                 ccxt::any fetchPositionsSnapshot = this->handleOption(
                      std::string("watchPositions"),
                      std::string("fetchPositionsSnapshot"), true);
-                 std::any awaitPositionsSnapshot = this->handleOption(
+                 ccxt::any awaitPositionsSnapshot = this->handleOption(
                      std::string("watchPositions"),
                      std::string("awaitPositionsSnapshot"), true);
-                 std::any cache = this->safeValue(this->positions, type);
+                 ccxt::any cache = this->safeValue(this->positions, type);
                  if (isTrue(
                          isTrue(
                              isTrue((isEqual(fetchPositionsSnapshot, true))) &&
                              isTrue((isEqual(awaitPositionsSnapshot, true)))) &&
-                         isTrue((isEqual(cache, std::any{}))))) {
+                         isTrue((isEqual(cache, ccxt::any{}))))) {
                    return awaitValue(::wsClientFuture(
                        client,
                        add(type, std::string(":fetchPositionsSnapshot"))));
                  }
-                 std::any positions = awaitValue(this->subscribePrivate(
+                 ccxt::any positions = awaitValue(this->subscribePrivate(
                      url, messageHash, payload, channel, query, true));
                  if (isTrue(this->newUpdates)) {
                    return positions;
@@ -2029,19 +2029,19 @@ public:
         .share();
   }
 
-  virtual void setPositionsCache(std::any client, std::any type,
-                                 std::any symbols = std::any{}) {
-    if (isTrue(isEqual(this->positions, std::any{}))) {
+  virtual void setPositionsCache(ccxt::any client, ccxt::any type,
+                                 ccxt::any symbols = ccxt::any{}) {
+    if (isTrue(isEqual(this->positions, ccxt::any{}))) {
       this->positions = ccxt::dict{};
     }
     if (isTrue(inOp(this->positions, type))) {
       return;
     }
-    std::any fetchPositionsSnapshot =
+    ccxt::any fetchPositionsSnapshot =
         this->handleOption(std::string("watchPositions"),
                            std::string("fetchPositionsSnapshot"), false);
     if (isTrue(isEqual(fetchPositionsSnapshot, true))) {
-      std::any messageHash = add(type, std::string(":fetchPositionsSnapshot"));
+      ccxt::any messageHash = add(type, std::string(":fetchPositionsSnapshot"));
       if (!isTrue((
               inOp(::getValue(client, std::string("futures")), messageHash)))) {
         ::wsClientFuture(client, messageHash);
@@ -2053,24 +2053,24 @@ public:
     }
   }
 
-  virtual std::shared_future<std::any>
-  loadPositionsSnapshot(std::any client, std::any messageHash, std::any type) {
+  virtual std::shared_future<ccxt::any>
+  loadPositionsSnapshot(ccxt::any client, ccxt::any messageHash, ccxt::any type) {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 std::any positions = awaitValue(this->fetchPositions(
-                     std::any{}, ccxt::dict{
+               [=]() mutable -> ccxt::any {
+                 ccxt::any positions = awaitValue(this->fetchPositions(
+                     ccxt::any{}, ccxt::dict{
                                      {std::string("type"), type},
                                  }));
                  ::setValue(this->positions, type,
                             ccxt::ws::ArrayCacheBySymbolBySide());
-                 std::any cache = ::getValue(this->positions, type);
-                 for (std::any i = 0; isLessThan(i, getArrayLength(positions));
+                 ccxt::any cache = ::getValue(this->positions, type);
+                 for (ccxt::any i = 0; isLessThan(i, getArrayLength(positions));
                       postFixIncrement(i)) {
-                   std::any position = ::getValue(positions, i);
-                   std::any contracts =
+                   ccxt::any position = ::getValue(positions, i);
+                   ccxt::any contracts =
                        this->safeNumber(position, std::string("contracts"), 0);
-                   if (isTrue(isTrue((!isEqual(contracts, std::any{}))) &&
+                   if (isTrue(isTrue((!isEqual(contracts, ccxt::any{}))) &&
                               isTrue((isGreaterThan(contracts, 0))))) {
                      ::wsAppend(cache, position);
                    }
@@ -2078,17 +2078,17 @@ public:
                  // don't remove the future from the .futures cache
                  if (isTrue(inOp(::getValue(client, std::string("futures")),
                                  messageHash))) {
-                   std::any future = ::getValue(
+                   ccxt::any future = ::getValue(
                        ::getValue(client, std::string("futures")), messageHash);
                    ::wsFutureResolve(future, cache);
                    this->resolve(cache, add(type, std::string(":position")));
                  }
-                 return std::any{};
+                 return ccxt::any{};
                })
         .share();
   }
 
-  virtual void handlePositions(std::any client, std::any message) {
+  virtual void handlePositions(ccxt::any client, ccxt::any message) {
     //
     //    {
     //        time: 1693158497,
@@ -2119,39 +2119,39 @@ public:
     //        }]
     //    }
     //
-    std::any type =
+    ccxt::any type =
         this->getMarketTypeByUrl(::getValue(client, std::string("url")));
-    std::any data =
+    ccxt::any data =
         this->safeValue(message, std::string("result"), ccxt::list{});
-    std::any cache = ::getValue(this->positions, type);
-    std::any newPositions = ccxt::list{};
-    for (std::any i = 0; isLessThan(i, getArrayLength(data));
+    ccxt::any cache = ::getValue(this->positions, type);
+    ccxt::any newPositions = ccxt::list{};
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
          postFixIncrement(i)) {
-      std::any rawPosition = ::getValue(data, i);
-      std::any position = this->parsePosition(rawPosition);
-      std::any symbol = this->safeString(position, std::string("symbol"));
-      std::any side = this->safeString(position, std::string("side"));
+      ccxt::any rawPosition = ::getValue(data, i);
+      ccxt::any position = this->parsePosition(rawPosition);
+      ccxt::any symbol = this->safeString(position, std::string("symbol"));
+      ccxt::any side = this->safeString(position, std::string("side"));
       // Control when position is closed no side is returned
-      if (isTrue(isEqual(side, std::any{}))) {
-        std::any prevLongPosition =
+      if (isTrue(isEqual(side, ccxt::any{}))) {
+        ccxt::any prevLongPosition =
             this->safeDict(cache, add(symbol, std::string("long")));
-        if (isTrue(!isEqual(prevLongPosition, std::any{}))) {
+        if (isTrue(!isEqual(prevLongPosition, ccxt::any{}))) {
           ::setValue(position, std::string("side"),
                      ::getValue(prevLongPosition, std::string("side")));
           arrayPush(newPositions, position);
           ::wsAppend(cache, position);
         }
-        std::any prevShortPosition =
+        ccxt::any prevShortPosition =
             this->safeDict(cache, add(symbol, std::string("short")));
-        if (isTrue(!isEqual(prevShortPosition, std::any{}))) {
+        if (isTrue(!isEqual(prevShortPosition, ccxt::any{}))) {
           ::setValue(position, std::string("side"),
                      ::getValue(prevShortPosition, std::string("side")));
           arrayPush(newPositions, position);
           ::wsAppend(cache, position);
         }
         // if no prev position is found, default to long
-        if (isTrue(isTrue(isEqual(prevLongPosition, std::any{})) &&
-                   isTrue(isEqual(prevShortPosition, std::any{})))) {
+        if (isTrue(isTrue(isEqual(prevLongPosition, ccxt::any{})) &&
+                   isTrue(isEqual(prevShortPosition, ccxt::any{})))) {
           ::setValue(position, std::string("side"), std::string("long"));
           arrayPush(newPositions, position);
           ::wsAppend(cache, position);
@@ -2161,15 +2161,15 @@ public:
         ::wsAppend(cache, position);
       }
     }
-    std::any messageHashes =
+    ccxt::any messageHashes =
         this->findMessageHashes(client, add(type, std::string(":positions::")));
-    for (std::any i = 0; isLessThan(i, getArrayLength(messageHashes));
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(messageHashes));
          postFixIncrement(i)) {
-      std::any messageHash = ::getValue(messageHashes, i);
-      std::any parts = split(messageHash, std::string("::"));
-      std::any symbolsString = ::getValue(parts, 1);
-      std::any symbols = split(symbolsString, std::string(","));
-      std::any positions = this->filterByArray(
+      ccxt::any messageHash = ::getValue(messageHashes, i);
+      ccxt::any parts = split(messageHash, std::string("::"));
+      ccxt::any symbolsString = ::getValue(parts, 1);
+      ccxt::any symbols = split(symbolsString, std::string(","));
+      ccxt::any positions = this->filterByArray(
           newPositions, std::string("symbol"), symbols, false);
       if (!isTrue(this->isEmpty(positions))) {
         this->resolve(positions, messageHash);
@@ -2203,29 +2203,29 @@ public:
    * @returns {object[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
-  std::shared_future<std::any>
-  watchOrders(std::any symbol = std::any{}, std::any since = std::any{},
-              std::any limit = std::any{},
-              std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchOrders(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+              ccxt::any limit = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 std::any market = std::any{};
-                 if (isTrue(!isEqual(symbol, std::any{}))) {
-                   std::any marketResolved = this->market(symbol);
+                 ccxt::any market = ccxt::any{};
+                 if (isTrue(!isEqual(symbol, ccxt::any{}))) {
+                   ccxt::any marketResolved = this->market(symbol);
                    market = marketResolved;
                    symbol = ::getValue(market, std::string("symbol"));
                  }
-                 std::any type = std::any{};
-                 std::any query = std::any{};
-                 std::any typequeryVariable = this->handleMarketTypeAndParams(
+                 ccxt::any type = ccxt::any{};
+                 ccxt::any query = ccxt::any{};
+                 ccxt::any typequeryVariable = this->handleMarketTypeAndParams(
                      std::string("watchOrders"), market, params);
                  type = ::getValue(typequeryVariable, 0);
                  query = ::getValue(typequeryVariable, 1);
-                 std::any typeId = this->getSupportedMapping(
+                 ccxt::any typeId = this->getSupportedMapping(
                      type, ccxt::dict{
                                {std::string("spot"), std::string("spot")},
                                {std::string("margin"), std::string("spot")},
@@ -2233,8 +2233,8 @@ public:
                                {std::string("swap"), std::string("futures")},
                                {std::string("option"), std::string("options")},
                            });
-                 std::any isTrigger = false;
-                 std::any isTriggerqueryVariable = this->handleParamBool2(
+                 ccxt::any isTrigger = false;
+                 ccxt::any isTriggerqueryVariable = this->handleParamBool2(
                      query, std::string("trigger"), std::string("stop"), false);
                  isTrigger = ::getValue(isTriggerqueryVariable, 0);
                  query = ::getValue(isTriggerqueryVariable, 1);
@@ -2251,39 +2251,39 @@ public:
                  // gate pushes trigger orders on dedicated channels,
                  // spot.priceorders and futures.autoorders, see
                  // https://github.com/ccxt/ccxt/issues/27202
-                 std::any suffix = std::string(".orders");
+                 ccxt::any suffix = std::string(".orders");
                  if (isTrue(isEqual(isTrigger, true))) {
                    suffix = (isTrue((isEqual(typeId, std::string("spot"))))
-                                 ? std::any(std::string(".priceorders"))
-                                 : std::any(std::string(".autoorders")));
+                                 ? ccxt::any(std::string(".priceorders"))
+                                 : ccxt::any(std::string(".autoorders")));
                  }
-                 std::any channel = add(typeId, suffix);
-                 std::any messageHash =
+                 ccxt::any channel = add(typeId, suffix);
+                 ccxt::any messageHash =
                      (isTrue((isEqual(isTrigger, true)))
-                          ? std::any(std::string("triggerOrders"))
-                          : std::any(std::string("orders")));
-                 std::any payload =
+                          ? ccxt::any(std::string("triggerOrders"))
+                          : ccxt::any(std::string("orders")));
+                 ccxt::any payload =
                      ccxt::list{add(std::string("!"), std::string("all"))};
-                 if (isTrue(!isEqual(market, std::any{}))) {
+                 if (isTrue(!isEqual(market, ccxt::any{}))) {
                    messageHash = add(
                        messageHash, add(std::string(":"),
                                         ::getValue(market, std::string("id"))));
-                   std::any mid = ::getValue(market, std::string("id"));
-                   if (isTrue(!isEqual(mid, std::any{}))) {
+                   ccxt::any mid = ::getValue(market, std::string("id"));
+                   if (isTrue(!isEqual(mid, ccxt::any{}))) {
                      payload = ccxt::list{mid};
                    }
                  }
-                 std::any subType = std::any{};
-                 std::any subTypequeryVariable = this->handleSubTypeAndParams(
+                 ccxt::any subType = ccxt::any{};
+                 ccxt::any subTypequeryVariable = this->handleSubTypeAndParams(
                      std::string("watchOrders"), market, query);
                  subType = ::getValue(subTypequeryVariable, 0);
                  query = ::getValue(subTypequeryVariable, 1);
-                 std::any isInverse =
+                 ccxt::any isInverse =
                      (isEqual(subType, std::string("inverse")));
-                 std::any url = this->getUrlByMarketType(type, isInverse);
+                 ccxt::any url = this->getUrlByMarketType(type, isInverse);
                  // uid required for non spot markets
-                 std::any requiresUid = (!isEqual(type, std::string("spot")));
-                 std::any orders = awaitValue(this->subscribePrivate(
+                 ccxt::any requiresUid = (!isEqual(type, std::string("spot")));
+                 ccxt::any orders = awaitValue(this->subscribePrivate(
                      url, messageHash, payload, channel, query, requiresUid));
                  if (isTrue(this->newUpdates)) {
                    limit = ::wsGetLimit(orders, symbol, limit);
@@ -2294,7 +2294,7 @@ public:
         .share();
   }
 
-  virtual void handleOrder(std::any client, std::any message) {
+  virtual void handleOrder(ccxt::any client, ccxt::any message) {
     //
     //     {
     //         "time": 1774613210,
@@ -2337,58 +2337,58 @@ public:
     //         ]
     //     }
     //
-    std::any orders =
+    ccxt::any orders =
         this->safeValue(message, std::string("result"), ccxt::list{});
-    std::any channel =
+    ccxt::any channel =
         this->safeString(message, std::string("channel"), std::string(""));
-    std::any isTrigger =
+    ccxt::any isTrigger =
         isTrue((isGreaterThanOrEqual(
             getIndexOf(channel, std::string("autoorders")), 0))) ||
         isTrue((isGreaterThanOrEqual(
             getIndexOf(channel, std::string("priceorders")), 0)));
-    std::any hashPrefix =
-        (isTrue(isTrigger) ? std::any(std::string("triggerOrders"))
-                           : std::any(std::string("orders")));
-    std::any limit =
+    ccxt::any hashPrefix =
+        (isTrue(isTrigger) ? ccxt::any(std::string("triggerOrders"))
+                           : ccxt::any(std::string("orders")));
+    ccxt::any limit =
         this->safeInteger(this->options, std::string("ordersLimit"), 1000);
-    if (isTrue(isEqual(this->orders, std::any{}))) {
+    if (isTrue(isEqual(this->orders, ccxt::any{}))) {
       this->orders = ccxt::ws::ArrayCacheBySymbolById(limit);
       this->triggerOrders = ccxt::ws::ArrayCacheBySymbolById(limit);
     }
-    std::any stored = (isTrue(isTrigger) ? std::any(this->triggerOrders)
-                                         : std::any(this->orders));
-    std::any marketIds = ccxt::dict{};
-    std::any parsedOrders = this->parseOrders(orders);
-    for (std::any i = 0; isLessThan(i, getArrayLength(parsedOrders));
+    ccxt::any stored = (isTrue(isTrigger) ? ccxt::any(this->triggerOrders)
+                                         : ccxt::any(this->orders));
+    ccxt::any marketIds = ccxt::dict{};
+    ccxt::any parsedOrders = this->parseOrders(orders);
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(parsedOrders));
          postFixIncrement(i)) {
-      std::any parsed = ::getValue(parsedOrders, i);
+      ccxt::any parsed = ::getValue(parsedOrders, i);
       // inject order status
-      std::any info = this->safeValue(parsed, std::string("info"));
-      std::any event = this->safeString(info, std::string("event"));
+      ccxt::any info = this->safeValue(parsed, std::string("info"));
+      ccxt::any event = this->safeString(info, std::string("event"));
       if (isTrue(isTrue(isEqual(event, std::string("put"))) ||
                  isTrue(isEqual(event, std::string("update"))))) {
         ::setValue(parsed, std::string("status"), std::string("open"));
       } else if (isTrue(isEqual(event, std::string("finish")))) {
-        std::any status = this->safeString(parsed, std::string("status"));
-        if (isTrue(isEqual(status, std::any{}))) {
-          std::any left = this->safeInteger(info, std::string("left"));
+        ccxt::any status = this->safeString(parsed, std::string("status"));
+        if (isTrue(isEqual(status, ccxt::any{}))) {
+          ccxt::any left = this->safeInteger(info, std::string("left"));
           ::setValue(parsed, std::string("status"),
                      (isTrue((isEqual(left, 0)))
-                          ? std::any(std::string("closed"))
-                          : std::any(std::string("canceled"))));
+                          ? ccxt::any(std::string("closed"))
+                          : ccxt::any(std::string("canceled"))));
         }
       }
       ::wsAppend(stored, parsed);
-      std::any symbol = ::getValue(parsed, std::string("symbol"));
-      std::any market = this->market(symbol);
-      if (isTrue(!isEqual(::getValue(market, std::string("id")), std::any{}))) {
+      ccxt::any symbol = ::getValue(parsed, std::string("symbol"));
+      ccxt::any market = this->market(symbol);
+      if (isTrue(!isEqual(::getValue(market, std::string("id")), ccxt::any{}))) {
         ::setValue(marketIds, ::getValue(market, std::string("id")), true);
       }
     }
-    std::any keys = getObjectKeys(marketIds);
-    for (std::any i = 0; isLessThan(i, getArrayLength(keys));
+    ccxt::any keys = getObjectKeys(marketIds);
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));
          postFixIncrement(i)) {
-      std::any messageHash =
+      ccxt::any messageHash =
           add(add(hashPrefix, std::string(":")), ::getValue(keys, i));
       this->resolve(stored, messageHash);
     }
@@ -2411,12 +2411,12 @@ public:
    * @returns {object} an array of [liquidation structures]{@link
    * https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
    */
-  std::shared_future<std::any>
-  watchMyLiquidations(std::any symbol, std::any since = std::any{},
-                      std::any limit = std::any{},
-                      std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchMyLiquidations(ccxt::any symbol, ccxt::any since = ccxt::any{},
+                      ccxt::any limit = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
+                      [=]() mutable -> ccxt::any {
                         return awaitValue(this->watchMyLiquidationsForSymbols(
                             ccxt::list{symbol}, since, limit, params));
                       })
@@ -2439,42 +2439,42 @@ public:
    * @returns {object} an array of [liquidation structures]{@link
    * https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
    */
-  std::shared_future<std::any>
-  watchMyLiquidationsForSymbols(std::any symbols, std::any since = std::any{},
-                                std::any limit = std::any{},
-                                std::any params = ccxt::dict{}) override {
+  std::shared_future<ccxt::any>
+  watchMyLiquidationsForSymbols(ccxt::any symbols, ccxt::any since = ccxt::any{},
+                                ccxt::any limit = ccxt::any{},
+                                ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 if (isTrue(isEqual(this->markets, std::any{}))) {
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 symbols = this->marketSymbols(symbols, std::any{}, true, true);
-                 std::any market = this->getMarketFromSymbols(symbols);
-                 std::any type = std::any{};
-                 std::any query = std::any{};
-                 std::any typequeryVariable = this->handleMarketTypeAndParams(
+                 symbols = this->marketSymbols(symbols, ccxt::any{}, true, true);
+                 ccxt::any market = this->getMarketFromSymbols(symbols);
+                 ccxt::any type = ccxt::any{};
+                 ccxt::any query = ccxt::any{};
+                 ccxt::any typequeryVariable = this->handleMarketTypeAndParams(
                      std::string("watchMyLiquidationsForSymbols"), market,
                      params);
                  type = ::getValue(typequeryVariable, 0);
                  query = ::getValue(typequeryVariable, 1);
-                 std::any typeId = this->getSupportedMapping(
+                 ccxt::any typeId = this->getSupportedMapping(
                      type, ccxt::dict{
                                {std::string("future"), std::string("futures")},
                                {std::string("swap"), std::string("futures")},
                                {std::string("option"), std::string("options")},
                            });
-                 std::any subType = std::any{};
-                 std::any subTypequeryVariable = this->handleSubTypeAndParams(
+                 ccxt::any subType = ccxt::any{};
+                 ccxt::any subTypequeryVariable = this->handleSubTypeAndParams(
                      std::string("watchMyLiquidationsForSymbols"), market,
                      query);
                  subType = ::getValue(subTypequeryVariable, 0);
                  query = ::getValue(subTypequeryVariable, 1);
-                 std::any isInverse =
+                 ccxt::any isInverse =
                      (isEqual(subType, std::string("inverse")));
-                 std::any url = this->getUrlByMarketType(type, isInverse);
-                 std::any payload = ccxt::list{};
-                 std::any messageHash = std::string("");
+                 ccxt::any url = this->getUrlByMarketType(type, isInverse);
+                 ccxt::any payload = ccxt::list{};
+                 ccxt::any messageHash = std::string("");
                  if (isTrue(this->isEmpty(symbols))) {
                    if (isTrue(
                            isTrue(!isEqual(typeId, std::string("futures"))) &&
@@ -2490,7 +2490,7 @@ public:
                    messageHash = std::string("myLiquidations");
                    arrayPush(payload, std::string("!all"));
                  } else {
-                   std::any symbolsLength = getArrayLength(symbols);
+                   ccxt::any symbolsLength = getArrayLength(symbols);
                    if (isTrue(!isEqual(symbolsLength, 1))) {
                      throw BadRequest(toString(
                          add(this->id,
@@ -2504,8 +2504,8 @@ public:
                                      ::getValue(symbols, 0));
                    arrayPush(payload, ::getValue(market, std::string("id")));
                  }
-                 std::any channel = add(typeId, std::string(".liquidates"));
-                 std::any newLiquidations = awaitValue(this->subscribePrivate(
+                 ccxt::any channel = add(typeId, std::string(".liquidates"));
+                 ccxt::any newLiquidations = awaitValue(this->subscribePrivate(
                      url, messageHash, payload, channel, query, true));
                  if (isTrue(this->newUpdates)) {
                    return newLiquidations;
@@ -2516,7 +2516,7 @@ public:
         .share();
   }
 
-  virtual void handleLiquidation(std::any client, std::any message) {
+  virtual void handleLiquidation(ccxt::any client, ccxt::any message) {
     //
     // future / delivery
     //     {
@@ -2560,22 +2560,22 @@ public:
     //        ]
     //    }
     //
-    std::any rawLiquidations =
+    ccxt::any rawLiquidations =
         this->safeList(message, std::string("result"), ccxt::list{});
-    std::any newLiquidations = ccxt::list{};
-    if (isTrue(isEqual(this->liquidations, std::any{}))) {
-      std::any limit = this->safeInteger(
+    ccxt::any newLiquidations = ccxt::list{};
+    if (isTrue(isEqual(this->liquidations, ccxt::any{}))) {
+      ccxt::any limit = this->safeInteger(
           this->options, std::string("liquidationsLimit"), 1000);
       this->liquidations = ccxt::ws::ArrayCache(limit);
     }
-    std::any cache = this->liquidations;
-    for (std::any i = 0; isLessThan(i, getArrayLength(rawLiquidations));
+    ccxt::any cache = this->liquidations;
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(rawLiquidations));
          postFixIncrement(i)) {
-      std::any rawLiquidation = ::getValue(rawLiquidations, i);
-      std::any liquidation = this->parseWsLiquidation(rawLiquidation);
+      ccxt::any rawLiquidation = ::getValue(rawLiquidations, i);
+      ccxt::any liquidation = this->parseWsLiquidation(rawLiquidation);
       ::wsAppend(cache, liquidation);
-      std::any symbol = this->safeString(liquidation, std::string("symbol"));
-      std::any symbolLiquidations =
+      ccxt::any symbol = this->safeString(liquidation, std::string("symbol"));
+      ccxt::any symbolLiquidations =
           this->safeValue(cache, symbol, ccxt::list{});
       this->resolve(symbolLiquidations,
                     add(std::string("myLiquidations::"), symbol));
@@ -2583,8 +2583,8 @@ public:
     this->resolve(newLiquidations, std::string("myLiquidations"));
   }
 
-  virtual std::any parseWsLiquidation(std::any liquidation,
-                                      std::any market = std::any{}) {
+  virtual ccxt::any parseWsLiquidation(ccxt::any liquidation,
+                                      ccxt::any market = ccxt::any{}) {
     //
     // future / delivery
     //    {
@@ -2613,12 +2613,12 @@ public:
     //        "time_ms": 1639051907000
     //    }
     //
-    std::any marketId = this->safeString(liquidation, std::string("contract"));
+    ccxt::any marketId = this->safeString(liquidation, std::string("contract"));
     market = this->safeMarket(marketId, market);
-    std::any timestamp = this->safeInteger(liquidation, std::string("time_ms"));
-    std::any originalSize = this->safeString(liquidation, std::string("size"));
-    std::any left = this->safeString(liquidation, std::string("left"));
-    std::any amount =
+    ccxt::any timestamp = this->safeInteger(liquidation, std::string("time_ms"));
+    ccxt::any originalSize = this->safeString(liquidation, std::string("size"));
+    ccxt::any left = this->safeString(liquidation, std::string("left"));
+    ccxt::any amount =
         ccxt::Precise::stringAbs(ccxt::Precise::stringSub(originalSize, left));
     return this->safeLiquidation(ccxt::dict{
         {std::string("info"), liquidation},
@@ -2628,14 +2628,14 @@ public:
          this->safeNumber(market, std::string("contractSize"))},
         {std::string("price"),
          this->safeNumber(liquidation, std::string("fill_price"))},
-        {std::string("baseValue"), std::any{}},
-        {std::string("quoteValue"), std::any{}},
+        {std::string("baseValue"), ccxt::any{}},
+        {std::string("quoteValue"), ccxt::any{}},
         {std::string("timestamp"), timestamp},
         {std::string("datetime"), this->iso8601(timestamp)},
     });
   }
 
-  virtual std::any handleErrorMessage(std::any client, std::any message) {
+  virtual ccxt::any handleErrorMessage(ccxt::any client, ccxt::any message) {
     //
     //    {
     //        "time": 1647274664,
@@ -2689,16 +2689,16 @@ public:
     //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
     //     }
     //
-    std::any data = this->safeDict(message, std::string("data"));
-    std::any errs = this->safeDict(data, std::string("errs"));
-    std::any error = this->safeDict(message, std::string("error"), errs);
-    std::any code =
+    ccxt::any data = this->safeDict(message, std::string("data"));
+    ccxt::any errs = this->safeDict(data, std::string("errs"));
+    ccxt::any error = this->safeDict(message, std::string("error"), errs);
+    ccxt::any code =
         this->safeString2(error, std::string("code"), std::string("label"));
-    std::any id = this->safeStringN(
+    ccxt::any id = this->safeStringN(
         message, ccxt::list{std::string("id"), std::string("requestId"),
                             std::string("request_id")});
-    if (isTrue(!isEqual(error, std::any{}))) {
-      std::any messageHash = this->safeString(
+    if (isTrue(!isEqual(error, ccxt::any{}))) {
+      ccxt::any messageHash = this->safeString(
           ::getValue(client, std::string("subscriptions")), id);
       try {
         this->throwExactlyMatchedException(
@@ -2708,7 +2708,7 @@ public:
         this->throwExactlyMatchedException(
             ::getValue(this->exceptions, std::string("exact")), code,
             this->json(errs));
-        std::any errorMessage =
+        ccxt::any errorMessage =
             this->safeString(error, std::string("message"),
                              this->safeString(errs, std::string("message")));
         this->throwBroadlyMatchedException(
@@ -2719,33 +2719,33 @@ public:
       } catch (const std::exception &e) {
         this->reject(e, messageHash);
         if (isTrue(
-                isTrue((!isEqual(messageHash, std::any{}))) &&
+                isTrue((!isEqual(messageHash, ccxt::any{}))) &&
                 isTrue((inOp(::getValue(client, std::string("subscriptions")),
                              messageHash))))) {
           deleteKey(::getValue(client, std::string("subscriptions")),
                     messageHash);
         }
         // remove subscriptions for watchSymbols
-        std::any channel = this->safeString(message, std::string("channel"));
-        if (isTrue(isTrue((!isEqual(channel, std::any{}))) &&
+        ccxt::any channel = this->safeString(message, std::string("channel"));
+        if (isTrue(isTrue((!isEqual(channel, ccxt::any{}))) &&
                    isTrue((isGreaterThan(getIndexOf(channel, std::string(".")),
                                          0))))) {
-          std::any parsedChannel = split(channel, std::string("."));
-          std::any payload =
+          ccxt::any parsedChannel = split(channel, std::string("."));
+          ccxt::any payload =
               this->safeList(message, std::string("payload"), ccxt::list{});
-          for (std::any i = 0; isLessThan(i, getArrayLength(payload));
+          for (ccxt::any i = 0; isLessThan(i, getArrayLength(payload));
                postFixIncrement(i)) {
-            std::any marketType =
+            ccxt::any marketType =
                 (isTrue(isEqual(::getValue(parsedChannel, 0),
                                 std::string("futures")))
-                     ? std::any(std::string("swap"))
-                     : std::any(::getValue(parsedChannel, 0)));
-            std::any symbol =
-                this->safeSymbol(::getValue(payload, i), std::any{},
+                     ? ccxt::any(std::string("swap"))
+                     : ccxt::any(::getValue(parsedChannel, 0)));
+            ccxt::any symbol =
+                this->safeSymbol(::getValue(payload, i), ccxt::any{},
                                  std::string("_"), marketType);
-            std::any messageHashSymbol = add(
+            ccxt::any messageHashSymbol = add(
                 add(::getValue(parsedChannel, 1), std::string(":")), symbol);
-            if (isTrue(isTrue((!isEqual(messageHashSymbol, std::any{}))) &&
+            if (isTrue(isTrue((!isEqual(messageHashSymbol, ccxt::any{}))) &&
                        isTrue((inOp(
                            ::getValue(client, std::string("subscriptions")),
                            messageHashSymbol))))) {
@@ -2755,7 +2755,7 @@ public:
           }
         }
       }
-      if (isTrue(isTrue((!isEqual(id, std::any{}))) &&
+      if (isTrue(isTrue((!isEqual(id, ccxt::any{}))) &&
                  isTrue((inOp(::getValue(client, std::string("subscriptions")),
                               id))))) {
         deleteKey(::getValue(client, std::string("subscriptions")), id);
@@ -2765,14 +2765,14 @@ public:
     return false;
   }
 
-  virtual void handleBalanceSubscription(std::any client, std::any message,
-                                         std::any subscription = std::any{}) {
+  virtual void handleBalanceSubscription(ccxt::any client, ccxt::any message,
+                                         ccxt::any subscription = ccxt::any{}) {
     this->balance = ccxt::dict{};
   }
 
-  virtual void handleSubscriptionStatus(std::any client, std::any message) {
-    std::any channel = this->safeString(message, std::string("channel"));
-    std::any methods = ccxt::dict{
+  virtual void handleSubscriptionStatus(ccxt::any client, ccxt::any message) {
+    ccxt::any channel = this->safeString(message, std::string("channel"));
+    ccxt::any methods = ccxt::dict{
         {std::string("balance"), std::string("handleBalanceSubscription")},
         {std::string("spot.order_book_update"),
          std::string("handleOrderBookSubscription")},
@@ -2781,27 +2781,27 @@ public:
         {std::string("options.order_book_update"),
          std::string("handleOrderBookSubscription")},
     };
-    std::any id = this->safeString(message, std::string("id"));
-    if (isTrue(isEqual(id, std::any{}))) {
+    ccxt::any id = this->safeString(message, std::string("id"));
+    if (isTrue(isEqual(id, ccxt::any{}))) {
       return;
     }
     if (isTrue(inOp(methods, channel))) {
-      std::any subscriptionHash = this->safeString(
+      ccxt::any subscriptionHash = this->safeString(
           ::getValue(client, std::string("subscriptions")), id);
-      std::any subscription = this->safeValue(
+      ccxt::any subscription = this->safeValue(
           ::getValue(client, std::string("subscriptions")), subscriptionHash);
-      std::any method = ::getValue(methods, channel);
+      ccxt::any method = ::getValue(methods, channel);
       this->dispatchMethodName(method,
                                ccxt::list{client, message, subscription});
     }
     if (isTrue(inOp(::getValue(client, std::string("subscriptions")), id))) {
-      if (isTrue(!isEqual(id, std::any{}))) {
+      if (isTrue(!isEqual(id, ccxt::any{}))) {
         deleteKey(::getValue(client, std::string("subscriptions")), id);
       }
     }
   }
 
-  virtual void handleUnSubscribe(std::any client, std::any message) {
+  virtual void handleUnSubscribe(ccxt::any client, ccxt::any message) {
     //
     // {
     //     "time":1725534679,
@@ -2820,31 +2820,31 @@ public:
     //     "requestId":"efe1d282b630b4aa266b84bee177791a"
     // }
     //
-    std::any id = this->safeString(message, std::string("id"));
-    std::any keys =
+    ccxt::any id = this->safeString(message, std::string("id"));
+    ccxt::any keys =
         getObjectKeys(::getValue(client, std::string("subscriptions")));
-    for (std::any i = 0; isLessThan(i, getArrayLength(keys));
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));
          postFixIncrement(i)) {
-      std::any messageHash = ::getValue(keys, i);
+      ccxt::any messageHash = ::getValue(keys, i);
       if (!isTrue((inOp(::getValue(client, std::string("subscriptions")),
                         messageHash)))) {
         continue;
       }
       if (isTrue(startsWith(messageHash, std::string("unsubscribe")))) {
-        std::any subscription = ::getValue(
+        ccxt::any subscription = ::getValue(
             ::getValue(client, std::string("subscriptions")), messageHash);
-        std::any subId = this->safeString(subscription, std::string("id"));
+        ccxt::any subId = this->safeString(subscription, std::string("id"));
         if (isTrue(!isEqual(id, subId))) {
           continue;
         }
-        std::any messageHashes = this->safeList(
+        ccxt::any messageHashes = this->safeList(
             subscription, std::string("messageHashes"), ccxt::list{});
-        std::any subMessageHashes = this->safeList(
+        ccxt::any subMessageHashes = this->safeList(
             subscription, std::string("subMessageHashes"), ccxt::list{});
-        for (std::any j = 0; isLessThan(j, getArrayLength(messageHashes));
+        for (ccxt::any j = 0; isLessThan(j, getArrayLength(messageHashes));
              postFixIncrement(j)) {
-          std::any unsubHash = ::getValue(messageHashes, j);
-          std::any subHash = ::getValue(subMessageHashes, j);
+          ccxt::any unsubHash = ::getValue(messageHashes, j);
+          ccxt::any subHash = ::getValue(subMessageHashes, j);
           this->cleanUnsubscription(client, subHash, unsubHash);
         }
         this->cleanCache(subscription);
@@ -2852,7 +2852,7 @@ public:
     }
   }
 
-  void handleMessage(std::any client, std::any message) override {
+  void handleMessage(ccxt::any client, ccxt::any message) override {
     //
     // subscribe
     //    {
@@ -2945,7 +2945,7 @@ public:
     if (isTrue(isEqual(this->handleErrorMessage(client, message), true))) {
       return;
     }
-    std::any event = this->safeString(message, std::string("event"));
+    ccxt::any event = this->safeString(message, std::string("event"));
     if (isTrue(isEqual(event, std::string("subscribe")))) {
       this->handleSubscriptionStatus(client, message);
       return;
@@ -2954,16 +2954,16 @@ public:
       this->handleUnSubscribe(client, message);
       return;
     }
-    std::any channel =
+    ccxt::any channel =
         this->safeString(message, std::string("channel"), std::string(""));
     // after supporting more method we can create a mapping for this
     if (isTrue(isEqual(channel, std::string("spot.obu")))) {
       this->handleOrderBook(client, message);
       return;
     }
-    std::any channelParts = split(channel, std::string("."));
-    std::any channelType = this->safeValue(channelParts, 1);
-    std::any v4Methods = ccxt::dict{
+    ccxt::any channelParts = split(channel, std::string("."));
+    ccxt::any channelType = this->safeValue(channelParts, 1);
+    ccxt::any v4Methods = ccxt::dict{
         {std::string("usertrades"), std::string("handleMyTrades")},
         {std::string("candlesticks"), std::string("handleOHLCV")},
         {std::string("orders"), std::string("handleOrder")},
@@ -2977,41 +2977,41 @@ public:
         {std::string("balances"), std::string("handleBalance")},
         {std::string("liquidates"), std::string("handleLiquidation")},
     };
-    std::any method = this->safeValue(v4Methods, channelType);
-    if (isTrue(!isEqual(method, std::any{}))) {
+    ccxt::any method = this->safeValue(v4Methods, channelType);
+    if (isTrue(!isEqual(method, ccxt::any{}))) {
       this->dispatchMethodName(method, ccxt::list{client, message});
     }
-    std::any requestId = this->safeString(message, std::string("request_id"));
+    ccxt::any requestId = this->safeString(message, std::string("request_id"));
     if (isTrue(isEqual(requestId, std::string("authenticated")))) {
       this->handleAuthenticationMessage(client, message);
       return;
     }
-    if (isTrue(!isEqual(requestId, std::any{}))) {
-      std::any data = this->safeDict(message, std::string("data"));
+    if (isTrue(!isEqual(requestId, ccxt::any{}))) {
+      ccxt::any data = this->safeDict(message, std::string("data"));
       // use safeValue as result may be Array or an Object
-      std::any result = this->safeValue(data, std::string("result"));
-      std::any ack = this->safeBool(message, std::string("ack"));
+      ccxt::any result = this->safeValue(data, std::string("result"));
+      ccxt::any ack = this->safeBool(message, std::string("ack"));
       if (isTrue(!isEqual(ack, true))) {
         this->resolve(result, requestId);
       }
     }
   }
 
-  virtual std::any getUrlByMarket(std::any market) {
-    std::any baseUrl = ::getValue(::getValue(this->urls, std::string("api")),
+  virtual ccxt::any getUrlByMarket(ccxt::any market) {
+    ccxt::any baseUrl = ::getValue(::getValue(this->urls, std::string("api")),
                                   ::getValue(market, std::string("type")));
     if (isTrue(isEqual(::getValue(market, std::string("contract")), true))) {
       return (isTrue((isEqual(::getValue(market, std::string("linear")), true)))
-                  ? std::any(::getValue(baseUrl, std::string("usdt")))
-                  : std::any(::getValue(baseUrl, std::string("btc"))));
+                  ? ccxt::any(::getValue(baseUrl, std::string("usdt")))
+                  : ccxt::any(::getValue(baseUrl, std::string("btc"))));
     } else {
       return baseUrl;
     }
   }
 
-  virtual std::any getTypeByMarket(std::any market) {
-    if (isTrue(isEqual(market, std::any{}))) {
-      return std::any{};
+  virtual ccxt::any getTypeByMarket(ccxt::any market) {
+    if (isTrue(isEqual(market, ccxt::any{}))) {
+      return ccxt::any{};
     }
     if (isTrue(isEqual(::getValue(market, std::string("spot")), true))) {
       return std::string("spot");
@@ -3023,31 +3023,31 @@ public:
     }
   }
 
-  virtual std::any getUrlByMarketType(std::any type,
-                                      std::any isInverse = false) {
-    std::any api = ::getValue(this->urls, std::string("api"));
-    std::any url = this->safeValue(api, type);
+  virtual ccxt::any getUrlByMarketType(ccxt::any type,
+                                      ccxt::any isInverse = false) {
+    ccxt::any api = ::getValue(this->urls, std::string("api"));
+    ccxt::any url = this->safeValue(api, type);
     if (isTrue(isTrue((isEqual(type, std::string("swap")))) ||
                isTrue((isEqual(type, std::string("future")))))) {
       return (isTrue(isInverse)
-                  ? std::any(::getValue(url, std::string("btc")))
-                  : std::any(::getValue(url, std::string("usdt"))));
+                  ? ccxt::any(::getValue(url, std::string("btc")))
+                  : ccxt::any(::getValue(url, std::string("usdt"))));
     } else {
       return url;
     }
   }
 
-  virtual std::any getMarketTypeByUrl(std::any url) {
-    std::any findBy = ccxt::dict{
+  virtual ccxt::any getMarketTypeByUrl(ccxt::any url) {
+    ccxt::any findBy = ccxt::dict{
         {std::string("op-"), std::string("option")},
         {std::string("delivery"), std::string("future")},
         {std::string("fx"), std::string("swap")},
     };
-    std::any keys = getObjectKeys(findBy);
-    for (std::any i = 0; isLessThan(i, getArrayLength(keys));
+    ccxt::any keys = getObjectKeys(findBy);
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));
          postFixIncrement(i)) {
-      std::any key = ::getValue(keys, i);
-      std::any value = ::getValue(findBy, key);
+      ccxt::any key = ::getValue(keys, i);
+      ccxt::any value = ::getValue(findBy, key);
       if (isTrue(isGreaterThanOrEqual(getIndexOf(url, key), 0))) {
         return value;
       }
@@ -3055,89 +3055,89 @@ public:
     return std::string("spot");
   }
 
-  virtual std::any requestId() {
+  virtual ccxt::any requestId() {
     // their support said that reqid must be an int32, not documented
     this->lockId();
-    std::any reqid =
+    ccxt::any reqid =
         this->sum(this->safeInteger(this->options, std::string("reqid"), 0), 1);
     ::setValue(this->options, std::string("reqid"), reqid);
     this->unlockId();
     return reqid;
   }
 
-  virtual std::shared_future<std::any>
-  subscribePublic(std::any url, std::any messageHash, std::any payload,
-                  std::any channel, std::any params = ccxt::dict{},
-                  std::any subscription = std::any{}) {
+  virtual std::shared_future<ccxt::any>
+  subscribePublic(ccxt::any url, ccxt::any messageHash, ccxt::any payload,
+                  ccxt::any channel, ccxt::any params = ccxt::dict{},
+                  ccxt::any subscription = ccxt::any{}) {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
-                 std::any requestId = this->requestId();
-                 std::any time = this->seconds();
-                 std::any request = ccxt::dict{
+               [=]() mutable -> ccxt::any {
+                 ccxt::any requestId = this->requestId();
+                 ccxt::any time = this->seconds();
+                 ccxt::any request = ccxt::dict{
                      {std::string("id"), requestId},
                      {std::string("time"), time},
                      {std::string("channel"), channel},
                      {std::string("event"), std::string("subscribe")},
                      {std::string("payload"), payload},
                  };
-                 if (isTrue(!isEqual(subscription, std::any{}))) {
-                   std::any client = this->client(url);
+                 if (isTrue(!isEqual(subscription, ccxt::any{}))) {
+                   ccxt::any client = this->client(url);
                    if (!isTrue((inOp(
                            ::getValue(client, std::string("subscriptions")),
                            messageHash)))) {
-                     std::any tempSubscriptionHash = toString(requestId);
+                     ccxt::any tempSubscriptionHash = toString(requestId);
                      ::setValue(
                          ::getValue(client, std::string("subscriptions")),
                          tempSubscriptionHash, messageHash);
                    }
                  }
-                 std::any message = this->extend(request, params);
+                 ccxt::any message = this->extend(request, params);
                  return awaitValue(this->watch(url, messageHash, message,
                                                messageHash, subscription));
                })
         .share();
   }
 
-  virtual std::shared_future<std::any>
-  subscribePublicMultiple(std::any url, std::any messageHashes,
-                          std::any payload, std::any channel,
-                          std::any params = ccxt::dict{}) {
+  virtual std::shared_future<ccxt::any>
+  subscribePublicMultiple(ccxt::any url, ccxt::any messageHashes,
+                          ccxt::any payload, ccxt::any channel,
+                          ccxt::any params = ccxt::dict{}) {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
-                        std::any requestId = this->requestId();
-                        std::any time = this->seconds();
-                        std::any request = ccxt::dict{
+                      [=]() mutable -> ccxt::any {
+                        ccxt::any requestId = this->requestId();
+                        ccxt::any time = this->seconds();
+                        ccxt::any request = ccxt::dict{
                             {std::string("id"), requestId},
                             {std::string("time"), time},
                             {std::string("channel"), channel},
                             {std::string("event"), std::string("subscribe")},
                             {std::string("payload"), payload},
                         };
-                        std::any message = this->extend(request, params);
+                        ccxt::any message = this->extend(request, params);
                         return awaitValue(this->watchMultiple(
                             url, messageHashes, message, messageHashes));
                       })
         .share();
   }
 
-  virtual std::shared_future<std::any>
-  unSubscribePublicMultiple(std::any url, std::any topic, std::any symbols,
-                            std::any messageHashes, std::any subMessageHashes,
-                            std::any payload, std::any channel,
-                            std::any params = ccxt::dict{}) {
+  virtual std::shared_future<ccxt::any>
+  unSubscribePublicMultiple(ccxt::any url, ccxt::any topic, ccxt::any symbols,
+                            ccxt::any messageHashes, ccxt::any subMessageHashes,
+                            ccxt::any payload, ccxt::any channel,
+                            ccxt::any params = ccxt::dict{}) {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
-                        std::any requestId = this->requestId();
-                        std::any time = this->seconds();
-                        std::any request = ccxt::dict{
+                      [=]() mutable -> ccxt::any {
+                        ccxt::any requestId = this->requestId();
+                        ccxt::any time = this->seconds();
+                        ccxt::any request = ccxt::dict{
                             {std::string("id"), requestId},
                             {std::string("time"), time},
                             {std::string("channel"), channel},
                             {std::string("event"), std::string("unsubscribe")},
                             {std::string("payload"), payload},
                         };
-                        std::any sub = ccxt::dict{
+                        ccxt::any sub = ccxt::dict{
                             {std::string("id"), toString(requestId)},
                             {std::string("topic"), topic},
                             {std::string("unsubscribe"), true},
@@ -3145,27 +3145,27 @@ public:
                             {std::string("subMessageHashes"), subMessageHashes},
                             {std::string("symbols"), symbols},
                         };
-                        std::any message = this->extend(request, params);
+                        ccxt::any message = this->extend(request, params);
                         return awaitValue(this->watchMultiple(
                             url, messageHashes, message, messageHashes, sub));
                       })
         .share();
   }
 
-  virtual std::shared_future<std::any> authenticate(std::any url,
-                                                    std::any messageType) {
+  virtual std::shared_future<ccxt::any> authenticate(ccxt::any url,
+                                                    ccxt::any messageType) {
     return std::async(std::launch::deferred,
-                      [=]() mutable -> std::any {
-                        std::any channel =
+                      [=]() mutable -> ccxt::any {
+                        ccxt::any channel =
                             add(messageType, std::string(".login"));
-                        std::any client = this->client(url);
-                        std::any messageHash = std::string("authenticated");
-                        std::any future =
+                        ccxt::any client = this->client(url);
+                        ccxt::any messageHash = std::string("authenticated");
+                        ccxt::any future =
                             ::wsClientReusableFuture(client, messageHash);
-                        std::any authenticated = this->safeValue(
+                        ccxt::any authenticated = this->safeValue(
                             ::getValue(client, std::string("subscriptions")),
                             messageHash);
-                        if (isTrue(isEqual(authenticated, std::any{}))) {
+                        if (isTrue(isEqual(authenticated, ccxt::any{}))) {
                           return awaitValue(this->requestPrivate(
                               url, ccxt::dict{}, channel, messageHash));
                         }
@@ -3174,39 +3174,39 @@ public:
         .share();
   }
 
-  virtual void handleAuthenticationMessage(std::any client, std::any message) {
-    std::any messageHash = std::string("authenticated");
-    std::any future = this->safeValue(
+  virtual void handleAuthenticationMessage(ccxt::any client, ccxt::any message) {
+    ccxt::any messageHash = std::string("authenticated");
+    ccxt::any future = this->safeValue(
         ::getValue(client, std::string("futures")), messageHash);
     ::wsFutureResolve(future, true);
   }
 
-  virtual std::shared_future<std::any>
-  requestPrivate(std::any url, std::any reqParams, std::any channel,
-                 std::any requestId = std::any{}) {
+  virtual std::shared_future<ccxt::any>
+  requestPrivate(ccxt::any url, ccxt::any reqParams, ccxt::any channel,
+                 ccxt::any requestId = ccxt::any{}) {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
+               [=]() mutable -> ccxt::any {
                  this->checkRequiredCredentials();
                  // uid is required for some subscriptions only so it's not a
                  // part of required credentials
-                 std::any event = std::string("api");
-                 if (isTrue(isEqual(requestId, std::any{}))) {
-                   std::any reqId = this->requestId();
+                 ccxt::any event = std::string("api");
+                 if (isTrue(isEqual(requestId, ccxt::any{}))) {
+                   ccxt::any reqId = this->requestId();
                    requestId = toString(reqId);
                  }
-                 std::any messageHash = requestId;
-                 std::any time = this->seconds();
+                 ccxt::any messageHash = requestId;
+                 ccxt::any time = this->seconds();
                  // unfortunately, PHP demands double quotes for the escaped
                  // newline symbol
-                 std::any signatureString =
+                 ccxt::any signatureString =
                      join(ccxt::list{event, channel, this->json(reqParams),
                                      toString(time)},
                           std::string("\n")); // eslint-disable-line quotes
-                 std::any signature = this->hmac(this->encode(signatureString),
+                 ccxt::any signature = this->hmac(this->encode(signatureString),
                                                  this->encode(this->secret),
                                                  sha512, std::string("hex"));
-                 std::any payload = ccxt::dict{
+                 ccxt::any payload = ccxt::dict{
                      {std::string("req_id"), requestId},
                      {std::string("timestamp"), toString(time)},
                      {std::string("api_key"), this->apiKey},
@@ -3224,7 +3224,7 @@ public:
                                    std::string("ccxt")},
                               });
                  }
-                 std::any request = ccxt::dict{
+                 ccxt::any request = ccxt::dict{
                      {std::string("id"), requestId},
                      {std::string("time"), time},
                      {std::string("channel"), channel},
@@ -3237,32 +3237,32 @@ public:
         .share();
   }
 
-  virtual std::shared_future<std::any>
-  subscribePrivate(std::any url, std::any messageHash, std::any payload,
-                   std::any channel, std::any params,
-                   std::any requiresUid = false) {
+  virtual std::shared_future<ccxt::any>
+  subscribePrivate(ccxt::any url, ccxt::any messageHash, ccxt::any payload,
+                   ccxt::any channel, ccxt::any params,
+                   ccxt::any requiresUid = false) {
     return std::async(
                std::launch::deferred,
-               [=]() mutable -> std::any {
+               [=]() mutable -> ccxt::any {
                  this->checkRequiredCredentials();
                  // uid is required for some subscriptions only so it's not a
                  // part of required credentials
                  if (isTrue(requiresUid)) {
-                   if (isTrue(isTrue(isEqual(this->uid, std::any{})) ||
+                   if (isTrue(isTrue(isEqual(this->uid, ccxt::any{})) ||
                               isTrue(isEqual(getStringLength(this->uid), 0)))) {
                      throw ArgumentsRequired(toString(add(
                          this->id, std::string(" requires uid to subscribe"))));
                    }
-                   std::any idArray = ccxt::list{this->uid};
-                   if (isTrue(isEqual(payload, std::any{}))) {
+                   ccxt::any idArray = ccxt::list{this->uid};
+                   if (isTrue(isEqual(payload, ccxt::any{}))) {
                      payload = idArray;
                    } else {
                      payload = this->arrayConcat(idArray, payload);
                    }
                  }
-                 std::any time = this->seconds();
-                 std::any event = std::string("subscribe");
-                 std::any signaturePayload = add(
+                 ccxt::any time = this->seconds();
+                 ccxt::any event = std::string("subscribe");
+                 ccxt::any signaturePayload = add(
                      add(add(add(add(add(add(std::string("channel="), channel),
                                          std::string("&")),
                                      std::string("event=")),
@@ -3270,35 +3270,35 @@ public:
                              std::string("&")),
                          std::string("time=")),
                      toString(time));
-                 std::any signature = this->hmac(this->encode(signaturePayload),
+                 ccxt::any signature = this->hmac(this->encode(signaturePayload),
                                                  this->encode(this->secret),
                                                  sha512, std::string("hex"));
-                 std::any auth = ccxt::dict{
+                 ccxt::any auth = ccxt::dict{
                      {std::string("method"), std::string("api_key")},
                      {std::string("KEY"), this->apiKey},
                      {std::string("SIGN"), signature},
                  };
-                 std::any requestId = this->requestId();
-                 std::any request = ccxt::dict{
+                 ccxt::any requestId = this->requestId();
+                 ccxt::any request = ccxt::dict{
                      {std::string("id"), requestId},
                      {std::string("time"), time},
                      {std::string("channel"), channel},
                      {std::string("event"), event},
                      {std::string("auth"), auth},
                  };
-                 if (isTrue(!isEqual(payload, std::any{}))) {
+                 if (isTrue(!isEqual(payload, ccxt::any{}))) {
                    ::setValue(request, std::string("payload"), payload);
                  }
-                 std::any client = this->client(url);
+                 ccxt::any client = this->client(url);
                  if (!isTrue(
                          (inOp(::getValue(client, std::string("subscriptions")),
                                messageHash)))) {
-                   std::any tempSubscriptionHash = toString(requestId);
+                   ccxt::any tempSubscriptionHash = toString(requestId);
                    // in case of authenticationError we will throw
                    ::setValue(::getValue(client, std::string("subscriptions")),
                               tempSubscriptionHash, messageHash);
                  }
-                 std::any message = this->extend(request, params);
+                 ccxt::any message = this->extend(request, params);
                  return awaitValue(this->watch(url, messageHash, message,
                                                messageHash, messageHash));
                })
@@ -3306,13 +3306,13 @@ public:
   }
   // GENERATED dispatch table - see createDispatchTable in
   // build/cppTranspiler.ts
-  virtual std::any callMethod(std::any name, std::any args) override {
+  virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
     const std::string which = ::toString(name).has_value()
-                                  ? std::any_cast<std::string>(::toString(name))
+                                  ? ccxt::any_cast<std::string>(::toString(name))
                                   : std::string();
     const long count =
         ccxt::isList(args)
-            ? static_cast<long>(std::any_cast<ccxt::list>(args).size())
+            ? static_cast<long>(ccxt::any_cast<ccxt::list>(args).size())
             : 0;
     if (which == "describe") {
       if (true)
@@ -3462,19 +3462,19 @@ public:
       if (true) {
         this->handleOrderBookSubscription(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleNewSpotOrderBook") {
       if (true) {
         this->handleNewSpotOrderBook(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleOrderBook") {
       if (true) {
         this->handleOrderBook(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "getCacheIndex") {
@@ -3484,13 +3484,13 @@ public:
     if (which == "handleBidAsks") {
       if (true) {
         this->handleBidAsks(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleDelta") {
       if (true) {
         this->handleDelta(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchTicker") {
@@ -3512,7 +3512,7 @@ public:
     if (which == "handleTicker") {
       if (true) {
         this->handleTicker(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchBidsAsks") {
@@ -3527,7 +3527,7 @@ public:
     if (which == "handleBidAsk") {
       if (true) {
         this->handleBidAsk(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "subscribeWatchTickersAndBidsAsks") {
@@ -3547,7 +3547,7 @@ public:
       if (true) {
         this->handleTickerAndBidAsk(::getValue(args, 0), ::getValue(args, 1),
                                     ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchTrades") {
@@ -3595,7 +3595,7 @@ public:
     if (which == "handleTrades") {
       if (true) {
         this->handleTrades(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchOHLCV") {
@@ -3619,7 +3619,7 @@ public:
     if (which == "handleOHLCV") {
       if (true) {
         this->handleOHLCV(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchMyTrades") {
@@ -3641,7 +3641,7 @@ public:
     if (which == "handleMyTrades") {
       if (true) {
         this->handleMyTrades(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchBalance") {
@@ -3653,7 +3653,7 @@ public:
     if (which == "handleBalance") {
       if (true) {
         this->handleBalance(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchPositions") {
@@ -3675,12 +3675,12 @@ public:
     if (which == "setPositionsCache") {
       if (count <= 2) {
         this->setPositionsCache(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count >= 3) {
         this->setPositionsCache(::getValue(args, 0), ::getValue(args, 1),
                                 ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "loadPositionsSnapshot") {
@@ -3691,7 +3691,7 @@ public:
     if (which == "handlePositions") {
       if (true) {
         this->handlePositions(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchOrders") {
@@ -3713,7 +3713,7 @@ public:
     if (which == "handleOrder") {
       if (true) {
         this->handleOrder(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "watchMyLiquidations") {
@@ -3748,7 +3748,7 @@ public:
     if (which == "handleLiquidation") {
       if (true) {
         this->handleLiquidation(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "parseWsLiquidation") {
@@ -3767,31 +3767,31 @@ public:
       if (count <= 2) {
         this->handleBalanceSubscription(::getValue(args, 0),
                                         ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count >= 3) {
         this->handleBalanceSubscription(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleSubscriptionStatus") {
       if (true) {
         this->handleSubscriptionStatus(::getValue(args, 0),
                                        ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleUnSubscribe") {
       if (true) {
         this->handleUnSubscribe(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleMessage") {
       if (true) {
         this->handleMessage(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "getUrlByMarket") {
@@ -3862,7 +3862,7 @@ public:
       if (true) {
         this->handleAuthenticationMessage(::getValue(args, 0),
                                           ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "requestPrivate") {
@@ -3887,13 +3887,13 @@ public:
     if (which == "cleanRestData") {
       if (true) {
         this->cleanRestData();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "cleanWsData") {
       if (true) {
         this->cleanWsData();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "safeBoolN") {
@@ -3966,35 +3966,35 @@ public:
       if (true) {
         this->storeByKey(::getValue(args, 0), ::getValue(args, 1),
                          ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleDeltas") {
       if (true) {
         this->handleDeltas(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "handleDeltasWithKeys") {
       if (count <= 2) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count == 3) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                    ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count == 4) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                    ::getValue(args, 2), ::getValue(args, 3));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count >= 5) {
         this->handleDeltasWithKeys(::getValue(args, 0), ::getValue(args, 1),
                                    ::getValue(args, 2), ::getValue(args, 3),
                                    ::getValue(args, 4));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "arraysConcat") {
@@ -4050,7 +4050,7 @@ public:
     if (which == "checkConflictingProxies") {
       if (true) {
         this->checkConflictingProxies(::getValue(args, 0), ::getValue(args, 1));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "checkAddress") {
@@ -4122,13 +4122,13 @@ public:
     if (which == "setSandboxMode") {
       if (true) {
         this->setSandboxMode(::getValue(args, 0));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "enableDemoTrading") {
       if (true) {
         this->enableDemoTrading(::getValue(args, 0));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "sign") {
@@ -4425,19 +4425,19 @@ public:
     if (which == "afterConstruct") {
       if (true) {
         this->afterConstruct();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "initRestRateLimiter") {
       if (true) {
         this->initRestRateLimiter();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "featuresGenerator") {
       if (true) {
         this->featuresGenerator();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "featuresMapper") {
@@ -4482,7 +4482,7 @@ public:
     if (which == "createNetworksByIdObject") {
       if (true) {
         this->createNetworksByIdObject();
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "getDefaultOptions") {
@@ -5304,14 +5304,14 @@ public:
       if (true) {
         this->throwExactlyMatchedException(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "throwBroadlyMatchedException") {
       if (true) {
         this->throwBroadlyMatchedException(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "findBroadlyMatchedKey") {
@@ -5763,19 +5763,19 @@ public:
       if (count <= 3) {
         this->checkRequiredArgument(::getValue(args, 0), ::getValue(args, 1),
                                     ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count >= 4) {
         this->checkRequiredArgument(::getValue(args, 0), ::getValue(args, 1),
                                     ::getValue(args, 2), ::getValue(args, 3));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "checkRequiredMarginArgument") {
       if (true) {
         this->checkRequiredMarginArgument(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "parseDepositWithdrawFees") {
@@ -6192,18 +6192,18 @@ public:
       if (count <= 3) {
         this->cleanUnsubscription(::getValue(args, 0), ::getValue(args, 1),
                                   ::getValue(args, 2));
-        return std::any{};
+        return ccxt::any{};
       }
       if (count >= 4) {
         this->cleanUnsubscription(::getValue(args, 0), ::getValue(args, 1),
                                   ::getValue(args, 2), ::getValue(args, 3));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "cleanCache") {
       if (true) {
         this->cleanCache(::getValue(args, 0));
-        return std::any{};
+        return ccxt::any{};
       }
     }
     if (which == "timeframeFromMilliseconds") {

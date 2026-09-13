@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_binanceus(std::any config) {
+std::shared_ptr<ExchangeBase> create_binanceus(ccxt::any config) {
   return newExchange<binanceus>(config);
 }
 

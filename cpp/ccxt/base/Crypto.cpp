@@ -131,16 +131,16 @@ const EVP_MD* digestFor (const std::string& algorithm) {
     throw std::runtime_error ("unsupported hash algorithm: " + algorithm);
 }
 
-std::any encodeDigest (const std::vector<unsigned char>& raw, const std::string& digest) {
+ccxt::any encodeDigest (const std::vector<unsigned char>& raw, const std::string& digest) {
     const bytes value (raw);
     if (digest.empty () || digest == "hex") {
-        return std::any (toBase16 (value));
+        return ccxt::any (toBase16 (value));
     }
     if (digest == "base64") {
-        return std::any (toBase64 (value));
+        return ccxt::any (toBase64 (value));
     }
     if (digest == "binary") {
-        return std::any (value);
+        return ccxt::any (value);
     }
     throw std::runtime_error ("unsupported digest encoding: " + digest);
 }
@@ -302,7 +302,7 @@ bytes fromBase58 (const std::string& text) {
 // digests
 // ---------------------------------------------------------------------------
 
-std::any hashBytes (const bytes& payload, const std::string& algorithm, const std::string& digest) {
+ccxt::any hashBytes (const bytes& payload, const std::string& algorithm, const std::string& digest) {
     if (algorithm == "keccak") {
         // original Keccak-256, not OpenSSL's SHA-3: keccak256Absorb handles the
         // domain separator (0x01) and final 0x80 padding
@@ -328,7 +328,7 @@ std::any hashBytes (const bytes& payload, const std::string& algorithm, const st
     return encodeDigest (raw, digest);
 }
 
-std::any hmacBytes (const bytes& payload, const std::string& key,
+ccxt::any hmacBytes (const bytes& payload, const std::string& key,
                     const std::string& algorithm, const std::string& digest) {
     const EVP_MD* md = digestFor (algorithm);
     std::vector<unsigned char> raw (EVP_MAX_MD_SIZE);
@@ -421,7 +421,7 @@ std::vector<unsigned char> messageHashBytes (const std::string& requestHex) {
 
 } // namespace
 
-std::any ecdsa (std::any request, std::any secret, std::any curve, std::any prehash, std::any fixedLength) {
+ccxt::any ecdsa (ccxt::any request, ccxt::any secret, ccxt::any curve, ccxt::any prehash, ccxt::any fixedLength) {
     (void) fixedLength;
     if (!isStr (request) || !isStr (secret)) {
         throw NotSupported ("ecdsa: request and secret must be hex strings");
@@ -575,7 +575,7 @@ std::any ecdsa (std::any request, std::any secret, std::any curve, std::any preh
     BN_CTX_free (ctx);
     EC_POINT_free (R);
     EC_KEY_free (ec);
-    return std::any (out);
+    return ccxt::any (out);
 }
 
 } // namespace ccxt

@@ -27,18 +27,18 @@
 
 namespace {
 
-std::any numericOrString (const std::string& arg) {
+ccxt::any numericOrString (const std::string& arg) {
     // ccxt positional args arrive as strings; numbers pass through as numbers
     // so runtime helpers (toLong etc.) see them directly. Strings with a slash
     // or letters stay strings (symbols, "1h" timeframe).
     try {
         if (arg.find_first_of ("/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") == std::string::npos) {
-            return std::any (std::stod (arg));
+            return ccxt::any (std::stod (arg));
         }
     } catch (...) {
         // fall through to string
     }
-    return std::any (arg);
+    return ccxt::any (arg);
 }
 
 } // namespace
@@ -50,7 +50,7 @@ int main (int argc, char** argv) {
     }
     const std::string exchangeId = argv[1];
     const std::string method = argv[2];
-    std::vector<std::any> args;
+    std::vector<ccxt::any> args;
     bool verbose = false;
     bool prediction = false;
     bool noMarkets = false;
@@ -86,11 +86,11 @@ int main (int argc, char** argv) {
             }
             std::stringstream buffer;
             buffer << keysFile.rdbuf ();
-            const std::any keys = parser.parseJson (buffer.str ());
+            const ccxt::any keys = parser.parseJson (buffer.str ());
             if (ccxt::isDict (keys)) {
-                const std::any mine = std::any_cast<ccxt::dict> (keys).get (exchangeId);
+                const ccxt::any mine = ccxt::any_cast<ccxt::dict> (keys).get (exchangeId);
                 if (ccxt::isDict (mine)) {
-                    for (const auto& kv : std::any_cast<ccxt::dict> (mine).entries ()) {
+                    for (const auto& kv : ccxt::any_cast<ccxt::dict> (mine).entries ()) {
                         config.set (kv.first, kv.second);
                     }
                 }
@@ -103,7 +103,7 @@ int main (int argc, char** argv) {
                 ? ccxt::pro::factory::createProExchange (exchangeId, config)
                 : ccxt::factory::createExchange (exchangeId, config);
         if (verbose) {
-            exchange->verbose = std::any (true);
+            exchange->verbose = ccxt::any (true);
         }
         // markets: a live fetchMarkets per invocation makes every CLI call pay
         // several API round-trips (binance's market list is heavy). Cache the
@@ -141,10 +141,10 @@ int main (int argc, char** argv) {
                         std::stringstream cacheBuffer;
                         cacheBuffer << cacheFile.rdbuf ();
                         phase ("cache-read");
-                        const std::any cached = parser.parseJson (cacheBuffer.str ());
+                        const ccxt::any cached = parser.parseJson (cacheBuffer.str ());
                         phase ("parseJson");
                         if (ccxt::isDict (cached)) {
-                            exchange->setMarkets (cached, std::any {});
+                            exchange->setMarkets (cached, ccxt::any {});
                             phase ("setMarkets");
                             loadedFromCache = true;
                         }
@@ -167,16 +167,16 @@ int main (int argc, char** argv) {
                 benchBuf << benchFile.rdbuf ();
                 ccxt::ExchangeBase benchParser;
                 auto b0 = std::chrono::steady_clock::now ();
-                const std::any benchParsed = benchParser.parseJson (benchBuf.str ());
+                const ccxt::any benchParsed = benchParser.parseJson (benchBuf.str ());
                 auto b1 = std::chrono::steady_clock::now ();
-                exchange->setMarkets (benchParsed, std::any {});
+                exchange->setMarkets (benchParsed, ccxt::any {});
                 auto b2 = std::chrono::steady_clock::now ();
                 std::cerr << "[bench] parseJson: " << std::chrono::duration_cast<std::chrono::milliseconds> (b1 - b0).count ()
                           << "ms, first setMarkets: " << std::chrono::duration_cast<std::chrono::milliseconds> (b2 - b1).count ()
                           << "ms" << std::endl;
                 for (int rep = 0; rep < 3; rep++) {
                     auto s0 = std::chrono::steady_clock::now ();
-                    exchange->setMarkets (benchParsed, std::any {});
+                    exchange->setMarkets (benchParsed, ccxt::any {});
                     auto s1 = std::chrono::steady_clock::now ();
                     std::cerr << "[bench] setMarkets #" << rep + 2 << ": "
                               << std::chrono::duration_cast<std::chrono::milliseconds> (s1 - s0).count () << "ms" << std::endl;
@@ -204,7 +204,7 @@ int main (int argc, char** argv) {
             std::cout << str (exchange->json (work.get ())) << std::endl;
             return 0;
         }
-        const std::any result = ccxt::awaitValue (exchange->callDynamically (method, callArgs));
+        const ccxt::any result = ccxt::awaitValue (exchange->callDynamically (method, callArgs));
         std::cout << str (exchange->json (result)) << std::endl;
         return 0;
     } catch (const std::exception& e) {
