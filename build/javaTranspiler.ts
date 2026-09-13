@@ -22,7 +22,7 @@ import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable } from "./javaTypedCore.js";
-import { applyJavaUtilImports, shortenJavaUtilReferences, ensureJavaImports } from "./javaUtilImports.js";
+import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 
 ansi.nice
 
@@ -45,10 +45,10 @@ function overwriteFileAndFolder(path: string, content: string) {
     // fs.writeFileSync below wrote every generated file a second time
     //
     // Every Java compilation unit this transpiler emits (exchange cores, WS cores, tests,
-    // errors) goes through here: collapse the `java.util.*` spelling last, so every regex
-    // pass above still matches on the fully-qualified form.
+    // errors) goes through here: collapse the `java.util.*` / `io.github.ccxt.types.*`
+    // spelling last, so every regex pass above still matches on the fully-qualified form.
     if (path.endsWith('.java')) {
-        content = applyJavaUtilImports(content);
+        content = applyJavaImports(content);
     }
     overwriteFile(path, content);
 }
@@ -2342,10 +2342,10 @@ class NewTranspiler {
 
     // Replace everything below the transpile delimiter of a half hand-written base file
     // (BaseExchange.java / Exchange.java / PredictionExchange.java) with `body`, shortened to
-    // simple `java.util.*` names; the hand-written header only gains the imports the body needs.
+    // simple java.util / unified-type names; the hand-written header only gains the imports the body needs.
     spliceTranspiledJavaBody(filename: string, javaDelimiter: string, restOfFile: string, body: string, literal: boolean) {
         const pattern = new RegExp(javaDelimiter + restOfFile);
-        const shortened = shortenJavaUtilReferences(body);
+        const shortened = shortenJavaReferences(body);
         const replacement = javaDelimiter + '\n' + shortened.source;
         if (literal) {
             this.replaceInFileLiteral(filename, pattern, replacement);

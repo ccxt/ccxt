@@ -19,7 +19,7 @@ import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBag
 import { JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
 import { typedReturnTable } from './javaTypedCore.js';
 import type { JavaTier } from './javaTypedCore.js';
-import { applyJavaUtilImports } from './javaUtilImports.js';
+import { applyJavaImports } from './javaUtilImports.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const BASE_PKG = './java/lib/src/main/java/io/github/ccxt/';
@@ -472,8 +472,8 @@ function genAbstractDecl(m: MethodInfo, coreType: string): string {
 function eraseParams(paramList: string): string {
     return paramList.split(',').map(p => p.trim().replace(/\.\.\./, '[]').replace(/\s+\w+$/, '')).filter(Boolean).join(', ');
 }
-// Cores spell the return with the payload types qualified (`CompletableFuture<List<io.github.ccxt.types.Trade>>`);
-// the java.util prefix is accepted too so the check does not depend on the import collapse.
+// Cores spell the return in simple names once written (build/javaUtilImports.ts); the qualified
+// java.util / io.github.ccxt.types spelling is accepted too so the check does not depend on the collapse.
 function eraseReturn(t: string): string {
     return t.replace(/\bjava\.util\./g, '').replace(/\bio\.github\.ccxt\.types\./g, '');
 }
@@ -509,11 +509,7 @@ export function generateTypedSurfaceInterface(ifaceName: string, methods: Method
     lines.push(`// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code`);
     lines.push(``);
     lines.push(`package io.github.ccxt;`);
-    lines.push(``);
-    lines.push(`import io.github.ccxt.types.*;`);
-    lines.push(`import java.util.List;`);
-    lines.push(`import java.util.Map;`);
-    lines.push(`import java.util.concurrent.CompletableFuture;`);
+    // single-type imports are inserted here by applyJavaImports from the names the body uses
     lines.push(``);
     lines.push(`/**`);
     lines.push(` * Typed sync + async surface shared by every exchange. Declared ONCE; each default`);
@@ -685,10 +681,10 @@ function main() {
     const predictionExclude = predictionTierExcludeNames();
     const predictionRestMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnlyMethods);
     const wsMethods = methods.filter(m => m.isWatch || isWsApi(m));
-    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', applyJavaUtilImports(generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods), 'rest')), 'utf-8');
+    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', applyJavaImports(generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods), 'rest'), true), 'utf-8');
     const predictionExtra = Object.values(PREDICTION_EXCHANGE_METHODS).flat();
     const predictionMethods = predictionRestMethods.concat(predictionExtra);
-    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', applyJavaUtilImports(generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction')), 'utf-8');
+    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', applyJavaImports(generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction'), true), 'utf-8');
     console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionMethods.length} methods)`);
 
     const exchangesDir = BASE_PKG + 'exchanges/';

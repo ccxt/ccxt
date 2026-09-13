@@ -10,7 +10,7 @@ import log from 'ololog'
 import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { applyJavaUtilImports } from './javaUtilImports.js';
+import { applyJavaImports } from './javaUtilImports.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 
@@ -1003,7 +1003,7 @@ async function editAPIFilesJava(subdir = ''){
     // the dir is already populated (CI rebuild) or empty (first run).
     fs.mkdirSync(JAVA_PATH + subdir, { recursive: true });
     const files = exchanges.map(ex => JAVA_PATH + subdir + capitalize(ex) + 'Api.java');
-    await Promise.all(files.map((path, idx) => writeFile(path, applyJavaUtilImports (storedJavaMethods[exchanges[idx]].join ('\n')))))
+    await Promise.all(files.map((path, idx) => writeFile(path, applyJavaImports (storedJavaMethods[exchanges[idx]].join ('\n')))))
 }
 
 //-------------------------------------------------------------------------
