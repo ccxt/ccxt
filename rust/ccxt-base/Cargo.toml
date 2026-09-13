@@ -84,6 +84,12 @@ chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
 # Error handling
 thiserror = "1"
+# async fns in traits, which is what makes RouterVenue dyn-compatible. OrderRouter::execute
+# takes a BTreeMap<String, Box<dyn RouterVenue>>, and without this macro the trait's async
+# methods return `impl Future`, which is not object-safe — the map cannot exist and 131
+# downstream errors follow. Upstream's Cargo.toml has no order_router.rs and so no reason to
+# carry this; it must be re-added on every merge from upstream until that changes.
+async-trait = "0.1"
 # Insertion-order-preserving map. Used as Value::Map's backing store so
 # that JSON / URL-encoded payloads serialize keys in the order exchanges
 # expect (bingx/digifinex/mexc createOrders fixtures assert specific

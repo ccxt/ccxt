@@ -955,6 +955,171 @@ if let Some(id) = order.id {
 - Venues are also driven generically through `ccxt_prediction`'s own `TypedExchange` /
   `TypedExchangeExt` (distinct from the ones in `ccxt`).
 
+## Order Router
+
+Two things, either usable without the other. **A client** for the CCXT order-router service, which
+holds live books across many venues and answers "what is the cheapest way to turn asset A into
+asset B right now?", including bridges (`SOL -> USDT -> BTC` when no `SOL/BTC` market exists). And
+**an execution engine for plans you build yourself**, which needs no router service and no API key.
+It is **not** an exchange: it does not implement `ExchangeBase`, has no unified methods, and is
+constructed directly.
+
+```rust
+use ccxt_base::order_router::{OrderRouter, RouterVenue};
+use ccxt_base::Value;
+
+let router = OrderRouter::new(&Value::Map(config))?;
+let route = router.fetch_route("USDT", "BTC", &Value::Map(params)).await?;   // exactly one of amountIn / amountOut
+let plan = router.build_execution_plan(&route, &Value::Map(HashMap::new()))?;
+let report = router.execute(&plan, &venues, &options).await?;
+```
+
+Rust differs from the other five ports in two places, both forced by the language:
+
+- **Fallible methods return `Result<_, ExchangeError>`** where the others throw. The error's `kind`
+  carries the same class name, so `err.is("NetworkError")` asks the question the other ports ask of
+  an exception class.
+- **`execute` takes `BTreeMap<String, Box<dyn RouterVenue>>`** rather than your exchange objects
+  directly. `ExchangeBase`'s methods return `impl Future`, which is not object-safe, so a map of
+  exchanges cannot exist. `RouterVenue` is that map's element type, narrowed to the operations the
+  money path performs; implement it for whatever exchange type you hold.
+
+`execute` defaults to `dry_run`, and **anything other than an explicit `live` flag forces
+`dry_run`** — a call that looks live but forgot the flag places nothing.
+
+### Executing your own plans
+
+`execute` takes a **plan**, not a route, and never checks where the plan came from, so your own
+strategy can supply its own trades and still get the notional cap, halt-and-reconcile between hops,
+resting-order cleanup and the unwind plan. A step is one order on one venue; required fields are
+`exchangeId`, `symbol`, `side`, `amount`, `base`, `quote`.
+
+A live `execute` requires an identity and refuses without one — supply it as the plan's `requestId`
+or as `options.idempotencyKey`. It keys an in-process ledger so a second `execute` of the same plan
+is refused before any venue is contacted. The ledger is capped and evicts oldest-first, so the
+guarantee is "recent duplicates are refused", not "duplicates are impossible", and it does not
+survive a restart.
+
+### The service, and what it costs
+
+`https://docs.ccxt.com/router/api`. Everything except `/health` and `/ready` needs the key, sent
+as `x-api-key`; get one at [docs.ccxt.com/router/signup](https://docs.ccxt.com/router/signup).
+
+**The full contract is published as OpenAPI 3.1 at
+`https://docs.ccxt.com/router/openapi.yaml`, and it is public — no key needed.**
+`curl -O https://docs.ccxt.com/router/openapi.yaml` and point codegen at it, import it into
+Postman/Insomnia, or diff it between deploys. It is the authority on every field this client
+reads; where the two disagree, the spec is right. Rendered prose version:
+[/router/docs](https://docs.ccxt.com/router/docs) and
+[/router/docs/api](https://docs.ccxt.com/router/docs/api).
+
+**Free to use for now, up to the published rate limit** — not a permanent commitment, so expect a
+paid tier eventually. Your existing key is how that would be billed; nothing in the client changes.
+Read the limit off the response headers (`x-ratelimit-limit`, `x-ratelimit-remaining`,
+`x-ratelimit-reset`) rather than hardcoding a number. A `429` raises `RateLimitExceeded` with the
+retry interval folded into the message.
+
+A router that has restarted is alive long before it can price anything. Asked to route in that
+window it refuses with `503 cache_cold`, and the client raises **`ExchangeNotAvailable`** — a
+retry, distinct from the `ExchangeError` that means something is actually wrong.
+
+**Holdings are POSTed, never put in a URL.** `fetch_route` normally sends a `GET`, but when you pass
+`balances` the client switches to `POST /route` and puts every parameter in the body: the service
+scrubs holdings from its own logs, but a reverse proxy, an ALB, a CDN, browser history and a
+`Referer` all see the full request line, and no in-process redaction reaches them.
+`fetch_route_with_balances` does this for you.
+
+
+**Two flags the client verifies for you**, because one silently lost in transit looks identical to
+one never sent. `balances`: the service ignores them entirely if it predates the feature and
+answers byte-identically, so `fetch_route` throws unless the router echoes `balancesApplied` (or
+`balanceEntryCount`, which is how an *empty* wallet is confirmed) — pass `requireBalancesApplied:
+false` to opt out. `requireFullFill`: the one flag that fails *open*, so the client stamps what you
+asked for and the safety check makes `partial_fill` **blocking** when you asked for a full fill and
+did not get one.
+
+**An empty value is not an omitted one.** Omit `bridges` and you get the default bridge set; send
+`bridges=` and you have asked for no bridging at all. Same for `exchanges=` (no venues) and
+`balances=` (you hold nothing). The client forwards an empty value rather than dropping it.
+
+**`requestId`** is sent as the `x-request-id` header, so your log and the router's decision log can
+be joined; the service mints one when absent.
+
+### Asking the service about itself
+
+| Method | Endpoint | Key? | Answers |
+|---|---|---|---|
+| `fetch_health()` | `/health` | no | is the process alive — `200` from the first millisecond of boot |
+| `fetch_readiness()` | `/ready` | no | can it route yet: book counts, and how many are fresh |
+| `fetch_version()` | `/version` | yes | which commit is deployed |
+| `fetch_symbols()` | `/symbols` | yes | the symbols it holds a book for |
+| `fetch_exchanges_status()` | `/exchanges/status` | yes | per-venue connection health |
+| `fetch_cached_order_book(exchange_id, symbol)` | `/orderbook/{exchange}/{symbol}` | yes | the exact book a route was ranked on |
+
+Gate deploys on readiness, not health — `/health` is `200` before a single websocket has connected.
+`fetch_readiness()` does **not** raise when the answer is no: the service replies `503` carrying the same
+body it returns on `200`, and you need those counts to know why.
+
+```rust
+let readiness = router.fetch_readiness().await?;
+if router.string_at(&readiness, "status", "") != "ready" {
+    println!(
+        "{} of {} books are fresh",
+        router.number_at(&readiness, "freshCount", 0.0),
+        router.number_at(&readiness, "bookCount", 0.0)
+    );
+}
+```
+
+`/metrics` (Prometheus) has no client method — it answers `text/plain` and this class parses every
+response as JSON.
+
+**Watching a route.** `watch_route` holds a WebSocket open and calls your hook with each RouteResult as
+the books move; return `'stop'` to close cleanly and get the last route back. Every frame is
+stamped exactly as `fetch_route` stamps its answer, so it can go straight into the plan builder. Three
+endpoint rules differ from `fetch_route`: `balances` and `balanceMode` are **refused** (a socket outlives
+the holdings it was opened with — refused client-side, before anything opens), `includeQuotes`
+defaults to **false**, and refusals arrive as close codes rather than statuses — `1008` raises
+`BadRequest` and `1013` raises `ExchangeNotAvailable`, the same classes the REST path uses. A hook
+that throws stops the stream and reaches you, unlike execute's step hook.
+
+### Watching a run, and stopping it — `set_on_step`
+
+**This is where Rust's API diverges most.** The other five ports pass the hook in
+`options['onStep']`; Rust installs it on the router. `Value` is a closed enum deriving `Debug`,
+`Clone` and `PartialEq` and answering `to_json`, so it cannot carry a closure without redefining
+what closure equality and serialisation mean at every `Value` site in the crate.
+
+```rust
+use std::sync::Arc;
+
+router.set_on_step(Arc::new(|event: &Value| {
+    // return "halt" to stop the route; anything else continues
+    if router_str(event, "status") == "partial" { "halt".to_string() } else { String::new() }
+}));
+let report = router.execute(&plan, &venues, &options).await?;
+router.clear_on_step();
+```
+
+`OnStepHook` is `Arc<dyn Fn(&Value) -> String + Send + Sync>`. The hook is called after each step
+completes AND after its reconciliation, never mid-order, with an event carrying `planId`,
+`stepIndex`, `hopIndex`, `status`, `filledAmount`, `outAmount`, `attempt`, `reconciliation`,
+`haltReason`, `stepsRemaining` and more.
+
+- **It can only narrow.** `"halt"` stops the route and sets `haltReason` to `halted_by_on_step`;
+  nothing it returns resumes a route the reconciliation already halted.
+- **Do no I/O in it** — it sits between orders on the money path.
+- **A panicking hook cannot take the run down.** It is called inside `catch_unwind`, the failure is
+  recorded as `on_step_hook_failed:panic`, and execution continues as if the hook had no opinion —
+  losing the report would destroy the only account of orders already live. This does **not** hold
+  under `panic = "abort"`, where no construct in any language would help.
+
+`options.retryFailedSteps` (default 0, `retryDelayMs` default 1000) re-places a step the venue
+**definitively rejected**. An `outcome_unknown` step is never retried at any setting: it may already
+be a live position, and re-placing it is the double-fill this class exists to prevent. The winning
+attempt is reported as `attempt`. The router sets no client order id of its own — venues disagree on
+length and charset, so whatever you pass in `orderParams` travels untouched.
+
 ## Common Pitfalls
 
 ### Not loading markets first

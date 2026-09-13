@@ -35,6 +35,10 @@ path = "src/ws_typed_demo.rs"
 required-features = ["ws"]
 
 [[bin]]
+name = "order_router"
+path = "src/order_router.rs"
+
+[[bin]]
 name = "binance_basics"
 path = "src/binance_basics.rs"
 

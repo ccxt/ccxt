@@ -112,6 +112,7 @@ if (!defined('CCXT_SYNC_ONLY')) {
 
 require_once PATH_TO_CCXT . 'Precise.php';
 require_once PATH_TO_CCXT . 'Exchange.php';
+require_once PATH_TO_CCXT . 'OrderRouter.php';
 
 if (!CCXT_SYNC_ONLY) {
     require_once PATH_TO_WS_CCXT . 'ClientTrait.php';
