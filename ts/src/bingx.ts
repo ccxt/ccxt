@@ -3324,7 +3324,7 @@ export default class bingx extends Exchange {
                     }
                     const slQuantity = this.safeString (stopLossDict, 'quantity', stringifiedAmount);
                     let slQuantityRequest = this.parseToNumeric (slQuantity);
-                    if (!market['inverse']) {
+                    if (market['inverse'] !== true) {
                         slQuantityRequest = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
                     }
                     slRequest['quantity'] = slQuantityRequest;
@@ -3345,7 +3345,7 @@ export default class bingx extends Exchange {
                     }
                     const tkQuantity = this.safeString (takeProfitDict, 'quantity', stringifiedAmount);
                     let tkQuantityRequest = this.parseToNumeric (tkQuantity);
-                    if (!market['inverse']) {
+                    if (market['inverse'] !== true) {
                         tkQuantityRequest = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
                     }
                     tpRequest['quantity'] = tkQuantityRequest;
