@@ -3,6 +3,202 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker swap",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDT",
+                                "indexPrice": "63034",
+                                "markPrice": "63006",
+                                "estFundingRate": "0.00008514",
+                                "lastFundingRate": "0.00008545",
+                                "openInterest": "222.90759",
+                                "24hOpen": "63848",
+                                "24hClose": "63005",
+                                "24hHigh": "64000",
+                                "24hLow": "62815",
+                                "24hVolume": "30.64337",
+                                "24hAmount": "1944183",
+                                "nextFundingTime": 1786694400000
+                            }
+                        ]
+                    },
+                    "timestamp": 1786691115608
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1786691115608,
+                    "datetime": "2026-08-14T07:05:15.608Z",
+                    "high": 64000,
+                    "low": 62815,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 63445.46960729189,
+                    "open": 63848,
+                    "close": 63005,
+                    "last": 63005,
+                    "previousClose": null,
+                    "change": -843,
+                    "percentage": -1.3203232677609322,
+                    "average": 63426,
+                    "baseVolume": 30.64337,
+                    "quoteVolume": 1944183,
+                    "indexPrice": 63034,
+                    "markPrice": 63006,
+                    "info": {
+                        "timestamp": 1786691115608,
+                        "symbol": "PERP_BTC_USDT",
+                        "indexPrice": "63034",
+                        "markPrice": "63006",
+                        "estFundingRate": "0.00008514",
+                        "lastFundingRate": "0.00008545",
+                        "openInterest": "222.90759",
+                        "24hOpen": "63848",
+                        "24hClose": "63005",
+                        "24hHigh": "64000",
+                        "24hLow": "62815",
+                        "24hVolume": "30.64337",
+                        "24hAmount": "1944183",
+                        "nextFundingTime": 1786694400000
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers swap",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDT",
+                                "indexPrice": "63034",
+                                "markPrice": "63006",
+                                "estFundingRate": "0.00008514",
+                                "lastFundingRate": "0.00008545",
+                                "openInterest": "222.90759",
+                                "24hOpen": "63848",
+                                "24hClose": "63005",
+                                "24hHigh": "64000",
+                                "24hLow": "62815",
+                                "24hVolume": "30.64337",
+                                "24hAmount": "1944183",
+                                "nextFundingTime": 1786694400000
+                            },
+                            {
+                                "symbol": "PERP_ETH_USDT",
+                                "indexPrice": "1875.7",
+                                "markPrice": "1874.8",
+                                "estFundingRate": "-0.00000386",
+                                "lastFundingRate": "0.00002697",
+                                "openInterest": "864.1892",
+                                "24hOpen": "1895.9",
+                                "24hClose": "1874.9",
+                                "24hHigh": "1929.1",
+                                "24hLow": "1859.2",
+                                "24hVolume": "6119.2181",
+                                "24hAmount": "11518400.5",
+                                "nextFundingTime": 1786694400000
+                            }
+                        ]
+                    },
+                    "timestamp": 1786691115608
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786691115608,
+                        "datetime": "2026-08-14T07:05:15.608Z",
+                        "high": 64000,
+                        "low": 62815,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 63445.46960729189,
+                        "open": 63848,
+                        "close": 63005,
+                        "last": 63005,
+                        "previousClose": null,
+                        "change": -843,
+                        "percentage": -1.3203232677609322,
+                        "average": 63426,
+                        "baseVolume": 30.64337,
+                        "quoteVolume": 1944183,
+                        "indexPrice": 63034,
+                        "markPrice": 63006,
+                        "info": {
+                            "timestamp": 1786691115608,
+                            "symbol": "PERP_BTC_USDT",
+                            "indexPrice": "63034",
+                            "markPrice": "63006",
+                            "estFundingRate": "0.00008514",
+                            "lastFundingRate": "0.00008545",
+                            "openInterest": "222.90759",
+                            "24hOpen": "63848",
+                            "24hClose": "63005",
+                            "24hHigh": "64000",
+                            "24hLow": "62815",
+                            "24hVolume": "30.64337",
+                            "24hAmount": "1944183",
+                            "nextFundingTime": 1786694400000
+                        }
+                    },
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1786691115608,
+                        "datetime": "2026-08-14T07:05:15.608Z",
+                        "high": 1929.1,
+                        "low": 1859.2,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 1882.3320744197695,
+                        "open": 1895.9,
+                        "close": 1874.9,
+                        "last": 1874.9,
+                        "previousClose": null,
+                        "change": -21,
+                        "percentage": -1.1076533572445804,
+                        "average": 1885.4,
+                        "baseVolume": 6119.2181,
+                        "quoteVolume": 11518400.5,
+                        "indexPrice": 1875.7,
+                        "markPrice": 1874.8,
+                        "info": {
+                            "timestamp": 1786691115608,
+                            "symbol": "PERP_ETH_USDT",
+                            "indexPrice": "1875.7",
+                            "markPrice": "1874.8",
+                            "estFundingRate": "-0.00000386",
+                            "lastFundingRate": "0.00002697",
+                            "openInterest": "864.1892",
+                            "24hOpen": "1895.9",
+                            "24hClose": "1874.9",
+                            "24hHigh": "1929.1",
+                            "24hLow": "1859.2",
+                            "24hVolume": "6119.2181",
+                            "24hAmount": "11518400.5",
+                            "nextFundingTime": 1786694400000
+                        }
+                    }
+                }
+            }
+        ],
         "editOrder": [
             {
                 "description": "editOrder plain limit order",
