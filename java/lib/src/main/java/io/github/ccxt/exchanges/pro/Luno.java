@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Luno extends io.github.ccxt.exchanges.Luno
 {
@@ -20,8 +26,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchTicker", false );
                 put( "watchTickers", false );
@@ -32,16 +38,16 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 put( "watchOrderBook", true );
                 put( "watchOHLCV", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "ws", "wss://ws.luno.com/api/1" );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "sequenceNumbers", new java.util.HashMap<String, Object>() {{}} );
+            put( "options", new HashMap<String, Object>() {{
+                put( "sequenceNumbers", new HashMap<String, Object>() {{}} );
             }} );
-            put( "streaming", new java.util.HashMap<String, Object>() {{}} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{}} );
+            put( "streaming", new HashMap<String, Object>() {{}} );
+            put( "exceptions", new HashMap<String, Object>() {{}} );
         }});
     }
 
@@ -56,33 +62,33 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
             String messageHash = Helpers.add("trades:", symbol);
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "api_key_id", Luno.this.apiKey );
                 put( "api_key_secret", Luno.this.secret );
             }};
-            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
+            Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -110,14 +116,14 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object rawTrades = this.safeList(message, "trade_updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawTrades = this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
         Object length = Helpers.getArrayLength(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(length, 0)))
         {
             return;
         }
         Object symbol = Helpers.GetValue(subscription, "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -151,7 +157,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", null );
@@ -179,32 +185,32 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
             String messageHash = Helpers.add("orderbook:", symbol);
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "api_key_id", Luno.this.apiKey );
                 put( "api_key_secret", Luno.this.secret );
             }};
-            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
+            Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -250,7 +256,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new java.util.HashMap<String, Object>() {{}}));
+            Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }
         Object asks = this.safeValue(message, "asks");
         if (Helpers.isTrue(!Helpers.isEqual(asks, null)))
@@ -278,9 +284,9 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Object priceKey = Helpers.getArg(optionalArgs, 3, "price");
         Object amountKey = Helpers.getArg(optionalArgs, 4, "volume");
         Object countOrIdKey = Helpers.getArg(optionalArgs, 5, 2);
-        Object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        Object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        return new java.util.HashMap<String, Object>() {{
+        Object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Luno.this.sortBy(bids, 0, true) );
             put( "asks", Luno.this.sortBy(asks, 0) );
@@ -296,10 +302,10 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Object amountKey = Helpers.getArg(optionalArgs, 1, "volume");
         Object thirdKey = Helpers.getArg(optionalArgs, 2, 2);
         bidasks = this.toArray(bidasks);
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
         {
-            ((java.util.List<Object>)result).add(this.customParseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, thirdKey));
+            ((List<Object>)result).add(this.customParseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, thirdKey));
         }
         return result;
     }
@@ -311,11 +317,11 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Object thirdKey = Helpers.getArg(optionalArgs, 2, 2);
         Double price = this.safeNumber(bidask, priceKey);
         Double amount = this.safeNumber(bidask, amountKey);
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
+        List<Object> result = new ArrayList<Object>(Arrays.asList(price, amount));
         if (Helpers.isTrue(!Helpers.isEqual(thirdKey, null)))
         {
             Object thirdValue = ((Object)this.safeString(bidask, thirdKey));
-            ((java.util.List<Object>)result).add(thirdValue);
+            ((List<Object>)result).add(thirdValue);
         }
         return result;
     }
@@ -384,8 +390,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         if (Helpers.isTrue(!Helpers.isEqual(deleteUpdate, null)))
         {
             String orderId = this.safeString(deleteUpdate, "order_id");
-            Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 0, orderId))});
-            Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 0, orderId))});
+            Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(0, 0, orderId))});
+            Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(0, 0, orderId))});
         }
     }
 
@@ -396,7 +402,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             return;
         }
         Object subscriptions = Helpers.objectValues(client.subscriptions);
-        java.util.List<Object> handlers = new java.util.ArrayList<Object>(java.util.Arrays.asList("handleOrderBook", "handleTrades"));
+        List<Object> handlers = new ArrayList<Object>(Arrays.asList("handleOrderBook", "handleTrades"));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(handlers)); j++)
         {
             Object handler = Helpers.GetValue(handlers, j);

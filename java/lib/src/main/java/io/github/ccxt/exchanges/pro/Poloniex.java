@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 {
@@ -20,8 +26,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchOHLCV", true );
                 put( "watchOrderBook", true );
@@ -43,25 +49,25 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 put( "fetchTradesWs", false );
                 put( "fetchBalanceWs", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
-                    put( "ws", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
                         put( "public", "wss://ws.poloniex.com/ws/public" );
                         put( "private", "wss://ws.poloniex.com/ws/private" );
                     }} );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", true );
                 put( "tradesLimit", 1000 );
                 put( "ordersLimit", 1000 );
                 put( "OHLCVLimit", 1000 );
-                put( "watchOrderBook", new java.util.HashMap<String, Object>() {{
+                put( "watchOrderBook", new HashMap<String, Object>() {{
                     put( "name", "book_lv2" );
                 }} );
                 put( "connectionsLimit", 2000 );
                 put( "requestsLimit", 500 );
-                put( "timeframes", new java.util.HashMap<String, Object>() {{
+                put( "timeframes", new HashMap<String, Object>() {{
                     put( "1m", "candles_minute_1" );
                     put( "5m", "candles_minute_5" );
                     put( "10m", "candles_minute_10" );
@@ -78,7 +84,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     put( "1M", "candles_month_1" );
                 }} );
             }} );
-            put( "streaming", new java.util.HashMap<String, Object>() {{
+            put( "streaming", new HashMap<String, Object>() {{
                 put( "keepAlive", 15000 );
                 put( "ping", "ping");
             }} );
@@ -92,12 +98,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @see https://api-docs.poloniex.com/spot/websocket/authentication
      * @returns {object} response from exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             Object timestamp = this.numberToString(this.milliseconds());
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
@@ -109,10 +115,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 String accessPath = "/ws";
                 Object requestString = Helpers.add(Helpers.add(Helpers.add("GET\n", accessPath), "\nsignTimestamp="), timestamp);
                 Object signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256(), "base64");
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "event", "subscribe" );
-                    put( "channel", new java.util.ArrayList<Object>(java.util.Arrays.asList("auth")) );
-                    put( "params", new java.util.HashMap<String, Object>() {{
+                    put( "channel", new ArrayList<Object>(Arrays.asList("auth")) );
+                    put( "params", new HashMap<String, Object>() {{
                         put( "key", Poloniex.this.apiKey );
                         put( "signTimestamp", timestamp );
                         put( "signature", signature );
@@ -120,7 +126,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         put( "signatureVersion", "2" );
                     }} );
                 }};
-                java.util.Map<String, Object> message = this.extend(request, parameters);
+                Map<String, Object> message = this.extend(request, parameters);
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
                 //
                 //    {
@@ -160,41 +166,41 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public java.util.concurrent.CompletableFuture<Object> subscribe(Object name2, Object messageHash2, Object isPrivate, Object... optionalArgs)
+    public CompletableFuture<Object> subscribe(Object name2, Object messageHash2, Object isPrivate, Object... optionalArgs)
     {
         final Object name3 = name2;
         final Object messageHash3 = messageHash2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object name = name3;
             Object messageHash = messageHash3;
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             String publicOrPrivate = ((Helpers.isTrue(isPrivate))) ? "private" : "public";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), publicOrPrivate);
             final Object finalName = name;
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
-                put( "channel", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalName)) );
+                put( "channel", new ArrayList<Object>(Arrays.asList(finalName)) );
             }};
-            Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object marketIds = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(this.isEmpty(symbols)))
             {
-                ((java.util.List<Object>)marketIds).add("all");
+                ((List<Object>)marketIds).add("all");
             } else
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
                     throw new ArgumentsRequired(Helpers.add(this.id, " subscribe() symbols is required")) ;
                 }
-                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join(",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join(",", (List<String>)symbols));
                 Object ids = this.marketIds(symbols);
-                marketIds = ((Helpers.isTrue((Helpers.isEqual(ids, null))))) ? new java.util.ArrayList<Object>(java.util.Arrays.asList()) : ids;
+                marketIds = ((Helpers.isTrue((Helpers.isEqual(ids, null))))) ? new ArrayList<Object>(Arrays.asList()) : ids;
             }
             if (Helpers.isTrue(!Helpers.isEqual(name, "balances")))
             {
                 Helpers.addElementToObject(subscribe, "symbols", marketIds);
             }
-            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
+            Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -208,15 +214,15 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public java.util.concurrent.CompletableFuture<Object> tradeRequest(Object name, Object... optionalArgs)
+    public CompletableFuture<Object> tradeRequest(Object name, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Object messageHash = String.valueOf(this.nonce());
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "event", name );
                 put( "params", parameters );
@@ -248,19 +254,19 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrderWs(String symbol, Object type, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrderWs(String symbol, Object type, Object side2, Object amount, Object... optionalArgs)
     {
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -273,7 +279,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 uppercaseType = "LIMIT_MAKER";
             }
             final Object finalSide = side;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", ((String)finalSide).toUpperCase() );
                 put( "type", ((String)type).toUpperCase() );
@@ -282,9 +288,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 String quoteAmount = null;
                 Object createMarketBuyOrderRequiresPrice = true;
-                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+                parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
@@ -333,20 +339,20 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrderWs(String id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
-                Object clientOrderIds = this.safeValue(parameters, "clientOrderId", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Helpers.addElementToObject(parameters, "clientOrderIds", this.arrayConcat(clientOrderIds, new java.util.ArrayList<Object>(java.util.Arrays.asList(clientOrderId))));
+                Object clientOrderIds = this.safeValue(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
+                Helpers.addElementToObject(parameters, "clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
             }
-            Object orders = (this.cancelOrdersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
+            Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             Object order = this.safeDict(orders, 0);
             return order;
         }).thenApply(io.github.ccxt.types.Order::new);
@@ -364,19 +370,19 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderIds", ids );
             }};
             return (this.tradeRequest("cancelOrders", this.extend(request, parameters))).join();
@@ -393,13 +399,13 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrdersWs(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -424,13 +430,13 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object order = Helpers.GetValue(data, i);
             Object parsedOrder = this.parseWsOrder(order);
-            ((java.util.List<Object>)orders).add(parsedOrder);
+            ((List<Object>)orders).add(parsedOrder);
         }
         client.resolve(orders, messageHash);
     }
@@ -447,26 +453,26 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+            Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Object channel = this.safeString(timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(channel, null)))
             {
                 throw new BadRequest(Helpers.add(Helpers.add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
             }
-            Object ohlcv = (this.subscribe(channel, channel, false, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object ohlcv = (this.subscribe(channel, channel, false, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -485,18 +491,18 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
+            Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -511,13 +517,13 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -545,15 +551,15 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
@@ -569,14 +575,14 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -586,18 +592,18 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object marketIds = this.marketIds(symbols);
             final Object finalName = name;
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
-                put( "channel", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalName)) );
+                put( "channel", new ArrayList<Object>(Arrays.asList(finalName)) );
                 put( "symbols", marketIds );
             }};
-            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Map<String, Object> request = this.extend(subscribe, parameters);
+            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
-                    ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "::"), Helpers.GetValue(symbols, i)));
+                    ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "::"), Helpers.GetValue(symbols, i)));
                 }
             }
             Object trades = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
@@ -622,23 +628,23 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object watchOrderBookOptions = this.safeValue(this.options, "watchOrderBook");
             Object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-            java.util.List<Object> nameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
-            name = ((java.util.List<Object>) nameparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
-            Object orderbook = (this.subscribe(name, name, false, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
+            name = ((List<Object>) nameparametersVariable).get(0);
+            parameters = ((List<Object>) nameparametersVariable).get(1);
+            Object orderbook = (this.subscribe(name, name, false, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(io.github.ccxt.types.OrderBook::new);
 
@@ -655,15 +661,15 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -674,7 +680,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 symbol = this.symbol(symbol);
             }
-            Object symbols = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
+            Object symbols = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : new ArrayList<Object>(Arrays.asList(symbol));
             Object orders = (this.subscribe(name, name, true, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -696,15 +702,15 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex strean
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -716,7 +722,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 symbol = this.symbol(symbol);
             }
-            Object symbols = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
+            Object symbols = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : new ArrayList<Object>(Arrays.asList(symbol));
             Object trades = (this.subscribe(name, messageHash, true, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -735,12 +741,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -770,7 +776,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "startTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "quantity")));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "startTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "quantity")));
     }
 
     public Object handleOHLCV(Client client, Object message)
@@ -800,12 +806,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         String channel = this.safeString(message, "channel");
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId);
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
-        Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
+        Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
         Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
         Object parsed = this.parseWsOHLCV(data, market);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = ((Helpers.isTrue((Helpers.isEqual(timeframe, null))))) ? null : this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
@@ -843,7 +849,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object item = Helpers.GetValue(data, i);
@@ -921,7 +927,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Long timestamp = this.safeInteger(trade, "createTime");
         String takerMaker = this.safeStringLower2(trade, "matchRole", "taker");
         final Object finalMarket = market;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Poloniex.this.safeString2(trade, "id", "tradeId") );
             put( "symbol", Poloniex.this.safeString(finalMarket, "symbol") );
@@ -934,7 +940,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             put( "price", Poloniex.this.omitZero(Poloniex.this.safeString2(trade, "tradePrice", "price")) );
             put( "amount", Poloniex.this.omitZero(Poloniex.this.safeString2(trade, "filledQuantity", "quantity")) );
             put( "cost", Poloniex.this.safeString2(trade, "amount", "filledAmount") );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "rate", null );
                 put( "cost", Poloniex.this.safeString(trade, "tradeFee") );
                 put( "currency", Poloniex.this.safeString(trade, "feeCurrency") );
@@ -944,7 +950,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     public String parseStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
             put( "PARTIALLY_FILLED", "open" );
             put( "FILLED", "closed" );
@@ -988,7 +994,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(trade, "tradeTime");
         String marketId = this.safeString(trade, "symbol");
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Poloniex.this.safeString(trade, "tradeId") );
             put( "symbol", Poloniex.this.safeSymbol(marketId, market) );
@@ -1001,7 +1007,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             put( "price", Poloniex.this.safeString(trade, "price") );
             put( "amount", Poloniex.this.safeString(trade, "tradeAmount") );
             put( "cost", null );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "rate", null );
                 put( "cost", Poloniex.this.safeString(trade, "tradeFee") );
                 put( "currency", Poloniex.this.safeString(trade, "feeCurrency") );
@@ -1046,7 +1052,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object orders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(orders, null)))
         {
@@ -1054,7 +1060,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
-        java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object order = this.safeValue(data, i);
@@ -1071,7 +1077,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     Helpers.callDynamically(orders, "append", new Object[]{parsed});
                 } else
                 {
-                    Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
+                    Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
                     Object previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
                     Object trade = this.parseWsTrade(order);
                     this.handleMyTrades(client, trade);
@@ -1080,14 +1086,14 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         Object parsedOrder = this.parseWsOrder(order);
                         Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
-                        ((java.util.List<Object>)marketIds).add(marketId);
+                        ((List<Object>)marketIds).add(marketId);
                         continue;
                     }
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(previousOrder, "trades"), null)))
                     {
-                        Helpers.addElementToObject(previousOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        Helpers.addElementToObject(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
                     }
-                    ((java.util.List<Object>)Helpers.GetValue(previousOrder, "trades")).add(trade);
+                    ((List<Object>)Helpers.GetValue(previousOrder, "trades")).add(trade);
                     Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", Helpers.GetValue(trade, "timestamp"));
                     String totalCost = "0";
                     String totalAmount = "0";
@@ -1119,7 +1125,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     }
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(previousOrder, "fee"), null)))
                     {
-                        Helpers.addElementToObject(previousOrder, "fee", new java.util.HashMap<String, Object>() {{
+                        Helpers.addElementToObject(previousOrder, "fee", new HashMap<String, Object>() {{
     put( "rate", null );
     put( "cost", 0 );
     put( "currency", Poloniex.this.safeString(Helpers.GetValue(trade, "fee"), "currency") );
@@ -1137,13 +1143,13 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     // update the newUpdates count
                     Helpers.callDynamically(orders, "append", new Object[]{previousOrder});
                 }
-                ((java.util.List<Object>)marketIds).add(marketId);
+                ((List<Object>)marketIds).add(marketId);
             }
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
+            Map<String, Object> market = (Map<String, Object>) this.market(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             String messageHash = Helpers.add("orders::", symbol);
             client.resolve(orders, messageHash);
@@ -1189,15 +1195,15 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         String timestamp = this.safeString(order, "ts");
         String filledAmount = this.safeString(order, "filledAmount");
         String status = this.safeString(order, "state");
-        java.util.List<Object> trades = null;
+        List<Object> trades = null;
         if (!Helpers.isTrue(Precise.stringEq(filledAmount, "0")))
         {
-            trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            trades = new ArrayList<Object>(Arrays.asList());
             Object trade = this.parseWsOrderTrade(order);
-            ((java.util.List<Object>)trades).add(trade);
+            ((List<Object>)trades).add(trade);
         }
         final Object finalTrades = trades;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", Poloniex.this.safeSymbol(marketId, market) );
             put( "id", id );
@@ -1218,7 +1224,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             put( "filled", filledAmount );
             put( "remaining", Poloniex.this.safeString(order, "remaining_size") );
             put( "status", Poloniex.this.parseStatus(status) );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "rate", null );
                 put( "cost", Poloniex.this.safeString(order, "tradeFee") );
                 put( "currency", Poloniex.this.safeString(order, "feeCurrency") );
@@ -1251,8 +1257,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> newTickers = new java.util.HashMap<String, Object>() {{}};
+        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object item = Helpers.GetValue(data, i);
@@ -1337,7 +1343,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "action": "update"
         //    }
         //
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String type = this.safeString(message, "action");
         Boolean snapshot = Helpers.isEqual(type, "snapshot");
         Boolean update = Helpers.isEqual(type, "update");
@@ -1345,11 +1351,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             Object item = Helpers.GetValue(data, i);
             String marketId = this.safeString(item, "symbol");
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             String name = "book_lv2";
             Object messageHash = Helpers.add(Helpers.add(name, "::"), symbol);
-            Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
+            Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");
             Long timestamp = this.safeInteger(item, "ts");
             Object asks = this.safeValue(item, "asks");
@@ -1358,7 +1364,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 if (Helpers.isTrue(snapshot))
                 {
-                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
+                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
                 if (Helpers.isTrue(!Helpers.isEqual(bids, null)))
@@ -1412,7 +1418,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         String messageHash = "balances";
         this.balance = this.parseWsBalance(data);
         client.resolve(this.balance, messageHash);
@@ -1436,9 +1442,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        }
         //    ]
         //
-        Object firstBalance = this.safeValue(response, 0, new java.util.HashMap<String, Object>() {{}});
+        Object firstBalance = this.safeValue(response, 0, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(firstBalance, "ts");
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", Poloniex.this.iso8601(timestamp) );
@@ -1493,7 +1499,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             client.lastPong = ((Number)this.milliseconds()).longValue();
         }
-        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "candles_minute_1", "handleOHLCV");
             put( "candles_minute_5", "handleOHLCV");
             put( "candles_minute_10", "handleOHLCV");
@@ -1528,7 +1534,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             this.handleOrderRequest(client, message);
         } else
         {
-            Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Object dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
             {
@@ -1591,7 +1597,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     client.reject(e, messageHash);
                     if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                     {
-                        ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
+                        ((Map<String,Object>)client.subscriptions).remove(messageHash);
                     }
                 } else
                 {
@@ -1625,7 +1631,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
+                ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;
@@ -1633,7 +1639,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     public Object ping(Client client)
     {
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "event", "ping" );
         }};
     }

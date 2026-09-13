@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class GeminiApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  webExchangeGet (Object... optionalArgs)
+    public CompletableFuture<String>  webExchangeGet (Object... optionalArgs)
     {
         return this.callAsync ("webExchangeGet", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  webGetRestApi (Object... optionalArgs)
+    public CompletableFuture<String>  webGetRestApi (Object... optionalArgs)
     {
         return this.callAsync ("webGetRestApi", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1Symbols (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1Symbols (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1Symbols", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1SymbolsDetailsSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1SymbolsDetailsSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1SymbolsDetailsSymbol", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1NetworkToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1NetworkToken (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1NetworkToken", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1StakingRates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1StakingRates (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1StakingRates", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PubtickerSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PubtickerSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PubtickerSymbol", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1Feepromos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1Feepromos (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1Feepromos", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV2TickerSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV2TickerSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV2TickerSymbol", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV2CandlesSymbolTimeframe (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV2CandlesSymbolTimeframe (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV2CandlesSymbolTimeframe", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1TradesSymbol (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1TradesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1TradesSymbol", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1AuctionSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1AuctionSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1AuctionSymbol", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1AuctionSymbolHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1AuctionSymbolHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1AuctionSymbolHistory", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1Pricefeed (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1Pricefeed (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1Pricefeed", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FundingamountSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FundingamountSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FundingamountSymbol", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  publicGetV1FundingamountreportRecordsXlsx (Object... optionalArgs)
+    public CompletableFuture<String>  publicGetV1FundingamountreportRecordsXlsx (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FundingamountreportRecordsXlsx", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1BookSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1BookSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1BookSymbol", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1EarnRates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1EarnRates (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1EarnRates", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV2DerivativesCandlesSymbolTimeFrame (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV2DerivativesCandlesSymbolTimeFrame (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV2DerivativesCandlesSymbolTimeFrame", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV2FxrateSymbolTimestamp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV2FxrateSymbolTimestamp (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV2FxrateSymbolTimestamp", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1RiskstatsSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1RiskstatsSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1RiskstatsSymbol", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEvents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsEvents (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsEvents", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsEventTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsEventsEventTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsEventsEventTicker", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsEventTickerStrike (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsEventsEventTickerStrike (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsEventsEventTickerStrike", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsNewlyListed (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsEventsNewlyListed (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsEventsNewlyListed", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsRecentlySettled (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsEventsRecentlySettled (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsEventsRecentlySettled", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsUpcoming (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsEventsUpcoming (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsEventsUpcoming", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsCategories (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsCategories (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsCategories", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1PredictionMarketsVolumeDate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1PredictionMarketsVolumeDate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsVolumeDate", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1PredictionMarketsVolumeDateHourly (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1PredictionMarketsVolumeDateHourly (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsVolumeDateHourly", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsTerms (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsTerms (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsTerms", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsMakerRebateRates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsMakerRebateRates (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsMakerRebateRates", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsLiquidityRewardsConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsLiquidityRewardsConfig (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsLiquidityRewardsConfig", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsLiquidityRewardsEvents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PredictionMarketsLiquidityRewardsEvents (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PredictionMarketsLiquidityRewardsEvents", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  privateGetV1PerpetualsFundingpaymentreportRecordsXlsx (Object... optionalArgs)
+    public CompletableFuture<String>  privateGetV1PerpetualsFundingpaymentreportRecordsXlsx (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1PerpetualsFundingpaymentreportRecordsXlsx", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1PredictionMarketsTermsStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1PredictionMarketsTermsStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1PredictionMarketsTermsStatus", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1PredictionMarketsMakerRebateSummaryTotal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1PredictionMarketsMakerRebateSummaryTotal (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1PredictionMarketsMakerRebateSummaryTotal", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2NetworkToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2NetworkToken (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2NetworkToken", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2NetworksNetworkAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2NetworksNetworkAssets (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2NetworksNetworkAssets", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1StakingUnstake (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1StakingUnstake (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1StakingUnstake", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1StakingStake (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1StakingStake (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1StakingStake", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1StakingRewards (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1StakingRewards (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1StakingRewards", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1StakingHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1StakingHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1StakingHistory", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1OrderNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1OrderNew (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1OrderNew", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1OrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1OrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1OrderCancel", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1WrapSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1WrapSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1WrapSymbol", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1OrderCancelSession (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1OrderCancelSession (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1OrderCancelSession", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1OrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1OrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1OrderCancelAll", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1OrderStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1OrderStatus (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1OrderStatus", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1Orders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1Orders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Orders", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1Mytrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1Mytrades (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Mytrades", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Notionalvolume (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Notionalvolume (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Notionalvolume", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1Tradevolume (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1Tradevolume (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Tradevolume", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ClearingNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ClearingNew (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ClearingNew", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ClearingStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ClearingStatus (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ClearingStatus", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ClearingCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ClearingCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ClearingCancel", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ClearingConfirm (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ClearingConfirm (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ClearingConfirm", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Balances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Balances (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Balances", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1BalancesStaking (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1BalancesStaking (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1BalancesStaking", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1NotionalbalancesCurrency (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1NotionalbalancesCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1NotionalbalancesCurrency", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1Transfers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1Transfers (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Transfers", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1AddressesNetwork (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1AddressesNetwork (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1AddressesNetwork", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1DepositNetworkNewAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1DepositNetworkNewAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1DepositNetworkNewAddress", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1DepositCurrencyNewAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1DepositCurrencyNewAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1DepositCurrencyNewAddress", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1WithdrawCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1WithdrawCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1WithdrawCurrency", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1AccountTransferCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1AccountTransferCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1AccountTransferCurrency", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PaymentsAddbank (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PaymentsAddbank (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PaymentsAddbank", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PaymentsMethods (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PaymentsMethods (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PaymentsMethods", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PaymentsSenWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PaymentsSenWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PaymentsSenWithdraw", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1BalancesEarn (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1BalancesEarn (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1BalancesEarn", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1EarnInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1EarnInterest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1EarnInterest", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1EarnHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1EarnHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1EarnHistory", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ApprovedAddressesNetworkRequest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ApprovedAddressesNetworkRequest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ApprovedAddressesNetworkRequest", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ApprovedAddressesAccountNetwork (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ApprovedAddressesAccountNetwork (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ApprovedAddressesAccountNetwork", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ApprovedAddressesNetworkRemove (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ApprovedAddressesNetworkRemove (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ApprovedAddressesNetworkRemove", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Account (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Account (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Account", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1AccountCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1AccountCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1AccountCreate", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1AccountList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1AccountList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1AccountList", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Heartbeat (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Heartbeat (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Heartbeat", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Roles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Roles (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Roles", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1Custodyaccountfees (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1Custodyaccountfees (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Custodyaccountfees", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PaymentsAddbankCad (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PaymentsAddbankCad (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PaymentsAddbankCad", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Transactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Transactions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Transactions", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1MarginAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1MarginAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1MarginAccount", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1MarginRates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1MarginRates (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1MarginRates", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1MarginOrderPreview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1MarginOrderPreview (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1MarginOrderPreview", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ClearingList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ClearingList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ClearingList", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ClearingBrokerList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ClearingBrokerList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ClearingBrokerList", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ClearingBrokerNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ClearingBrokerNew (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ClearingBrokerNew", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1ClearingTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1ClearingTrades (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1ClearingTrades", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1InstantQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1InstantQuote (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1InstantQuote", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1InstantExecute (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1InstantExecute (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1InstantExecute", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1AccountRename (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1AccountRename (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1AccountRename", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1OauthRevokeByToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1OauthRevokeByToken (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1OauthRevokeByToken", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Margin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Margin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Margin", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1PerpetualsFundingPayment (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1PerpetualsFundingPayment (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PerpetualsFundingPayment", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1PerpetualsFundingpaymentreportRecordsJson (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1PerpetualsFundingpaymentreportRecordsJson (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PerpetualsFundingpaymentreportRecordsJson", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Positions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Positions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Positions", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsOrder", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrderBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsOrderBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsOrderBatch", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsOrderCancel", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrderBatchCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsOrderBatchCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsOrderBatchCancel", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrdersActive (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsOrdersActive (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsOrdersActive", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsOrdersHistory", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsPositions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsPositions", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsPositionsSettled (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsPositionsSettled (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsPositionsSettled", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsMetricsVolume (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsMetricsVolume (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsMetricsVolume", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsTermsAccept (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsTermsAccept (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsTermsAccept", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsMakerRebatePayouts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1PredictionMarketsMakerRebatePayouts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1PredictionMarketsMakerRebatePayouts", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV2Transfers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV2Transfers (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2Transfers", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2WithdrawNetworkTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2WithdrawNetworkTicker (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2WithdrawNetworkTicker", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class GeminiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2WithdrawNetworkTickerFeeEstimate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2WithdrawNetworkTickerFeeEstimate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2WithdrawNetworkTickerFeeEstimate", optionalArgs);
     }

@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 {
@@ -20,8 +26,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchBalance", true );
                 put( "watchMyTrades", false );
@@ -33,24 +39,24 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 put( "watchTrades", true );
                 put( "watchTradesForSymbols", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "ws", "wss://api.hollaex.com/stream" );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "ws", "wss://api.sandbox.hollaex.com/stream" );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "watchBalance", new java.util.HashMap<String, Object>() {{}} );
-                put( "watchOrders", new java.util.HashMap<String, Object>() {{}} );
+            put( "options", new HashMap<String, Object>() {{
+                put( "watchBalance", new HashMap<String, Object>() {{}} );
+                put( "watchOrders", new HashMap<String, Object>() {{}} );
             }} );
-            put( "streaming", new java.util.HashMap<String, Object>() {{
+            put( "streaming", new HashMap<String, Object>() {{
                 put( "ping", "ping");
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "ws", new java.util.HashMap<String, Object>() {{
-                    put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "ws", new HashMap<String, Object>() {{
+                    put( "exact", new HashMap<String, Object>() {{
                         put( "Bearer or HMAC authentication required", BadSymbol.class );
                         put( "Error: wrong input", BadRequest.class );
                     }} );
@@ -69,18 +75,18 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "id"));
             Object orderbook = (this.watchPublic(messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -113,7 +119,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //
         String marketId = this.safeString(message, "symbol");
         String channel = this.safeString(message, "topic");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
@@ -152,19 +158,19 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = Helpers.add(Helpers.add("trade", ":"), Helpers.GetValue(market, "id"));
             Object trades = (this.watchPublic(messageHash, parameters)).join();
@@ -196,7 +202,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //
         String channel = this.safeString(message, "topic");
         String marketId = this.safeString(message, "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -205,8 +211,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> parsedTrades = this.parseTrades(data, market);
+        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsedTrades)); j++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
@@ -227,15 +233,15 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -298,14 +304,14 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
             Object trade = Helpers.GetValue(rawTrades, i);
             Object parsed = this.parseTrade(trade);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(trade, "symbol");
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {
@@ -334,15 +340,15 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -426,7 +432,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //
         Object subscription = Helpers.getArg(optionalArgs, 0, null);
         String channel = this.safeString(message, "topic");
-        Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         // usually the first message is an empty array
         Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
@@ -442,19 +448,19 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Object rawOrders = null;
         if (!Helpers.isTrue(Helpers.isArray(data)))
         {
-            rawOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList(data));
+            rawOrders = new ArrayList<Object>(Arrays.asList(data));
         } else
         {
             rawOrders = data;
         }
-        java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
             Object order = Helpers.GetValue(rawOrders, i);
             Object parsed = this.parseOrder(order);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(order, "symbol");
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {
@@ -480,12 +486,12 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             String messageHash = "wallet";
             return (this.watchPrivate(messageHash, parameters)).join();
         }).thenApply(io.github.ccxt.types.Balances::new);
@@ -540,29 +546,29 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         client.resolve(this.balance, messageHash);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPublic(Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> watchPublic(Object messageHash, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
-                put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
+                put( "args", new ArrayList<Object>(Arrays.asList(messageHash)) );
             }};
-            java.util.Map<String, Object> message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPrivate(Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> watchPrivate(Object messageHash, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             Object expires = this.safeString(this.options, "ws-expires");
             if (Helpers.isTrue(Helpers.isEqual(expires, null)))
@@ -582,17 +588,17 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Object auth = Helpers.add(Helpers.add("CONNECT", "/stream"), expires);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalExpires = expires;
-            java.util.Map<String, Object> authParams = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> authParams = new HashMap<String, Object>() {{
                 put( "api-key", Hollaex.this.apiKey );
                 put( "api-signature", signature );
                 put( "api-expires", finalExpires );
             }};
             Object signedUrl = Helpers.add(Helpers.add(url, "?"), this.urlencode(authParams));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
-                put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
+                put( "args", new ArrayList<Object>(Arrays.asList(messageHash)) );
             }};
-            java.util.Map<String, Object> message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(signedUrl, messageHash, message, messageHash, null)).join();
         });
 
@@ -719,7 +725,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             this.handlePong(client, message);
             return;
         }
-        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "trade", "handleTrades");
             put( "orderbook", "handleOrderBook");
             put( "order", "handleOrder");
@@ -737,7 +743,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
     public Object ping(Client client)
     {
         // hollaex does not support built-in ws protocol-level ping-pong
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "op", "ping" );
         }};
     }

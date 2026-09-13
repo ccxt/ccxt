@@ -6,6 +6,12 @@ import io.github.ccxt.api.Bit2cApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Bit2c extends Bit2cApi
 {
@@ -19,13 +25,13 @@ public class Bit2c extends Bit2cApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bit2c" );
             put( "name", "Bit2C" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("IL")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("IL")) );
             put( "rateLimit", 3000 );
             put( "pro", false );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
@@ -118,107 +124,107 @@ public class Bit2c extends Bit2cApi
                 put( "transfer", false );
                 put( "ws", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/db0bce50-6842-4c09-a1d5-0c87d22118aa" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "rest", "https://bit2c.co.il" );
                 }} );
                 put( "www", "https://www.bit2c.co.il" );
                 put( "referral", "https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.bit2c.co.il/home/api", "https://github.com/OferE/bit2c")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://www.bit2c.co.il/home/api", "https://github.com/OferE/bit2c")) );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "Exchanges/{pair}/Ticker", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "Exchanges/{pair}/Ticker", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Exchanges/{pair}/orderbook", new java.util.HashMap<String, Object>() {{
+                        put( "Exchanges/{pair}/orderbook", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Exchanges/{pair}/orderbook-top", new java.util.HashMap<String, Object>() {{
+                        put( "Exchanges/{pair}/orderbook-top", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Exchanges/{pair}/trades", new java.util.HashMap<String, Object>() {{
+                        put( "Exchanges/{pair}/trades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Exchanges/{pair}/lasttrades", new java.util.HashMap<String, Object>() {{
+                        put( "Exchanges/{pair}/lasttrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "Merchant/CreateCheckout", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "Merchant/CreateCheckout", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Funds/AddCoinFundsRequest", new java.util.HashMap<String, Object>() {{
+                        put( "Funds/AddCoinFundsRequest", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Funds/WithdrawCoin", new java.util.HashMap<String, Object>() {{
+                        put( "Funds/WithdrawCoin", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/AddFund", new java.util.HashMap<String, Object>() {{
+                        put( "Order/AddFund", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/AddOrder", new java.util.HashMap<String, Object>() {{
+                        put( "Order/AddOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/GetById", new java.util.HashMap<String, Object>() {{
+                        put( "Order/GetById", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/AddOrderMarketPriceBuy", new java.util.HashMap<String, Object>() {{
+                        put( "Order/AddOrderMarketPriceBuy", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/AddOrderMarketPriceSell", new java.util.HashMap<String, Object>() {{
+                        put( "Order/AddOrderMarketPriceSell", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/CancelOrder", new java.util.HashMap<String, Object>() {{
+                        put( "Order/CancelOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/AddCoinFundsRequest", new java.util.HashMap<String, Object>() {{
+                        put( "Order/AddCoinFundsRequest", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/AddStopOrder", new java.util.HashMap<String, Object>() {{
+                        put( "Order/AddStopOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Payment/GetMyId", new java.util.HashMap<String, Object>() {{
+                        put( "Payment/GetMyId", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Payment/Send", new java.util.HashMap<String, Object>() {{
+                        put( "Payment/Send", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Payment/Pay", new java.util.HashMap<String, Object>() {{
+                        put( "Payment/Pay", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "Account/Balance", new java.util.HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "Account/Balance", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Account/Balance/v2", new java.util.HashMap<String, Object>() {{
+                        put( "Account/Balance/v2", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/MyOrders", new java.util.HashMap<String, Object>() {{
+                        put( "Order/MyOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/GetById", new java.util.HashMap<String, Object>() {{
+                        put( "Order/GetById", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/AccountHistory", new java.util.HashMap<String, Object>() {{
+                        put( "Order/AccountHistory", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/OrderHistory", new java.util.HashMap<String, Object>() {{
+                        put( "Order/OrderHistory", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Order/HistoryByOrderId", new java.util.HashMap<String, Object>() {{
+                        put( "Order/HistoryByOrderId", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "markets", new java.util.HashMap<String, Object>() {{
-                put( "BTC/NIS", Bit2c.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+            put( "markets", new HashMap<String, Object>() {{
+                put( "BTC/NIS", Bit2c.this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", "BtcNis" );
                     put( "symbol", "BTC/NIS" );
                     put( "base", "BTC" );
@@ -228,7 +234,7 @@ public class Bit2c extends Bit2cApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "ETH/NIS", Bit2c.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "ETH/NIS", Bit2c.this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", "EthNis" );
                     put( "symbol", "ETH/NIS" );
                     put( "base", "ETH" );
@@ -238,7 +244,7 @@ public class Bit2c extends Bit2cApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "LTC/NIS", Bit2c.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "LTC/NIS", Bit2c.this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", "LtcNis" );
                     put( "symbol", "LTC/NIS" );
                     put( "base", "LTC" );
@@ -248,7 +254,7 @@ public class Bit2c extends Bit2cApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "USDC/NIS", Bit2c.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "USDC/NIS", Bit2c.this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", "UsdcNis" );
                     put( "symbol", "USDC/NIS" );
                     put( "base", "USDC" );
@@ -259,27 +265,27 @@ public class Bit2c extends Bit2cApi
                     put( "spot", true );
                 }}) );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "maker", Bit2c.this.parseNumber("0.025") );
                     put( "taker", Bit2c.this.parseNumber("0.03") );
-                    put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("0"), Bit2c.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("20000"), Bit2c.this.parseNumber("0.0275"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("50000"), Bit2c.this.parseNumber("0.025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("75000"), Bit2c.this.parseNumber("0.0225"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("100000"), Bit2c.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("250000"), Bit2c.this.parseNumber("0.015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("500000"), Bit2c.this.parseNumber("0.0125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("750000"), Bit2c.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("1000000"), Bit2c.this.parseNumber("0.008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("2000000"), Bit2c.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("3000000"), Bit2c.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("4000000"), Bit2c.this.parseNumber("0.002"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("0"), Bit2c.this.parseNumber("0.025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("20000"), Bit2c.this.parseNumber("0.0225"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("50000"), Bit2c.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("75000"), Bit2c.this.parseNumber("0.0175"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("100000"), Bit2c.this.parseNumber("0.015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("250000"), Bit2c.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("500000"), Bit2c.this.parseNumber("0.0075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("750000"), Bit2c.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("1000000"), Bit2c.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("2000000"), Bit2c.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("3000000"), Bit2c.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("4000000"), Bit2c.this.parseNumber("0.001"))))) );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("0"), Bit2c.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("20000"), Bit2c.this.parseNumber("0.0275"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("50000"), Bit2c.this.parseNumber("0.025"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("75000"), Bit2c.this.parseNumber("0.0225"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("100000"), Bit2c.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("250000"), Bit2c.this.parseNumber("0.015"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("500000"), Bit2c.this.parseNumber("0.0125"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("750000"), Bit2c.this.parseNumber("0.01"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("1000000"), Bit2c.this.parseNumber("0.008"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("2000000"), Bit2c.this.parseNumber("0.006"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("3000000"), Bit2c.this.parseNumber("0.004"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("4000000"), Bit2c.this.parseNumber("0.002"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("0"), Bit2c.this.parseNumber("0.025"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("20000"), Bit2c.this.parseNumber("0.0225"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("50000"), Bit2c.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("75000"), Bit2c.this.parseNumber("0.0175"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("100000"), Bit2c.this.parseNumber("0.015"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("250000"), Bit2c.this.parseNumber("0.01"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("500000"), Bit2c.this.parseNumber("0.0075"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("750000"), Bit2c.this.parseNumber("0.005"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("1000000"), Bit2c.this.parseNumber("0.004"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("2000000"), Bit2c.this.parseNumber("0.003"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("3000000"), Bit2c.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bit2c.this.parseNumber("4000000"), Bit2c.this.parseNumber("0.001"))))) );
                     }} );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "fetchTrades", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
+                put( "fetchTrades", new HashMap<String, Object>() {{
                     put( "method", "public_get_exchanges_pair_trades" );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", false );
                         put( "triggerPriceType", null );
@@ -287,7 +293,7 @@ public class Bit2c extends Bit2cApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", false );
                             put( "FOK", false );
                             put( "PO", false );
@@ -302,20 +308,20 @@ public class Bit2c extends Bit2cApi
                         put( "iceberg", false );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 30 );
                         put( "untilDays", 30 );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "trigger", false );
@@ -326,22 +332,22 @@ public class Bit2c extends Bit2cApi
                     put( "fetchClosedOrders", null );
                     put( "fetchOHLCV", null );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "Please provide valid APIkey", AuthenticationError.class );
                     put( "No order found.", OrderNotFound.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+                put( "broad", new HashMap<String, Object>() {{
                     put( "Please provide valid nonce", InvalidNonce.class );
                     put( "please approve new terms of use on site", PermissionDenied.class );
                 }} );
@@ -351,7 +357,7 @@ public class Bit2c extends Bit2cApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
@@ -361,7 +367,7 @@ public class Bit2c extends Bit2cApi
         {
             Object code = Helpers.GetValue(codes, i);
             Object account = this.account();
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object uppercase = ((String)Helpers.GetValue(currency, "id")).toUpperCase();
             if (Helpers.isTrue(Helpers.inOp(response, uppercase)))
             {
@@ -381,17 +387,17 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetAccountBalanceV2(parameters)).join();
+            Map<String, Object> response = (this.privateGetAccountBalanceV2(parameters)).join();
             //
             //     {
             //         "AVAILABLE_NIS": 0.0,
@@ -449,22 +455,22 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> orderbook = (this.publicGetExchangesPairOrderbook(this.extend(request, parameters))).join();
+            Map<String, Object> orderbook = (this.publicGetExchangesPairOrderbook(this.extend(request, parameters))).join();
             // the full orderbook.json snapshot can contain dead orders - rows
             // published with a zero amount at their limit price, hours-stable and
             // sometimes crossing the real market. per the api docs the endpoint
@@ -472,17 +478,17 @@ public class Bit2c extends Bit2cApi
             // feed filters these rows out, so a non-positive amount is a dead order
             // their full snapshot failed to purge - it is removed here, which also
             // uncrosses the book. rows are positional price and amount pairs
-            Object rawBids = this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawAsks = this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rawBids = this.safeList(orderbook, "bids", new ArrayList<Object>(Arrays.asList()));
+            Object rawAsks = this.safeList(orderbook, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = new ArrayList<Object>(Arrays.asList());
+            List<Object> asks = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
             {
                 Object bidRow = Helpers.GetValue(rawBids, i);
                 String bidAmount = this.safeString(bidRow, 1);
                 if (Helpers.isTrue(Precise.stringGt(bidAmount, "0")))
                 {
-                    ((java.util.List<Object>)bids).add(bidRow);
+                    ((List<Object>)bids).add(bidRow);
                 }
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawAsks)); i++)
@@ -491,10 +497,10 @@ public class Bit2c extends Bit2cApi
                 String askAmount = this.safeString(askRow, 1);
                 if (Helpers.isTrue(Precise.stringGt(askAmount, "0")))
                 {
-                    ((java.util.List<Object>)asks).add(askRow);
+                    ((List<Object>)asks).add(askRow);
                 }
             }
-            java.util.Map<String, Object> filtered = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> filtered = new HashMap<String, Object>() {{
                 put( "bids", bids );
                 put( "asks", asks );
             }};
@@ -510,7 +516,7 @@ public class Bit2c extends Bit2cApi
         String averagePrice = this.safeString(ticker, "av");
         String baseVolume = this.safeString(ticker, "a");
         String last = this.safeString(ticker, "ll");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -543,21 +549,21 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -575,22 +581,22 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
             Object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -601,7 +607,7 @@ public class Bit2c extends Bit2cApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // max 100000
             }
-            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object responseList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(method, "public_get_exchanges_pair_trades")))
             {
                 Object response = (this.publicGetExchangesPairTrades(this.extend(request, parameters))).join();
@@ -639,17 +645,17 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetAccountBalance(parameters)).join();
+            Map<String, Object> response = (this.privateGetAccountBalance(parameters)).join();
             //
             //     {
             //         "AVAILABLE_NIS": 0.0,
@@ -666,9 +672,9 @@ public class Bit2c extends Bit2cApi
             //         }
             //     }
             //
-            Object fees = this.safeDict(response, "Fees", new java.util.HashMap<String, Object>() {{}});
+            Object fees = this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(fees);
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
@@ -678,7 +684,7 @@ public class Bit2c extends Bit2cApi
                 String takerString = this.safeString(fee, "FeeTaker");
                 Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
                 Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
-                Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "taker", taker );
@@ -705,21 +711,21 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "Amount", amount );
                 put( "Pair", Helpers.GetValue(market, "id") );
             }};
@@ -757,17 +763,17 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            java.util.Map<String, Object> response = (this.privatePostOrderCancelOrder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostOrderCancelOrder(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -784,15 +790,15 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
@@ -801,14 +807,14 @@ public class Bit2c extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
-            Object orders = this.safeValue(response, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
-            Object asks = this.safeValue(orders, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
+            Object orders = this.safeValue(response, Helpers.GetValue(market, "id"), new HashMap<String, Object>() {{}});
+            Object asks = this.safeValue(orders, "ask", new ArrayList<Object>(Arrays.asList()));
+            Object bids = this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -824,22 +830,22 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            java.util.Map<String, Object> response = (this.privateGetOrderGetById(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetOrderGetById(this.extend(request, parameters))).join();
             //
             //         {
             //             "pair": "BtcNis",
@@ -969,7 +975,7 @@ public class Bit2c extends Bit2cApi
         final Object finalSide = side;
         final Object finalAmount = amount;
         final Object finalRemaining = remaining;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -1005,21 +1011,21 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "take", limit);
@@ -1035,7 +1041,7 @@ public class Bit2c extends Bit2cApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
-            java.util.List<Object> response = (this.privateGetOrderOrderHistory(this.extend(request, parameters))).join();
+            List<Object> response = (this.privateGetOrderOrderHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1074,7 +1080,7 @@ public class Bit2c extends Bit2cApi
             //         }
             //     ]
             //
-            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object responseList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
                 responseList = this.toArray(response);
@@ -1165,7 +1171,7 @@ public class Bit2c extends Bit2cApi
             if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
             {
                 final Object finalFeeCost = feeCost;
-                fee = new java.util.HashMap<String, Object>() {{
+                fee = new HashMap<String, Object>() {{
                     put( "cost", finalFeeCost );
                     put( "currency", "NIS" );
                 }};
@@ -1198,7 +1204,7 @@ public class Bit2c extends Bit2cApi
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
             put( "timestamp", finalTimestamp );
@@ -1229,25 +1235,25 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(this.isFiat(code)))
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchDepositAddress() does not support fiat currencies")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "Coin", Helpers.GetValue(currency, "id") );
             }};
-            java.util.Map<String, Object> response = (this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters))).join();
             //
             //     {
             //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -1271,7 +1277,7 @@ public class Bit2c extends Bit2cApi
         String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         String code = this.safeCurrencyCode(null, currency);
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
             put( "network", null );
@@ -1289,7 +1295,7 @@ public class Bit2c extends Bit2cApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), "/"), this.implodeParams(path, parameters));
@@ -1300,7 +1306,7 @@ public class Bit2c extends Bit2cApi
         {
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
-            java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{
+            Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);
             Object auth = this.urlencode(query);
@@ -1315,7 +1321,7 @@ public class Bit2c extends Bit2cApi
                 body = auth;
             }
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "key", Bit2c.this.apiKey );
                 put( "sign", signature );
@@ -1325,7 +1331,7 @@ public class Bit2c extends Bit2cApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );

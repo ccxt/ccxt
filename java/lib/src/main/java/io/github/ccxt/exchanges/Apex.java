@@ -6,6 +6,12 @@ import io.github.ccxt.api.ApexApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Apex extends ApexApi
 {
@@ -19,16 +25,16 @@ public class Apex extends ApexApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "apex" );
             put( "name", "Apex" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
+            put( "countries", new ArrayList<Object>(Arrays.asList()) );
             put( "version", "v3" );
             put( "rateLimit", 20 );
             put( "certified", false );
             put( "pro", true );
             put( "dex", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
                 put( "margin", false );
@@ -131,7 +137,7 @@ public class Apex extends ApexApi
                 put( "transfer", true );
                 put( "withdraw", false );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "1" );
                 put( "5m", "5" );
                 put( "15m", "15" );
@@ -146,13 +152,13 @@ public class Apex extends ApexApi
                 put( "1M", "M" );
             }} );
             put( "hostname", "omni.apex.exchange" );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/8ba7fbfa-0dd0-4ab9-8b72-ff60abe08ac6" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://{hostname}/api" );
                     put( "private", "https://{hostname}/api" );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "public", "https://testnet.omni.apex.exchange/api" );
                     put( "private", "https://testnet.omni.apex.exchange/api" );
                 }} );
@@ -161,136 +167,136 @@ public class Apex extends ApexApi
                 put( "fees", "https://apex-pro.gitbook.io/apex-pro/apex-omni-live-now/trading-perpetual-contracts/trading-fees" );
                 put( "referral", "https://omni.apex.exchange/trade" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v3/symbols", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "v3/symbols", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/history-funding", new java.util.HashMap<String, Object>() {{
+                        put( "v3/history-funding", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/ticker", new java.util.HashMap<String, Object>() {{
+                        put( "v3/ticker", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/klines", new java.util.HashMap<String, Object>() {{
+                        put( "v3/klines", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/trades", new java.util.HashMap<String, Object>() {{
+                        put( "v3/trades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/depth", new java.util.HashMap<String, Object>() {{
+                        put( "v3/depth", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/time", new java.util.HashMap<String, Object>() {{
+                        put( "v3/time", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/data/all-ticker-info", new java.util.HashMap<String, Object>() {{
+                        put( "v3/data/all-ticker-info", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v3/account", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "v3/account", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/account-balance", new java.util.HashMap<String, Object>() {{
+                        put( "v3/account-balance", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/fills", new java.util.HashMap<String, Object>() {{
+                        put( "v3/fills", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/order-fills", new java.util.HashMap<String, Object>() {{
+                        put( "v3/order-fills", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/order", new java.util.HashMap<String, Object>() {{
+                        put( "v3/order", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/history-orders", new java.util.HashMap<String, Object>() {{
+                        put( "v3/history-orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/order-by-client-order-id", new java.util.HashMap<String, Object>() {{
+                        put( "v3/order-by-client-order-id", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/funding", new java.util.HashMap<String, Object>() {{
+                        put( "v3/funding", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/historical-pnl", new java.util.HashMap<String, Object>() {{
+                        put( "v3/historical-pnl", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/open-orders", new java.util.HashMap<String, Object>() {{
+                        put( "v3/open-orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/transfers", new java.util.HashMap<String, Object>() {{
+                        put( "v3/transfers", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/transfer", new java.util.HashMap<String, Object>() {{
+                        put( "v3/transfer", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/stock/account", new java.util.HashMap<String, Object>() {{
+                        put( "v3/stock/account", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "v3/delete-open-orders", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "v3/delete-open-orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/delete-client-order-id", new java.util.HashMap<String, Object>() {{
+                        put( "v3/delete-client-order-id", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/delete-order", new java.util.HashMap<String, Object>() {{
+                        put( "v3/delete-order", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/order", new java.util.HashMap<String, Object>() {{
+                        put( "v3/order", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/set-initial-margin-rate", new java.util.HashMap<String, Object>() {{
+                        put( "v3/set-initial-margin-rate", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/transfer-out", new java.util.HashMap<String, Object>() {{
+                        put( "v3/transfer-out", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/contract-transfer-out", new java.util.HashMap<String, Object>() {{
+                        put( "v3/contract-transfer-out", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/contract-transfer-to", new java.util.HashMap<String, Object>() {{
+                        put( "v3/contract-transfer-to", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/submit-withdraw-claim", new java.util.HashMap<String, Object>() {{
+                        put( "v3/submit-withdraw-claim", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/stock/register-account", new java.util.HashMap<String, Object>() {{
+                        put( "v3/stock/register-account", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v3/stock/generate-api", new java.util.HashMap<String, Object>() {{
+                        put( "v3/stock/generate-api", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "httpExceptions", new java.util.HashMap<String, Object>() {{
+            put( "httpExceptions", new HashMap<String, Object>() {{
                 put( "403", RateLimitExceeded.class );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "20006", "apikey sign error" );
                     put( "20016", "request para error" );
                     put( "10001", BadRequest.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+                put( "broad", new HashMap<String, Object>() {{
                     put( "ORDER_PRICE_MUST_GREETER_ZERO", InvalidOrder.class );
                     put( "ORDER_POSSIBLE_LEAD_TO_ACCOUNT_LIQUIDATED", InvalidOrder.class );
                     put( "ORDER_WITH_THIS_PRICE_CANNOT_REDUCE_POSITION_ONLY", InvalidOrder.class );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "swap", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "taker", Apex.this.parseNumber("0.0005") );
                     put( "maker", Apex.this.parseNumber("0.0002") );
                 }} );
             }} );
-            put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
+            put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
                 put( "secret", true );
                 put( "walletAddress", false );
@@ -298,15 +304,15 @@ public class Apex extends ApexApi
                 put( "password", true );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "commonCurrencies", new java.util.HashMap<String, Object>() {{}} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "commonCurrencies", new HashMap<String, Object>() {{}} );
+            put( "options", new HashMap<String, Object>() {{
                 put( "defaultType", "swap" );
                 put( "brokerId", "6956" );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "default", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "default", new HashMap<String, Object>() {{
                     put( "sandbox", true );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", true );
                         put( "triggerPriceType", null );
@@ -314,7 +320,7 @@ public class Apex extends ApexApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", true );
@@ -329,27 +335,27 @@ public class Apex extends ApexApi
                         put( "iceberg", false );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
                         put( "daysBack", 100000 );
                         put( "untilDays", 100000 );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 100000 );
@@ -359,12 +365,12 @@ public class Apex extends ApexApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchClosedOrders", null );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 200 );
                     }} );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "linear", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "default" );
                     }} );
                     put( "inverse", null );
@@ -381,14 +387,14 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetV3Time(parameters)).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetV3Time(parameters)).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             //
             // {
             //    "data": {
@@ -417,7 +423,7 @@ public class Apex extends ApexApi
         // }
         //
         Long timestamp = this.milliseconds();
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", Apex.this.iso8601(timestamp) );
@@ -438,18 +444,18 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetV3AccountBalance(parameters)).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privateGetV3AccountBalance(parameters)).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseBalance(data);
         }).thenApply(io.github.ccxt.types.Balances::new);
 
@@ -458,7 +464,7 @@ public class Apex extends ApexApi
     public Object parseAccount(Object account)
     {
         String accountId = this.safeString(account, "id", "0");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "id", accountId );
             put( "type", null );
             put( "code", null );
@@ -474,18 +480,18 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchAccount(Object... optionalArgs)
+    public CompletableFuture<Object> fetchAccount(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseAccount(data);
         });
 
@@ -499,16 +505,16 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object spotConfig = this.safeDict(data, "spotConfig", new java.util.HashMap<String, Object>() {{}});
-            Object multiChain = this.safeDict(spotConfig, "multiChain", new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object spotConfig = this.safeDict(data, "spotConfig", new HashMap<String, Object>() {{}});
+            Object multiChain = this.safeDict(spotConfig, "multiChain", new HashMap<String, Object>() {{}});
             // "spotConfig": {
             //     "assets": [
             //         {
@@ -598,11 +604,11 @@ public class Apex extends ApexApi
             //        }
             //     ]
             // }
-            Object rows = this.safeList(spotConfig, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object chains = this.safeList(multiChain, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rows = this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            Object chains = this.safeList(multiChain, "chains", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.options, "_temp_currencies_chains", chains);
             Object result = this.parseCurrencies(rows);
-            ((java.util.Map<String,Object>)this.options).remove("_temp_currencies_chains");
+            ((Map<String,Object>)this.options).remove("_temp_currencies_chains");
             return result;
         });
 
@@ -613,12 +619,12 @@ public class Apex extends ApexApi
         String currencyId = this.safeString(currency, "token");
         String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(currency, "displayName");
-        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object chains = Helpers.GetValue(this.options, "_temp_currencies_chains");
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
-            Object tokens = this.safeList(chain, "tokens", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object tokens = this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
             for (var f = 0; Helpers.isLessThan(f, Helpers.getArrayLength(tokens)); f++)
             {
                 Object token = Helpers.GetValue(tokens, f);
@@ -630,7 +636,7 @@ public class Apex extends ApexApi
                     if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                     {
                         final Object finalNetworkCode = networkCode;
-                        Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+                        Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -639,12 +645,12 @@ public class Apex extends ApexApi
     put( "withdraw", Apex.this.safeBool(token, "withdrawEnable") );
     put( "fee", Apex.this.safeNumber(token, "minFee") );
     put( "precision", Apex.this.parseNumber(Apex.this.parsePrecision(Apex.this.safeString(token, "decimals"))) );
-    put( "limits", new java.util.HashMap<String, Object>() {{
-        put( "withdraw", new java.util.HashMap<String, Object>() {{
+    put( "limits", new HashMap<String, Object>() {{
+        put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Apex.this.safeNumber(token, "minWithdraw") );
             put( "max", null );
         }} );
-        put( "deposit", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new HashMap<String, Object>() {{
             put( "min", Apex.this.safeNumber(chain, "minDeposit") );
             put( "max", null );
         }} );
@@ -658,7 +664,7 @@ public class Apex extends ApexApi
         Object networksLength = Helpers.getArrayLength(networkKeys);
         Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
-        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", currency );
             put( "code", code );
             put( "id", currencyId );
@@ -669,16 +675,16 @@ public class Apex extends ApexApi
             put( "withdraw", valueForEmpty );
             put( "fee", null );
             put( "precision", null );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "amount", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "deposit", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -695,16 +701,16 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object contractConfig = this.safeDict(data, "contractConfig", new java.util.HashMap<String, Object>() {{}});
-            Object perpetualContract = this.safeList(contractConfig, "perpetualContract", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object contractConfig = this.safeDict(data, "contractConfig", new HashMap<String, Object>() {{}});
+            Object perpetualContract = this.safeList(contractConfig, "perpetualContract", new ArrayList<Object>(Arrays.asList()));
             // {
             //     "perpetualContract":[
             //         {
@@ -780,7 +786,7 @@ public class Apex extends ApexApi
         Object makerFee = this.parseNumber("0.0005");
         final Object finalBaseId = baseId;
         final Object finalExpiry = expiry;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "id2", id2 );
             put( "symbol", symbol );
@@ -807,24 +813,24 @@ public class Apex extends ApexApi
             put( "expiryDatetime", ((Helpers.isTrue((Helpers.isEqual(finalExpiry, 0))))) ? null : Apex.this.iso8601(finalExpiry) );
             put( "strike", null );
             put( "optionType", null );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Apex.this.safeNumber(market, "stepSize") );
                 put( "price", Apex.this.safeNumber(market, "tickSize") );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", Apex.this.safeNumber(market, "displayMinLeverage") );
                     put( "max", Apex.this.safeNumber(market, "displayMaxLeverage") );
                 }} );
-                put( "amount", new java.util.HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", Apex.this.safeNumber(market, "minOrderSize") );
                     put( "max", Apex.this.safeNumber(market, "maxOrderSize") );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -865,7 +871,7 @@ public class Apex extends ApexApi
         String baseVolume = this.safeString(ticker, "volume24h");
         String high = this.safeString(ticker, "highPrice24h");
         String low = this.safeString(ticker, "lowPrice24h");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Apex.this.iso8601(timestamp) );
@@ -900,23 +906,23 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
-            Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawTicker = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
+            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object rawTicker = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(rawTicker, market);
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -931,19 +937,19 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.publicGetV3DataAllTickerInfo(parameters)).join();
-            Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.publicGetV3DataAllTickerInfo(parameters)).join();
+            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
 
@@ -962,21 +968,21 @@ public class Apex extends ApexApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = new HashMap<String, Object>() {{
                 put( "interval", Apex.this.safeString(Apex.this.timeframes, timeframe, timeframe) );
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
@@ -985,16 +991,16 @@ public class Apex extends ApexApi
                 limit = 200; // default is 200 when requested with `since`
             }
             Helpers.addElementToObject(request, "limit", limit); // max 200, default 200
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters, 0.001);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters, 0.001);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
             }
-            java.util.Map<String, Object> response = (this.publicGetV3Klines(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object OHLCVs = this.safeList(data, this.safeString(market, "id2"), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.publicGetV3Klines(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object OHLCVs = this.safeList(data, this.safeString(market, "id2"), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
@@ -1016,7 +1022,7 @@ public class Apex extends ApexApi
         //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger2(ohlcv, "start", "t"), this.safeNumber2(ohlcv, "open", "o"), this.safeNumber2(ohlcv, "high", "h"), this.safeNumber2(ohlcv, "low", "l"), this.safeNumber2(ohlcv, "close", "c"), this.safeNumber2(ohlcv, "volume", "v")));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger2(ohlcv, "start", "t"), this.safeNumber2(ohlcv, "open", "o"), this.safeNumber2(ohlcv, "high", "h"), this.safeNumber2(ohlcv, "low", "l"), this.safeNumber2(ohlcv, "close", "c"), this.safeNumber2(ohlcv, "volume", "v")));
     }
 
     /**
@@ -1029,19 +1035,19 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1049,7 +1055,7 @@ public class Apex extends ApexApi
                 limit = 100; // default is 200 when requested with `since`
             }
             Helpers.addElementToObject(request, "limit", limit); // max 100, default 100
-            java.util.Map<String, Object> response = (this.publicGetV3Depth(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetV3Depth(this.extend(request, parameters))).join();
             //
             // {
             //     "a": [
@@ -1076,7 +1082,7 @@ public class Apex extends ApexApi
             //     "u": 18665465
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
             Object orderbook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "u"));
@@ -1098,20 +1104,20 @@ public class Apex extends ApexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1119,7 +1125,7 @@ public class Apex extends ApexApi
                 limit = 500; // default is 50
             }
             Helpers.addElementToObject(request, "limit", limit);
-            java.util.Map<String, Object> response = (this.publicGetV3Trades(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetV3Trades(this.extend(request, parameters))).join();
             //
             // [
             //  {
@@ -1140,7 +1146,7 @@ public class Apex extends ApexApi
             //  }
             //  ]
             //
-            Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -1164,14 +1170,14 @@ public class Apex extends ApexApi
         String marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
         String id = this.safeString2(trade, "i", "id");
-        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
+        Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("t", "T", "createdAt")));
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "v", "size");
         String side = this.safeStringLower2(trade, "S", "side");
         String type = this.safeString(trade, "type");
         String fee = this.safeString(trade, "fee");
         final Object finalMarket = market;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
@@ -1197,23 +1203,23 @@ public class Apex extends ApexApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
-            Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawTicker = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
+            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object rawTicker = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(rawTicker, market);
         }).thenApply(io.github.ccxt.types.OpenInterest::new);
 
@@ -1244,7 +1250,7 @@ public class Apex extends ApexApi
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeSymbol(marketId, market);
-        return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", Apex.this.safeString(interest, "openInterest") );
             put( "openInterestValue", null );
@@ -1267,15 +1273,15 @@ public class Apex extends ApexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -1284,8 +1290,8 @@ public class Apex extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1300,12 +1306,12 @@ public class Apex extends ApexApi
             {
                 Helpers.addElementToObject(request, "page", page);
             }
-            Long endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+            Long endTimeExclusive = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
                 Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
             }
-            java.util.Map<String, Object> response = (this.publicGetV3HistoryFunding(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetV3HistoryFunding(this.extend(request, parameters))).join();
             //
             // {
             //     "historyFunds": [
@@ -1320,15 +1326,15 @@ public class Apex extends ApexApi
             //     "totalSize": 11
             // }
             //
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object resultList = this.safeList(data, "historyFunds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            List<Object> rates = new ArrayList<Object>(Arrays.asList());
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object resultList = this.safeList(data, "historyFunds", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
                 Object entry = Helpers.GetValue(resultList, i);
                 Long timestamp = this.safeInteger(entry, "fundingTimestamp");
                 String marketId = this.safeString(entry, "symbol");
-                ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
+                ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Apex.this.safeSymbol(marketId, market) );
                     put( "fundingRate", Apex.this.safeNumber(entry, "rate") );
@@ -1336,7 +1342,7 @@ public class Apex extends ApexApi
                     put( "datetime", Apex.this.iso8601(timestamp) );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+            List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingRateHistory::new));
 
@@ -1414,7 +1420,7 @@ public class Apex extends ApexApi
         Object remaining = this.omitZero(this.safeString(order, "remainingSize"));
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         final Object finalMarket = market;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -1438,7 +1444,7 @@ public class Apex extends ApexApi
             put( "remaining", remaining );
             put( "cost", null );
             put( "trades", null );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "cost", Apex.this.safeString(order, "fee") );
                 put( "currency", Helpers.GetValue(finalMarket, "settleId") );
             }} );
@@ -1448,7 +1454,7 @@ public class Apex extends ApexApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_TIL_CANCEL", "GOOD_TIL_CANCEL" );
             put( "FILL_OR_KILL", "FILL_OR_KILL" );
             put( "IMMEDIATE_OR_CANCEL", "IMMEDIATE_OR_CANCEL" );
@@ -1461,7 +1467,7 @@ public class Apex extends ApexApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
-            java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> statuses = new HashMap<String, Object>() {{
                 put( "PENDING", "open" );
                 put( "OPEN", "open" );
                 put( "FILLED", "filled" );
@@ -1476,7 +1482,7 @@ public class Apex extends ApexApi
 
     public String parseOrderType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
             put( "STOP_LIMIT", "limit" );
@@ -1496,7 +1502,7 @@ public class Apex extends ApexApi
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(marketId, null))))
         {
             Object marketsMap = this.markets;
-            java.util.Map<String, Object> marketsById = this.markets_by_id;
+            Map<String, Object> marketsById = this.markets_by_id;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsMap, null))) && Helpers.isTrue((Helpers.inOp(marketsMap, marketId)))))
             {
                 market = Helpers.GetValue(marketsMap, marketId);
@@ -1552,10 +1558,10 @@ public class Apex extends ApexApi
         return seeds;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> getAccountId()
+    public CompletableFuture<Object> getAccountId()
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             String accountId = this.safeString(this.options, "accountId", "0");
             if (Helpers.isTrue(Helpers.isEqual(accountId, "0")))
@@ -1588,18 +1594,18 @@ public class Apex extends ApexApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
     {
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -1612,7 +1618,7 @@ public class Apex extends ApexApi
             {
                 orderPrice = this.priceToPrecision(symbol, price);
             }
-            Object fees = this.safeDict(this.fees, "swap", new java.util.HashMap<String, Object>() {{}});
+            Object fees = this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
             String taker = this.safeString(fees, "taker", "0.0005");
             String maker = this.safeString(fees, "maker", "0.0002");
             Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
@@ -1652,16 +1658,16 @@ public class Apex extends ApexApi
             }
             parameters = this.omit(parameters, "timeInForce");
             parameters = this.omit(parameters, "postOnly");
-            Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+            Object clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object accountId = (this.getAccountId()).join();
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
                 clientOrderId = this.generateRandomClientIdOmni(accountId);
             }
             Object finalClientOrderId = clientOrderId; // java req
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
             Object finalOrderPrice = orderPrice; // java req
-            java.util.Map<String, Object> orderToSign = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> orderToSign = new HashMap<String, Object>() {{
                 put( "accountId", accountId );
                 put( "slotId", finalClientOrderId );
                 put( "nonce", finalClientOrderId );
@@ -1680,7 +1686,7 @@ public class Apex extends ApexApi
             final Object finalOrderType = orderType;
             final Object finalTimeNow = timeNow;
             final Object finalTimeInForce = timeInForce;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", orderSide );
                 put( "type", finalOrderType );
@@ -1697,8 +1703,8 @@ public class Apex extends ApexApi
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Helpers.addElementToObject(request, "signature", signature);
-            java.util.Map<String, Object> response = (this.privatePostV3Order(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privatePostV3Order(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -1716,35 +1722,35 @@ public class Apex extends ApexApi
      * @param {string} [params.transferId] UUID, which is unique across the platform
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount2, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount2, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         final Object fromAccount3 = fromAccount2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object amount = amount3;
             Object fromAccount = fromAccount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> configResponse = (this.publicGetV3Symbols(parameters)).join();
-            Object configData = this.safeDict(configResponse, "data", new java.util.HashMap<String, Object>() {{}});
-            Object contractConfig = this.safeDict(configData, "contractConfig", new java.util.HashMap<String, Object>() {{}});
-            Object contractAssets = this.safeList(contractConfig, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object spotConfig = this.safeDict(configData, "spotConfig", new java.util.HashMap<String, Object>() {{}});
-            Object spotAssets = this.safeList(spotConfig, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object globalConfig = this.safeDict(spotConfig, "global", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> configResponse = (this.publicGetV3Symbols(parameters)).join();
+            Object configData = this.safeDict(configResponse, "data", new HashMap<String, Object>() {{}});
+            Object contractConfig = this.safeDict(configData, "contractConfig", new HashMap<String, Object>() {{}});
+            Object contractAssets = this.safeList(contractConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            Object spotConfig = this.safeDict(configData, "spotConfig", new HashMap<String, Object>() {{}});
+            Object spotAssets = this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            Object globalConfig = this.safeDict(spotConfig, "global", new HashMap<String, Object>() {{}});
             String receiverAddress = this.safeString(globalConfig, "contractAssetPoolEthAddress", "");
             String receiverZkAccountId = this.safeString(globalConfig, "contractAssetPoolZkAccountId", "");
             String receiverSubAccountId = this.safeString(globalConfig, "contractAssetPoolSubAccount", "");
             String receiverAccountId = this.safeString(globalConfig, "contractAssetPoolAccountId", "");
-            java.util.Map<String, Object> accountResponse = (this.privateGetV3Account(parameters)).join();
-            Object accountData = this.safeDict(accountResponse, "data", new java.util.HashMap<String, Object>() {{}});
-            Object spotAccount = this.safeDict(accountData, "spotAccount", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> accountResponse = (this.privateGetV3Account(parameters)).join();
+            Object accountData = this.safeDict(accountResponse, "data", new HashMap<String, Object>() {{}});
+            Object spotAccount = this.safeDict(accountData, "spotAccount", new HashMap<String, Object>() {{}});
             String zkAccountId = this.safeString(spotAccount, "zkAccountId", "");
             String subAccountId = this.safeString(spotAccount, "defaultSubAccountId", "0");
-            Object subAccounts = this.safeList(spotAccount, "subAccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object subAccounts = this.safeList(spotAccount, "subAccounts", new ArrayList<Object>(Arrays.asList()));
             String nonce = "0";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(subAccounts), 0)))
             {
@@ -1753,8 +1759,8 @@ public class Apex extends ApexApi
             String finalNonce = nonce; // java req
             String ethAddress = this.safeString(accountData, "ethereumAddress", "");
             String accountId = this.safeString(accountData, "id", "");
-            Object currency = new java.util.HashMap<String, Object>() {{}};
-            Object assets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object currency = new HashMap<String, Object>() {{}};
+            Object assets = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fromAccount, null)) && Helpers.isTrue(Helpers.isEqual(((String)fromAccount).toLowerCase(), "contract"))))
             {
                 assets = contractAssets;
@@ -1775,19 +1781,19 @@ public class Apex extends ApexApi
             Object mathPowResult = (Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(decimalsNumber))));
             Long amountNumber = this.parseToInt(Helpers.multiply(amount, mathPowResult));
             Long timestampSeconds = this.parseToInt(Helpers.divide(this.milliseconds(), 1000));
-            Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+            Object clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
                 clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, "accountId"));
             }
             Object finalClientOrderId = clientOrderId; // java req
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fromAccount, null)) && Helpers.isTrue(Helpers.isEqual(((String)fromAccount).toLowerCase(), "contract"))))
             {
                 String formattedUint32 = "4294967295";
                 String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
                 Object expireTime = Helpers.add(timestampSeconds, Helpers.multiply(Helpers.multiply(3600, 24), 28));
-                java.util.Map<String, Object> orderToSign = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> orderToSign = new HashMap<String, Object>() {{
                     put( "zkAccountId", zkSignAccountId );
                     put( "receiverAddress", ethAddress );
                     put( "subAccountId", subAccountId );
@@ -1801,7 +1807,7 @@ public class Apex extends ApexApi
                 }};
                 Object signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
                 final Object finalAmount = amount;
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "amount", finalAmount );
                     put( "expireTime", expireTime );
                     put( "clientWithdrawId", finalClientOrderId );
@@ -1809,11 +1815,11 @@ public class Apex extends ApexApi
                     put( "token", code );
                     put( "ethAddress", ethAddress );
                 }};
-                java.util.Map<String, Object> response = (this.privatePostV3ContractTransferOut(this.extend(request, parameters))).join();
-                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Map<String, Object> response = (this.privatePostV3ContractTransferOut(this.extend(request, parameters))).join();
+                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
                 Object parsedAmount = this.parseNumber(amount);
-                return this.extend(this.parseTransfer(data, this.currency(code)), new java.util.HashMap<String, Object>() {{
+                return this.extend(this.parseTransfer(data, this.currency(code)), new HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
                     put( "datetime", Apex.this.iso8601(currentTime) );
                     put( "amount", parsedAmount );
@@ -1823,7 +1829,7 @@ public class Apex extends ApexApi
             } else
             {
                 final Object finalTimestampSeconds = timestampSeconds;
-                java.util.Map<String, Object> orderToSign = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> orderToSign = new HashMap<String, Object>() {{
                     put( "zkAccountId", zkAccountId );
                     put( "receiverAddress", receiverAddress );
                     put( "subAccountId", subAccountId );
@@ -1837,7 +1843,7 @@ public class Apex extends ApexApi
                 Object signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
                 Object amountStr = String.valueOf(amount);
                 Object ts = timestampSeconds; // java req
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "amount", amountStr );
                     put( "timestamp", ts );
                     put( "clientTransferId", finalClientOrderId );
@@ -1853,11 +1859,11 @@ public class Apex extends ApexApi
                     put( "receiverAddress", receiverAddress );
                     put( "nonce", finalNonce );
                 }};
-                java.util.Map<String, Object> response = (this.privatePostV3TransferOut(this.extend(request, parameters))).join();
-                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Map<String, Object> response = (this.privatePostV3TransferOut(this.extend(request, parameters))).join();
+                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
                 final Object finalAmount_2 = amount;
-                return this.extend(this.parseTransfer(data, this.currency(code)), new java.util.HashMap<String, Object>() {{
+                return this.extend(this.parseTransfer(data, this.currency(code)), new HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
                     put( "datetime", Apex.this.iso8601(currentTime) );
                     put( "amount", Apex.this.parseNumber(finalAmount_2) );
@@ -1876,7 +1882,7 @@ public class Apex extends ApexApi
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String fromAccount = this.safeString(transfer, "fromAccount");
         String toAccount = this.safeString(transfer, "toAccount");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", Apex.this.safeString2(transfer, "transferId", "id") );
             put( "timestamp", timestamp );
@@ -1898,27 +1904,27 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            java.util.Map<String, Object> response = (this.privatePostV3DeleteOpenOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseOrder(data, market)));
+            Map<String, Object> response = (this.privatePostV3DeleteOpenOrders(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return new ArrayList<Object>(Arrays.asList(this.parseOrder(data, market)));
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
@@ -1933,27 +1939,27 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "id", clientOrderId);
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
                 response = (this.privatePostV3DeleteClientOrderId(this.extend(request, parameters))).join();
             } else
             {
                 Helpers.addElementToObject(request, "id", id);
                 response = (this.privatePostV3DeleteOrder(this.extend(request, parameters))).join();
             }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeOrder(data);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -1971,31 +1977,31 @@ public class Apex extends ApexApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "id", clientOrderId);
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
                 response = (this.privateGetV3OrderByClientOrderId(this.extend(request, parameters))).join();
             } else
             {
                 Helpers.addElementToObject(request, "id", id);
                 response = (this.privateGetV3Order(this.extend(request, parameters))).join();
             }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -2012,21 +2018,21 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetV3OpenOrders(parameters)).join();
-            Object orders = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetV3OpenOrders(parameters)).join();
+            Object orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, null, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2049,20 +2055,20 @@ public class Apex extends ApexApi
      * @param {boolean} [params.page] Page numbers start from 0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2077,15 +2083,15 @@ public class Apex extends ApexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Long endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+            Long endTimeExclusive = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
                 Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
             }
-            java.util.Map<String, Object> response = (this.privateGetV3HistoryOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetV3HistoryOrders(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2103,20 +2109,20 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -2125,10 +2131,10 @@ public class Apex extends ApexApi
             {
                 Helpers.addElementToObject(request, "orderId", id);
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clientId")));
-            java.util.Map<String, Object> response = (this.privateGetV3OrderFills(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientId")));
+            Map<String, Object> response = (this.privateGetV3OrderFills(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(orders, null, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -2149,20 +2155,20 @@ public class Apex extends ApexApi
      * @param {boolean} [params.page] Page numbers start from 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2177,15 +2183,15 @@ public class Apex extends ApexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Long endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+            Long endTimeExclusive = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
                 Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
             }
-            java.util.Map<String, Object> response = (this.privateGetV3Fills(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetV3Fills(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(orders, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -2205,20 +2211,20 @@ public class Apex extends ApexApi
      * @param {boolean} [params.page] Page numbers start from 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.FundingHistory>> fetchFundingHistory(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2233,15 +2239,15 @@ public class Apex extends ApexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Long endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+            Long endTimeExclusive = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
                 Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
             }
-            java.util.Map<String, Object> response = (this.privateGetV3Funding(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object fundingValues = this.safeList(data, "fundingValues", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetV3Funding(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object fundingValues = this.safeList(data, "fundingValues", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(fundingValues, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingHistory::new));
 
@@ -2269,7 +2275,7 @@ public class Apex extends ApexApi
         String code = "USDT";
         Long timestamp = this.safeInteger(income, "fundingTime");
         final Object finalMarket = market;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", Apex.this.safeSymbol(marketId, finalMarket) );
             put( "code", code );
@@ -2291,13 +2297,13 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
@@ -2306,15 +2312,15 @@ public class Apex extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object leverageString = this.numberToString(leverage);
             String initialMarginRate = Precise.stringDiv("1", leverageString, 4);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "initialMarginRate", initialMarginRate );
             }};
-            java.util.Map<String, Object> response = (this.privatePostV3SetInitialMarginRate(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privatePostV3SetInitialMarginRate(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return data;
         });
 
@@ -2329,20 +2335,20 @@ public class Apex extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object positions = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object positions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
@@ -2379,7 +2385,7 @@ public class Apex extends ApexApi
             leverage = this.parseToInt(Precise.stringDiv("1", customInitialMarginRate, 4));
         }
         final Object finalLeverage = leverage;
-        return this.safePosition(new java.util.HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Apex.this.safeString(position, "id") );
             put( "symbol", symbol );
@@ -2410,11 +2416,11 @@ public class Apex extends ApexApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api)), "/"), path);
-        headers = new java.util.HashMap<String, Object>() {{
+        headers = new HashMap<String, Object>() {{
             put( "User-Agent", "apex-CCXT" );
             put( "Accept", "application/json" );
             put( "Content-Type", "application/x-www-form-urlencoded" );
@@ -2430,7 +2436,7 @@ public class Apex extends ApexApi
             }
         } else
         {
-            java.util.Map<String, Object> sortedQuery = this.keysort(parameters);
+            Map<String, Object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
@@ -2451,7 +2457,7 @@ public class Apex extends ApexApi
         final Object finalUrl = url;
         final Object finalSignBody = signBody;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", method );
             put( "body", finalSignBody );

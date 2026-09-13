@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Coinone extends io.github.ccxt.exchanges.Coinone
 {
@@ -20,8 +26,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchOrderBook", true );
                 put( "watchOrders", false );
@@ -31,28 +37,28 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
                 put( "watchTicker", true );
                 put( "watchTickers", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "ws", "wss://stream.coinone.co.kr" );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "expiresIn", "" );
                 put( "userId", "" );
                 put( "wsSessionToken", "" );
-                put( "watchOrderBook", new java.util.HashMap<String, Object>() {{
+                put( "watchOrderBook", new HashMap<String, Object>() {{
                     put( "snapshotDelay", 6 );
                     put( "snapshotMaxRetries", 3 );
                 }} );
                 put( "tradesLimit", 1000 );
                 put( "OHLCVLimit", 1000 );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "4009", AuthenticationError.class );
                 }} );
             }} );
-            put( "streaming", new java.util.HashMap<String, Object>() {{
+            put( "streaming", new HashMap<String, Object>() {{
                 put( "ping", "ping");
                 put( "keepAlive", 20000 );
             }} );
@@ -69,29 +75,29 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "ORDERBOOK" );
-                put( "topic", new java.util.HashMap<String, Object>() {{
+                put( "topic", new HashMap<String, Object>() {{
                     put( "quote_currency", Helpers.GetValue(market, "quote") );
                     put( "target_currency", Helpers.GetValue(market, "base") );
                 }} );
             }};
-            java.util.Map<String, Object> message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -124,7 +130,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeStringUpper(data, "target_currency");
         String quoteId = this.safeStringUpper(data, "quote_currency");
         String base = this.safeCurrencyCode(baseId);
@@ -140,8 +146,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             Helpers.callDynamically(orderbook, "reset", new Object[]{});
         }
         Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Object asks = this.safeValue(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object bids = this.safeValue(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object asks = this.safeValue(data, "asks", new ArrayList<Object>(Arrays.asList()));
+        Object bids = this.safeValue(data, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -166,28 +172,28 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "TICKER" );
-                put( "topic", new java.util.HashMap<String, Object>() {{
+                put( "topic", new HashMap<String, Object>() {{
                     put( "quote_currency", Helpers.GetValue(market, "quote") );
                     put( "target_currency", Helpers.GetValue(market, "base") );
                 }} );
             }};
-            java.util.Map<String, Object> message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -224,7 +230,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         Object ticker = this.parseWsTicker(data);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -267,7 +273,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Coinone.this.iso8601(timestamp) );
@@ -302,30 +308,30 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "TRADE" );
-                put( "topic", new java.util.HashMap<String, Object>() {{
+                put( "topic", new HashMap<String, Object>() {{
                     put( "quote_currency", Helpers.GetValue(market, "quote") );
                     put( "target_currency", Helpers.GetValue(market, "base") );
                 }} );
             }};
-            java.util.Map<String, Object> message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -353,7 +359,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         Object trade = this.parseWsTrade(data);
         Object symbol = Helpers.GetValue(trade, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
@@ -399,7 +405,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String amountString = this.safeString(trade, "qty");
         final Object finalMarket = market;
         final Object finalSide = side;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Coinone.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -448,7 +454,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         if (Helpers.isTrue(Helpers.isEqual(type, "DATA")))
         {
             Object topic = this.safeString(message, "channel", "");
-            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> methods = new HashMap<String, Object>() {{
                 put( "ORDERBOOK", "handleOrderBook");
                 put( "TICKER", "handleTicker");
                 put( "TRADE", "handleTrades");
@@ -475,7 +481,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
 
     public Object ping(Client client)
     {
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "request_type", "PING" );
         }};
     }

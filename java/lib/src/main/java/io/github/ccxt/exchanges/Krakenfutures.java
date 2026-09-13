@@ -6,6 +6,12 @@ import io.github.ccxt.api.KrakenfuturesApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Krakenfutures extends KrakenfuturesApi
 {
@@ -19,15 +25,15 @@ public class Krakenfutures extends KrakenfuturesApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "krakenfutures" );
             put( "name", "Kraken Futures" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("US")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("US")) );
             put( "version", "v3" );
             put( "userAgent", null );
             put( "rateLimit", 600 );
             put( "pro", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
                 put( "margin", false );
@@ -92,8 +98,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "setMarginMode", false );
                 put( "transfer", true );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "test", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "public", "https://demo-futures.kraken.com/derivatives/api/" );
                     put( "private", "https://demo-futures.kraken.com/derivatives/api/" );
                     put( "charts", "https://demo-futures.kraken.com/api/charts/" );
@@ -101,7 +107,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     put( "www", "https://demo-futures.kraken.com" );
                 }} );
                 put( "logo", "https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "charts", "https://futures.kraken.com/api/charts/" );
                     put( "history", "https://futures.kraken.com/api/history/" );
                     put( "feeschedules", "https://futures.kraken.com/api/feeschedules/" );
@@ -109,213 +115,213 @@ public class Krakenfutures extends KrakenfuturesApi
                     put( "private", "https://futures.kraken.com/derivatives/api/" );
                 }} );
                 put( "www", "https://futures.kraken.com/" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.kraken.com/api/docs/futures-api/trading/market-data/")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.kraken.com/api/docs/futures-api/trading/market-data/")) );
                 put( "fees", "https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures" );
                 put( "referral", null );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "feeschedules", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "feeschedules", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "instruments", new java.util.HashMap<String, Object>() {{
+                        put( "instruments", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "instruments/status", new java.util.HashMap<String, Object>() {{
+                        put( "instruments/status", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "instruments/{symbol}/status", new java.util.HashMap<String, Object>() {{
+                        put( "instruments/{symbol}/status", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "orderbook", new java.util.HashMap<String, Object>() {{
+                        put( "orderbook", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "tickers", new java.util.HashMap<String, Object>() {{
+                        put( "tickers", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "tickers/{symbol}", new java.util.HashMap<String, Object>() {{
+                        put( "tickers/{symbol}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "history", new java.util.HashMap<String, Object>() {{
+                        put( "history", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "historicalfundingrates", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                    }} );
-                }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "feeschedules/volumes", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "openpositions", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "notifications", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "accounts", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "openorders", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "recentorders", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "fills", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "transfers", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "leveragepreferences", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "pnlpreferences", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "assignmentprogram/current", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "assignmentprogram/history", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "orders/status", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "unwindqueue", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "self-trade-strategy", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "subaccounts", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "subaccount/{uid}/trading-enabled", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "rfq-assignment/max-leverage", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                    }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "sendorder", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "editorder", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "cancelorder", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "transfer", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "transfer/subaccount", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "batchorder", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "cancelallorders", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "cancelallordersafter", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "withdrawal", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "assignmentprogram/add", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "assignmentprogram/delete", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                    }} );
-                    put( "put", new java.util.HashMap<String, Object>() {{
-                        put( "leveragepreferences", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "pnlpreferences", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "self-trade-strategy", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "subaccount/{uid}/trading-enabled", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "rfq-assignment/max-leverage", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                    }} );
-                    put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "rfq-assignment/max-leverage", new java.util.HashMap<String, Object>() {{
+                        put( "historicalfundingrates", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "charts", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "{price_type}/{symbol}/{interval}", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "feeschedules/volumes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "analytics/liquidity-pool", new java.util.HashMap<String, Object>() {{
+                        put( "openpositions", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "notifications", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "accounts", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "openorders", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "recentorders", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "fills", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "leveragepreferences", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "pnlpreferences", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assignmentprogram/current", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assignmentprogram/history", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/status", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unwindqueue", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "self-trade-strategy", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccounts", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccount/{uid}/trading-enabled", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfq-assignment/max-leverage", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "sendorder", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "editorder", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelorder", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfer", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfer/subaccount", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "batchorder", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelallorders", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelallordersafter", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "withdrawal", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assignmentprogram/add", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assignmentprogram/delete", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "put", new HashMap<String, Object>() {{
+                        put( "leveragepreferences", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "pnlpreferences", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "self-trade-strategy", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccount/{uid}/trading-enabled", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfq-assignment/max-leverage", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "delete", new HashMap<String, Object>() {{
+                        put( "rfq-assignment/max-leverage", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "history", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "orders", new java.util.HashMap<String, Object>() {{
+                put( "charts", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "{price_type}/{symbol}/{interval}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "executions", new java.util.HashMap<String, Object>() {{
+                        put( "analytics/liquidity-pool", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "triggers", new java.util.HashMap<String, Object>() {{
+                    }} );
+                }} );
+                put( "history", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "accountlogcsv", new java.util.HashMap<String, Object>() {{
+                        put( "executions", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "account-log", new java.util.HashMap<String, Object>() {{
+                        put( "triggers", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "market/{symbol}/orders", new java.util.HashMap<String, Object>() {{
+                        put( "accountlogcsv", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "market/{symbol}/executions", new java.util.HashMap<String, Object>() {{
+                        put( "account-log", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "market/{symbol}/price", new java.util.HashMap<String, Object>() {{
+                        put( "market/{symbol}/orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "positions", new java.util.HashMap<String, Object>() {{
+                        put( "market/{symbol}/executions", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/{symbol}/price", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "positions", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "taker", Krakenfutures.this.parseNumber("0.0005") );
                     put( "maker", Krakenfutures.this.parseNumber("0.0002") );
-                    put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("0"), Krakenfutures.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("100000"), Krakenfutures.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("1000000"), Krakenfutures.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("5000000"), Krakenfutures.this.parseNumber("0.00025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("10000000"), Krakenfutures.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("20000000"), Krakenfutures.this.parseNumber("0.00015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("50000000"), Krakenfutures.this.parseNumber("0.000125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("100000000"), Krakenfutures.this.parseNumber("0.0001"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("0"), Krakenfutures.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("100000"), Krakenfutures.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("1000000"), Krakenfutures.this.parseNumber("0.000125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("5000000"), Krakenfutures.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("10000000"), Krakenfutures.this.parseNumber("0.000075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("20000000"), Krakenfutures.this.parseNumber("0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("50000000"), Krakenfutures.this.parseNumber("0.000025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("100000000"), Krakenfutures.this.parseNumber("0"))))) );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("0"), Krakenfutures.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("100000"), Krakenfutures.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("1000000"), Krakenfutures.this.parseNumber("0.0003"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("5000000"), Krakenfutures.this.parseNumber("0.00025"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("10000000"), Krakenfutures.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("20000000"), Krakenfutures.this.parseNumber("0.00015"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("50000000"), Krakenfutures.this.parseNumber("0.000125"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("100000000"), Krakenfutures.this.parseNumber("0.0001"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("0"), Krakenfutures.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("100000"), Krakenfutures.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("1000000"), Krakenfutures.this.parseNumber("0.000125"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("5000000"), Krakenfutures.this.parseNumber("0.0001"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("10000000"), Krakenfutures.this.parseNumber("0.000075"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("20000000"), Krakenfutures.this.parseNumber("0.00005"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("50000000"), Krakenfutures.this.parseNumber("0.000025"))), new ArrayList<Object>(Arrays.asList(Krakenfutures.this.parseNumber("100000000"), Krakenfutures.this.parseNumber("0"))))) );
                     }} );
                 }} );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "apiLimitExceeded", RateLimitExceeded.class );
                     put( "marketUnavailable", ContractUnavailable.class );
                     put( "requiredArgumentMissing", BadRequest.class );
@@ -337,17 +343,17 @@ public class Krakenfutures extends KrakenfuturesApi
                     put( "unknownError", ExchangeError.class );
                     put( "contractNotFound", BadSymbol.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+                put( "broad", new HashMap<String, Object>() {{
                     put( "invalidArgument", BadRequest.class );
                     put( "nonceBelowThreshold", InvalidNonce.class );
                     put( "nonceDuplicate", InvalidNonce.class );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "access", new java.util.HashMap<String, Object>() {{
-                    put( "history", new java.util.HashMap<String, Object>() {{
-                        put( "GET", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
+                put( "access", new HashMap<String, Object>() {{
+                    put( "history", new HashMap<String, Object>() {{
+                        put( "GET", new HashMap<String, Object>() {{
                             put( "orders", "private" );
                             put( "executions", "private" );
                             put( "triggers", "private" );
@@ -357,27 +363,27 @@ public class Krakenfutures extends KrakenfuturesApi
                         }} );
                     }} );
                 }} );
-                put( "settlementCurrencies", new java.util.HashMap<String, Object>() {{
-                    put( "flex", new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT", "BTC", "USD", "GBP", "EUR", "USDC")) );
+                put( "settlementCurrencies", new HashMap<String, Object>() {{
+                    put( "flex", new ArrayList<Object>(Arrays.asList("USDT", "BTC", "USD", "GBP", "EUR", "USDC")) );
                 }} );
-                put( "symbol", new java.util.HashMap<String, Object>() {{
-                    put( "quoteIds", new java.util.ArrayList<Object>(java.util.Arrays.asList("USD", "XBT")) );
+                put( "symbol", new HashMap<String, Object>() {{
+                    put( "quoteIds", new ArrayList<Object>(Arrays.asList("USD", "XBT")) );
                     put( "reversed", false );
                 }} );
-                put( "versions", new java.util.HashMap<String, Object>() {{
-                    put( "public", new java.util.HashMap<String, Object>() {{
-                        put( "GET", new java.util.HashMap<String, Object>() {{
+                put( "versions", new HashMap<String, Object>() {{
+                    put( "public", new HashMap<String, Object>() {{
+                        put( "GET", new HashMap<String, Object>() {{
                             put( "historicalfundingrates", "v4" );
                         }} );
                     }} );
-                    put( "charts", new java.util.HashMap<String, Object>() {{
-                        put( "GET", new java.util.HashMap<String, Object>() {{
+                    put( "charts", new HashMap<String, Object>() {{
+                        put( "GET", new HashMap<String, Object>() {{
                             put( "{price_type}/{symbol}/{interval}", "v1" );
                             put( "analytics/liquidity-pool", "v1" );
                         }} );
                     }} );
-                    put( "history", new java.util.HashMap<String, Object>() {{
-                        put( "GET", new java.util.HashMap<String, Object>() {{
+                    put( "history", new HashMap<String, Object>() {{
+                        put( "GET", new HashMap<String, Object>() {{
                             put( "orders", "v2" );
                             put( "executions", "v2" );
                             put( "triggers", "v2" );
@@ -385,17 +391,17 @@ public class Krakenfutures extends KrakenfuturesApi
                         }} );
                     }} );
                 }} );
-                put( "fetchTrades", new java.util.HashMap<String, Object>() {{
+                put( "fetchTrades", new HashMap<String, Object>() {{
                     put( "method", "historyGetMarketSymbolExecutions" );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "default", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "default", new HashMap<String, Object>() {{
                     put( "sandbox", true );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", true );
-                        put( "triggerPriceType", new java.util.HashMap<String, Object>() {{
+                        put( "triggerPriceType", new HashMap<String, Object>() {{
                             put( "last", true );
                             put( "mark", true );
                             put( "index", true );
@@ -404,7 +410,7 @@ public class Krakenfutures extends KrakenfuturesApi
                         put( "stopLossPrice", true );
                         put( "takeProfitPrice", true );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", true );
@@ -418,10 +424,10 @@ public class Krakenfutures extends KrakenfuturesApi
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
-                    put( "createOrders", new java.util.HashMap<String, Object>() {{
+                    put( "createOrders", new HashMap<String, Object>() {{
                         put( "max", 100 );
                     }} );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "daysBack", null );
@@ -429,7 +435,7 @@ public class Krakenfutures extends KrakenfuturesApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchOrder", null );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "trigger", false );
@@ -437,7 +443,7 @@ public class Krakenfutures extends KrakenfuturesApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchOrders", null );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "daysBack", null );
@@ -447,29 +453,29 @@ public class Krakenfutures extends KrakenfuturesApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 2000 );
                     }} );
                 }} );
                 put( "spot", null );
-                put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "linear", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "default" );
                     }} );
-                    put( "inverse", new java.util.HashMap<String, Object>() {{
+                    put( "inverse", new HashMap<String, Object>() {{
                         put( "extends", "default" );
                     }} );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
-                    put( "linear", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "default" );
                     }} );
-                    put( "inverse", new java.util.HashMap<String, Object>() {{
+                    put( "inverse", new HashMap<String, Object>() {{
                         put( "extends", "default" );
                     }} );
                 }} );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "1m" );
                 put( "5m", "5m" );
                 put( "15m", "15m" );
@@ -491,13 +497,13 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] exchange specific params
      * @returns An array of market structures
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetInstruments(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetInstruments(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -542,8 +548,8 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2018-07-19T11:32:39.433Z"
             //    }
             //
-            Object instruments = this.safeList(response, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object instruments = this.safeList(response, "instruments", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(instruments)); i++)
             {
                 Object market = Helpers.GetValue(instruments, i);
@@ -612,7 +618,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 final Object finalLinear = linear;
                 final Object finalInverse = inverse;
                 final Object finalExpiry = expiry;
-                            ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
@@ -640,24 +646,24 @@ public class Krakenfutures extends KrakenfuturesApi
                     put( "expiryDatetime", Krakenfutures.this.iso8601(finalExpiry) );
                     put( "strike", null );
                     put( "optionType", null );
-                    put( "precision", new java.util.HashMap<String, Object>() {{
+                    put( "precision", new HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
                         put( "price", pricePrecision );
                     }} );
-                    put( "limits", new java.util.HashMap<String, Object>() {{
-                        put( "leverage", new java.util.HashMap<String, Object>() {{
+                    put( "limits", new HashMap<String, Object>() {{
+                        put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "amount", new java.util.HashMap<String, Object>() {{
+                        put( "amount", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "price", new java.util.HashMap<String, Object>() {{
+                        put( "price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "cost", new java.util.HashMap<String, Object>() {{
+                        put( "cost", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
@@ -667,11 +673,11 @@ public class Krakenfutures extends KrakenfuturesApi
                 }});
             }
             Object settlementCurrencies = Helpers.GetValue(Helpers.GetValue(this.options, "settlementCurrencies"), "flex");
-            java.util.List<Object> currencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> currencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlementCurrencies)); i++)
             {
                 Object code = Helpers.GetValue(settlementCurrencies, i);
-                ((java.util.List<Object>)currencies).add(new java.util.HashMap<String, Object>() {{
+                ((List<Object>)currencies).add(new HashMap<String, Object>() {{
                     put( "id", ((String)code).toLowerCase() );
                     put( "numericId", null );
                     put( "code", code );
@@ -694,22 +700,22 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] exchange specific params
      * @returns An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //
             //    {
             //       "result": "success",
@@ -741,7 +747,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Long timestamp = this.parse8601(this.safeString(response, "serverTime"));
-            Object orderBook = this.safeDict(response, "orderBook", new java.util.HashMap<String, Object>() {{}});
+            Object orderBook = this.safeDict(response, "orderBook", new HashMap<String, Object>() {{}});
             return this.parseOrderBook(orderBook, symbol, timestamp);
         }).thenApply(io.github.ccxt.types.OrderBook::new);
 
@@ -756,18 +762,18 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": "success",
@@ -792,7 +798,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2026-09-02T17:52:21.671Z"
             //    }
             //
-            Object ticker = this.safeDict(response, "ticker", new java.util.HashMap<String, Object>() {{}});
+            Object ticker = this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -807,18 +813,18 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
+            Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -911,7 +917,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Krakenfutures.this.iso8601(timestamp) );
@@ -946,14 +952,14 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            java.util.Map<String, Object> response = (this.publicGetFeeschedules(parameters)).join();
+            Map<String, Object> response = (this.publicGetFeeschedules(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -970,10 +976,10 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object volumes = new java.util.HashMap<String, Object>() {{}};
+            Object volumes = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(this.checkRequiredCredentials(false)))
             {
-                java.util.Map<String, Object> volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
+                Map<String, Object> volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
                 //
                 //    {
                 //        "result": "success",
@@ -983,10 +989,10 @@ public class Krakenfutures extends KrakenfuturesApi
                 //        }
                 //    }
                 //
-                volumes = this.safeDict(volumesResponse, "volumesByFeeSchedule", new java.util.HashMap<String, Object>() {{}});
+                volumes = this.safeDict(volumesResponse, "volumesByFeeSchedule", new HashMap<String, Object>() {{}});
             }
-            Object feeSchedules = this.safeList(response, "feeSchedules", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> schedulesByUid = new java.util.HashMap<String, Object>() {{}};
+            Object feeSchedules = this.safeList(response, "feeSchedules", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> schedulesByUid = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeSchedules)); i++)
             {
                 Object schedule = Helpers.GetValue(feeSchedules, i);
@@ -996,12 +1002,12 @@ public class Krakenfutures extends KrakenfuturesApi
                     Helpers.addElementToObject(schedulesByUid, uid, schedule);
                 }
             }
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> symbols = this.symbols;
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String uid = this.safeString(Helpers.GetValue(market, "info"), "feeScheduleUid");
                 Object schedule = this.safeDict(schedulesByUid, uid);
                 if (Helpers.isTrue(Helpers.isEqual(schedule, null)))
@@ -1031,7 +1037,7 @@ public class Krakenfutures extends KrakenfuturesApi
         // fees are expressed in percent, tiers are sorted by ascending usdVolume
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object volume = Helpers.getArg(optionalArgs, 1, null);
-        Object tiers = this.safeList(fee, "tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object tiers = this.safeList(fee, "tiers", new ArrayList<Object>(Arrays.asList()));
         String makerFee = null;
         String takerFee = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tiers)); i++)
@@ -1050,7 +1056,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         final Object finalMakerFee = makerFee;
         final Object finalTakerFee = takerFee;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", Krakenfutures.this.safeSymbol(null, market) );
             put( "maker", Krakenfutures.this.parseNumber(Precise.stringDiv(finalMakerFee, "100")) );
@@ -1073,30 +1079,30 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 2000)).join();
             }
             final Object finalParameters = parameters;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "price_type", Krakenfutures.this.safeString(finalParameters, "price", "trade") );
                 put( "interval", Krakenfutures.this.safeString(Krakenfutures.this.timeframes, timeframe, timeframe) );
@@ -1121,7 +1127,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Helpers.addElementToObject(request, "to", this.seconds());
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.subtract(Helpers.GetValue(request, "to"), (Helpers.multiply(duration, limit)))));
             }
-            java.util.Map<String, Object> response = (this.chartsGetPriceTypeSymbolInterval(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.chartsGetPriceTypeSymbolInterval(this.extend(request, parameters))).join();
             //
             //    {
             //        "candles": [
@@ -1156,7 +1162,7 @@ public class Krakenfutures extends KrakenfuturesApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "time"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "time"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
     }
 
     /**
@@ -1174,41 +1180,41 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {string} [params.method] The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
      * @returns An array of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object method = null;
-            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
-            method = ((java.util.List<Object>) methodparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            Object rawTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
+            method = ((List<Object>) methodparametersVariable).get(0);
+            parameters = ((List<Object>) methodparametersVariable).get(1);
+            Object rawTrades = new ArrayList<Object>(Arrays.asList());
             Boolean isFullHistoryEndpoint = (Helpers.isEqual(method, "historyGetMarketSymbolExecutions"));
             if (Helpers.isTrue(isFullHistoryEndpoint))
             {
-                java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("before", request, parameters);
-                request = ((java.util.List<Object>) requestparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
+                request = ((List<Object>) requestparametersVariable).get(0);
+                parameters = ((List<Object>) requestparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
                     Helpers.addElementToObject(request, "since", since);
@@ -1218,7 +1224,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 {
                     Helpers.addElementToObject(request, "count", limit);
                 }
-                java.util.Map<String, Object> response = (this.historyGetMarketSymbolExecutions(this.extend(request, parameters))).join();
+                Map<String, Object> response = (this.historyGetMarketSymbolExecutions(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "elements": [
@@ -1268,25 +1274,25 @@ public class Krakenfutures extends KrakenfuturesApi
                 //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
                 //    }
                 //
-                Object elements = this.safeList(response, "elements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object elements = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
                 // we need to reverse the list to fix chronology
-                rawTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                rawTrades = new ArrayList<Object>(Arrays.asList());
                 Object length = Helpers.getArrayLength(elements);
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
                     Object index = Helpers.subtract(Helpers.subtract(length, 1), i);
                     Object element = Helpers.GetValue(elements, index);
-                    Object eventVar = this.safeDict(element, "event", new java.util.HashMap<String, Object>() {{}});
-                    Object executionContainer = this.safeDict(eventVar, "Execution", new java.util.HashMap<String, Object>() {{}});
-                    Object rawTrade = this.safeDict(executionContainer, "execution", new java.util.HashMap<String, Object>() {{}});
-                    ((java.util.List<Object>)rawTrades).add(rawTrade);
+                    Object eventVar = this.safeDict(element, "event", new HashMap<String, Object>() {{}});
+                    Object executionContainer = this.safeDict(eventVar, "Execution", new HashMap<String, Object>() {{}});
+                    Object rawTrade = this.safeDict(executionContainer, "execution", new HashMap<String, Object>() {{}});
+                    ((List<Object>)rawTrades).add(rawTrade);
                 }
             } else
             {
-                java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("lastTime", request, parameters);
-                request = ((java.util.List<Object>) requestparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                java.util.Map<String, Object> response = (this.publicGetHistory(this.extend(request, parameters))).join();
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("lastTime", request, parameters);
+                request = ((List<Object>) requestparametersVariable).get(0);
+                parameters = ((List<Object>) requestparametersVariable).get(1);
+                Map<String, Object> response = (this.publicGetHistory(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "result": "success",
@@ -1305,7 +1311,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //        "serverTime": "2022-03-18T06:39:18.056Z"
                 //    }
                 //
-                rawTrades = this.safeList(response, "history", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                rawTrades = this.safeList(response, "history", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(rawTrades, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
@@ -1382,7 +1388,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(this.safeString2(trade, "time", "fillTime"));
         String price = this.safeString(trade, "price");
-        String amount = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("size", "amount", "quantity")), "0.0");
+        String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("size", "amount", "quantity")), "0.0");
         String id = this.safeString2(trade, "uid", "fill_id");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
@@ -1442,7 +1448,7 @@ public class Krakenfutures extends KrakenfuturesApi
         if (Helpers.isTrue(isHistoricalExecution))
         {
             timestamp = (Long) this.safeInteger(trade, "timestamp");
-            Object taker = this.safeDict(trade, "takerOrder", new java.util.HashMap<String, Object>() {{}});
+            Object taker = this.safeDict(trade, "takerOrder", new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(taker, null)))
             {
                 side = this.safeStringLower(taker, "direction");
@@ -1462,7 +1468,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             final Object finalCost = cost;
             final Object finalFeeCurrency = feeCurrency;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", Precise.stringMul(finalCost, feeRate) );
                 put( "currency", finalFeeCurrency );
                 put( "rate", feeRate );
@@ -1480,7 +1486,7 @@ public class Krakenfutures extends KrakenfuturesApi
         final Object finalAmount = amount;
         final Object finalCost_2 = cost;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
             put( "symbol", Krakenfutures.this.safeString(finalMarket, "symbol") );
@@ -1500,7 +1506,7 @@ public class Krakenfutures extends KrakenfuturesApi
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
@@ -1509,14 +1515,14 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         symbol = Helpers.GetValue(market, "symbol");
         type = this.safeString(parameters, "orderType", type);
         String timeInForce = this.safeString(parameters, "timeInForce");
         Boolean postOnly = false;
-        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post"), parameters);
-        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
-        parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
+        List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post"), parameters);
+        postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
+        parameters = ((List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(postOnly))
         {
             type = "post";
@@ -1532,7 +1538,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         final Object finalSide = side;
         final Object finalSymbol = symbol;
-        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", finalSide );
             put( "size", Krakenfutures.this.amountToPrecision(finalSymbol, amount) );
@@ -1581,7 +1587,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             Helpers.addElementToObject(request, "limitPrice", this.priceToPrecision(symbol, price));
         }
-        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return this.extend(request, parameters);
     }
 
@@ -1605,20 +1611,20 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {string} [params.triggerSignal] for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            java.util.Map<String, Object> response = (this.privatePostSendorder(orderRequest)).join();
+            Map<String, Object> response = (this.privatePostSendorder(orderRequest)).join();
             //
             //    {
             //        "result": "success",
@@ -1686,7 +1692,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //
             Object sendStatus = this.safeValue(response, "sendStatus");
             String status = this.safeString(sendStatus, "status");
-            this.verifyOrderActionSuccess(status, "createOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList("filled")));
+            this.verifyOrderActionSuccess(status, "createOrder", new ArrayList<Object>(Arrays.asList("filled")));
             return this.parseOrder(sendStatus, market);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -1701,17 +1707,17 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -1720,8 +1726,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeValue(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+                Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 if (!Helpers.isTrue((Helpers.inOp(extendedParams, "order_tag"))))
                 {
                     // order tag is mandatory so we will generate one if not provided
@@ -1729,12 +1735,12 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
                 Helpers.addElementToObject(extendedParams, "order", "send");
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
-                ((java.util.List<Object>)ordersRequests).add(orderRequest);
+                ((List<Object>)ordersRequests).add(orderRequest);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batchOrder", ordersRequests );
             }};
-            java.util.Map<String, Object> response = (this.privatePostBatchorder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostBatchorder(this.extend(request, parameters))).join();
             //
             // {
             //     "result": "success",
@@ -1751,7 +1757,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //     ]
             // }
             //
-            Object data = this.safeList(response, "batchStatus", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -1771,19 +1777,19 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] Exchange specific params
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
@@ -1794,10 +1800,10 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 Helpers.addElementToObject(request, "limitPrice", price);
             }
-            java.util.Map<String, Object> response = (this.privatePostEditorder(this.extend(request, parameters))).join();
-            Object editStatus = this.safeDict(response, "editStatus", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privatePostEditorder(this.extend(request, parameters))).join();
+            Object editStatus = this.safeDict(response, "editStatus", new HashMap<String, Object>() {{}});
             String status = this.safeString(editStatus, "status");
-            this.verifyOrderActionSuccess(status, "editOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList("filled")));
+            this.verifyOrderActionSuccess(status, "editOrder", new ArrayList<Object>(Arrays.asList("filled")));
             Object order = this.parseOrder(editStatus);
             Helpers.addElementToObject(order, "info", response);
             return order;
@@ -1815,28 +1821,28 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] Exchange specific params
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privatePostCancelorder(this.extend(new java.util.HashMap<String, Object>() {{
+            Map<String, Object> response = (this.privatePostCancelorder(this.extend(new HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
-            String status = this.safeString(this.safeValue(response, "cancelStatus", new java.util.HashMap<String, Object>() {{}}), "status");
+            String status = this.safeString(this.safeValue(response, "cancelStatus", new HashMap<String, Object>() {{}}), "status");
             this.verifyOrderActionSuccess(status, "cancelOrder");
-            Object order = new java.util.HashMap<String, Object>() {{}};
+            Object order = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.inOp(response, "cancelStatus")))
             {
                 order = this.parseOrder(Helpers.GetValue(response, "cancelStatus"));
             }
-            return this.extend(new java.util.HashMap<String, Object>() {{
+            return this.extend(new HashMap<String, Object>() {{
                 put( "info", response );
             }}, order);
         }).thenApply(io.github.ccxt.types.Order::new);
@@ -1856,26 +1862,26 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            List<Object> orders = new ArrayList<Object>(Arrays.asList());
+            Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
             Object clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
             if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderIdsLength, 0)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientOrderIds)); i++)
                 {
     final Object finalI = i;
-                                    ((java.util.List<Object>)orders).add(new java.util.HashMap<String, Object>() {{
+                                    ((List<Object>)orders).add(new HashMap<String, Object>() {{
                         put( "order", "cancel" );
                         put( "cliOrdId", Helpers.GetValue(clientOrderIds, finalI) );
                     }});
@@ -1885,16 +1891,16 @@ public class Krakenfutures extends KrakenfuturesApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
                 {
     final Object finalI = i;
-                                    ((java.util.List<Object>)orders).add(new java.util.HashMap<String, Object>() {{
+                                    ((List<Object>)orders).add(new HashMap<String, Object>() {{
                         put( "order", "cancel" );
                         put( "order_id", Helpers.GetValue(ids, finalI) );
                     }});
                 }
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batchOrder", orders );
             }};
-            java.util.Map<String, Object> response = (this.privatePostBatchorder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostBatchorder(this.extend(request, parameters))).join();
             // {
             //     "result": "success",
             //     "serverTime": "2023-10-23T16:36:51.327Z",
@@ -1924,7 +1930,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //       }
             //     ]
             // }
-            Object batchStatus = this.safeList(response, "batchStatus", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object batchStatus = this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(batchStatus);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -1939,19 +1945,19 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {dict} [params] Exchange specific params
      * @returns Response from exchange api
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Helpers.addElementToObject(request, "symbol", this.marketId(symbol));
             }
-            java.util.Map<String, Object> response = (this.privatePostCancelallorders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostCancelallorders(this.extend(request, parameters))).join();
             //
             //    {
             //        result: 'success',
@@ -1984,13 +1990,13 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Object cancelStatus = this.safeDict(response, "cancelStatus");
-            Object orderEvents = this.safeList(cancelStatus, "orderEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object orderEvents = this.safeList(cancelStatus, "orderEvents", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderEvents)); i++)
             {
                 Object orderEvent = this.safeDict(orderEvents, 0);
-                Object order = this.safeDict(orderEvent, "order", new java.util.HashMap<String, Object>() {{}});
-                ((java.util.List<Object>)orders).add(order);
+                Object order = this.safeDict(orderEvent, "order", new HashMap<String, Object>() {{}});
+                ((List<Object>)orders).add(order);
             }
             return this.parseOrders(orders);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
@@ -2006,20 +2012,20 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
+    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) (Krakenfutures.this.parseToInt(Helpers.divide(timeout, 1000)))) : 0 );
             }};
-            java.util.Map<String, Object> response = (this.privatePostCancelallordersafter(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostCancelallordersafter(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -2046,15 +2052,15 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] Exchange specific parameters
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2064,8 +2070,8 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> response = (this.privateGetOpenorders(parameters)).join();
-            Object orders = this.safeList(response, "openOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetOpenorders(parameters)).join();
+            Object orders = this.safeList(response, "openOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2082,15 +2088,15 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] Exchange specific parameters
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2100,8 +2106,8 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> response = (this.privateGetOrdersStatus(parameters)).join();
-            Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetOrdersStatus(parameters)).join();
+            Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2117,19 +2123,19 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "orderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList(id)) );
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "orderIds", new ArrayList<Object>(Arrays.asList(id)) );
             }};
             Object orders = (this.fetchOrders((Object)(null), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             Object order = this.safeDict(orders, 0);
@@ -2155,15 +2161,15 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2173,7 +2179,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "count", limit);
@@ -2186,37 +2192,37 @@ public class Krakenfutures extends KrakenfuturesApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 response = (this.historyGetTriggers(this.extend(request, parameters))).join();
             } else
             {
                 response = (this.historyGetOrders(this.extend(request, parameters))).join();
             }
-            Object allOrders = this.safeList(response, "elements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> closedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object allOrders = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allOrders)); i++)
             {
                 Object order = Helpers.GetValue(allOrders, i);
-                Object eventVar = this.safeDict(order, "event", new java.util.HashMap<String, Object>() {{}});
+                Object eventVar = this.safeDict(order, "event", new HashMap<String, Object>() {{}});
                 Object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated");
                 Object orderUpdated = this.safeDict(eventVar, "OrderUpdated");
                 if (Helpers.isTrue(!Helpers.isEqual(orderPlaced, null)))
                 {
-                    Object innerOrder = this.safeDict(orderPlaced, "order", new java.util.HashMap<String, Object>() {{}});
+                    Object innerOrder = this.safeDict(orderPlaced, "order", new HashMap<String, Object>() {{}});
                     String filled = this.safeString(innerOrder, "filled");
                     if (Helpers.isTrue(!Helpers.isEqual(filled, "0")))
                     {
                         Helpers.addElementToObject(innerOrder, "status", "closed"); // status not available in the response
-                        ((java.util.List<Object>)closedOrders).add(innerOrder);
+                        ((List<Object>)closedOrders).add(innerOrder);
                     }
                 } else if (Helpers.isTrue(!Helpers.isEqual(orderUpdated, null)))
                 {
                     String reason = this.safeString(orderUpdated, "reason");
                     if (Helpers.isTrue(Helpers.isEqual(reason, "full_fill")))
                     {
-                        Object newOrder = this.safeDict(orderUpdated, "newOrder", new java.util.HashMap<String, Object>() {{}});
+                        Object newOrder = this.safeDict(orderUpdated, "newOrder", new HashMap<String, Object>() {{}});
                         Helpers.addElementToObject(newOrder, "status", "closed");
-                        ((java.util.List<Object>)closedOrders).add(newOrder);
+                        ((List<Object>)closedOrders).add(newOrder);
                     }
                 }
             }
@@ -2237,15 +2243,15 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2255,7 +2261,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "count", limit);
@@ -2268,43 +2274,43 @@ public class Krakenfutures extends KrakenfuturesApi
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 response = (this.historyGetTriggers(this.extend(request, parameters))).join();
             } else
             {
                 response = (this.historyGetOrders(this.extend(request, parameters))).join();
             }
-            Object allOrders = this.safeList(response, "elements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> canceledAndRejected = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object allOrders = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> canceledAndRejected = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allOrders)); i++)
             {
                 Object order = Helpers.GetValue(allOrders, i);
-                Object eventVar = this.safeDict(order, "event", new java.util.HashMap<String, Object>() {{}});
+                Object eventVar = this.safeDict(order, "event", new HashMap<String, Object>() {{}});
                 Boolean isCancelledTriggerOrder = (Helpers.inOp(eventVar, "OrderTriggerCancelled"));
                 Object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled");
                 if (Helpers.isTrue(!Helpers.isEqual(orderPlaced, null)))
                 {
-                    Object innerOrder = this.safeDict(orderPlaced, "order", new java.util.HashMap<String, Object>() {{}});
+                    Object innerOrder = this.safeDict(orderPlaced, "order", new HashMap<String, Object>() {{}});
                     String filled = this.safeString(innerOrder, "filled");
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(filled, "0")) || Helpers.isTrue(isCancelledTriggerOrder)))
                     {
                         Helpers.addElementToObject(innerOrder, "status", "canceled"); // status not available in the response
-                        ((java.util.List<Object>)canceledAndRejected).add(innerOrder);
+                        ((List<Object>)canceledAndRejected).add(innerOrder);
                     }
                 }
                 Object orderCanceled = this.safeDict(eventVar, "OrderCancelled");
                 if (Helpers.isTrue(!Helpers.isEqual(orderCanceled, null)))
                 {
-                    Object innerOrder = this.safeDict(orderCanceled, "order", new java.util.HashMap<String, Object>() {{}});
+                    Object innerOrder = this.safeDict(orderCanceled, "order", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(innerOrder, "status", "canceled"); // status not available in the response
-                    ((java.util.List<Object>)canceledAndRejected).add(innerOrder);
+                    ((List<Object>)canceledAndRejected).add(innerOrder);
                 }
                 Object orderRejected = this.safeDict(eventVar, "OrderRejected");
                 if (Helpers.isTrue(!Helpers.isEqual(orderRejected, null)))
                 {
-                    Object innerOrder = this.safeDict(orderRejected, "order", new java.util.HashMap<String, Object>() {{}});
+                    Object innerOrder = this.safeDict(orderRejected, "order", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(innerOrder, "status", "rejected"); // status not available in the response
-                    ((java.util.List<Object>)canceledAndRejected).add(innerOrder);
+                    ((List<Object>)canceledAndRejected).add(innerOrder);
                 }
             }
             return this.parseOrders(canceledAndRejected, market, since, limit);
@@ -2314,7 +2320,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     public String parseOrderType(Object orderType)
     {
-        java.util.Map<String, Object> typesMap = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> typesMap = new HashMap<String, Object>() {{
             put( "lmt", "limit" );
             put( "mkt", "market" );
             put( "post", "limit" );
@@ -2325,8 +2331,8 @@ public class Krakenfutures extends KrakenfuturesApi
 
     public void verifyOrderActionSuccess(Object status, Object method, Object... optionalArgs)
     {
-        Object omit = Helpers.getArg(optionalArgs, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> errors = new java.util.HashMap<String, Object>() {{
+        Object omit = Helpers.getArg(optionalArgs, 0, new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> errors = new HashMap<String, Object>() {{
             put( "invalidOrderType", InvalidOrder.class );
             put( "invalidSide", InvalidOrder.class );
             put( "invalidSize", InvalidOrder.class );
@@ -2356,7 +2362,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "placed", "open" );
             put( "cancelled", "canceled" );
             put( "invalidOrderType", "rejected" );
@@ -2700,11 +2706,11 @@ public class Krakenfutures extends KrakenfuturesApi
             //
             String datetime = this.safeString(orderDictFromFetchOrder, "timestamp");
             String innerStatus = this.safeString(order, "status");
-            Object fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new java.util.HashMap<String, Object>() {{}});
+            Object fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new HashMap<String, Object>() {{}});
             String fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, "triggerPrice");
             String unifiedSymbol = this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market);
             final Object finalOrderDictFromFetchOrder = orderDictFromFetchOrder;
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Krakenfutures.this.safeString(finalOrderDictFromFetchOrder, "orderId") );
                 put( "clientOrderId", Krakenfutures.this.safeString(finalOrderDictFromFetchOrder, "cliOrdId") );
@@ -2732,13 +2738,13 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "trades", null );
             }});
         }
-        Object orderEvents = this.safeList(order, "orderEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object orderEvents = this.safeList(order, "orderEvents", new ArrayList<Object>(Arrays.asList()));
         String errorStatus = this.safeString(order, "status");
         Object orderEventsLength = Helpers.getArrayLength(orderEvents);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "orderEvents"))) && Helpers.isTrue((!Helpers.isEqual(errorStatus, null)))) && Helpers.isTrue((Helpers.isEqual(orderEventsLength, 0)))))
         {
             // creteOrders error response
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "status", "rejected" );
             }});
@@ -2748,16 +2754,16 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean fixedVar = false;
         String statusId = null;
         String price = null;
-        java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> trades = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(Helpers.isGreaterThan(orderEventsLength, 0)))
         {
-            java.util.List<Object> executions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> executions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderEvents)); i++)
             {
                 Object item = Helpers.GetValue(orderEvents, i);
                 if (Helpers.isTrue(Helpers.isEqual(this.safeString(item, "type"), "EXECUTION")))
                 {
-                    ((java.util.List<Object>)executions).add(item);
+                    ((List<Object>)executions).add(item);
                 }
                 // Final order (after placement / editing / execution / canceling)
                 Object orderTrigger = this.safeValue(item, "orderTrigger");
@@ -2801,7 +2807,7 @@ public class Krakenfutures extends KrakenfuturesApi
         // This may be incorrectly marked as "open" if only execution report is given,
         // but will be fixed below
         String status = this.parseOrderStatus(statusId);
-        Object isClosed = this.inArray(status, new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled", "rejected", "closed")));
+        Object isClosed = this.inArray(status, new ArrayList<Object>(Arrays.asList("canceled", "rejected", "closed")));
         String marketId = this.safeString2(details, "symbol", "tradeable");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
@@ -2884,7 +2890,7 @@ public class Krakenfutures extends KrakenfuturesApi
             timeInForce = "ioc";
         }
         Long ts = this.safeInteger(details, "timestamp", timestamp);
-        Object priceTriggerOptions = this.safeDict(details, "priceTriggerOptions", new java.util.HashMap<String, Object>() {{}});
+        Object priceTriggerOptions = this.safeDict(details, "priceTriggerOptions", new HashMap<String, Object>() {{}});
         String triggerPrice = this.safeString2(details, "triggerPrice", "stopPrice");
         if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
         {
@@ -2903,10 +2909,10 @@ public class Krakenfutures extends KrakenfuturesApi
         final Object finalRemaining = remaining;
         final Object finalStatus = status;
         final Object finalTrades = trades;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", finalId );
-            put( "clientOrderId", Krakenfutures.this.safeStringN(finalDetails, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clientId", "cliOrdId"))) );
+            put( "clientOrderId", Krakenfutures.this.safeStringN(finalDetails, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientId", "cliOrdId"))) );
             put( "timestamp", ts );
             put( "datetime", Krakenfutures.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
@@ -2944,15 +2950,15 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2963,7 +2969,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 market = this.market(symbol);
             }
             // todo: lastFillTime: this.iso8601(end)
-            java.util.Map<String, Object> response = (this.privateGetFills(parameters)).join();
+            Map<String, Object> response = (this.privateGetFills(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -2984,7 +2990,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object fills = this.safeList(response, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object fills = this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(fills, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -3002,22 +3008,22 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "since", since);
@@ -3040,7 +3046,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "before", until);
             }
-            java.util.Map<String, Object> response = (this.historyGetAccountLog(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.historyGetAccountLog(this.extend(request, parameters))).join();
             //
             //    {
             //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -3067,10 +3073,10 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object logs = this.safeList(response, "logs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object logs = this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
             // each execution emits two rows: a cash leg(asset is a currency) and
             // a position-size leg(asset equals the contract id) - keep the cash legs only
-            java.util.List<Object> rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(logs)); i++)
             {
                 Object row = Helpers.GetValue(logs, i);
@@ -3078,7 +3084,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 String contract = this.safeString(row, "contract");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(asset, null))) && Helpers.isTrue((!Helpers.isEqual(asset, contract)))))
                 {
-                    ((java.util.List<Object>)rows).add(row);
+                    ((List<Object>)rows).add(row);
                 }
             }
             return this.parseLedger(rows, currency, since, limit);
@@ -3088,7 +3094,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "futures trade", "trade" );
             put( "futures liquidation", "trade" );
             put( "futures assignee", "trade" );
@@ -3167,7 +3173,7 @@ public class Krakenfutures extends KrakenfuturesApi
         final Object finalBefore = before;
         final Object finalAfter = after;
         final Object finalFeeCost = feeCost;
-        return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
+        return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", Krakenfutures.this.safeString(item, "id") );
             put( "direction", finalDirection );
@@ -3182,7 +3188,7 @@ public class Krakenfutures extends KrakenfuturesApi
             put( "status", "ok" );
             put( "timestamp", timestamp );
             put( "datetime", Krakenfutures.this.iso8601(timestamp) );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "cost", Krakenfutures.this.parseNumber(finalFeeCost) );
                 put( "currency", code );
             }} );
@@ -3199,20 +3205,20 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
      * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object type = this.safeString2(parameters, "type", "account");
             String symbol = this.safeString(parameters, "symbol");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type", "account", "symbol")));
-            java.util.Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "account", "symbol")));
+            Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -3398,8 +3404,8 @@ public class Krakenfutures extends KrakenfuturesApi
         String accountType = this.safeString2(response, "accountType", "type");
         Boolean isFlex = (Helpers.isEqual(accountType, "multiCollateralMarginAccount"));
         Boolean isCash = (Helpers.isEqual(accountType, "cashAccount"));
-        Object balances = this.safeDict2(response, "balances", "currencies", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        Object balances = this.safeDict2(response, "balances", "currencies", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
         Object currencyIds = Helpers.objectKeys(balances);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
@@ -3448,21 +3454,21 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object marketIds = this.marketIds(symbols);
-            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            Object tickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> fundingRates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Map<String, Object> response = (this.publicGetTickers(parameters)).join();
+            Object tickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fundingRates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object entry = Helpers.GetValue(tickers, i);
@@ -3474,9 +3480,9 @@ public class Krakenfutures extends KrakenfuturesApi
                         continue;
                     }
                 }
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(entry_symbol);
+                Map<String, Object> market = (Map<String, Object>) this.safeMarket(entry_symbol);
                 Object parsed = this.parseFundingRate(entry, market);
-                ((java.util.List<Object>)fundingRates).add(parsed);
+                ((List<Object>)fundingRates).add(parsed);
             }
             return this.indexBy(fundingRates, "symbol");
         }).thenApply(io.github.ccxt.types.FundingRates::new);
@@ -3537,7 +3543,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         final Object finalFundingRateResult = fundingRateResult;
         final Object finalNextFundingRateResult = nextFundingRateResult;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", symbol );
             put( "markPrice", Krakenfutures.this.parseNumber(markPriceString) );
@@ -3570,15 +3576,15 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -3587,15 +3593,15 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Krakenfutures.this.safeStringUpper(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetHistoricalfundingrates(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetHistoricalfundingrates(this.extend(request, parameters))).join();
             //
             //    {
             //        "rates": [
@@ -3609,13 +3615,13 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Object rates = this.safeValue(response, "rates");
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
             {
                 Object item = Helpers.GetValue(rates, i);
                 String datetime = this.safeString(item, "timestamp");
     final Object finalSymbol = symbol;
-                            ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "info", item );
                     put( "symbol", finalSymbol );
                     put( "fundingRate", Krakenfutures.this.safeNumber(item, "relativeFundingRate") );
@@ -3623,7 +3629,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     put( "datetime", datetime );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+            List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingRateHistory::new));
 
@@ -3638,19 +3644,19 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] Not used by krakenfutures
      * @returns Parsed exchange response for positions
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> response = (this.privateGetOpenpositions(request)).join();
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> response = (this.privateGetOpenpositions(request)).join();
             //
             //    {
             //        "result": "success",
@@ -3676,8 +3682,8 @@ public class Krakenfutures extends KrakenfuturesApi
     public Object parsePositions(Object response, Object... optionalArgs)
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
@@ -3691,7 +3697,7 @@ public class Krakenfutures extends KrakenfuturesApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {
             Object position = this.parsePosition(Helpers.GetValue(positions, i));
-            ((java.util.List<Object>)result).add(position);
+            ((List<Object>)result).add(position);
         }
         return result;
     }
@@ -3735,7 +3741,7 @@ public class Krakenfutures extends KrakenfuturesApi
         final Object finalMarket = market;
         final Object finalLeverage = leverage;
         final Object finalMarginType = marginType;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", position );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", Krakenfutures.this.parse8601(datetime) );
@@ -3769,18 +3775,18 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.publicGetInstruments(parameters)).join();
+            Map<String, Object> response = (this.publicGetInstruments(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -3876,7 +3882,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Object marginLevels = this.safeValue(info, "marginLevels");
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
-        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(marginLevels, null)))
         {
             return tiers;
@@ -3894,7 +3900,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
 final Object finalI = i;
             final Object finalMarket = market;
-                        ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
+                        ((List<Object>)tiers).add(new HashMap<String, Object>() {{
                 put( "tier", Krakenfutures.this.sum(finalI, 1) );
                 put( "symbol", Krakenfutures.this.safeSymbol(marketId, finalMarket) );
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
@@ -3920,7 +3926,7 @@ final Object finalI = i;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String datetime = this.safeString(transfer, "serverTime");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
             put( "timestamp", Krakenfutures.this.parse8601(datetime) );
@@ -3935,7 +3941,7 @@ final Object finalI = i;
 
     public Object parseAccount(Object account)
     {
-        java.util.Map<String, Object> accountByType = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> accountByType = new HashMap<String, Object>() {{
             put( "main", "cash" );
             put( "funding", "cash" );
             put( "future", "cash" );
@@ -3950,7 +3956,7 @@ final Object finalI = i;
             return Helpers.GetValue(accountByType, account);
         } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, account)))))
         {
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(account);
+            Map<String, Object> market = (Map<String, Object>) this.market(account);
             Object marketId = Helpers.GetValue(market, "id");
             Object splitId = Helpers.split(((String)marketId), "_");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
@@ -3975,12 +3981,12 @@ final Object finalI = i;
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.transfer(code, (Object)(amount), (Object)("future"), (Object)("spot"), (Object)(parameters))).join();
         });
 
@@ -3999,24 +4005,24 @@ final Object finalI = i;
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(Helpers.isEqual(fromAccount, "spot")))
             {
                 throw new BadRequest(Helpers.add(this.id, " transfer does not yet support transfers from spot")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
             }};
             Object response = null;
@@ -4044,7 +4050,7 @@ final Object finalI = i;
             Object transfer = this.parseTransfer(response, currency);
             final Object finalFromAccount = fromAccount;
             final Object finalToAccount = toAccount;
-            return this.extend(transfer, new java.util.HashMap<String, Object>() {{
+            return this.extend(transfer, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "fromAccount", finalFromAccount );
                 put( "toAccount", finalToAccount );
@@ -4063,13 +4069,13 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
@@ -4084,7 +4090,7 @@ final Object finalI = i;
                 throw new ArgumentsRequired(Helpers.add(this.id, " marketId is required")) ;
             }
             final Object finalMarketIdUpper = marketIdUpper;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "maxLeverage", leverage );
                 put( "symbol", ((String)finalMarketIdUpper).toUpperCase() );
             }};
@@ -4105,18 +4111,18 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetLeveragepreferences(parameters)).join();
+            Map<String, Object> response = (this.privateGetLeveragepreferences(parameters)).join();
             //
             //     {
             //         "result": "success",
@@ -4129,7 +4135,7 @@ final Object finalI = i;
             //         ]
             //     }
             //
-            Object leveragePreferences = this.safeList(response, "leveragePreferences", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object leveragePreferences = this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(leveragePreferences, symbols, "symbol");
         }).thenApply(io.github.ccxt.types.Leverages::new);
 
@@ -4144,12 +4150,12 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchLeverage() requires a symbol argument")) ;
@@ -4158,17 +4164,17 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketIdUpper = this.marketId(symbol);
             if (Helpers.isTrue(Helpers.isEqual(marketIdUpper, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " marketId is required")) ;
             }
             final Object finalMarketIdUpper = marketIdUpper;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((String)finalMarketIdUpper).toUpperCase() );
             }};
-            java.util.Map<String, Object> response = (this.privateGetLeveragepreferences(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetLeveragepreferences(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -4176,8 +4182,8 @@ final Object finalI = i;
             //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
             //     }
             //
-            Object leveragePreferences = this.safeList(response, "leveragePreferences", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object data = this.safeDict(leveragePreferences, 0, new java.util.HashMap<String, Object>() {{}});
+            Object leveragePreferences = this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(leveragePreferences, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(io.github.ccxt.types.Leverage::new);
 
@@ -4188,7 +4194,7 @@ final Object finalI = i;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
         Long leverageValue = this.safeInteger(leverage, "maxLeverage");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Krakenfutures.this.safeSymbol(marketId, market) );
             put( "marginMode", null );
@@ -4229,16 +4235,16 @@ final Object finalI = i;
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object apiVersions = this.safeValue(Helpers.GetValue(this.options, "versions"), api, new java.util.HashMap<String, Object>() {{}});
-        Object methodVersions = this.safeValue(apiVersions, method, new java.util.HashMap<String, Object>() {{}});
+        Object apiVersions = this.safeValue(Helpers.GetValue(this.options, "versions"), api, new HashMap<String, Object>() {{}});
+        Object methodVersions = this.safeValue(apiVersions, method, new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.version);
         String version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
-        Object apiAccess = this.safeValue(Helpers.GetValue(this.options, "access"), api, new java.util.HashMap<String, Object>() {{}});
-        Object methodAccess = this.safeValue(apiAccess, method, new java.util.HashMap<String, Object>() {{}});
+        Object apiAccess = this.safeValue(Helpers.GetValue(this.options, "access"), api, new HashMap<String, Object>() {{}});
+        Object methodAccess = this.safeValue(apiAccess, method, new HashMap<String, Object>() {{}});
         String access = this.safeString(methodAccess, path, "public");
         Object endpoint = Helpers.add(Helpers.add(version, "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
@@ -4272,7 +4278,7 @@ final Object finalI = i;
             Object hash = this.hash(this.encode(auth), sha256(), "binary"); // 2
             Object secret = this.base64ToBinary(this.secret); // 3
             Object signature = this.hmac(hash, secret, sha512(), "base64"); // 4-5
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "Accept", "application/json" );
                 put( "APIKey", Krakenfutures.this.apiKey );
@@ -4281,7 +4287,7 @@ final Object finalI = i;
         }
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", url );
             put( "method", method );
             put( "body", finalBody );

@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 {
@@ -20,8 +26,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchBalance", true );
                 put( "watchMyTrades", true );
@@ -33,33 +39,33 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 put( "watchTrades", true );
                 put( "watchTradesForSymbols", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "ws", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "ws", new HashMap<String, Object>() {{
                     put( "public", "wss://stream.bitopro.com:443/ws/v1/pub" );
                     put( "private", "wss://stream.bitopro.com:443/ws/v1/pub/auth" );
                 }} );
             }} );
-            put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
+            put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
                 put( "secret", true );
                 put( "login", true );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "tradesLimit", 1000 );
                 put( "ordersLimit", 1000 );
-                put( "ws", new java.util.HashMap<String, Object>() {{
-                    put( "options", new java.util.HashMap<String, Object>() {{
-                        put( "headers", new java.util.HashMap<String, Object>() {{}} );
+                put( "ws", new HashMap<String, Object>() {{
+                    put( "options", new HashMap<String, Object>() {{
+                        put( "headers", new HashMap<String, Object>() {{}} );
                     }} );
                 }} );
             }} );
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPublic(Object path, Object messageHash, Object marketId)
+    public CompletableFuture<Object> watchPublic(Object path, Object messageHash, Object marketId)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "ws"), "public"), "/"), path), "/"), marketId);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
@@ -77,13 +83,13 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, 5))) && Helpers.isTrue((!Helpers.isEqual(limit, 10)))) && Helpers.isTrue((!Helpers.isEqual(limit, 20)))) && Helpers.isTrue((!Helpers.isEqual(limit, 50)))) && Helpers.isTrue((!Helpers.isEqual(limit, 100)))) && Helpers.isTrue((!Helpers.isEqual(limit, 500)))) && Helpers.isTrue((!Helpers.isEqual(limit, 1000)))))
@@ -95,7 +101,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = Helpers.add(Helpers.add("ORDER_BOOK", ":"), symbol);
             Object endPart = null;
@@ -136,14 +142,14 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String marketId = this.safeString(message, "pair");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
         String eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
-            orderbook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
+            orderbook = this.orderBook(new HashMap<String, Object>() {{}});
         }
         Long timestamp = this.safeInteger(message, "timestamp");
         Object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
@@ -162,19 +168,19 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = Helpers.add(Helpers.add("TRADE", ":"), symbol);
             Object trades = (this.watchPublic("trades", messageHash, Helpers.GetValue(market, "id"))).join();
@@ -209,12 +215,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String marketId = this.safeString(message, "pair");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
         String eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
-        Object rawData = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> trades = this.parseTrades(rawData, market);
+        Object rawData = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> trades = this.parseTrades(rawData, market);
         Object tradesCache = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
         {
@@ -240,15 +246,15 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -257,7 +263,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Object messageHash = "USER_TRADE";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(market, "symbol"));
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "ws"), "private"), "/"), "user-trades");
@@ -297,7 +303,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(data, "base");
         String quoteId = this.safeString(data, "quote");
         String base = this.safeCurrencyCode(baseId);
@@ -366,7 +372,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             final Object finalFeeAmount = feeAmount;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeAmount );
                 put( "currency", feeSymbol );
                 put( "rate", null );
@@ -387,7 +393,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "order", orderId );
@@ -413,17 +419,17 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = Helpers.add(Helpers.add("TICKER", ":"), symbol);
             return (this.watchPublic("tickers", messageHash, Helpers.GetValue(market, "id"))).join();
@@ -457,7 +463,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             return;  // some TICKER frames arrive without a pair - nothing to resolve them against
         }
         // market-ids are lowercase in REST API and uppercase in WS API
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
         String eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
@@ -478,23 +484,23 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
         this.checkRequiredCredentials();
         Long nonce = this.milliseconds();
-        Object rawData = this.json(new java.util.HashMap<String, Object>() {{
+        Object rawData = this.json(new HashMap<String, Object>() {{
             put( "nonce", nonce );
             put( "identity", Bitopro.this.login );
         }});
         Object payload = this.stringToBase64(rawData);
         Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
-        java.util.Map<String, Object> defaultOptions = new java.util.HashMap<String, Object>() {{
-            put( "ws", new java.util.HashMap<String, Object>() {{
-                put( "options", new java.util.HashMap<String, Object>() {{
-                    put( "headers", new java.util.HashMap<String, Object>() {{}} );
+        Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
+            put( "ws", new HashMap<String, Object>() {{
+                put( "options", new HashMap<String, Object>() {{
+                    put( "headers", new HashMap<String, Object>() {{}} );
                 }} );
             }} );
         }};
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions(defaultOptions);
         Object originalHeaders = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers");
-        java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> headers = new HashMap<String, Object>() {{
             put( "X-BITOPRO-API", "ccxt" );
             put( "X-BITOPRO-APIKEY", Bitopro.this.apiKey );
             put( "X-BITOPRO-PAYLOAD", payload );
@@ -514,12 +520,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -556,7 +562,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Long timestamp = this.safeInteger(message, "timestamp");
         String datetime = this.safeString(message, "datetime");
         Object currencies = Helpers.objectKeys(data);
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
             put( "timestamp", timestamp );
             put( "datetime", datetime );
@@ -581,7 +587,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     public void handleMessage(Client client, Object message)
     {
-        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "TRADE", "handleTrade");
             put( "TICKER", "handleTicker");
             put( "ORDER_BOOK", "handleOrderBook");

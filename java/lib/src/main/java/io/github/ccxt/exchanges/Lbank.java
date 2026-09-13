@@ -6,6 +6,12 @@ import io.github.ccxt.api.LbankApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Lbank extends LbankApi
 {
@@ -19,14 +25,14 @@ public class Lbank extends LbankApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "lbank" );
             put( "name", "LBank" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("CN")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("CN")) );
             put( "version", "v2" );
             put( "rateLimit", 20 );
             put( "pro", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", false );
                 put( "spot", true );
                 put( "margin", false );
@@ -95,7 +101,7 @@ public class Lbank extends LbankApi
                 put( "setPositionMode", false );
                 put( "withdraw", true );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "minute1" );
                 put( "5m", "minute5" );
                 put( "15m", "minute15" );
@@ -109,9 +115,9 @@ public class Lbank extends LbankApi
                 put( "1d", "day1" );
                 put( "1w", "week1" );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "rest", "https://api.lbank.info" );
                     put( "contract", "https://lbkperp.lbank.com" );
                 }} );
@@ -121,259 +127,259 @@ public class Lbank extends LbankApi
                 put( "fees", "https://support.lbank.site/hc/en-gb/articles/900000535703-Trading-Fees-From-14-00-on-April-7-2020-UTC-8-" );
                 put( "referral", "https://www.lbank.com/login/?icode=7QCY" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
-                    put( "public", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "currencyPairs", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
+                    put( "public", new HashMap<String, Object>() {{
+                        put( "get", new HashMap<String, Object>() {{
+                            put( "currencyPairs", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "accuracy", new java.util.HashMap<String, Object>() {{
+                            put( "accuracy", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "usdToCny", new java.util.HashMap<String, Object>() {{
+                            put( "usdToCny", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "assetConfigs", new java.util.HashMap<String, Object>() {{
+                            put( "assetConfigs", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "withdrawConfigs", new java.util.HashMap<String, Object>() {{
+                            put( "withdrawConfigs", new HashMap<String, Object>() {{
                                 put( "cost", Helpers.multiply(2.5, 1.5) );
                             }} );
-                            put( "timestamp", new java.util.HashMap<String, Object>() {{
+                            put( "timestamp", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "ticker/24hr", new java.util.HashMap<String, Object>() {{
+                            put( "ticker/24hr", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "ticker", new java.util.HashMap<String, Object>() {{
+                            put( "ticker", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "depth", new java.util.HashMap<String, Object>() {{
+                            put( "depth", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "incrDepth", new java.util.HashMap<String, Object>() {{
+                            put( "incrDepth", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "trades", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "kline", new java.util.HashMap<String, Object>() {{
+                            put( "kline", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/system_ping", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/system_ping", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/incrDepth", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/incrDepth", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/trades", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/trades", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/ticker/price", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/ticker/price", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/ticker/bookTicker", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
                         }} );
-                        put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "supplement/system_status", new java.util.HashMap<String, Object>() {{
+                        put( "post", new HashMap<String, Object>() {{
+                            put( "supplement/system_status", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
                         }} );
                     }} );
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "user_info", new java.util.HashMap<String, Object>() {{
+                    put( "private", new HashMap<String, Object>() {{
+                        put( "post", new HashMap<String, Object>() {{
+                            put( "user_info", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "subscribe/get_key", new java.util.HashMap<String, Object>() {{
+                            put( "subscribe/get_key", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "subscribe/refresh_key", new java.util.HashMap<String, Object>() {{
+                            put( "subscribe/refresh_key", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "subscribe/destroy_key", new java.util.HashMap<String, Object>() {{
+                            put( "subscribe/destroy_key", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "get_deposit_address", new java.util.HashMap<String, Object>() {{
+                            put( "get_deposit_address", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "deposit_history", new java.util.HashMap<String, Object>() {{
+                            put( "deposit_history", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "create_order", new java.util.HashMap<String, Object>() {{
+                            put( "create_order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "batch_create_order", new java.util.HashMap<String, Object>() {{
+                            put( "batch_create_order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "cancel_order", new java.util.HashMap<String, Object>() {{
+                            put( "cancel_order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "cancel_clientOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cancel_clientOrders", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "orders_info", new java.util.HashMap<String, Object>() {{
+                            put( "orders_info", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "orders_info_history", new java.util.HashMap<String, Object>() {{
+                            put( "orders_info_history", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "order_transaction_detail", new java.util.HashMap<String, Object>() {{
+                            put( "order_transaction_detail", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "transaction_history", new java.util.HashMap<String, Object>() {{
+                            put( "transaction_history", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "orders_info_no_deal", new java.util.HashMap<String, Object>() {{
+                            put( "orders_info_no_deal", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "withdraw", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "withdrawCancel", new java.util.HashMap<String, Object>() {{
+                            put( "withdrawCancel", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "withdraws", new java.util.HashMap<String, Object>() {{
+                            put( "withdraws", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/user_info", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/user_info", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/withdraw", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/deposit_history", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/deposit_history", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/withdraws", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/withdraws", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/get_deposit_address", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/get_deposit_address", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/add_deposit_address", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/add_deposit_address", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/asset_detail", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/asset_detail", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/customer_trade_fee", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/customer_trade_fee", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/api_Restrictions", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/api_Restrictions", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/system_ping", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/system_ping", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/create_order_test", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/create_order_test", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "supplement/create_order", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/create_order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "supplement/cancel_order", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/cancel_order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "supplement/cancel_order_by_symbol", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/cancel_order_by_symbol", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "supplement/orders_info", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/orders_info", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/orders_info_no_deal", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/orders_info_no_deal", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/orders_info_history", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/orders_info_history", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/user_info_account", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/user_info_account", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "supplement/transaction_history", new java.util.HashMap<String, Object>() {{
+                            put( "supplement/transaction_history", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "spot/wallet/withdraw", new java.util.HashMap<String, Object>() {{
+                            put( "spot/wallet/withdraw", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "spot/wallet/deposit_history", new java.util.HashMap<String, Object>() {{
+                            put( "spot/wallet/deposit_history", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "spot/wallet/withdraws", new java.util.HashMap<String, Object>() {{
+                            put( "spot/wallet/withdraws", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "spot/trade/orders_info", new java.util.HashMap<String, Object>() {{
+                            put( "spot/trade/orders_info", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "spot/trade/orders_info_history", new java.util.HashMap<String, Object>() {{
+                            put( "spot/trade/orders_info_history", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
                         }} );
                     }} );
                 }} );
-                put( "contract", new java.util.HashMap<String, Object>() {{
-                    put( "public", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "cfd/openApi/v1/pub/getTime", new java.util.HashMap<String, Object>() {{
+                put( "contract", new HashMap<String, Object>() {{
+                    put( "public", new HashMap<String, Object>() {{
+                        put( "get", new HashMap<String, Object>() {{
+                            put( "cfd/openApi/v1/pub/getTime", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "cfd/openApi/v1/pub/instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cfd/openApi/v1/pub/instrument", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "cfd/openApi/v1/pub/marketData", new java.util.HashMap<String, Object>() {{
+                            put( "cfd/openApi/v1/pub/marketData", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
-                            put( "cfd/openApi/v1/pub/marketOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cfd/openApi/v1/pub/marketOrder", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "maker", Lbank.this.parseNumber("0.001") );
                     put( "taker", Lbank.this.parseNumber("0.001") );
                 }} );
-                put( "funding", new java.util.HashMap<String, Object>() {{
-                    put( "withdraw", new java.util.HashMap<String, Object>() {{}} );
+                put( "funding", new HashMap<String, Object>() {{
+                    put( "withdraw", new HashMap<String, Object>() {{}} );
                 }} );
             }} );
-            put( "commonCurrencies", new java.util.HashMap<String, Object>() {{
+            put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "XBT", "XBT" );
                 put( "HIT", "Hiver" );
                 put( "VET_ERC20", "VEN" );
                 put( "PNT", "Penta" );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "cacheSecretAsPem", true );
                 put( "createMarketBuyOrderRequiresPrice", true );
-                put( "fetchTrades", new java.util.HashMap<String, Object>() {{
+                put( "fetchTrades", new HashMap<String, Object>() {{
                     put( "method", "spotPublicGetTrades" );
                 }} );
-                put( "fetchTransactionFees", new java.util.HashMap<String, Object>() {{
+                put( "fetchTransactionFees", new HashMap<String, Object>() {{
                     put( "method", "fetchPrivateTransactionFees" );
                 }} );
-                put( "fetchDepositWithdrawFees", new java.util.HashMap<String, Object>() {{
+                put( "fetchDepositWithdrawFees", new HashMap<String, Object>() {{
                     put( "method", "fetchPrivateDepositWithdrawFees" );
                 }} );
-                put( "fetchDepositAddress", new java.util.HashMap<String, Object>() {{
+                put( "fetchDepositAddress", new HashMap<String, Object>() {{
                     put( "method", "fetchDepositAddressDefault" );
                 }} );
-                put( "createOrder", new java.util.HashMap<String, Object>() {{
+                put( "createOrder", new HashMap<String, Object>() {{
                     put( "method", "spotPrivatePostSupplementCreateOrder" );
                 }} );
-                put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                put( "fetchOrder", new HashMap<String, Object>() {{
                     put( "method", "fetchOrderSupplement" );
                 }} );
-                put( "fetchBalance", new java.util.HashMap<String, Object>() {{
+                put( "fetchBalance", new HashMap<String, Object>() {{
                     put( "method", "spotPrivatePostSupplementUserInfo" );
                 }} );
-                put( "networks", new java.util.HashMap<String, Object>() {{
+                put( "networks", new HashMap<String, Object>() {{
                     put( "ERC20", "erc20" );
                     put( "ETH", "erc20" );
                     put( "TRC20", "trc20" );
@@ -392,21 +398,21 @@ public class Lbank extends LbankApi
                     put( "BTCTRON", "btctron" );
                     put( "XRP", "xrp" );
                 }} );
-                put( "networksById", new java.util.HashMap<String, Object>() {{
+                put( "networksById", new HashMap<String, Object>() {{
                     put( "erc20", "ERC20" );
                     put( "trc20", "TRC20" );
                     put( "TRX", "TRC20" );
                     put( "bep20(bsc)", "BEP20" );
                     put( "bep20", "BEP20" );
                 }} );
-                put( "defaultNetworks", new java.util.HashMap<String, Object>() {{
+                put( "defaultNetworks", new HashMap<String, Object>() {{
                     put( "USDT", "TRC20" );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "default", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "default", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", false );
                         put( "triggerPriceType", null );
@@ -414,7 +420,7 @@ public class Lbank extends LbankApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", false );
@@ -429,27 +435,27 @@ public class Lbank extends LbankApi
                         put( "iceberg", false );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 100000 );
                         put( "untilDays", 2 );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 200 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 200 );
                         put( "daysBack", null );
@@ -459,20 +465,20 @@ public class Lbank extends LbankApi
                         put( "symbolRequired", true );
                     }} );
                     put( "fetchClosedOrders", null );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 2000 );
                     }} );
                 }} );
-                put( "spot", new java.util.HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "extends", "default" );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "linear", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "default" );
                     }} );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
@@ -489,16 +495,16 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
@@ -539,13 +545,13 @@ public class Lbank extends LbankApi
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(parameters)).join();
             //
             //    {
             //        "msg": "Success",
@@ -579,8 +585,8 @@ public class Lbank extends LbankApi
             //        "ts": "1747973911431"
             //    }
             //
-            Object currenciesData = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> grouped = this.groupBy(currenciesData, "assetCode");
+            Object currenciesData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> grouped = this.groupBy(currenciesData, "assetCode");
             Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
         });
@@ -592,7 +598,7 @@ public class Lbank extends LbankApi
         String id = this.safeString(Helpers.GetValue(rawCurrency, 0), "assetCode"); // first member is guaranteed
         String code = this.safeCurrencyCode(id);
         Object networksRaw = rawCurrency;
-        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksRaw)); j++)
         {
             Object networkEntry = Helpers.GetValue(networksRaw, j);
@@ -606,15 +612,15 @@ public class Lbank extends LbankApi
             {
                 final Object finalNetworkId = networkId;
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
-    put( "limits", new java.util.HashMap<String, Object>() {{
-        put( "withdraw", new java.util.HashMap<String, Object>() {{
+    put( "limits", new HashMap<String, Object>() {{
+        put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Lbank.this.safeNumber(networkEntry, "min") );
             put( "max", null );
         }} );
-        put( "deposit", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new HashMap<String, Object>() {{
             put( "min", Lbank.this.safeNumber(networkEntry, "minTransfer") );
             put( "max", null );
         }} );
@@ -628,7 +634,7 @@ public class Lbank extends LbankApi
 }});
             }
         }
-        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "precision", null );
@@ -638,12 +644,12 @@ public class Lbank extends LbankApi
             put( "deposit", null );
             put( "withdraw", null );
             put( "fee", null );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "deposit", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -662,26 +668,26 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> marketsPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object resolvedMarkets = (Helpers.promiseAll(marketsPromises)).join();
             return this.arrayConcat(Helpers.GetValue(resolvedMarkets, 0), Helpers.GetValue(resolvedMarkets, 1));
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchSpotMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchSpotMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.spotPublicGetAccuracy(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.spotPublicGetAccuracy(parameters)).join();
             //
             //     {
             //         "result": "true",
@@ -697,8 +703,8 @@ public class Lbank extends LbankApi
             //         "ts": 1691560288484
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object market = Helpers.GetValue(data, i);
@@ -710,7 +716,7 @@ public class Lbank extends LbankApi
                 String quote = this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
     final Object finalBase = base;
-                            ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", marketId );
                     put( "symbol", symbol );
                     put( "base", finalBase );
@@ -734,24 +740,24 @@ public class Lbank extends LbankApi
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
-                    put( "precision", new java.util.HashMap<String, Object>() {{
+                    put( "precision", new HashMap<String, Object>() {{
                         put( "amount", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(market, "quantityAccuracy"))) );
                         put( "price", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(market, "priceAccuracy"))) );
                     }} );
-                    put( "limits", new java.util.HashMap<String, Object>() {{
-                        put( "leverage", new java.util.HashMap<String, Object>() {{
+                    put( "limits", new HashMap<String, Object>() {{
+                        put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "amount", new java.util.HashMap<String, Object>() {{
+                        put( "amount", new HashMap<String, Object>() {{
                             put( "min", Lbank.this.safeNumber(market, "minTranQua") );
                             put( "max", null );
                         }} );
-                        put( "price", new java.util.HashMap<String, Object>() {{
+                        put( "price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "cost", new java.util.HashMap<String, Object>() {{
+                        put( "cost", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
@@ -765,16 +771,16 @@ public class Lbank extends LbankApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "productGroup", "SwapU" );
             }};
-            java.util.Map<String, Object> response = (this.contractPublicGetCfdOpenApiV1PubInstrument(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.contractPublicGetCfdOpenApiV1PubInstrument(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -803,8 +809,8 @@ public class Lbank extends LbankApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object market = Helpers.GetValue(data, i);
@@ -817,7 +823,7 @@ public class Lbank extends LbankApi
                 String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
     final Object finalBase = base;
-                            ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", marketId );
                     put( "symbol", symbol );
                     put( "base", finalBase );
@@ -841,24 +847,24 @@ public class Lbank extends LbankApi
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
-                    put( "precision", new java.util.HashMap<String, Object>() {{
+                    put( "precision", new HashMap<String, Object>() {{
                         put( "amount", Lbank.this.safeNumber(market, "volumeTick") );
                         put( "price", Lbank.this.safeNumber(market, "priceTick") );
                     }} );
-                    put( "limits", new java.util.HashMap<String, Object>() {{
-                        put( "leverage", new java.util.HashMap<String, Object>() {{
+                    put( "limits", new HashMap<String, Object>() {{
+                        put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "amount", new java.util.HashMap<String, Object>() {{
+                        put( "amount", new HashMap<String, Object>() {{
                             put( "min", Lbank.this.safeNumber(market, "minOrderVolume") );
                             put( "max", Lbank.this.safeNumber(market, "maxOrderVolume") );
                         }} );
-                        put( "price", new java.util.HashMap<String, Object>() {{
+                        put( "price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "cost", new java.util.HashMap<String, Object>() {{
+                        put( "cost", new HashMap<String, Object>() {{
                             put( "min", Lbank.this.safeNumber(market, "minOrderCost") );
                             put( "max", null );
                         }} );
@@ -913,11 +919,11 @@ public class Lbank extends LbankApi
         }
         String marketId = this.safeString(ticker, "symbol");
         String symbol = this.safeSymbol(marketId, market);
-        Object tickerData = this.safeValue(ticker, "ticker", new java.util.HashMap<String, Object>() {{}});
+        Object tickerData = this.safeValue(ticker, "ticker", new HashMap<String, Object>() {{}});
         market = this.safeMarket(marketId, market);
         Object data = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? ticker : tickerData;
         final Object finalTimestamp = timestamp;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
             put( "datetime", Lbank.this.iso8601(finalTimestamp) );
@@ -950,26 +956,26 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object responseForSwap = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
+                Object responseForSwap = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
                 return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.spotPublicGetTicker24hr(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPublicGetTicker24hr(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "true",
@@ -991,8 +997,8 @@ public class Lbank extends LbankApi
             //         "ts": :1692064276872
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -1008,13 +1014,13 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1029,11 +1035,11 @@ public class Lbank extends LbankApi
                     market = this.market(Helpers.GetValue(symbols, 0));
                 }
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
@@ -1089,7 +1095,7 @@ public class Lbank extends LbankApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
 
@@ -1106,29 +1112,29 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 60;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
@@ -1187,7 +1193,7 @@ public class Lbank extends LbankApi
             //         "success": true
             //     }
             //
-            Object orderbook = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object orderbook = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -1292,7 +1298,7 @@ public class Lbank extends LbankApi
         {
             String feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? this.safeString(market, "base") : this.safeString(market, "quote");
             final Object finalFeeCost = feeCost;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurr );
                 put( "rate", Lbank.this.safeString(trade, "tradeFeeRate") );
@@ -1307,7 +1313,7 @@ public class Lbank extends LbankApi
         final Object finalAmountString = amountString;
         final Object finalCostString = costString;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
             put( "datetime", Lbank.this.iso8601(finalTimestamp) );
             put( "symbol", symbol );
@@ -1336,20 +1342,20 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1363,7 +1369,7 @@ public class Lbank extends LbankApi
             {
                 Helpers.addElementToObject(request, "size", 600); // max
             }
-            Object options = this.safeValue(this.options, "fetchTrades", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeValue(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPublicGetTrades");
             String method = this.safeString(parameters, "method", defaultMethod);
             parameters = this.omit(parameters, "method");
@@ -1391,7 +1397,7 @@ public class Lbank extends LbankApi
             //           "ts":1647021999308
             //      }
             //
-            Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -1410,7 +1416,7 @@ public class Lbank extends LbankApi
         //   ],
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
+        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
     /**
@@ -1425,21 +1431,21 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // endpoint doesnt work
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100;
@@ -1454,14 +1460,14 @@ public class Lbank extends LbankApi
             }
             Long parsedSince = this.parseToInt(Helpers.divide(since, 1000));
             Object parsedLimit = Helpers.mathMin(Helpers.add(limit, 1), 2000); // max 2000;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", Lbank.this.safeString(Lbank.this.timeframes, timeframe, timeframe) );
                 put( "time", parsedSince );
                 put( "size", parsedLimit );
             }};
-            java.util.Map<String, Object> response = (this.spotPublicGetKline(this.extend(request, parameters))).join();
-            Object ohlcvs = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.spotPublicGetKline(this.extend(request, parameters))).join();
+            Object ohlcvs = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //
             // [
@@ -1568,7 +1574,7 @@ public class Lbank extends LbankApi
         //      ]
         //
         Long timestamp = this.safeInteger(response, "ts");
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", Lbank.this.iso8601(timestamp) );
@@ -1578,8 +1584,8 @@ public class Lbank extends LbankApi
         Object toBtc = this.safeValue(data, "toBtc");
         if (Helpers.isTrue(!Helpers.isEqual(toBtc, null)))
         {
-            Object used = this.safeValue(data, "freeze", new java.util.HashMap<String, Object>() {{}});
-            Object free = this.safeDict(data, "free", new java.util.HashMap<String, Object>() {{}});
+            Object used = this.safeValue(data, "freeze", new HashMap<String, Object>() {{}});
+            Object free = this.safeDict(data, "free", new HashMap<String, Object>() {{}});
             Object currencies = Helpers.objectKeys(free);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
             {
@@ -1668,7 +1674,7 @@ public class Lbank extends LbankApi
             intervalString = Helpers.add(String.valueOf(interval), "h");
         }
         final Object finalIntervalString = intervalString;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", symbol );
             put( "markPrice", markPrice );
@@ -1697,18 +1703,18 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object responseForSwap = (this.fetchFundingRates((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object responseForSwap = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
         }).thenApply(io.github.ccxt.types.FundingRate::new);
 
@@ -1723,22 +1729,22 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "productGroup", "SwapU" );
             }};
-            java.util.Map<String, Object> response = (this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, parameters))).join();
             // {
             //     "data": [
             //         {
@@ -1762,7 +1768,7 @@ public class Lbank extends LbankApi
             //     "result": "true",
             //     "success": True,
             // }
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         }).thenApply(io.github.ccxt.types.FundingRates::new);
 
@@ -1778,17 +1784,17 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object options = this.safeValue(this.options, "fetchBalance", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeValue(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPrivatePostSupplementUserInfo");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object response = null;
@@ -1832,7 +1838,7 @@ public class Lbank extends LbankApi
             //        "code": 0
             //    }
             //
-            Object balanceResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
+            Object balanceResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new HashMap<String, Object>() {{}} : response;
             Object balanceResult = this.parseBalance(balanceResponse);
             if (Helpers.isTrue(Helpers.isEqual(balanceResult, null)))
             {
@@ -1855,7 +1861,7 @@ public class Lbank extends LbankApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
         String symbol = this.safeSymbol(marketId);
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
             put( "maker", Lbank.this.safeNumber(fee, "makerCommission") );
@@ -1874,14 +1880,14 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object result = (this.fetchTradingFees((Object)(this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object result = (this.fetchTradingFees((Object)(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "category", Helpers.GetValue(market, "id") );
             }})))).join();
             return this.safeDict(result, symbol);
@@ -1897,20 +1903,20 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, parameters))).join();
-            Object fees = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> response = (this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, parameters))).join();
+            Object fees = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
@@ -1933,17 +1939,17 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -1968,25 +1974,25 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Boolean ioc = (Helpers.isEqual(timeInForce, "IOC"));
@@ -2022,9 +2028,9 @@ public class Lbank extends LbankApi
                     Helpers.addElementToObject(request, "type", Helpers.add(Helpers.add(side, "_"), "market"));
                     String quoteAmount = null;
                     Object createMarketBuyOrderRequiresPrice = true;
-                    java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+                    parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
@@ -2054,7 +2060,7 @@ public class Lbank extends LbankApi
             {
                 Helpers.addElementToObject(request, "custom_id", clientOrderId);
             }
-            Object options = this.safeValue(this.options, "createOrder", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeValue(this.options, "createOrder", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPrivatePostSupplementCreateOrder");
             String method = this.safeString(parameters, "method", defaultMethod);
             parameters = this.omit(parameters, "method");
@@ -2077,8 +2083,8 @@ public class Lbank extends LbankApi
             //          "ts":1648162321043
             //      }
             //
-            Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Lbank.this.safeString(result, "order_id") );
                 put( "info", result );
             }}, market);
@@ -2088,7 +2094,7 @@ public class Lbank extends LbankApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "-1", "canceled" );
             put( "0", "open" );
             put( "1", "open" );
@@ -2232,7 +2238,7 @@ public class Lbank extends LbankApi
         final Object finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
         final Object finalAmountString = amountString;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "datetime", Lbank.this.iso8601(timestamp) );
@@ -2268,13 +2274,13 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2282,7 +2288,7 @@ public class Lbank extends LbankApi
             String method = this.safeString(parameters, "method");
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
-                Object options = this.safeValue(this.options, "fetchOrder", new java.util.HashMap<String, Object>() {{}});
+                Object options = this.safeValue(this.options, "fetchOrder", new HashMap<String, Object>() {{}});
                 method = this.safeString(options, "method", "fetchOrderSupplement");
             }
             if (Helpers.isTrue(Helpers.isEqual(method, "fetchOrderSupplement")))
@@ -2294,13 +2300,13 @@ public class Lbank extends LbankApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderSupplement(Object id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrderSupplement(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
@@ -2309,12 +2315,12 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
             }};
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementOrdersInfo(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementOrdersInfo(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -2336,20 +2342,20 @@ public class Lbank extends LbankApi
             //          "ts":1648164471827
             //      }
             //
-            Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderDefault(Object id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrderDefault(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // Id can be a list of ids delimited by a comma
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
@@ -2358,12 +2364,12 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "order_id", id );
             }};
-            java.util.Map<String, Object> response = (this.spotPrivatePostOrdersInfo(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostOrdersInfo(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -2384,7 +2390,7 @@ public class Lbank extends LbankApi
             //          "ts":1647455270776
             //      }
             //
-            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object numOrders = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(numOrders, 1)))
             {
@@ -2408,15 +2414,15 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
@@ -2425,10 +2431,10 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             since = this.safeValue(parameters, "start_date", since);
             parameters = this.omit(parameters, "start_date");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2440,7 +2446,7 @@ public class Lbank extends LbankApi
                 Helpers.addElementToObject(request, "start_date", this.ymd(since, "-")); // max query 2 days ago
                 Helpers.addElementToObject(request, "end_date", this.ymd(Helpers.add(since, 86400000), "-")); // will cover 2 days
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostTransactionHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostTransactionHistory(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -2461,7 +2467,7 @@ public class Lbank extends LbankApi
             //          "ts":1648509742164
             //      }
             //
-            Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -2478,17 +2484,17 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // default query is for canceled and completely filled orders
             // does not return open orders unless specified explicitly
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
@@ -2497,18 +2503,18 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100;
             }
             final Object finalLimit = limit;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "current_page", 1 );
                 put( "page_length", finalLimit );
             }};
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementOrdersInfoHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementOrdersInfoHistory(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -2536,8 +2542,8 @@ public class Lbank extends LbankApi
             //          "ts":1648505706348
             //      }
             //
-            Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2554,15 +2560,15 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
@@ -2571,18 +2577,18 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100;
             }
             final Object finalLimit = limit;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "current_page", 1 );
                 put( "page_length", finalLimit );
             }};
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementOrdersInfoNoDeal(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementOrdersInfoNoDeal(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -2610,8 +2616,8 @@ public class Lbank extends LbankApi
             //         "ts":1648506110196
             //     }
             //
-            Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2627,13 +2633,13 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
@@ -2643,9 +2649,9 @@ public class Lbank extends LbankApi
                 (this.loadMarkets()).join();
             }
             String clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId")));
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
             }};
@@ -2653,7 +2659,7 @@ public class Lbank extends LbankApi
             {
                 Helpers.addElementToObject(request, "origClientOrderId", clientOrderId);
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementCancelOrder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementCancelOrder(this.extend(request, parameters))).join();
             //
             //   {
             //      "result":true,
@@ -2667,7 +2673,7 @@ public class Lbank extends LbankApi
             //      "error_code":0,
             //      "ts":1648501286196
             //  }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -2682,13 +2688,13 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
@@ -2697,11 +2703,11 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementCancelOrderBySymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementCancelOrderBySymbol(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":"true",
@@ -2719,7 +2725,7 @@ public class Lbank extends LbankApi
             //          "ts":1648506641468
             //      }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2729,7 +2735,7 @@ public class Lbank extends LbankApi
     {
         Object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
         String defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
-        Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+        Object networks = this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}});
         String network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         return network;
@@ -2745,17 +2751,17 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object options = this.safeValue(this.options, "fetchDepositAddress", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeValue(this.options, "fetchDepositAddress", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "fetchDepositAddressDefault");
             String method = this.safeString(parameters, "method", defaultMethod);
             parameters = this.omit(parameters, "method");
@@ -2772,18 +2778,18 @@ public class Lbank extends LbankApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddressDefault(String code, Object... optionalArgs)
+    public CompletableFuture<Object> fetchDepositAddressDefault(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assetCode", Helpers.GetValue(currency, "id") );
             }};
             Object network = this.getNetworkCodeForCurrency(code, parameters);
@@ -2792,7 +2798,7 @@ public class Lbank extends LbankApi
                 Helpers.addElementToObject(request, "netWork", network); // ... yes, really lol
                 parameters = this.omit(parameters, "network");
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostGetDepositAddress(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostGetDepositAddress(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -2809,7 +2815,7 @@ public class Lbank extends LbankApi
             Object result = this.safeValue(response, "data");
             String address = this.safeString(result, "address");
             String tag = this.safeString(result, "memo");
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
                 put( "network", Lbank.this.networkIdToCode(Lbank.this.safeString(result, "netWork"), code) );
@@ -2820,19 +2826,19 @@ public class Lbank extends LbankApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddressSupplement(String code, Object... optionalArgs)
+    public CompletableFuture<Object> fetchDepositAddressSupplement(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // returns the address for whatever the default network is...
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
             }};
             Object networks = this.safeValue(this.options, "networks");
@@ -2843,7 +2849,7 @@ public class Lbank extends LbankApi
                 Helpers.addElementToObject(request, "networkName", network);
                 parameters = this.omit(parameters, "network");
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementGetDepositAddress(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementGetDepositAddress(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -2859,7 +2865,7 @@ public class Lbank extends LbankApi
             Object result = this.safeValue(response, "data");
             String address = this.safeString(result, "address");
             String tag = this.safeString(result, "memo");
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
                 put( "network", null );
@@ -2882,16 +2888,16 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2901,8 +2907,8 @@ public class Lbank extends LbankApi
             parameters = this.omit(parameters, "fee");
             // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
             this.checkRequiredArgument("withdraw", fee, "fee");
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", address );
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
@@ -2913,14 +2919,14 @@ public class Lbank extends LbankApi
                 Helpers.addElementToObject(request, "memo", tag);
             }
             String network = this.safeStringUpper2(parameters, "network", "networkName");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network", "networkName")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network", "networkName")));
             Object networks = this.safeValue(this.options, "networks");
             String networkId = this.safeString(networks, network, network);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 Helpers.addElementToObject(request, "networkName", networkId);
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementWithdraw(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementWithdraw(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -2932,8 +2938,8 @@ public class Lbank extends LbankApi
             //          "ts":1648992501414
             //      }
             //
-            Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return new java.util.HashMap<String, Object>() {{
+            Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            return new HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", Lbank.this.safeString(result, "withdrawId") );
             }};
@@ -2943,22 +2949,22 @@ public class Lbank extends LbankApi
 
     public String parseTransactionStatus(Object status, Object type)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "deposit", new HashMap<String, Object>() {{
                 put( "1", "pending" );
                 put( "2", "ok" );
                 put( "3", "failed" );
                 put( "4", "canceled" );
                 put( "5", "transfer" );
             }} );
-            put( "withdrawal", new java.util.HashMap<String, Object>() {{
+            put( "withdrawal", new HashMap<String, Object>() {{
                 put( "1", "pending" );
                 put( "2", "canceled" );
                 put( "3", "failed" );
                 put( "4", "ok" );
             }} );
         }};
-        return this.safeString(this.safeValue(statuses, ((String)type), new java.util.HashMap<String, Object>() {{}}), status, status);
+        return this.safeString(this.safeValue(statuses, ((String)type), new HashMap<String, Object>() {{}}), status, status);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
@@ -3023,7 +3029,7 @@ public class Lbank extends LbankApi
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", code );
             }};
@@ -3034,7 +3040,7 @@ public class Lbank extends LbankApi
         final Object finalType = type;
         final Object finalStatus = status;
         final Object finalFee = fee;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
             put( "txid", txid );
@@ -3069,20 +3075,20 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -3093,7 +3099,7 @@ public class Lbank extends LbankApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementDepositHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementDepositHistory(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -3117,8 +3123,8 @@ public class Lbank extends LbankApi
             //          "ts":1649719721758
             //      }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "depositOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object deposits = this.safeList(data, "depositOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
@@ -3135,20 +3141,20 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -3159,7 +3165,7 @@ public class Lbank extends LbankApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementWithdraws(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementWithdraws(this.extend(request, parameters))).join();
             //
             //      {
             //          "result":true,
@@ -3186,8 +3192,8 @@ public class Lbank extends LbankApi
             //          "ts":1649720362362
             //      }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object withdraws = this.safeList(data, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object withdraws = this.safeList(data, "withdraws", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdraws, currency, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
@@ -3203,14 +3209,14 @@ public class Lbank extends LbankApi
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     @Deprecated
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFees(Object... optionalArgs)
+    public CompletableFuture<Object> fetchTransactionFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // private only returns information for currencies with non-zero balance
             Object codes = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3219,7 +3225,7 @@ public class Lbank extends LbankApi
             Object result = null;
             if (Helpers.isTrue(Helpers.isEqual(isAuthorized, true)))
             {
-                Object options = this.safeValue(this.options, "fetchTransactionFees", new java.util.HashMap<String, Object>() {{}});
+                Object options = this.safeValue(this.options, "fetchTransactionFees", new HashMap<String, Object>() {{}});
                 String defaultMethod = this.safeString(options, "method", "fetchPrivateTransactionFees");
                 String method = this.safeString(parameters, "method", defaultMethod);
                 parameters = this.omit(parameters, "method");
@@ -3239,19 +3245,19 @@ public class Lbank extends LbankApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPrivateTransactionFees(Object... optionalArgs)
+    public CompletableFuture<Object> fetchPrivateTransactionFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // complete response
             // incl. for coins which undefined in public method
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementUserInfo()).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementUserInfo()).join();
             //
             //    {
             //        "result": "true",
@@ -3282,17 +3288,17 @@ public class Lbank extends LbankApi
             //        "code": 0
             //    }
             //
-            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> withdrawFees = new java.util.HashMap<String, Object>() {{}};
+            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
                 String currencyId = this.safeString(entry, "coin");
                 String code = this.safeCurrencyCode(currencyId);
-                Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object networkList = this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
-                    Helpers.addElementToObject(withdrawFees, code, new java.util.HashMap<String, Object>() {{}});
+                    Helpers.addElementToObject(withdrawFees, code, new HashMap<String, Object>() {{}});
                 }
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
                 {
@@ -3311,36 +3317,36 @@ public class Lbank extends LbankApi
                     }
                 }
             }
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "withdraw", withdrawFees );
-                put( "deposit", new java.util.HashMap<String, Object>() {{}} );
+                put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPublicTransactionFees(Object... optionalArgs)
+    public CompletableFuture<Object> fetchPublicTransactionFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // extremely incomplete response
             // vast majority fees undefined
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             String code = this.safeString2(parameters, "coin", "assetCode");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("coin", "assetCode")));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("coin", "assetCode")));
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "assetCode", Helpers.GetValue(currency, "id"));
             }
-            java.util.Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": "true",
@@ -3362,8 +3368,8 @@ public class Lbank extends LbankApi
             //        "ts": "1663364435973"
             //    }
             //
-            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> withdrawFees = new java.util.HashMap<String, Object>() {{}};
+            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object item = Helpers.GetValue(result, i);
@@ -3382,7 +3388,7 @@ public class Lbank extends LbankApi
                     {
                         if (Helpers.isTrue(!Helpers.isEqual(codeInner, null)))
                         {
-                            Helpers.addElementToObject(withdrawFees, codeInner, new java.util.HashMap<String, Object>() {{}});
+                            Helpers.addElementToObject(withdrawFees, codeInner, new HashMap<String, Object>() {{}});
                         }
                     }
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codeInner, null))) && Helpers.isTrue((!Helpers.isEqual(network, null)))))
@@ -3391,9 +3397,9 @@ public class Lbank extends LbankApi
                     }
                 }
             }
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "withdraw", withdrawFees );
-                put( "deposit", new java.util.HashMap<String, Object>() {{}} );
+                put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
         });
@@ -3410,13 +3416,13 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3425,7 +3431,7 @@ public class Lbank extends LbankApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(isAuthorized, true)))
             {
-                Object options = this.safeValue(this.options, "fetchDepositWithdrawFees", new java.util.HashMap<String, Object>() {{}});
+                Object options = this.safeValue(this.options, "fetchDepositWithdrawFees", new HashMap<String, Object>() {{}});
                 String defaultMethod = this.safeString(options, "method", "fetchPrivateDepositWithdrawFees");
                 String method = this.safeString(parameters, "method", defaultMethod);
                 parameters = this.omit(parameters, "method");
@@ -3445,20 +3451,20 @@ public class Lbank extends LbankApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPrivateDepositWithdrawFees(Object... optionalArgs)
+    public CompletableFuture<Object> fetchPrivateDepositWithdrawFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // complete response
             // incl. for coins which undefined in public method
             Object codes = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.spotPrivatePostSupplementUserInfo(parameters)).join();
+            Map<String, Object> response = (this.spotPrivatePostSupplementUserInfo(parameters)).join();
             //
             //    {
             //        "result": "true",
@@ -3489,27 +3495,27 @@ public class Lbank extends LbankApi
             //        "code": 0
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPublicDepositWithdrawFees(Object... optionalArgs)
+    public CompletableFuture<Object> fetchPublicDepositWithdrawFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // extremely incomplete response
             // vast majority fees undefined
             Object codes = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(this.extend(request, parameters))).join();
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": "true",
@@ -3531,7 +3537,7 @@ public class Lbank extends LbankApi
             //        "ts": "1663364435973"
             //    }
             //
-            Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePublicDepositWithdrawFees(data, codes);
         });
 
@@ -3556,7 +3562,7 @@ public class Lbank extends LbankApi
         //    ]
         //
         Object codes = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object fee = Helpers.GetValue(response, i);
@@ -3573,22 +3579,22 @@ public class Lbank extends LbankApi
                         Object resultValue = this.safeValue(result, code);
                         if (Helpers.isTrue(Helpers.isEqual(resultValue, null)))
                         {
-                            Helpers.addElementToObject(result, code, this.depositWithdrawFee(new java.util.ArrayList<Object>(java.util.Arrays.asList(fee))));
+                            Helpers.addElementToObject(result, code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
                         } else
                         {
                             Object resultCodeInfo = Helpers.GetValue(Helpers.GetValue(result, code), "info");
-                            ((java.util.List<Object>)resultCodeInfo).add(fee);
+                            ((List<Object>)resultCodeInfo).add(fee);
                         }
                         Object networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                         {
                             final Object finalWithdrawFee = withdrawFee;
-                            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
-    put( "withdraw", new java.util.HashMap<String, Object>() {{
+                            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, code), "networks"), networkCode, new HashMap<String, Object>() {{
+    put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", finalWithdrawFee );
         put( "percentage", null );
     }} );
-    put( "deposit", new java.util.HashMap<String, Object>() {{
+    put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }} );
@@ -3596,7 +3602,7 @@ public class Lbank extends LbankApi
                         } else
                         {
                             final Object finalWithdrawFee_2 = withdrawFee;
-                            Helpers.addElementToObject(Helpers.GetValue(result, code), "withdraw", new java.util.HashMap<String, Object>() {{
+                            Helpers.addElementToObject(Helpers.GetValue(result, code), "withdraw", new HashMap<String, Object>() {{
     put( "fee", finalWithdrawFee_2 );
     put( "percentage", null );
 }});
@@ -3639,7 +3645,7 @@ public class Lbank extends LbankApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object result = this.depositWithdrawFee(fee);
         String code = this.safeString(currency, "code");
-        Object networkList = this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networkList = this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
             Object networkEntry = Helpers.GetValue(networkList, j);
@@ -3651,7 +3657,7 @@ public class Lbank extends LbankApi
                 if (Helpers.isTrue(Helpers.isEqual(isDefault, true)))
                 {
                     final Object finalWithdrawFee = withdrawFee;
-                    Helpers.addElementToObject(result, "withdraw", new java.util.HashMap<String, Object>() {{
+                    Helpers.addElementToObject(result, "withdraw", new HashMap<String, Object>() {{
     put( "fee", finalWithdrawFee );
     put( "percentage", null );
 }});
@@ -3659,12 +3665,12 @@ public class Lbank extends LbankApi
                 if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                 {
                     final Object finalWithdrawFee_2 = withdrawFee;
-                    Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
-    put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+    put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", finalWithdrawFee_2 );
         put( "percentage", null );
     }} );
-    put( "deposit", new java.util.HashMap<String, Object>() {{
+    put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }} );
@@ -3679,7 +3685,7 @@ public class Lbank extends LbankApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object query = this.omit(parameters, this.extractParams(path));
@@ -3703,7 +3709,7 @@ public class Lbank extends LbankApi
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.milliseconds());
             Object echostr = Helpers.add(this.uuid22(), this.uuid16());
-            query = this.extend(new java.util.HashMap<String, Object>() {{
+            query = this.extend(new HashMap<String, Object>() {{
                 put( "api_key", Lbank.this.apiKey );
             }}, query);
             String signatureMethod = null;
@@ -3715,7 +3721,7 @@ public class Lbank extends LbankApi
                 signatureMethod = "HmacSHA256";
             }
             String finalSig = signatureMethod; // java req
-            Object auth = this.rawencode(this.keysort(this.extend(new java.util.HashMap<String, Object>() {{
+            Object auth = this.rawencode(this.keysort(this.extend(new HashMap<String, Object>() {{
                 put( "echostr", echostr );
                 put( "signature_method", finalSig );
                 put( "timestamp", timestamp );
@@ -3748,7 +3754,7 @@ public class Lbank extends LbankApi
             Helpers.addElementToObject(query, "sign", sign);
             body = this.urlencode(this.keysort(query));
             final Object finalSignatureMethod = signatureMethod;
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "timestamp", timestamp );
                 put( "signature_method", finalSignatureMethod );
@@ -3758,7 +3764,7 @@ public class Lbank extends LbankApi
         final Object finalUrl = url;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", method );
             put( "body", finalBody );
@@ -3792,7 +3798,7 @@ public class Lbank extends LbankApi
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, "false"))) || Helpers.isTrue((Helpers.isEqual(success, null)))) || Helpers.isTrue((Helpers.isEqual(success, null)))) || Helpers.isTrue((Helpers.isEqual(success, false)))))
         {
             String errorCode = this.safeString(response, "error_code");
-            String message = this.safeString(new java.util.HashMap<String, Object>() {{
+            String message = this.safeString(new HashMap<String, Object>() {{
                 put( "10000", "Internal error" );
                 put( "10001", "The required parameters can not be empty" );
                 put( "10002", "Validation failed" );
@@ -3844,7 +3850,7 @@ public class Lbank extends LbankApi
                 put( "10701", "invalid asset code" );
                 put( "10702", "not allowed deposit" );
             }}, errorCode, this.json(response));
-            Object ErrorClass = this.safeValue(new java.util.HashMap<String, Object>() {{
+            Object ErrorClass = this.safeValue(new HashMap<String, Object>() {{
                 put( "10001", BadRequest.class );
                 put( "10002", AuthenticationError.class );
                 put( "10003", BadRequest.class );

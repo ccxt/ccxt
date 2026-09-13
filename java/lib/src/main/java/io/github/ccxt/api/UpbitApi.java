@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class UpbitApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetMarketAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetMarketAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketAll", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesTimeframe (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesTimeframe (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesTimeframe", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesTimeframeUnit (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesTimeframeUnit (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesTimeframeUnit", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesSeconds (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesSeconds (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesSeconds", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutesUnit (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutesUnit (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutesUnit", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutes1 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutes1 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutes1", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutes3 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutes3 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutes3", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutes5 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutes5 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutes5", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutes10 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutes10 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutes10", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutes15 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutes15 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutes15", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutes30 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutes30 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutes30", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutes60 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutes60 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutes60", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMinutes240 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMinutes240 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMinutes240", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesDays (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesDays (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesDays", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesWeeks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesWeeks (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesWeeks", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesMonths (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesMonths (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesMonths", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCandlesYears (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCandlesYears (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCandlesYears", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTradesTicks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTradesTicks (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradesTicks", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickerAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTickerAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerAll", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetOrderbook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderbook", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetOrderbookInstruments (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetOrderbookInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderbookInstruments", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccounts", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersChance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersChance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersChance", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrder", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrdersClosed (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrdersClosed (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersClosed", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrdersOpen (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrdersOpen (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersOpen", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrdersUuids (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrdersUuids (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersUuids", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWithdraws (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWithdraws (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdraws", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdraw", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWithdrawsChance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWithdrawsChance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawsChance", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWithdrawsCoinAddresses (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWithdrawsCoinAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawsCoinAddresses", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetDeposits (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeposits", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDepositsChanceCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDepositsChanceCoin (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDepositsChanceCoin", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeposit (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeposit", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetDepositsCoinAddresses (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetDepositsCoinAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDepositsCoinAddresses", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDepositsCoinAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDepositsCoinAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDepositsCoinAddress", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTravelRuleVasps (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetTravelRuleVasps (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTravelRuleVasps", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetStatusWallet (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetStatusWallet (Object... optionalArgs)
     {
         return this.callAsync ("privateGetStatusWallet", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiKeys (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiKeys", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPockets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetPockets (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPockets", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPocketsApiKeys (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetPocketsApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPocketsApiKeys", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPocketsAssets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetPocketsAssets (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPocketsAssets", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPocketsUniversalTransfers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetPocketsUniversalTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPocketsUniversalTransfers", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPocketsTransfers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetPocketsTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPocketsTransfers", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrders", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersTest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersTest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersTest", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersCancelAndNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersCancelAndNew (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersCancelAndNew", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawsCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawsCoin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawsCoin", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawsKrw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawsKrw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawsKrw", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDepositsKrw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDepositsKrw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDepositsKrw", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDepositsGenerateCoinAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDepositsGenerateCoinAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDepositsGenerateCoinAddress", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleDepositUuid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTravelRuleDepositUuid (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTravelRuleDepositUuid", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleDepositTxid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTravelRuleDepositTxid (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTravelRuleDepositTxid", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPocketsUniversalTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPocketsUniversalTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPocketsUniversalTransfers", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPocketsTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPocketsTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPocketsTransfers", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrder", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrdersOpen (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrdersOpen (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrdersOpen", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrdersUuids (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrdersUuids (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrdersUuids", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class UpbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteWithdrawsCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteWithdrawsCoin (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteWithdrawsCoin", optionalArgs);
     }

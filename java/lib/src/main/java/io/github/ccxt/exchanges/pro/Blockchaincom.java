@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 {
@@ -20,8 +26,8 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchBalance", true );
                 put( "watchTicker", true );
@@ -33,24 +39,24 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 put( "watchOrderBook", true );
                 put( "watchOHLCV", true );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "ws", "wss://ws.blockchain.info/mercury-gateway/v1/ws" );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "ws", new java.util.HashMap<String, Object>() {{
-                    put( "options", new java.util.HashMap<String, Object>() {{
-                        put( "headers", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
+                put( "ws", new HashMap<String, Object>() {{
+                    put( "options", new HashMap<String, Object>() {{
+                        put( "headers", new HashMap<String, Object>() {{
                             put( "Origin", "https://exchange.blockchain.com" );
                         }} );
                     }} );
                     put( "noOriginHeader", false );
                 }} );
             }} );
-            put( "streaming", new java.util.HashMap<String, Object>() {{}} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{}} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "streaming", new HashMap<String, Object>() {{}} );
+            put( "exceptions", new HashMap<String, Object>() {{}} );
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "60" );
                 put( "5m", "300" );
                 put( "15m", "900" );
@@ -69,20 +75,20 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.authenticate(parameters)).join();
             String messageHash = "balance";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "balances" );
             }};
-            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
+            Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
         }).thenApply(io.github.ccxt.types.Balances::new);
 
@@ -124,10 +130,10 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         {
             return;
         }
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", message );
         }};
-        Object balances = this.safeList(message, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object balances = this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object entry = Helpers.GetValue(balances, i);
@@ -158,24 +164,24 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = Helpers.add("ohlcv:", symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "prices" );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -227,8 +233,8 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             Object request = this.safeValue(client.subscriptions, messageHash);
             String timeframeId = this.safeString(request, "granularity");
             Object timeframe = this.findTimeframe(timeframeId);
-            Object ohlcv = this.safeValue(message, "price", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
+            Object ohlcv = this.safeValue(message, "price", new ArrayList<Object>(Arrays.asList()));
+            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
@@ -253,21 +259,21 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String messageHash = Helpers.add("ticker:", symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "ticker" );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -310,7 +316,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         //
         String eventVar = this.safeString(message, "event");
         String marketId = this.safeString(message, "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ticker = null;
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "subscribed")))
@@ -345,7 +351,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String marketId = this.safeString(ticker, "symbol");
         String symbol = this.safeSymbol(marketId, null, "-");
         String last = this.safeString(ticker, "mark_price");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -365,7 +371,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "average", null );
             put( "baseVolume", Blockchaincom.this.safeString(lastTicker, "baseVolume") );
             put( "quoteVolume", null );
-            put( "info", Blockchaincom.this.extend(Blockchaincom.this.safeValue(lastTicker, "info", new java.util.HashMap<String, Object>() {{}}), ticker) );
+            put( "info", Blockchaincom.this.extend(Blockchaincom.this.safeValue(lastTicker, "info", new HashMap<String, Object>() {{}}), ticker) );
         }}, market);
     }
 
@@ -380,23 +386,23 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String messageHash = Helpers.add("trades:", symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "trades" );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -438,7 +444,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         }
         String marketId = this.safeString(message, "symbol");
         String symbol = this.safeSymbol(marketId);
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -471,7 +477,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "timestamp");
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(trade, "trade_id") );
             put( "timestamp", Blockchaincom.this.parse8601(datetime) );
             put( "datetime", datetime );
@@ -499,15 +505,15 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -515,16 +521,16 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             (this.authenticate()).join();
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "trading" );
             }};
             String messageHash = "orders";
-            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -627,7 +633,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "snapshot")))
         {
-            Object orders = this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orders = this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -682,16 +688,16 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         String tradeId = this.safeString(order, "tradeId");
-        java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> trades = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(!Helpers.isEqual(tradeId, "0")))
         {
 final Object finalTradeId = tradeId;
-                        ((java.util.List<Object>)trades).add(new java.util.HashMap<String, Object>() {{
+                        ((List<Object>)trades).add(new HashMap<String, Object>() {{
                 put( "id", finalTradeId );
             }});
         }
         final Object finalMarket = market;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(order, "orderID") );
             put( "clientOrderId", Blockchaincom.this.safeString(order, "clOrdID") );
             put( "datetime", datetime );
@@ -709,7 +715,7 @@ final Object finalTradeId = tradeId;
             put( "filled", Blockchaincom.this.safeString(order, "cumQty") );
             put( "remaining", Blockchaincom.this.safeString(order, "leavesQty") );
             put( "trades", trades );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "rate", null );
                 put( "cost", Blockchaincom.this.safeNumber(order, "fee") );
                 put( "currency", Blockchaincom.this.safeString(finalMarket, "quote") );
@@ -722,7 +728,7 @@ final Object finalTradeId = tradeId;
 
     public String parseWsOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending", "open" );
             put( "open", "open" );
             put( "rejected", "rejected" );
@@ -745,28 +751,28 @@ final Object finalTradeId = tradeId;
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String type = this.safeString(parameters, "type", "l2");
             parameters = this.omit(parameters, "type");
             String messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), type);
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", type );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
+            Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -831,8 +837,8 @@ final Object finalTradeId = tradeId;
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "updated")))
         {
-            Object asks = this.safeList(message, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(message, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object asks = this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
+            Object bids = this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -861,7 +867,7 @@ final Object finalTradeId = tradeId;
     public void handleMessage(Client client, Object message)
     {
         String channel = this.safeString(message, "channel");
-        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> handlers = new HashMap<String, Object>() {{
             put( "ticker", "handleTicker");
             put( "trades", "handleTrades");
             put( "prices", "handleOHLCV");
@@ -902,12 +908,12 @@ final Object finalTradeId = tradeId;
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             String messageHash = "authenticated";
@@ -916,7 +922,7 @@ final Object finalTradeId = tradeId;
             if (Helpers.isTrue(Helpers.isEqual(isAuthenticated, null)))
             {
                 this.checkRequiredCredentials();
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "action", "subscribe" );
                     put( "channel", "auth" );
                     put( "token", Blockchaincom.this.secret );

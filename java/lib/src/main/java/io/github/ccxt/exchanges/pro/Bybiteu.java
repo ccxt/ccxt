@@ -7,6 +7,10 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Bybiteu extends io.github.ccxt.exchanges.Bybiteu
 {
@@ -24,24 +28,24 @@ public class Bybiteu extends io.github.ccxt.exchanges.Bybiteu
         var restInstance = new io.github.ccxt.exchanges.Bybiteu();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        java.util.Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
-        return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
+        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "bybiteu" );
             put( "name", "Bybit EU" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("EU")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("EU")) );
             put( "hostname", "bybit.eu" );
             put( "certified", false );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
-                    put( "ws", new java.util.HashMap<String, Object>() {{
-                        put( "public", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
+                        put( "public", new HashMap<String, Object>() {{
                             put( "spot", "wss://stream.{hostname}/v5/public/spot" );
                             put( "inverse", "wss://stream.{hostname}/v5/public/inverse" );
                             put( "option", "wss://stream.{hostname}/v5/public/option" );
                             put( "linear", "wss://stream.{hostname}/v5/public/linear" );
                         }} );
-                        put( "private", new java.util.HashMap<String, Object>() {{
-                            put( "spot", new java.util.HashMap<String, Object>() {{
+                        put( "private", new HashMap<String, Object>() {{
+                            put( "spot", new HashMap<String, Object>() {{
                                 put( "unified", "wss://stream.{hostname}/v5/private" );
                                 put( "nonUnified", "wss://stream.{hostname}/spot/private/v3" );
                             }} );
@@ -51,16 +55,16 @@ public class Bybiteu extends io.github.ccxt.exchanges.Bybiteu
                         }} );
                     }} );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
-                    put( "ws", new java.util.HashMap<String, Object>() {{
-                        put( "public", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
+                        put( "public", new HashMap<String, Object>() {{
                             put( "spot", "wss://stream-testnet.{hostname}/v5/public/spot" );
                             put( "inverse", "wss://stream-testnet.{hostname}/v5/public/inverse" );
                             put( "linear", "wss://stream-testnet.{hostname}/v5/public/linear" );
                             put( "option", "wss://stream-testnet.{hostname}/v5/public/option" );
                         }} );
-                        put( "private", new java.util.HashMap<String, Object>() {{
-                            put( "spot", new java.util.HashMap<String, Object>() {{
+                        put( "private", new HashMap<String, Object>() {{
+                            put( "spot", new HashMap<String, Object>() {{
                                 put( "unified", "wss://stream-testnet.{hostname}/v5/private" );
                                 put( "nonUnified", "wss://stream-testnet.{hostname}/spot/private/v3" );
                             }} );
@@ -70,16 +74,16 @@ public class Bybiteu extends io.github.ccxt.exchanges.Bybiteu
                         }} );
                     }} );
                 }} );
-                put( "demotrading", new java.util.HashMap<String, Object>() {{
-                    put( "ws", new java.util.HashMap<String, Object>() {{
-                        put( "public", new java.util.HashMap<String, Object>() {{
+                put( "demotrading", new HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
+                        put( "public", new HashMap<String, Object>() {{
                             put( "spot", "wss://stream.{hostname}/v5/public/spot" );
                             put( "inverse", "wss://stream.{hostname}/v5/public/inverse" );
                             put( "option", "wss://stream.{hostname}/v5/public/option" );
                             put( "linear", "wss://stream.{hostname}/v5/public/linear" );
                         }} );
-                        put( "private", new java.util.HashMap<String, Object>() {{
-                            put( "spot", new java.util.HashMap<String, Object>() {{
+                        put( "private", new HashMap<String, Object>() {{
+                            put( "spot", new HashMap<String, Object>() {{
                                 put( "unified", "wss://stream-demo.{hostname}/v5/private" );
                                 put( "nonUnified", "wss://stream-demo.{hostname}/spot/private/v3" );
                             }} );

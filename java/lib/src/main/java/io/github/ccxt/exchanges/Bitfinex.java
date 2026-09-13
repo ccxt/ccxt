@@ -6,6 +6,12 @@ import io.github.ccxt.api.BitfinexApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Bitfinex extends BitfinexApi
 {
@@ -19,14 +25,14 @@ public class Bitfinex extends BitfinexApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bitfinex" );
             put( "name", "Bitfinex" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("VG")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("VG")) );
             put( "version", "v2" );
             put( "certified", false );
             put( "pro", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", true );
@@ -124,7 +130,7 @@ public class Bitfinex extends BitfinexApi
                 put( "transfer", true );
                 put( "withdraw", true );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "1m" );
                 put( "5m", "5m" );
                 put( "15m", "15m" );
@@ -140,486 +146,486 @@ public class Bitfinex extends BitfinexApi
                 put( "1M", "1M" );
             }} );
             put( "rateLimit", 250 );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "v1", "https://api.bitfinex.com" );
                     put( "public", "https://api-pub.bitfinex.com" );
                     put( "private", "https://api.bitfinex.com" );
                 }} );
                 put( "www", "https://www.bitfinex.com" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.bitfinex.com/v2/docs/", "https://github.com/bitfinexcom/bitfinex-api-node")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.bitfinex.com/v2/docs/", "https://github.com/bitfinexcom/bitfinex-api-node")) );
                 put( "fees", "https://www.bitfinex.com/fees" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "conf/{config}", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "conf/{config}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:{action}:{object}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:{action}:{object}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:{action}:{object}:{detail}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:{action}:{object}:{detail}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:{object}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:{object}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:{object}:{detail}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:{object}:{detail}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:currency:{detail}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:currency:{detail}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:currency:sym", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:currency:sym", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:currency:label", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:currency:label", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:currency:unit", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:currency:unit", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:currency:undl", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:currency:undl", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:currency:pool", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:currency:pool", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:currency:explorer", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:currency:explorer", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:currency:tx:fee", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:currency:tx:fee", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:map:tx:method", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:map:tx:method", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:list:{object}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:list:{object}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:list:{object}:{detail}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:list:{object}:{detail}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:list:currency", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:list:currency", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:list:pair:exchange", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:list:pair:exchange", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:list:pair:margin", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:list:pair:margin", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:list:pair:futures", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:list:pair:futures", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:list:competitions", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:list:competitions", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:info:{object}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:info:{object}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:info:{object}:{detail}", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:info:{object}:{detail}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:info:pair", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:info:pair", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:info:pair:futures", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:info:pair:futures", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:info:tx:status", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:info:tx:status", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "conf/pub:fees", new java.util.HashMap<String, Object>() {{
+                        put( "conf/pub:fees", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "platform/status", new java.util.HashMap<String, Object>() {{
+                        put( "platform/status", new HashMap<String, Object>() {{
                             put( "cost", 8 );
                         }} );
-                        put( "tickers", new java.util.HashMap<String, Object>() {{
+                        put( "tickers", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "ticker/{symbol}", new java.util.HashMap<String, Object>() {{
+                        put( "ticker/{symbol}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "tickers/hist", new java.util.HashMap<String, Object>() {{
+                        put( "tickers/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "trades/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "trades/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "book/{symbol}/{precision}", new java.util.HashMap<String, Object>() {{
+                        put( "book/{symbol}/{precision}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "book/{symbol}/P0", new java.util.HashMap<String, Object>() {{
+                        put( "book/{symbol}/P0", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "book/{symbol}/P1", new java.util.HashMap<String, Object>() {{
+                        put( "book/{symbol}/P1", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "book/{symbol}/P2", new java.util.HashMap<String, Object>() {{
+                        put( "book/{symbol}/P2", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "book/{symbol}/P3", new java.util.HashMap<String, Object>() {{
+                        put( "book/{symbol}/P3", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "book/{symbol}/R0", new java.util.HashMap<String, Object>() {{
+                        put( "book/{symbol}/R0", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}:{side}/{section}", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}:{side}/{section}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}:{side}/last", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}:{side}/last", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}:{side}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}:{side}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}/{section}", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}/{section}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}/last", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}/last", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}:long/last", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}:long/last", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}:long/hist", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}:long/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}:short/last", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}:short/last", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "stats1/{key}:{size}:{symbol}:short/hist", new java.util.HashMap<String, Object>() {{
+                        put( "stats1/{key}:{size}:{symbol}:short/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "candles/trade:{timeframe}:{symbol}:{period}/{section}", new java.util.HashMap<String, Object>() {{
+                        put( "candles/trade:{timeframe}:{symbol}:{period}/{section}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "candles/trade:{timeframe}:{symbol}/{section}", new java.util.HashMap<String, Object>() {{
+                        put( "candles/trade:{timeframe}:{symbol}/{section}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "candles/trade:{timeframe}:{symbol}/last", new java.util.HashMap<String, Object>() {{
+                        put( "candles/trade:{timeframe}:{symbol}/last", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "candles/trade:{timeframe}:{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "candles/trade:{timeframe}:{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "status/{type}", new java.util.HashMap<String, Object>() {{
+                        put( "status/{type}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "status/deriv", new java.util.HashMap<String, Object>() {{
+                        put( "status/deriv", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "status/deriv/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "status/deriv/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "liquidations/hist", new java.util.HashMap<String, Object>() {{
+                        put( "liquidations/hist", new HashMap<String, Object>() {{
                             put( "cost", 80 );
                         }} );
-                        put( "rankings/{key}:{timeframe}:{symbol}/{section}", new java.util.HashMap<String, Object>() {{
+                        put( "rankings/{key}:{timeframe}:{symbol}/{section}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "rankings/{key}:{timeframe}:{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "rankings/{key}:{timeframe}:{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "pulse/hist", new java.util.HashMap<String, Object>() {{
+                        put( "pulse/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "pulse/profile/{nickname}", new java.util.HashMap<String, Object>() {{
+                        put( "pulse/profile/{nickname}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "funding/stats/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "funding/stats/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "ext/vasps", new java.util.HashMap<String, Object>() {{
+                        put( "ext/vasps", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "calc/trade/avg", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "calc/trade/avg", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "calc/fx", new java.util.HashMap<String, Object>() {{
+                        put( "calc/fx", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "auth/r/wallets", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "auth/r/wallets", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/wallets/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/wallets/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/orders", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/orders", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/orders/{symbol}", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/orders/{symbol}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/order/submit", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/order/submit", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/order/update", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/order/update", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/order/cancel", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/order/cancel", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/order/multi", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/order/multi", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/order/cancel/multi", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/order/cancel/multi", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/orders/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/orders/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/orders/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/orders/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/orders/otc/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/orders/otc/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/order/{symbol}:{id}/trades", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/order/{symbol}:{id}/trades", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/trades/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/trades/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/trades/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/trades/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/ledgers/{currency}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/ledgers/{currency}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/ledgers/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/ledgers/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/info/margin/{key}", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/info/margin/{key}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/info/margin/base", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/info/margin/base", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/info/margin/sym_all", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/info/margin/sym_all", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/positions", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/positions", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/position/claim", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/position/claim", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/position/increase:", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/position/increase:", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/position/increase/info", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/position/increase/info", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/positions/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/positions/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/positions/audit", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/positions/audit", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/positions/snap", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/positions/snap", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/position/update/funding/type", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/position/update/funding/type", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/deriv/collateral/set", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/deriv/collateral/set", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/deriv/collateral/limits", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/deriv/collateral/limits", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/offers", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/offers", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/offers/{symbol}", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/offers/{symbol}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/funding/offer/submit", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/funding/offer/submit", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/funding/offer/cancel", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/funding/offer/cancel", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/funding/offer/cancel/all", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/funding/offer/cancel/all", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/funding/close", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/funding/close", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/funding/auto", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/funding/auto", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/funding/keep", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/funding/keep", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/offers/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/offers/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/offers/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/offers/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/loans", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/loans", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/loans/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/loans/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/loans/{symbol}", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/loans/{symbol}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/loans/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/loans/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/credits", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/credits", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/credits/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/credits/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/credits/{symbol}", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/credits/{symbol}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/credits/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/credits/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/trades/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/trades/{symbol}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/funding/trades/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/funding/trades/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/info/funding/{key}", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/info/funding/{key}", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/info/user", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/info/user", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/summary", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/summary", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/logins/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/logins/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/permissions", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/permissions", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/token", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/token", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/audit/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/audit/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/transfer", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/transfer", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/deposit/address", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/deposit/address", new HashMap<String, Object>() {{
                             put( "cost", 24 );
                         }} );
-                        put( "auth/r/deposit/address/all", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/deposit/address/all", new HashMap<String, Object>() {{
                             put( "cost", 24 );
                         }} );
-                        put( "auth/w/deposit/invoice", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/deposit/invoice", new HashMap<String, Object>() {{
                             put( "cost", 24 );
                         }} );
-                        put( "auth/r/ext/invoice/payments", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/ext/invoice/payments", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/withdraw", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/withdraw", new HashMap<String, Object>() {{
                             put( "cost", 24 );
                         }} );
-                        put( "auth/r/movements/{currency}/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/movements/{currency}/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/movements/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/movements/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/movements/info", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/movements/info", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/alerts", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/alerts", new HashMap<String, Object>() {{
                             put( "cost", 5.34 );
                         }} );
-                        put( "auth/w/alert/set", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/alert/set", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/alert/price:{symbol}:{price}/del", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/alert/price:{symbol}:{price}/del", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/alert/{type}:{symbol}:{price}/del", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/alert/{type}:{symbol}:{price}/del", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/calc/order/avail", new java.util.HashMap<String, Object>() {{
+                        put( "auth/calc/order/avail", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/settings/set", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/settings/set", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/settings", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/settings", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/settings/del", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/settings/del", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/pulse/hist", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/pulse/hist", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/pulse/add", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/pulse/add", new HashMap<String, Object>() {{
                             put( "cost", 16 );
                         }} );
-                        put( "auth/w/pulse/del", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/pulse/del", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/ext/wallets/deposits/request", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/ext/wallets/deposits/request", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/w/ext/wallets/withdrawals/request", new java.util.HashMap<String, Object>() {{
+                        put( "auth/w/ext/wallets/withdrawals/request", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
-                        put( "auth/r/ext/wallets/transfers/free/count", new java.util.HashMap<String, Object>() {{
+                        put( "auth/r/ext/wallets/transfers/free/count", new HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "feeSide", "get" );
                     put( "percentage", true );
                     put( "tierBased", true );
                     put( "maker", Bitfinex.this.parseNumber("0.001") );
                     put( "taker", Bitfinex.this.parseNumber("0.002") );
-                    put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("0"), Bitfinex.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("500000"), Bitfinex.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("1000000"), Bitfinex.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("2500000"), Bitfinex.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("5000000"), Bitfinex.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("7500000"), Bitfinex.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("10000000"), Bitfinex.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("15000000"), Bitfinex.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("20000000"), Bitfinex.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("25000000"), Bitfinex.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("30000000"), Bitfinex.this.parseNumber("0.001"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("0"), Bitfinex.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("500000"), Bitfinex.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("1000000"), Bitfinex.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("2500000"), Bitfinex.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("5000000"), Bitfinex.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("7500000"), Bitfinex.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("10000000"), Bitfinex.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("15000000"), Bitfinex.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("20000000"), Bitfinex.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("25000000"), Bitfinex.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseNumber("30000000"), Bitfinex.this.parseNumber("0"))))) );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("0"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("500000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("1000000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("2500000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("5000000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("7500000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("10000000"), Bitfinex.this.parseNumber("0.0018"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("15000000"), Bitfinex.this.parseNumber("0.0016"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("20000000"), Bitfinex.this.parseNumber("0.0014"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("25000000"), Bitfinex.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("30000000"), Bitfinex.this.parseNumber("0.001"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("0"), Bitfinex.this.parseNumber("0.001"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("500000"), Bitfinex.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("1000000"), Bitfinex.this.parseNumber("0.0006"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("2500000"), Bitfinex.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("5000000"), Bitfinex.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("7500000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("10000000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("15000000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("20000000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("25000000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("30000000"), Bitfinex.this.parseNumber("0"))))) );
                     }} );
                 }} );
-                put( "funding", new java.util.HashMap<String, Object>() {{
-                    put( "withdraw", new java.util.HashMap<String, Object>() {{}} );
+                put( "funding", new HashMap<String, Object>() {{
+                    put( "withdraw", new HashMap<String, Object>() {{}} );
                 }} );
             }} );
             put( "precisionMode", SIGNIFICANT_DIGITS );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "fetchOrderBook", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
+                put( "fetchOrderBook", new HashMap<String, Object>() {{
                     put( "precision", "R0" );
                 }} );
-                put( "fetchCurrencies", new java.util.HashMap<String, Object>() {{
+                put( "fetchCurrencies", new HashMap<String, Object>() {{
                     put( "defaultPrecision", 8 );
                 }} );
-                put( "exchangeTypes", new java.util.HashMap<String, Object>() {{
+                put( "exchangeTypes", new HashMap<String, Object>() {{
                     put( "MARKET", "market" );
                     put( "EXCHANGE MARKET", "market" );
                     put( "LIMIT", "limit" );
@@ -629,18 +635,18 @@ public class Bitfinex extends BitfinexApi
                     put( "EXCHANGE STOP LIMIT", "limit" );
                     put( "EXCHANGE IOC", "limit" );
                 }} );
-                put( "orderTypes", new java.util.HashMap<String, Object>() {{
+                put( "orderTypes", new HashMap<String, Object>() {{
                     put( "market", "EXCHANGE MARKET" );
                     put( "limit", "EXCHANGE LIMIT" );
                 }} );
-                put( "fiat", new java.util.HashMap<String, Object>() {{
+                put( "fiat", new HashMap<String, Object>() {{
                     put( "USD", "USD" );
                     put( "EUR", "EUR" );
                     put( "JPY", "JPY" );
                     put( "GBP", "GBP" );
                     put( "CHN", "CHN" );
                 }} );
-                put( "v2AccountsByType", new java.util.HashMap<String, Object>() {{
+                put( "v2AccountsByType", new HashMap<String, Object>() {{
                     put( "spot", "exchange" );
                     put( "exchange", "exchange" );
                     put( "funding", "funding" );
@@ -649,10 +655,10 @@ public class Bitfinex extends BitfinexApi
                     put( "future", "margin" );
                     put( "swap", "margin" );
                 }} );
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new HashMap<String, Object>() {{
                     put( "includeFee", false );
                 }} );
-                put( "networks", new java.util.HashMap<String, Object>() {{
+                put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BITCOIN" );
                     put( "LTC", "LITECOIN" );
                     put( "ERC20", "ETHEREUM" );
@@ -668,14 +674,14 @@ public class Bitfinex extends BitfinexApi
                     put( "DVF", "TETHERUSDTDVF" );
                     put( "OMG", "TETHERUSDTOMG" );
                 }} );
-                put( "networksById", new java.util.HashMap<String, Object>() {{
+                put( "networksById", new HashMap<String, Object>() {{
                     put( "TETHERUSE", "ERC20" );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "default", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "default", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", true );
                         put( "triggerPrice", true );
                         put( "triggerPriceType", null );
@@ -683,7 +689,7 @@ public class Bitfinex extends BitfinexApi
                         put( "stopLossPrice", true );
                         put( "takeProfitPrice", true );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", true );
@@ -697,23 +703,23 @@ public class Bitfinex extends BitfinexApi
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
-                    put( "createOrders", new java.util.HashMap<String, Object>() {{
+                    put( "createOrders", new HashMap<String, Object>() {{
                         put( "max", 75 );
                     }} );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 2500 );
                         put( "daysBack", null );
                         put( "untilDays", 100000 );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "trigger", false );
@@ -721,7 +727,7 @@ public class Bitfinex extends BitfinexApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchOrders", null );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "daysBack", null );
@@ -731,26 +737,26 @@ public class Bitfinex extends BitfinexApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 10000 );
                     }} );
                 }} );
-                put( "spot", new java.util.HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "extends", "default" );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "linear", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "default" );
                     }} );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "11010", RateLimitExceeded.class );
                     put( "10001", PermissionDenied.class );
                     put( "10020", BadRequest.class );
@@ -759,14 +765,14 @@ public class Bitfinex extends BitfinexApi
                     put( "20060", OnMaintenance.class );
                     put( "temporarily_unavailable", ExchangeNotAvailable.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+                put( "broad", new HashMap<String, Object>() {{
                     put( "available balance is only", InsufficientFunds.class );
                     put( "not enough exchange balance", InsufficientFunds.class );
                     put( "Order not found", OrderNotFound.class );
                     put( "symbol: invalid", BadSymbol.class );
                 }} );
             }} );
-            put( "commonCurrencies", new java.util.HashMap<String, Object>() {{
+            put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "UST", "USDT" );
                 put( "EUTF0", "EURT" );
                 put( "USTF0", "USDT" );
@@ -829,14 +835,14 @@ public class Bitfinex extends BitfinexApi
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         symbol = this.safeSymbol(symbol);
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
     public Object priceToPrecision(Object symbol, Object price)
     {
         symbol = this.safeSymbol(symbol);
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         price = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -853,20 +859,20 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             //
             //    [1] // operative
             //    [0] // maintenance
             //
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> response = (this.publicGetPlatformStatus(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            List<Object> response = (this.publicGetPlatformStatus(parameters)).join();
             String statusRaw = this.safeString(response, 0);
-            return new java.util.HashMap<String, Object>() {{
-                put( "status", Bitfinex.this.safeString(new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
+                put( "status", Bitfinex.this.safeString(new HashMap<String, Object>() {{
                     put( "0", "maintenance" );
                     put( "1", "ok" );
                 }}, statusRaw, statusRaw) );
@@ -887,29 +893,29 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"));
-            Object config = String.join(",", (java.util.List<String>)labels);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object labels = new ArrayList<Object>(Arrays.asList("pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"));
+            Object config = String.join(",", (List<String>)labels);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "config", config );
             }};
-            java.util.List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
-            Object spotMarketsInfo = this.safeList(response, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object futuresMarketsInfo = this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object securitiesMarketsIds = this.safeList(response, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object marginIds = this.safeList(response, 3, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> markets = (java.util.List<Object>) this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
+            Object spotMarketsInfo = this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
+            Object futuresMarketsInfo = this.safeList(response, 1, new ArrayList<Object>(Arrays.asList()));
+            Object securitiesMarketsIds = this.safeList(response, 2, new ArrayList<Object>(Arrays.asList()));
+            Object marginIds = this.safeList(response, 3, new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object pairObj = Helpers.GetValue(markets, i);
                 String id = this.safeStringUpper(pairObj, 0);
-                Object market = this.safeValue(pairObj, 1, new java.util.HashMap<String, Object>() {{}});
+                Object market = this.safeValue(pairObj, 1, new HashMap<String, Object>() {{}});
                 Boolean spot = true;
                 String type = null;
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, "F0"), 0)))
@@ -961,7 +967,7 @@ public class Bitfinex extends BitfinexApi
                 final Object finalSettleId = settleId;
                 final Object finalType = type;
                 final Object finalSpot = spot;
-                            ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", Helpers.add("t", id) );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
@@ -986,24 +992,24 @@ public class Bitfinex extends BitfinexApi
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
-                    put( "precision", new java.util.HashMap<String, Object>() {{
+                    put( "precision", new HashMap<String, Object>() {{
                         put( "amount", Helpers.parseInt("8") );
                         put( "price", Helpers.parseInt("5") );
                     }} );
-                    put( "limits", new java.util.HashMap<String, Object>() {{
-                        put( "leverage", new java.util.HashMap<String, Object>() {{
+                    put( "limits", new HashMap<String, Object>() {{
+                        put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "amount", new java.util.HashMap<String, Object>() {{
+                        put( "amount", new HashMap<String, Object>() {{
                             put( "min", Bitfinex.this.parseNumber(minOrderSizeString) );
                             put( "max", Bitfinex.this.parseNumber(maxOrderSizeString) );
                         }} );
-                        put( "price", new java.util.HashMap<String, Object>() {{
+                        put( "price", new HashMap<String, Object>() {{
                             put( "min", Bitfinex.this.parseNumber("1e-8") );
                             put( "max", null );
                         }} );
-                        put( "cost", new java.util.HashMap<String, Object>() {{
+                        put( "cost", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
@@ -1025,18 +1031,18 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"));
-            Object config = String.join(",", (java.util.List<String>)labels);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object labels = new ArrayList<Object>(Arrays.asList("pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"));
+            Object config = String.join(",", (List<String>)labels);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "config", config );
             }};
-            java.util.List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
             //
             //     [
             //
@@ -1120,19 +1126,19 @@ public class Bitfinex extends BitfinexApi
             //         ]
             //     ]
             //
-            java.util.Map<String, Object> indexed = new java.util.HashMap<String, Object>() {{
-                put( "sym", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
-                put( "label", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
-                put( "unit", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 3, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
-                put( "undl", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
-                put( "pool", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 5, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
-                put( "explorer", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 6, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
-                put( "fees", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 7, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
-                put( "networks", Bitfinex.this.safeList(response, 8, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
-                put( "statuses", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 9, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
-                put( "marginables", Bitfinex.this.safeList(response, 10, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+            Map<String, Object> indexed = new HashMap<String, Object>() {{
+                put( "sym", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 1, new ArrayList<Object>(Arrays.asList())), 0) );
+                put( "label", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 2, new ArrayList<Object>(Arrays.asList())), 0) );
+                put( "unit", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 3, new ArrayList<Object>(Arrays.asList())), 0) );
+                put( "undl", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 4, new ArrayList<Object>(Arrays.asList())), 0) );
+                put( "pool", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 5, new ArrayList<Object>(Arrays.asList())), 0) );
+                put( "explorer", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 6, new ArrayList<Object>(Arrays.asList())), 0) );
+                put( "fees", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 7, new ArrayList<Object>(Arrays.asList())), 0) );
+                put( "networks", Bitfinex.this.safeList(response, 8, new ArrayList<Object>(Arrays.asList())) );
+                put( "statuses", Bitfinex.this.indexBy(Bitfinex.this.safeList(response, 9, new ArrayList<Object>(Arrays.asList())), 0) );
+                put( "marginables", Bitfinex.this.safeList(response, 10, new ArrayList<Object>(Arrays.asList())) );
             }};
-            java.util.Map<String, Object> indexedNetworks = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> indexedNetworks = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(indexed, "networks"))); i++)
             {
                 Object networkObj = Helpers.GetValue(Helpers.GetValue(indexed, "networks"), i);
@@ -1140,11 +1146,11 @@ public class Bitfinex extends BitfinexApi
                 Object valuesList = this.safeList(networkObj, 1);
                 String networkName = this.safeString(valuesList, 0);
                 // for GOlang transpiler, do with "safe" method
-                Object networksList = this.safeList(indexedNetworks, networkName, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                ((java.util.List<Object>)networksList).add(networkId);
+                Object networksList = this.safeList(indexedNetworks, networkName, new ArrayList<Object>(Arrays.asList()));
+                ((List<Object>)networksList).add(networkId);
                 Helpers.addElementToObject(indexedNetworks, networkName, networksList);
             }
-            Object ids = this.safeList(response, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object ids = this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
         });
 
@@ -1152,7 +1158,7 @@ public class Bitfinex extends BitfinexApi
 
     public Object parseCurrenciesCustom(Object ids, Object indexed, Object indexedNetworks)
     {
-        java.util.List<Object> allowedIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> allowedIds = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -1160,10 +1166,10 @@ public class Bitfinex extends BitfinexApi
             {
                 continue;
             }
-            ((java.util.List<Object>)allowedIds).add(id);
+            ((List<Object>)allowedIds).add(id);
         }
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<Object> arr = this.toArray(allowedIds);
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        List<Object> arr = this.toArray(allowedIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
             Object parsed = this.parseCurrencyCustom(Helpers.GetValue(arr, i), indexed, indexedNetworks);
@@ -1176,23 +1182,23 @@ public class Bitfinex extends BitfinexApi
     public Object parseCurrencyCustom(Object id, Object indexed, Object indexedNetworks)
     {
         String code = this.safeCurrencyCode(id);
-        Object label = this.safeList(Helpers.GetValue(indexed, "label"), id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object label = this.safeList(Helpers.GetValue(indexed, "label"), id, new ArrayList<Object>(Arrays.asList()));
         String name = this.safeString(label, 1);
-        Object pool = this.safeList(Helpers.GetValue(indexed, "pool"), id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object pool = this.safeList(Helpers.GetValue(indexed, "pool"), id, new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(pool, 1);
         Boolean isCryptoCoin = Helpers.isTrue((!Helpers.isEqual(rawType, null))) || Helpers.isTrue((Helpers.inOp(Helpers.GetValue(indexed, "explorer"), id))); // "hacky" solution
         String type = ((Helpers.isTrue(isCryptoCoin))) ? "crypto" : null;
-        Object feeValues = this.safeList(Helpers.GetValue(indexed, "fees"), id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object fees = this.safeList(feeValues, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object feeValues = this.safeList(Helpers.GetValue(indexed, "fees"), id, new ArrayList<Object>(Arrays.asList()));
+        Object fees = this.safeList(feeValues, 1, new ArrayList<Object>(Arrays.asList()));
         Double fee = this.safeNumber(fees, 1);
-        Object undl = this.safeList(Helpers.GetValue(indexed, "undl"), id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object undl = this.safeList(Helpers.GetValue(indexed, "undl"), id, new ArrayList<Object>(Arrays.asList()));
         String defaultCurrencyPrecision = this.safeString(this.options, "defaultCurrencyPrecision", "8"); // kept here for backward-compatibility
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
         // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
         Object precision = this.numberToString(this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
-        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object networkIds = this.safeList(indexedNetworks, id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
+        Object networkIds = this.safeList(indexedNetworks, id, new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
         {
             // safeString instead of raw access: the venue config payload can carry numeric
@@ -1204,11 +1210,11 @@ public class Bitfinex extends BitfinexApi
                 continue;
             }
             Object network = this.networkIdToCode(networkId, code);
-            Object dwStatuses = this.safeList(Helpers.GetValue(indexed, "statuses"), networkId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object dwStatuses = this.safeList(Helpers.GetValue(indexed, "statuses"), networkId, new ArrayList<Object>(Arrays.asList()));
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
                 final Object finalNetworkId = networkId;
-                Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(networks, network, new HashMap<String, Object>() {{
     put( "info", finalNetworkId );
     put( "id", ((String)finalNetworkId).toLowerCase() );
     put( "network", finalNetworkId );
@@ -1217,8 +1223,8 @@ public class Bitfinex extends BitfinexApi
     put( "withdraw", Helpers.isEqual(Bitfinex.this.safeInteger(dwStatuses, 2), 1) );
     put( "fee", null );
     put( "precision", null );
-    put( "limits", new java.util.HashMap<String, Object>() {{
-        put( "withdraw", new java.util.HashMap<String, Object>() {{
+    put( "limits", new HashMap<String, Object>() {{
+        put( "withdraw", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
         }} );
@@ -1227,10 +1233,10 @@ public class Bitfinex extends BitfinexApi
             }
         }
         final Object finalId = id;
-        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "code", code );
-            put( "info", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalId, label, pool, feeValues, undl)) );
+            put( "info", new ArrayList<Object>(Arrays.asList(finalId, label, pool, feeValues, undl)) );
             put( "type", type );
             put( "name", name );
             put( "active", true );
@@ -1238,12 +1244,12 @@ public class Bitfinex extends BitfinexApi
             put( "withdraw", null );
             put( "fee", fee );
             put( "precision", Bitfinex.this.parseNumber(precision) );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "amount", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", fee );
                     put( "max", null );
                 }} );
@@ -1261,31 +1267,31 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
             // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object accountsByType = this.safeDict(this.options, "v2AccountsByType", new java.util.HashMap<String, Object>() {{}});
+            Object accountsByType = this.safeDict(this.options, "v2AccountsByType", new HashMap<String, Object>() {{}});
             String requestedType = this.safeString(parameters, "type", "exchange");
             String accountType = this.safeString(accountsByType, requestedType, requestedType);
             if (Helpers.isTrue(Helpers.isEqual(accountType, null)))
             {
                 Object keys = Helpers.objectKeys(accountsByType);
-                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchBalance() type parameter must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchBalance() type parameter must be one of "), String.join(", ", (List<String>)keys))) ;
             }
             Boolean isDerivative = Helpers.isEqual(requestedType, "derivatives");
             Object query = this.omit(parameters, "type");
-            java.util.List<Object> response = (this.privatePostAuthRWallets(query)).join();
-            java.util.List<Object> balances = this.toArray(response);
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+            List<Object> response = (this.privatePostAuthRWallets(query)).join();
+            List<Object> balances = this.toArray(response);
+            Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
@@ -1331,46 +1337,46 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // transferring between derivatives wallet and regular wallet is not documented in their API
             // however we support it in CCXT (from just looking at web inspector)
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object accountsByType = this.safeDict(this.options, "v2AccountsByType", new java.util.HashMap<String, Object>() {{}});
+            Object accountsByType = this.safeDict(this.options, "v2AccountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount);
             if (Helpers.isTrue(Helpers.isEqual(fromId, null)))
             {
                 Object keys = Helpers.objectKeys(accountsByType);
-                throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " transfer() fromAccount must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " transfer() fromAccount must be one of "), String.join(", ", (List<String>)keys))) ;
             }
             String toId = this.safeString(accountsByType, toAccount);
             if (Helpers.isTrue(Helpers.isEqual(toId, null)))
             {
                 Object keys = Helpers.objectKeys(accountsByType);
-                throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " transfer() toAccount must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " transfer() toAccount must be one of "), String.join(", ", (List<String>)keys))) ;
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object fromCurrencyId = this.convertDerivativesId(currency, fromAccount);
             Object toCurrencyId = this.convertDerivativesId(currency, toAccount);
             Object requestedAmount = this.currencyToPrecision(code, amount);
             // this request is slightly different from v1 fromAccount -> from
             final Object finalFromId = fromId;
             final Object finalToId = toId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", requestedAmount );
                 put( "currency", fromCurrencyId );
                 put( "currency_to", toCurrencyId );
                 put( "from", finalFromId );
                 put( "to", finalToId );
             }};
-            java.util.List<Object> response = (this.privatePostAuthWTransfer(this.extend(request, parameters))).join();
+            List<Object> response = (this.privatePostAuthWTransfer(this.extend(request, parameters))).join();
             //
             //     [
             //         1616451183763,
@@ -1400,7 +1406,7 @@ public class Bitfinex extends BitfinexApi
                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, Helpers.add(Helpers.add(this.id, " "), message));
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), message)) ;
             }
-            return this.parseTransfer(new java.util.HashMap<String, Object>() {{
+            return this.parseTransfer(new HashMap<String, Object>() {{
                 put( "result", response );
             }}, currency);
         }).thenApply(io.github.ccxt.types.TransferEntry::new);
@@ -1440,7 +1446,7 @@ public class Bitfinex extends BitfinexApi
         String toAccount = this.safeString(info, 2);
         String currencyId = this.safeString(info, 5);
         String status = this.safeString(result, 6);
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "id", null );
             put( "timestamp", timestamp );
             put( "datetime", Bitfinex.this.iso8601(timestamp) );
@@ -1455,7 +1461,7 @@ public class Bitfinex extends BitfinexApi
 
     public String parseTransferStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
             put( "ERROR", "failed" );
             put( "FAILURE", "failed" );
@@ -1472,7 +1478,7 @@ public class Bitfinex extends BitfinexApi
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         Object info = this.safeValue(currency, "info");
         String transferId = this.safeString(info, 0);
-        Object underlying = this.safeValue(info, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object underlying = this.safeValue(info, 4, new ArrayList<Object>(Arrays.asList()));
         Object currencyId = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "derivatives")))
         {
@@ -1503,20 +1509,20 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object precision = this.handleOption("fetchOrderBook", "precision", "R0");
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "precision", precision );
             }};
@@ -1525,18 +1531,18 @@ public class Bitfinex extends BitfinexApi
                 Helpers.addElementToObject(request, "len", limit);
             }
             Object fullRequest = this.extend(request, parameters);
-            java.util.List<Object> orderbook = (this.publicGetBookSymbolPrecision(fullRequest)).join();
+            List<Object> orderbook = (this.publicGetBookSymbolPrecision(fullRequest)).join();
             Long timestamp = this.milliseconds();
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "symbol") );
-                put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-                put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
+                put( "bids", new ArrayList<Object>(Arrays.asList()) );
+                put( "asks", new ArrayList<Object>(Arrays.asList()) );
                 put( "timestamp", timestamp );
                 put( "datetime", Bitfinex.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
             Object priceIndex = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(fullRequest, "precision"), "R0"))))) ? 1 : 0;
-            java.util.List<Object> orders = this.toArray(orderbook);
+            List<Object> orders = this.toArray(orderbook);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -1544,7 +1550,7 @@ public class Bitfinex extends BitfinexApi
                 String signedAmount = this.safeString(order, 2);
                 String amount = Precise.stringAbs(signedAmount);
                 String side = ((Helpers.isTrue(Precise.stringGt(signedAmount, "0")))) ? "bids" : "asks";
-                ((java.util.List<Object>)Helpers.GetValue(result, side)).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, this.parseNumber(amount))));
+                ((List<Object>)Helpers.GetValue(result, side)).add(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(amount))));
             }
             Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
             Helpers.addElementToObject(result, "asks", this.sortBy(Helpers.GetValue(result, "asks"), 0));
@@ -1659,7 +1665,7 @@ public class Bitfinex extends BitfinexApi
         final Object finalChange = change;
         final Object finalPercentage = percentage;
         final Object finalVolume = volume;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1692,28 +1698,28 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object ids = this.marketIds(symbols);
-                Helpers.addElementToObject(request, "symbols", String.join(",", (java.util.List<String>)ids));
+                Helpers.addElementToObject(request, "symbols", String.join(",", (List<String>)ids));
             } else
             {
                 Helpers.addElementToObject(request, "symbols", "ALL");
             }
-            java.util.List<Object> tickers = (this.publicGetTickers(this.extend(request, parameters))).join();
+            List<Object> tickers = (this.publicGetTickers(this.extend(request, parameters))).join();
             //
             //     [
             //         // on trading pairs (ex. tBTCUSD)
@@ -1767,21 +1773,21 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> ticker = (this.publicGetTickerSymbol(this.extend(request, parameters))).join();
+            List<Object> ticker = (this.publicGetTickerSymbol(this.extend(request, parameters))).join();
             return this.parseTicker(ticker, market);
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -1817,7 +1823,7 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object tradeList = this.safeList(trade, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object tradeList = this.safeList(trade, "result", new ArrayList<Object>(Arrays.asList()));
         Object tradeLength = Helpers.getArrayLength(tradeList);
         Boolean isPrivate = (Helpers.isGreaterThan(tradeLength, 5));
         String id = this.safeString(tradeList, 0);
@@ -1853,7 +1859,7 @@ public class Bitfinex extends BitfinexApi
             String feeCurrencyId = this.safeString(tradeList, 10);
             String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCostString = feeCostString;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrency );
             }};
@@ -1867,7 +1873,7 @@ public class Bitfinex extends BitfinexApi
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalAmountString = amountString;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", timestamp );
             put( "datetime", Bitfinex.this.iso8601(timestamp) );
@@ -1897,29 +1903,29 @@ public class Bitfinex extends BitfinexApi
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, 10000)).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String sort = "-1";
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1932,10 +1938,10 @@ public class Bitfinex extends BitfinexApi
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 10000)); // default 120, max 10000
             }
             Helpers.addElementToObject(request, "sort", sort);
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.publicGetTradesSymbolHist(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.publicGetTradesSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -1946,13 +1952,13 @@ public class Bitfinex extends BitfinexApi
             //         ]
             //     ]
             //
-            java.util.List<Object> rawTrades = this.toArray(response);
-            java.util.List<Object> trades = this.sortBy(rawTrades, 1);
-            java.util.List<Object> tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> rawTrades = this.toArray(response);
+            List<Object> trades = this.sortBy(rawTrades, 1);
+            List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
             {
     final Object finalI = i;
-                            ((java.util.List<Object>)tradesList).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)tradesList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(trades, finalI) );
                 }}); // convert to array of dicts to match parseOrder signature
             }
@@ -1975,28 +1981,28 @@ public class Bitfinex extends BitfinexApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, 100);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 10000)).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 10000;
@@ -2005,7 +2011,7 @@ public class Bitfinex extends BitfinexApi
                 limit = Helpers.mathMin(limit, 10000);
             }
             final Object finalLimit = limit;
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "timeframe", Bitfinex.this.safeString(Bitfinex.this.timeframes, timeframe, timeframe) );
                 put( "limit", finalLimit );
@@ -2015,10 +2021,10 @@ public class Bitfinex extends BitfinexApi
                 Helpers.addElementToObject(request, "start", since);
                 Helpers.addElementToObject(request, "sort", 1);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
             //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
@@ -2044,7 +2050,7 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)));
     }
 
     public String parseOrderStatus(Object status)
@@ -2055,7 +2061,7 @@ public class Bitfinex extends BitfinexApi
         }
         Object parts = Helpers.split(status, " ");
         String state = this.safeString(parts, 0);
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ACTIVE", "open" );
             put( "PARTIALLY", "open" );
             put( "EXECUTED", "closed" );
@@ -2073,17 +2079,17 @@ public class Bitfinex extends BitfinexApi
     public Object parseOrderFlags(Object flags)
     {
         // flags can be added to each other...
-        java.util.Map<String, Object> flagValues = new java.util.HashMap<String, Object>() {{
-            put( "1024", new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly")) );
-            put( "4096", new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly")) );
-            put( "5120", new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "postOnly")) );
+        Map<String, Object> flagValues = new HashMap<String, Object>() {{
+            put( "1024", new ArrayList<Object>(Arrays.asList("reduceOnly")) );
+            put( "4096", new ArrayList<Object>(Arrays.asList("postOnly")) );
+            put( "5120", new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly")) );
         }};
         return this.safeValue(flagValues, flags);
     }
 
     public String parseTimeInForce(Object orderType)
     {
-        java.util.Map<String, Object> orderTypes = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> orderTypes = new HashMap<String, Object>() {{
             put( "EXCHANGE IOC", "IOC" );
             put( "EXCHANGE FOK", "FOK" );
             put( "IOC", "IOC" );
@@ -2146,7 +2152,7 @@ public class Bitfinex extends BitfinexApi
         final Object finalPrice = price;
         final Object finalTriggerPrice = triggerPrice;
         final Object finalStatus = status;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", orderList );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2174,7 +2180,7 @@ public class Bitfinex extends BitfinexApi
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
@@ -2205,11 +2211,11 @@ public class Bitfinex extends BitfinexApi
          * @param {string} [params.price_oco_stop] OCO stop price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object amountString = this.amountToPrecision(symbol, amount);
         amountString = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? amountString : ((String)Precise.stringNeg(amountString));
         final Object finalAmountString = amountString;
-        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "amount", finalAmountString );
         }};
@@ -2260,9 +2266,9 @@ public class Bitfinex extends BitfinexApi
             orderType = "FOK";
         }
         Object marginMode = null;
-        java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-        parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
+        List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
+        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+        parameters = ((List<Object>) marginModeparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(marginMode, null)))))
         {
             // The EXCHANGE prefix is only required for non margin spot markets
@@ -2287,7 +2293,7 @@ public class Bitfinex extends BitfinexApi
         {
             Helpers.addElementToObject(request, "cid", clientOrderId);
         }
-        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId")));
+        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId")));
         return this.extend(request, parameters);
     }
 
@@ -2313,20 +2319,20 @@ public class Bitfinex extends BitfinexApi
      * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            java.util.List<Object> response = (this.privatePostAuthWOrderSubmit(request)).join();
+            List<Object> response = (this.privatePostAuthWOrderSubmit(request)).join();
             //
             //      [
             //          1653325121,   // Timestamp in milliseconds
@@ -2381,9 +2387,9 @@ public class Bitfinex extends BitfinexApi
                 String errorText = this.safeString(response, 7);
                 throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), status), ": "), errorText), " (#"), errorCode), ")")) ;
             }
-            Object orders = this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orders = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             Object order = this.safeList(orders, 0);
-            java.util.Map<String, Object> newOrder = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> newOrder = new HashMap<String, Object>() {{
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
@@ -2400,17 +2406,17 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -2419,14 +2425,14 @@ public class Bitfinex extends BitfinexApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-                ((java.util.List<Object>)ordersRequests).add(new java.util.ArrayList<Object>(java.util.Arrays.asList("on", orderRequest)));
+                ((List<Object>)ordersRequests).add(new ArrayList<Object>(Arrays.asList("on", orderRequest)));
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ops", ordersRequests );
             }};
-            java.util.List<Object> response = (this.privatePostAuthWOrderMulti(request)).join();
+            List<Object> response = (this.privatePostAuthWOrderMulti(request)).join();
             //
             //     [
             //         1706762515553,
@@ -2452,13 +2458,13 @@ public class Bitfinex extends BitfinexApi
             //         "Submitting 2 order operations."
             //     ]
             //
-            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object data = this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            List<Object> results = new ArrayList<Object>(Arrays.asList());
+            Object data = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
                 Object individualOrder = Helpers.GetValue(entry, 4);
-                ((java.util.List<Object>)results).add(new java.util.HashMap<String, Object>() {{
+                ((List<Object>)results).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(individualOrder, 0) );
                 }});
             }
@@ -2476,27 +2482,27 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "all", 1 );
             }};
-            java.util.List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
-            Object orders = this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
+            Object orders = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
     final Object finalI = i;
-                            ((java.util.List<Object>)ordersList).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)ordersList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(orders, finalI) );
                 }});
             }
@@ -2515,13 +2521,13 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2542,20 +2548,20 @@ public class Bitfinex extends BitfinexApi
                 }
                 final Object finalCid = cid;
                 final Object finalCidDate = cidDate;
-                request = new java.util.HashMap<String, Object>() {{
+                request = new HashMap<String, Object>() {{
                     put( "cid", finalCid );
                     put( "cid_date", finalCidDate );
                 }};
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cid", "clientOrderId")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cid", "clientOrderId")));
             } else
             {
-                request = new java.util.HashMap<String, Object>() {{
+                request = new HashMap<String, Object>() {{
                     put( "id", Helpers.parseInt(id) );
                 }};
             }
-            java.util.List<Object> response = (this.privatePostAuthWOrderCancel(this.extend(request, parameters))).join();
+            List<Object> response = (this.privatePostAuthWOrderCancel(this.extend(request, parameters))).join();
             Object order = this.safeValue(response, 4);
-            java.util.Map<String, Object> newOrder = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> newOrder = new HashMap<String, Object>() {{
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
@@ -2573,24 +2579,24 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> numericIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> numericIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 // numericIds[i] = this.parseToNumeric (ids[i]);
-                ((java.util.List<Object>)numericIds).add(this.parseToNumeric(Helpers.GetValue(ids, i)));
+                ((List<Object>)numericIds).add(this.parseToNumeric(Helpers.GetValue(ids, i)));
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", numericIds );
             }};
             Object market = null;
@@ -2598,7 +2604,7 @@ public class Bitfinex extends BitfinexApi
             {
                 market = this.market(symbol);
             }
-            java.util.List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
+            List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
             //
             //     [
             //         1706740198811,
@@ -2649,12 +2655,12 @@ public class Bitfinex extends BitfinexApi
             //         "Submitting 2 order cancellations."
             //     ]
             //
-            Object orders = this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object orders = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
     final Object finalI = i;
-                            ((java.util.List<Object>)ordersList).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)ordersList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(orders, finalI) );
                 }});
             }
@@ -2674,15 +2680,15 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "id", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.parseInt(id))) );
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "id", new ArrayList<Object>(Arrays.asList(Helpers.parseInt(id))) );
             }};
             Object orders = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             Object order = this.safeValue(orders, 0);
@@ -2706,15 +2712,15 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrder(String id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchClosedOrder(String id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "id", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.parseInt(id))) );
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "id", new ArrayList<Object>(Arrays.asList(Helpers.parseInt(id))) );
             }};
             Object orders = (this.fetchClosedOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             Object order = this.safeValue(orders, 0);
@@ -2739,20 +2745,20 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -2802,12 +2808,12 @@ public class Bitfinex extends BitfinexApi
             //          ],
             //      ]
             //
-            java.util.List<Object> ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
     final Object finalResponse = response;
                 final Object finalI = i;
-                            ((java.util.List<Object>)ordersList).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)ordersList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(finalResponse, finalI) );
                 }});
             }
@@ -2830,29 +2836,29 @@ public class Bitfinex extends BitfinexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // returns the most recent closed or canceled orders up to circa two weeks ago
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", since);
@@ -2861,9 +2867,9 @@ public class Bitfinex extends BitfinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 25, max 2500
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
             Object market = null;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -2913,12 +2919,12 @@ public class Bitfinex extends BitfinexApi
             //          ]
             //      ]
             //
-            java.util.List<Object> ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
     final Object finalResponse = response;
                 final Object finalI = i;
-                            ((java.util.List<Object>)ordersList).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)ordersList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(finalResponse, finalI) );
                 }});
             }
@@ -2939,15 +2945,15 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
@@ -2956,20 +2962,20 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderId = Helpers.parseInt(id);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             // valid for trades up to 10 days old
-            java.util.List<Object> response = (this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters))).join();
-            java.util.List<Object> rawTrades = this.toArray(response);
-            java.util.List<Object> tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> response = (this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters))).join();
+            List<Object> rawTrades = this.toArray(response);
+            List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
             {
     final Object finalI = i;
-                            ((java.util.List<Object>)tradesList).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)tradesList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(rawTrades, finalI) );
                 }}); // convert to array of dicts to match parseOrder signature
             }
@@ -2990,21 +2996,21 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "end", Bitfinex.this.milliseconds() );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3025,12 +3031,12 @@ public class Bitfinex extends BitfinexApi
             {
                 response = (this.privatePostAuthRTradesHist(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
     final Object finalResponse = response;
                 final Object finalI = i;
-                            ((java.util.List<Object>)tradesList).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)tradesList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(finalResponse, finalI) );
                 }}); // convert to array of dicts to match parseOrder signature
             }
@@ -3048,17 +3054,17 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op_renew", 1 );
             }};
             return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
@@ -3075,20 +3081,20 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             // if not provided explicitly we will try to match using the currency name
             String network = this.safeString(parameters, "network", code);
-            Object currencyNetworks = this.safeValue(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+            Object currencyNetworks = this.safeValue(currency, "networks", new HashMap<String, Object>() {{}});
             Object currencyNetwork = this.safeValue(currencyNetworks, network);
             String networkId = this.safeString(currencyNetwork, "id");
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
@@ -3098,12 +3104,12 @@ public class Bitfinex extends BitfinexApi
             String wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             parameters = this.omit(parameters, "network", "wallet");
             final Object finalNetworkId = networkId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", finalNetworkId );
                 put( "wallet", wallet );
                 put( "op_renew", 0 );
             }};
-            java.util.List<Object> response = (this.privatePostAuthWDepositAddress(this.extend(request, parameters))).join();
+            List<Object> response = (this.privatePostAuthWDepositAddress(this.extend(request, parameters))).join();
             //
             //     [
             //         1582269616687, // MTS Millisecond Time Stamp of the update
@@ -3123,12 +3129,12 @@ public class Bitfinex extends BitfinexApi
             //         "success", // TEXT Text of the notification
             //     ]
             //
-            Object result = this.safeValue(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeValue(response, 4, new ArrayList<Object>(Arrays.asList()));
             String poolAddress = this.safeString(result, 5);
             String address = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? this.safeString(result, 4) : poolAddress;
             String tag = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? null : this.safeString(result, 4);
             this.checkAddress(address);
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "address", address );
                 put( "tag", tag );
@@ -3141,7 +3147,7 @@ public class Bitfinex extends BitfinexApi
 
     public String parseTransactionStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
             put( "COMPLETED", "ok" );
             put( "ERROR", "failed" );
@@ -3227,7 +3233,7 @@ public class Bitfinex extends BitfinexApi
         String comment = null;
         if (Helpers.isTrue(Helpers.isEqual(transactionLength, 8)))
         {
-            Object data = this.safeValue(transaction, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeValue(transaction, 4, new ArrayList<Object>(Arrays.asList()));
             timestamp = this.safeInteger(transaction, 0);
             if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
             {
@@ -3294,7 +3300,7 @@ public class Bitfinex extends BitfinexApi
         final Object finalUpdated = updated;
         final Object finalComment = comment;
         final Object finalFeeCost = feeCost;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
             put( "txid", finalTxid );
@@ -3314,7 +3320,7 @@ public class Bitfinex extends BitfinexApi
             put( "updated", finalUpdated );
             put( "comment", finalComment );
             put( "internal", null );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "currency", finalCode );
                 put( "cost", Bitfinex.this.parseNumber(finalFeeCost) );
                 put( "rate", null );
@@ -3330,17 +3336,17 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> response = (this.privatePostAuthRSummary(parameters)).join();
+            List<Object> response = (this.privatePostAuthRSummary(parameters)).join();
             //
             //      Response Spec:
             //      [
@@ -3408,11 +3414,11 @@ public class Bitfinex extends BitfinexApi
             //         { leo_lev: "0", leo_amount_avg: "0" }
             //     ]
             //
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object fiat = this.safeDict(this.options, "fiat", new java.util.HashMap<String, Object>() {{}});
-            Object feeData = this.safeValue(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object makerData = this.safeValue(feeData, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object takerData = this.safeValue(feeData, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            Object fiat = this.safeDict(this.options, "fiat", new HashMap<String, Object>() {{}});
+            Object feeData = this.safeValue(response, 4, new ArrayList<Object>(Arrays.asList()));
+            Object makerData = this.safeValue(feeData, 0, new ArrayList<Object>(Arrays.asList()));
+            Object takerData = this.safeValue(feeData, 1, new ArrayList<Object>(Arrays.asList()));
             Double makerFee = this.safeNumber(makerData, 0);
             Double makerFeeFiat = this.safeNumber(makerData, 2);
             Double makerFeeDeriv = this.safeNumber(makerData, 5);
@@ -3422,8 +3428,8 @@ public class Bitfinex extends BitfinexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> fee = new HashMap<String, Object>() {{
                     put( "info", response );
                     put( "symbol", symbol );
                     put( "percentage", true );
@@ -3461,21 +3467,21 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", since);
@@ -3489,11 +3495,11 @@ public class Bitfinex extends BitfinexApi
             {
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
-                java.util.List<Object> currencyMovements = (this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters))).join();
+                List<Object> currencyMovements = (this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters))).join();
                 response = this.toArray(currencyMovements);
             } else
             {
-                java.util.List<Object> movements = (this.privatePostAuthRMovementsHist(this.extend(request, parameters))).join();
+                List<Object> movements = (this.privatePostAuthRMovementsHist(this.extend(request, parameters))).join();
                 response = this.toArray(movements);
             }
             //
@@ -3541,23 +3547,23 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             this.checkAddress(address);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             // if not provided explicitly we will try to match using the currency name
             String network = this.safeString(parameters, "network", code);
             parameters = this.omit(parameters, "network");
-            Object currencyNetworks = this.safeValue(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+            Object currencyNetworks = this.safeValue(currency, "networks", new HashMap<String, Object>() {{}});
             Object currencyNetwork = this.safeValue(currencyNetworks, network);
             String networkId = this.safeString(currencyNetwork, "id");
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
@@ -3567,7 +3573,7 @@ public class Bitfinex extends BitfinexApi
             String wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             parameters = this.omit(parameters, "network", "wallet");
             final Object finalNetworkId = networkId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", finalNetworkId );
                 put( "wallet", wallet );
                 put( "amount", Bitfinex.this.numberToString(amount) );
@@ -3577,13 +3583,13 @@ public class Bitfinex extends BitfinexApi
             {
                 Helpers.addElementToObject(request, "payment_id", tag);
             }
-            Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
+            Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Object includeFee = this.safeBool(withdrawOptions, "includeFee", false);
             if (Helpers.isTrue(Helpers.isEqual(includeFee, true)))
             {
                 Helpers.addElementToObject(request, "fee_deduct", 1);
             }
-            java.util.List<Object> response = (this.privatePostAuthWWithdraw(this.extend(request, parameters))).join();
+            List<Object> response = (this.privatePostAuthWWithdraw(this.extend(request, parameters))).join();
             //
             //     [
             //         1582271520931, // MTS Millisecond Time Stamp of the update
@@ -3643,19 +3649,19 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.List<Object> response = (this.privatePostAuthRPositions(parameters)).join();
+            List<Object> response = (this.privatePostAuthRPositions(parameters)).join();
             //
             //     [
             //         [
@@ -3690,12 +3696,12 @@ public class Bitfinex extends BitfinexApi
             //         ]
             //     ]
             //
-            java.util.List<Object> rawPositions = this.toArray(response);
-            java.util.List<Object> positionsList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> rawPositions = this.toArray(response);
+            List<Object> positionsList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
             {
     final Object finalI = i;
-                            ((java.util.List<Object>)positionsList).add(new java.util.HashMap<String, Object>() {{
+                            ((List<Object>)positionsList).add(new HashMap<String, Object>() {{
                     put( "result", Helpers.GetValue(rawPositions, finalI) );
                 }});
             }
@@ -3746,7 +3752,7 @@ public class Bitfinex extends BitfinexApi
         String meta = this.safeString(positionList, 19);
         String tradePrice = this.safeString(meta, "trade_price");
         String tradeAmount = this.safeString(meta, "trade_amount");
-        return this.safePosition(new java.util.HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", positionList );
             put( "id", Bitfinex.this.safeString(positionList, 11) );
             put( "symbol", Bitfinex.this.safeSymbol(marketId, market) );
@@ -3786,7 +3792,7 @@ public class Bitfinex extends BitfinexApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = Helpers.add("/", this.implodeParams(path, parameters));
@@ -3813,7 +3819,7 @@ public class Bitfinex extends BitfinexApi
             body = this.json(query);
             Object auth = Helpers.add(Helpers.add(Helpers.add("/api/", request), nonce), body);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384());
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "bfx-nonce", nonce );
                 put( "bfx-apikey", Bitfinex.this.apiKey );
                 put( "bfx-signature", signature );
@@ -3823,7 +3829,7 @@ public class Bitfinex extends BitfinexApi
         final Object finalUrl = url;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", method );
             put( "body", finalBody );
@@ -3913,7 +3919,7 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object itemList = this.safeList(item, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object itemList = this.safeList(item, "result", new ArrayList<Object>(Arrays.asList()));
         Object type = null;
         String id = this.safeString(itemList, 0);
         String currencyId = this.safeString(itemList, 1);
@@ -3930,7 +3936,7 @@ public class Bitfinex extends BitfinexApi
             type = this.parseLedgerEntryType(first);
         }
         final Object finalType = type;
-        return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
+        return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", id );
             put( "direction", null );
@@ -3962,29 +3968,29 @@ public class Bitfinex extends BitfinexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 2500)).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", since);
@@ -3993,9 +3999,9 @@ public class Bitfinex extends BitfinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -4021,11 +4027,11 @@ public class Bitfinex extends BitfinexApi
             //         ]
             //     ]
             //
-            java.util.List<Object> ledgerObjects = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> ledgerObjects = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object item = Helpers.GetValue(response, i);
-                ((java.util.List<Object>)ledgerObjects).add(new java.util.HashMap<String, Object>() {{
+                ((List<Object>)ledgerObjects).add(new HashMap<String, Object>() {{
                     put( "result", item );
                 }});
             }
@@ -4043,13 +4049,13 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRates() requires a symbols argument")) ;
@@ -4059,10 +4065,10 @@ public class Bitfinex extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             Object marketIds = this.marketIds(symbols);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "keys", String.join(",", (java.util.List<String>)marketIds) );
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "keys", String.join(",", (List<String>)marketIds) );
             }};
-            java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
             //
             //   [
             //       [
@@ -4111,15 +4117,15 @@ public class Bitfinex extends BitfinexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -4129,25 +4135,25 @@ public class Bitfinex extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 5000)).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", since);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
             //
             //   [
             //       [
@@ -4178,22 +4184,22 @@ public class Bitfinex extends BitfinexApi
             //       ]
             //   ]
             //
-            java.util.List<Object> rawRatesData = this.toArray(response);
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> rawRatesData = this.toArray(response);
+            List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawRatesData)); i++)
             {
                 Object fr = Helpers.GetValue(rawRatesData, i);
                 Object rate = this.parseFundingRateHistory(fr, market);
-                ((java.util.List<Object>)rates).add(rate);
+                ((List<Object>)rates).add(rate);
             }
-            java.util.List<Object> reversedArray = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
+            List<Object> reversedArray = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
             Object ratesLength = Helpers.getArrayLength(rawRates);
             for (var i = 0; Helpers.isLessThan(i, ratesLength); i++)
             {
                 Object index = Helpers.subtract(Helpers.subtract(ratesLength, i), 1);
                 Object valueAtIndex = Helpers.GetValue(rawRates, index);
-                ((java.util.List<Object>)reversedArray).add(valueAtIndex);
+                ((List<Object>)reversedArray).add(valueAtIndex);
             }
             return reversedArray;
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingRateHistory::new));
@@ -4234,7 +4240,7 @@ public class Bitfinex extends BitfinexApi
         String marketId = this.safeString(contract, 0);
         Long timestamp = this.safeInteger(contract, 1);
         Long nextFundingTimestamp = this.safeInteger(contract, 8);
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", Bitfinex.this.safeSymbol(marketId, market) );
             put( "markPrice", Bitfinex.this.safeNumber(contract, 15) );
@@ -4288,7 +4294,7 @@ public class Bitfinex extends BitfinexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(contract, 0);
         Long nextFundingTimestamp = this.safeInteger(contract, 7);
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", Bitfinex.this.safeSymbol(null, market) );
             put( "markPrice", Bitfinex.this.safeNumber(contract, 14) );
@@ -4318,28 +4324,28 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList("ALL"));
+            Object marketIds = new ArrayList<Object>(Arrays.asList("ALL"));
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 marketIds = this.marketIds(symbols);
             }
             final Object finalMarketIds = marketIds;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "keys", String.join(",", (java.util.List<String>)finalMarketIds) );
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "keys", String.join(",", (List<String>)finalMarketIds) );
             }};
-            java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4384,21 +4390,21 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "keys", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4449,29 +4455,29 @@ public class Bitfinex extends BitfinexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OpenInterest>> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OpenInterest>> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, "8h", parameters, 5000)).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4482,10 +4488,10 @@ public class Bitfinex extends BitfinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4585,7 +4591,7 @@ public class Bitfinex extends BitfinexApi
         Object openInterestIndex = ((Helpers.isTrue((Helpers.isEqual(interestLength, 23))))) ? 17 : 18;
         Long timestamp = this.safeInteger(interest, 1);
         String marketId = this.safeString(interest, 0);
-        return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Bitfinex.this.safeSymbol(marketId, market, null, "swap") );
             put( "openInterestAmount", Bitfinex.this.safeNumber(interest, openInterestIndex) );
             put( "openInterestValue", null );
@@ -4608,28 +4614,28 @@ public class Bitfinex extends BitfinexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Liquidation>> fetchLiquidations(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Liquidation>> fetchLiquidations(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchLiquidations", symbol, since, limit, "8h", parameters, 500)).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", since);
@@ -4638,10 +4644,10 @@ public class Bitfinex extends BitfinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.publicGetLiquidationsHist(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.publicGetLiquidationsHist(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4697,7 +4703,7 @@ public class Bitfinex extends BitfinexApi
         String price = this.safeString(entry, 11);
         Long sideFlag = this.safeInteger(entry, 8);
         String side = ((Helpers.isTrue((Helpers.isEqual(sideFlag, 1))))) ? "buy" : "sell";
-        return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", entry );
             put( "symbol", Bitfinex.this.safeSymbol(marketId, market, null, "contract") );
             put( "contracts", Bitfinex.this.parseNumber(contracts) );
@@ -4721,26 +4727,26 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> setMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginModification> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported(Helpers.add(this.id, " setMargin() only support swap markets")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "collateral", Bitfinex.this.parseToNumeric(amount) );
             }};
-            java.util.List<Object> response = (this.privatePostAuthWDerivCollateralSet(this.extend(request, parameters))).join();
+            List<Object> response = (this.privatePostAuthWDerivCollateralSet(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4768,7 +4774,7 @@ public class Bitfinex extends BitfinexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marginStatusRaw = Helpers.GetValue(data, 0);
         String marginStatus = ((Helpers.isTrue((Helpers.isEqual(marginStatusRaw, 1))))) ? "ok" : "failed";
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", Bitfinex.this.safeString(market, "symbol") );
             put( "type", null );
@@ -4793,19 +4799,19 @@ public class Bitfinex extends BitfinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "id", new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitfinex.this.parseToNumeric(id))) );
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "id", new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseToNumeric(id))) );
             }};
             Object market = null;
             Object response = null;
@@ -4857,7 +4863,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             Object order = this.safeList(response, 0);
-            java.util.Map<String, Object> newOrder = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> newOrder = new HashMap<String, Object>() {{
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
@@ -4886,22 +4892,22 @@ public class Bitfinex extends BitfinexApi
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type2, Object side2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type2, Object side2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Bitfinex.this.parseToNumeric(id) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
@@ -4956,8 +4962,8 @@ public class Bitfinex extends BitfinexApi
             {
                 Helpers.addElementToObject(request, "lev", leverage);
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage")));
-            java.util.List<Object> response = (this.privatePostAuthWOrderUpdate(this.extend(request, parameters))).join();
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage")));
+            List<Object> response = (this.privatePostAuthWOrderUpdate(this.extend(request, parameters))).join();
             //
             //     [
             //         1706845376402,
@@ -5010,8 +5016,8 @@ public class Bitfinex extends BitfinexApi
                 String errorText = this.safeString(response, 7);
                 throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), status), ": "), errorText), " (#"), errorCode), ")")) ;
             }
-            Object order = this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> newOrder = new java.util.HashMap<String, Object>() {{
+            Object order = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> newOrder = new HashMap<String, Object>() {{
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);

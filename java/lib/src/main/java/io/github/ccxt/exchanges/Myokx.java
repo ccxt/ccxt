@@ -6,6 +6,9 @@ import io.github.ccxt.api.MyokxApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class Myokx extends MyokxApi
 {
@@ -19,29 +22,29 @@ public class Myokx extends MyokxApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "myokx" );
             put( "name", "MyOKX (EEA)" );
             put( "certified", false );
             put( "pro", true );
             put( "hostname", "eea.okx.com" );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "rest", "https://{hostname}" );
                 }} );
                 put( "www", "https://my.okx.com" );
                 put( "doc", "https://my.okx.com/docs-v5/en/#overview" );
                 put( "fees", "https://my.okx.com/pages/products/fees.html" );
-                put( "referral", new java.util.HashMap<String, Object>() {{
+                put( "referral", new HashMap<String, Object>() {{
                     put( "url", "https://www.my.okx.com/join/CCXT2023" );
                     put( "discount", 0.2 );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "rest", "https://{hostname}" );
                 }} );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", null );
@@ -49,20 +52,20 @@ public class Myokx extends MyokxApi
                 put( "future", false );
                 put( "option", false );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "swap", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "mica", true );
-                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap")) );
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("spot", "swap")) );
                 }} );
             }} );
         }});

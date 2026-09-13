@@ -6,6 +6,10 @@ import io.github.ccxt.api.BinancecoinmApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 public class Binancecoinm extends BinancecoinmApi
 {
@@ -19,14 +23,14 @@ public class Binancecoinm extends BinancecoinmApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "binancecoinm" );
             put( "name", "Binance COIN-M" );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://binance-docs.github.io/apidocs/delivery/en/", "https://binance-docs.github.io/apidocs/spot/en", "https://developers.binance.com/en")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://binance-docs.github.io/apidocs/delivery/en/", "https://binance-docs.github.io/apidocs/spot/en", "https://developers.binance.com/en")) );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
                 put( "margin", false );
@@ -35,9 +39,9 @@ public class Binancecoinm extends BinancecoinmApi
                 put( "option", null );
                 put( "createStopMarketOrder", true );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("inverse")) );
+            put( "options", new HashMap<String, Object>() {{
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("inverse")) );
                 }} );
                 put( "defaultSubType", "inverse" );
                 put( "leverageBrackets", null );
@@ -45,25 +49,25 @@ public class Binancecoinm extends BinancecoinmApi
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // transfer from spot wallet to coinm futures wallet
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.futuresTransfer(code, amount, 3, parameters)).join();
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // transfer from coinm futures wallet to spot wallet
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.futuresTransfer(code, amount, 4, parameters)).join();
         });
 

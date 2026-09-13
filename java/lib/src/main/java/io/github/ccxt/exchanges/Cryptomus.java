@@ -6,6 +6,12 @@ import io.github.ccxt.api.CryptomusApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Cryptomus extends CryptomusApi
 {
@@ -19,15 +25,15 @@ public class Cryptomus extends CryptomusApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "cryptomus" );
             put( "name", "Cryptomus" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("CA")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("CA")) );
             put( "rateLimit", 100 );
             put( "version", "v2" );
             put( "certified", false );
             put( "pro", false );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
@@ -158,10 +164,10 @@ public class Cryptomus extends CryptomusApi
                 put( "transfer", false );
                 put( "withdraw", false );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{}} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{}} );
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api.cryptomus.com" );
                     put( "private", "https://api.cryptomus.com" );
                 }} );
@@ -170,124 +176,124 @@ public class Cryptomus extends CryptomusApi
                 put( "fees", "https://cryptomus.com/tariffs" );
                 put( "referral", "https://app.cryptomus.com/signup/?ref=JRP4yj" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v2/user-api/exchange/markets", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/markets", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/exchange/market/price", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/market/price", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/exchange/markets/price", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/markets/price", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/exchange/market/assets", new java.util.HashMap<String, Object>() {{
+                        put( "v1/exchange/market/assets", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/exchange/market/order-book/{currencyPair}", new java.util.HashMap<String, Object>() {{
+                        put( "v1/exchange/market/order-book/{currencyPair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/exchange/market/tickers", new java.util.HashMap<String, Object>() {{
+                        put( "v1/exchange/market/tickers", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/exchange/market/trades/{currencyPair}", new java.util.HashMap<String, Object>() {{
+                        put( "v1/exchange/market/trades/{currencyPair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v2/user-api/exchange/orders", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/exchange/orders/history", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/orders/history", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/exchange/account/balance", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/account/balance", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/exchange/account/tariffs", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/account/tariffs", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/payment/services", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/payment/services", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/payout/services", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/payout/services", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/transaction/list", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/transaction/list", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/balance", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/balance", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/convert/direction-list", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/convert/direction-list", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/convert/order-list", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/convert/order-list", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/aml/check/balance", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/aml/check/balance", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/aml/check/currencies", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/aml/check/currencies", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/aml/check/packages", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/aml/check/packages", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/aml/check/request", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/aml/check/request", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/aml/check/request/{id}", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                    }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "v2/user-api/exchange/orders", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v2/user-api/exchange/orders/market", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v2/user-api/convert", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v2/user-api/convert/calculate", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v2/user-api/convert/limit", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v2/user-api/aml/check/request", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v2/user-api/aml/check/request/{id}/report/send", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/aml/check/request/{id}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "v2/user-api/exchange/orders/{orderId}", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/convert/{orderUuid}", new java.util.HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/orders/market", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/convert", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/convert/calculate", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/convert/limit", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/aml/check/request", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/aml/check/request/{id}/report/send", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "delete", new HashMap<String, Object>() {{
+                        put( "v2/user-api/exchange/orders/{orderId}", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/user-api/convert/{orderUuid}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "percentage", true );
                     put( "feeSide", "get" );
                     put( "maker", Cryptomus.this.parseNumber("0.02") );
                     put( "taker", Cryptomus.this.parseNumber("0.02") );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", true );
-                put( "networks", new java.util.HashMap<String, Object>() {{
+                put( "networks", new HashMap<String, Object>() {{
                     put( "BEP20", "bsc" );
                     put( "DASH", "dash" );
                     put( "POLYGON", "polygon" );
@@ -304,7 +310,7 @@ public class Cryptomus extends CryptomusApi
                     put( "BTC", "btc" );
                     put( "RUB", "rub" );
                 }} );
-                put( "networksById", new java.util.HashMap<String, Object>() {{
+                put( "networksById", new HashMap<String, Object>() {{
                     put( "bsc", "BEP20" );
                     put( "dash", "DASH" );
                     put( "polygon", "POLYGON" );
@@ -321,26 +327,26 @@ public class Cryptomus extends CryptomusApi
                     put( "btc", "BTC" );
                     put( "rub", "RUB" );
                 }} );
-                put( "fetchOrderBook", new java.util.HashMap<String, Object>() {{
+                put( "fetchOrderBook", new HashMap<String, Object>() {{
                     put( "level", 0 );
                 }} );
             }} );
-            put( "commonCurrencies", new java.util.HashMap<String, Object>() {{}} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "commonCurrencies", new HashMap<String, Object>() {{}} );
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "500", ExchangeError.class );
                     put( "6", InsufficientFunds.class );
                     put( "Insufficient funds.", InsufficientFunds.class );
                     put( "Minimum amount 15 USDT", InvalidOrder.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{}} );
+                put( "broad", new HashMap<String, Object>() {{}} );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
+            put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", false );
                 put( "uid", true );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{}} );
+            put( "features", new HashMap<String, Object>() {{}} );
         }});
     }
 
@@ -352,13 +358,13 @@ public class Cryptomus extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetV2UserApiExchangeMarkets(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetV2UserApiExchangeMarkets(parameters)).join();
             //
             //     {
             //         "result": [
@@ -378,7 +384,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
         });
 
@@ -413,7 +419,7 @@ public class Cryptomus extends CryptomusApi
         Object fees = this.safeDict(this.fees, "trading");
         final Object finalMarketId = marketId;
         final Object finalBase = base;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "base", finalBase );
@@ -443,24 +449,24 @@ public class Cryptomus extends CryptomusApi
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Cryptomus.this.parseNumber(Cryptomus.this.parsePrecision(Cryptomus.this.safeString(market, "quotePrec"))) );
                 put( "price", Cryptomus.this.parseNumber(Cryptomus.this.parsePrecision(Cryptomus.this.safeString(market, "basePrec"))) );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "amount", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", Cryptomus.this.safeNumber(market, "quoteMinSize") );
                     put( "max", Cryptomus.this.safeNumber(market, "quoteMaxSize") );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", Cryptomus.this.safeNumber(market, "baseMinSize") );
                     put( "max", Cryptomus.this.safeNumber(market, "baseMaxSize") );
                 }} );
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -478,13 +484,13 @@ public class Cryptomus extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetV1ExchangeMarketAssets(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetV1ExchangeMarketAssets(parameters)).join();
             //
             //     {
             //         'state': '0',
@@ -504,7 +510,7 @@ public class Cryptomus extends CryptomusApi
             //     }
             //
             Object coins = this.safeList(response, "result");
-            java.util.Map<String, Object> groupedById = this.groupBy(coins, "currency_code");
+            Map<String, Object> groupedById = this.groupBy(coins, "currency_code");
             Object groupedArray = Helpers.objectValues(groupedById);
             return this.parseCurrencies(groupedArray);
         });
@@ -516,7 +522,7 @@ public class Cryptomus extends CryptomusApi
         // currency here is array of networks
         String id = null; // all entries have same id, as they were grouped by
         Object code = null;
-        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrency)); i++)
         {
             Object networkEntry = Helpers.GetValue(rawCurrency, i);
@@ -531,15 +537,15 @@ public class Cryptomus extends CryptomusApi
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
-    put( "limits", new java.util.HashMap<String, Object>() {{
-        put( "withdraw", new java.util.HashMap<String, Object>() {{
+    put( "limits", new HashMap<String, Object>() {{
+        put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Cryptomus.this.safeNumber(networkEntry, "min_withdraw") );
             put( "max", Cryptomus.this.safeNumber(networkEntry, "max_withdraw") );
         }} );
-        put( "deposit", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new HashMap<String, Object>() {{
             put( "min", Cryptomus.this.safeNumber(networkEntry, "min_deposit") );
             put( "max", Cryptomus.this.safeNumber(networkEntry, "max_deposit") );
         }} );
@@ -555,7 +561,7 @@ public class Cryptomus extends CryptomusApi
         }
         final Object finalId = id;
         final Object finalCode = code;
-        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "code", finalCode );
             put( "networks", networks );
@@ -572,19 +578,19 @@ public class Cryptomus extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> response = (this.publicGetV1ExchangeMarketTickers(parameters)).join();
+            Map<String, Object> response = (this.publicGetV1ExchangeMarketTickers(parameters)).join();
             //
             //     {
             //         "data": [
@@ -618,7 +624,7 @@ public class Cryptomus extends CryptomusApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String last = this.safeString(ticker, "last_price");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -653,27 +659,27 @@ public class Cryptomus extends CryptomusApi
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
             Object level = 0;
-            java.util.List<Object> levelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
-            level = ((java.util.List<Object>) levelparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) levelparametersVariable).get(1);
+            List<Object> levelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
+            level = ((List<Object>) levelparametersVariable).get(0);
+            parameters = ((List<Object>) levelparametersVariable).get(1);
             Helpers.addElementToObject(request, "level", level);
-            java.util.Map<String, Object> response = (this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -693,7 +699,7 @@ public class Cryptomus extends CryptomusApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object timestamp = this.safeTimestamp(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -711,23 +717,23 @@ public class Cryptomus extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetV1ExchangeMarketTradesCurrencyPair(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetV1ExchangeMarketTradesCurrencyPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -743,7 +749,7 @@ public class Cryptomus extends CryptomusApi
             //     }
             //
             Object data = this.safeList(response, "data");
-            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object dataList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(data, null)))
             {
                 dataList = data;
@@ -767,7 +773,7 @@ public class Cryptomus extends CryptomusApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(trade, "timestamp");
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Cryptomus.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
             put( "datetime", Cryptomus.this.iso8601(timestamp) );
@@ -779,7 +785,7 @@ public class Cryptomus extends CryptomusApi
             put( "takerOrMaker", null );
             put( "type", null );
             put( "order", null );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "currency", null );
                 put( "cost", null );
             }} );
@@ -795,18 +801,18 @@ public class Cryptomus extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> response = (this.privateGetV2UserApiExchangeAccountBalance(this.extend(request, parameters))).join();
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> response = (this.privateGetV2UserApiExchangeAccountBalance(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -818,7 +824,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(result);
         }).thenApply(io.github.ccxt.types.Balances::new);
 
@@ -833,7 +839,7 @@ public class Cryptomus extends CryptomusApi
         //         "held": "0.00000000"
         //     }
         //
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balance)); i++)
@@ -868,22 +874,22 @@ public class Cryptomus extends CryptomusApi
      * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "direction", finalSide );
                 put( "tag", "ccxt" );
@@ -898,18 +904,18 @@ public class Cryptomus extends CryptomusApi
             Object amountToString = this.numberToString(amount);
             Object priceToString = this.numberToString(price);
             Object cost = null;
-            java.util.List<Object> costparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "cost");
-            cost = ((java.util.List<Object>) costparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) costparametersVariable).get(1);
+            List<Object> costparametersVariable = (List<Object>) this.handleParamString(parameters, "cost");
+            cost = ((List<Object>) costparametersVariable).get(0);
+            parameters = ((List<Object>) costparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 if (Helpers.isTrue(sideBuy))
                 {
                     Object createMarketBuyOrderRequiresPrice = true;
-                    java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+                    parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
                     {
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
@@ -962,26 +968,26 @@ public class Cryptomus extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Helpers.addElementToObject(request, "orderId", id);
-            java.util.Map<String, Object> response = (this.privateDeleteV2UserApiExchangeOrdersOrderId(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateDeleteV2UserApiExchangeOrdersOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true
             //     }
             //
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
             }});
         }).thenApply(io.github.ccxt.types.Order::new);
@@ -1004,20 +1010,20 @@ public class Cryptomus extends CryptomusApi
      * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1028,7 +1034,7 @@ public class Cryptomus extends CryptomusApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.privateGetV2UserApiExchangeOrdersHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetV2UserApiExchangeOrdersHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -1068,12 +1074,12 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object order = Helpers.GetValue(result, i);
-                ((java.util.List<Object>)orders).add(this.parseOrder(order, market));
+                ((List<Object>)orders).add(this.parseOrder(order, market));
             }
             return orders;
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
@@ -1096,15 +1102,15 @@ public class Cryptomus extends CryptomusApi
      * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1114,12 +1120,12 @@ public class Cryptomus extends CryptomusApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
-            java.util.Map<String, Object> response = (this.privateGetV2UserApiExchangeOrders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetV2UserApiExchangeOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -1139,7 +1145,7 @@ public class Cryptomus extends CryptomusApi
             //             ...
             //         ]
             //     }
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, null);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -1209,19 +1215,19 @@ public class Cryptomus extends CryptomusApi
         market = this.safeMarket(marketId, market);
         String dateTime = this.safeString(order, "createdAt");
         Long timestamp = this.parse8601(dateTime);
-        Object deal = this.safeDict(order, "deal", new java.util.HashMap<String, Object>() {{}});
+        Object deal = this.safeDict(order, "deal", new HashMap<String, Object>() {{}});
         Double averageFilledPrice = this.safeNumber(deal, "averageFilledPrice");
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "direction");
         Double price = this.safeNumber(order, "price");
-        Object transaction = this.safeList(deal, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object transaction = this.safeList(deal, "transactions", new ArrayList<Object>(Arrays.asList()));
         Object fee = null;
         Object firstTx = this.safeDict(transaction, 0);
         String feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrency, null)))
         {
             final Object finalFeeCurrency = feeCurrency;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "currency", Cryptomus.this.safeCurrencyCode(finalFeeCurrency) );
                 put( "cost", Cryptomus.this.safeNumber(firstTx, "fee") );
             }};
@@ -1237,7 +1243,7 @@ public class Cryptomus extends CryptomusApi
         final Object finalMarket = market;
         final Object finalPrice = price;
         final Object finalFee = fee;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -1266,7 +1272,7 @@ public class Cryptomus extends CryptomusApi
     public String parseOrderStatus(Object... optionalArgs)
     {
         Object status = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "active", "open" );
             put( "completed", "closed" );
             put( "partially_completed", "open" );
@@ -1285,13 +1291,13 @@ public class Cryptomus extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.privateGetV2UserApiExchangeAccountTariffs(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privateGetV2UserApiExchangeAccountTariffs(parameters)).join();
             //
             //     {
             //         result: {
@@ -1340,16 +1346,16 @@ public class Cryptomus extends CryptomusApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object currentFeeTier = this.safeDict(data, "current_tariff_step", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Object currentFeeTier = this.safeDict(data, "current_tariff_step", new HashMap<String, Object>() {{}});
             String makerFee = this.safeString(currentFeeTier, "maker_percent");
             String takerFee = this.safeString(currentFeeTier, "taker_percent");
             makerFee = Precise.stringDiv(makerFee, "100");
             takerFee = Precise.stringDiv(takerFee, "100");
-            Object feeTiers = this.safeList(data, "tariff_steps", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object feeTiers = this.safeList(data, "tariff_steps", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             Object tiers = this.parseFeeTiers(feeTiers);
-            java.util.List<Object> symbols = this.symbols;
+            List<Object> symbols = this.symbols;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 return result;
@@ -1359,7 +1365,7 @@ public class Cryptomus extends CryptomusApi
                 Object symbol = Helpers.GetValue(symbols, i);
                 final Object finalMakerFee = makerFee;
                 final Object finalTakerFee = takerFee;
-                Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Cryptomus.this.parseNumber(finalMakerFee) );
@@ -1377,8 +1383,8 @@ public class Cryptomus extends CryptomusApi
     public Object parseFeeTiers(Object feeTiers, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        java.util.List<Object> takerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        java.util.List<Object> makerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> takerFees = new ArrayList<Object>(Arrays.asList());
+        List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeTiers)); i++)
         {
             Object tier = Helpers.GetValue(feeTiers, i);
@@ -1387,10 +1393,10 @@ public class Cryptomus extends CryptomusApi
             String maker = this.safeString(tier, "maker_percent");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
-            ((java.util.List<Object>)makerFees).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(turnover, this.parseNumber(maker))));
-            ((java.util.List<Object>)takerFees).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(turnover, this.parseNumber(taker))));
+            ((List<Object>)makerFees).add(new ArrayList<Object>(Arrays.asList(turnover, this.parseNumber(maker))));
+            ((List<Object>)takerFees).add(new ArrayList<Object>(Arrays.asList(turnover, this.parseNumber(taker))));
         }
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "maker", makerFees );
             put( "taker", takerFees );
         }};
@@ -1400,7 +1406,7 @@ public class Cryptomus extends CryptomusApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object endpoint = this.implodeParams(path, parameters);
@@ -1410,7 +1416,7 @@ public class Cryptomus extends CryptomusApi
         {
             this.checkRequiredCredentials();
             Object jsonParams = "";
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "userId", Cryptomus.this.uid );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
@@ -1442,7 +1448,7 @@ public class Cryptomus extends CryptomusApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );

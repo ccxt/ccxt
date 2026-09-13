@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Coinex extends io.github.ccxt.exchanges.Coinex
 {
@@ -20,8 +26,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchBalance", true );
                 put( "watchBidsAsks", true );
@@ -36,19 +42,19 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 put( "watchOHLCV", false );
                 put( "fetchOHLCVWs", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
-                    put( "ws", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
                         put( "spot", "wss://socket.coinex.com/v2/spot/" );
                         put( "swap", "wss://socket.coinex.com/v2/futures/" );
                     }} );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "ws", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
+                put( "ws", new HashMap<String, Object>() {{
                     put( "gunzip", true );
                 }} );
-                put( "timeframes", new java.util.HashMap<String, Object>() {{
+                put( "timeframes", new HashMap<String, Object>() {{
                     put( "1m", 60 );
                     put( "3m", 180 );
                     put( "5m", 300 );
@@ -64,16 +70,16 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                     put( "1w", 604800 );
                 }} );
                 put( "account", "spot" );
-                put( "watchOrderBook", new java.util.HashMap<String, Object>() {{
-                    put( "limits", new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 10, 20, 50)) );
+                put( "watchOrderBook", new HashMap<String, Object>() {{
+                    put( "limits", new ArrayList<Object>(Arrays.asList(5, 10, 20, 50)) );
                     put( "defaultLimit", 50 );
-                    put( "aggregations", new java.util.ArrayList<Object>(java.util.Arrays.asList("1000", "100", "10", "1", "0", "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001", "0.00000001", "0.000000001", "0.0000000001", "0.00000000001")) );
+                    put( "aggregations", new ArrayList<Object>(Arrays.asList("1000", "100", "10", "1", "0", "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001", "0.00000001", "0.000000001", "0.0000000001", "0.00000000001")) );
                     put( "defaultAggregation", "0" );
                 }} );
             }} );
-            put( "streaming", new java.util.HashMap<String, Object>() {{}} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "streaming", new HashMap<String, Object>() {{}} );
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "20001", BadRequest.class );
                     put( "20002", NotSupported.class );
                     put( "21001", AuthenticationError.class );
@@ -91,7 +97,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                     put( "34001", ExchangeError.class );
                     put( "34002", ExchangeNotAvailable.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{}} );
+                put( "broad", new HashMap<String, Object>() {{}} );
             }} );
         }});
     }
@@ -164,15 +170,15 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //     }
         //
         String defaultType = this.safeString(this.options, "defaultType");
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object rawTickers = this.safeList(data, "state_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> newTickers = new java.util.HashMap<String, Object>() {{}};
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Object rawTickers = this.safeList(data, "state_list", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
         {
             Object entry = Helpers.GetValue(rawTickers, i);
             String marketId = this.safeString(entry, "market");
             String symbol = this.safeSymbol(marketId, null, null, defaultType);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
             Object parsedTicker = this.parseWSTicker(entry, market);
             Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
             Helpers.addElementToObject(newTickers, symbol, parsedTicker);
@@ -239,7 +245,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String defaultType = this.safeString(this.options, "defaultType");
         String marketId = this.safeString(ticker, "market");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Coinex.this.safeSymbol(marketId, market, null, defaultType) );
             put( "timestamp", null );
             put( "datetime", null );
@@ -272,29 +278,29 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters, "spot");
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters, "spot");
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
-            java.util.List<Object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
-            java.util.Map<String, Object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
+            List<Object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
+            Map<String, Object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
             Object currencies = Helpers.objectKeys(activeCurrenciesById);
             if (Helpers.isTrue(Helpers.isEqual(currencies, null)))
             {
-                currencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                currencies = new ArrayList<Object>(Arrays.asList());
             }
             String messageHash = "balances";
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -305,14 +311,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 messageHash = Helpers.add(messageHash, ":swap");
             }
             final Object finalCurrencies = currencies;
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "balance.subscribe" );
-                put( "params", new java.util.HashMap<String, Object>() {{
+                put( "params", new HashMap<String, Object>() {{
                     put( "ccy_list", finalCurrencies );
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
-            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
+            Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(io.github.ccxt.types.Balances::new);
 
@@ -361,10 +367,10 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //
         if (Helpers.isTrue(Helpers.isEqual(this.balance, null)))
         {
-            this.balance = new java.util.HashMap<String, Object>() {{}};
+            this.balance = new HashMap<String, Object>() {{}};
         }
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object balances = this.safeList(data, "balance_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Object balances = this.safeList(data, "balance_list", new ArrayList<Object>(Arrays.asList()));
         Object firstEntry = Helpers.GetValue(balances, 0);
         Long updated = this.safeInteger(firstEntry, "updated_at");
         String unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
@@ -372,7 +378,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Boolean isSwap = (!Helpers.isEqual(unrealizedPnl, null));
         Object info = null;
         String account = null;
-        Object rawBalances = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object rawBalances = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(isSpot))
         {
             account = "spot";
@@ -401,7 +407,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         {
             if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, account), null)))
             {
-                Helpers.addElementToObject(this.balance, account, new java.util.HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(this.balance, account, new HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "info", info);
             Helpers.addElementToObject(this.balance, account, this.safeBalance(Helpers.GetValue(this.balance, account)));
@@ -445,7 +451,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         {
             if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, accountType), null)))
             {
-                Helpers.addElementToObject(this.balance, accountType, new java.util.HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(this.balance, accountType, new HashMap<String, Object>() {{}});
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(accountType, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
             {
@@ -472,15 +478,15 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -492,17 +498,17 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
-            java.util.List<Object> subscribedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> subscribedSymbols = new ArrayList<Object>(Arrays.asList());
             String messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
-                ((java.util.List<Object>)subscribedSymbols).add(Helpers.GetValue(market, "id"));
+                ((List<Object>)subscribedSymbols).add(Helpers.GetValue(market, "id"));
             } else
             {
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -513,14 +519,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                     messageHash = Helpers.add(messageHash, ":swap");
                 }
             }
-            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "method", "user_deals.subscribe" );
-                put( "params", new java.util.HashMap<String, Object>() {{
+                put( "params", new HashMap<String, Object>() {{
                     put( "market_list", subscribedSymbols );
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
-            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -552,11 +558,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //         "id": null
         //     }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
         Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = Helpers.add("myTrades:", symbol);
         String messageWithType = Helpers.add("myTrades:", Helpers.GetValue(market, "type"));
@@ -615,12 +621,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //         "id": null
         //     }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object trades = this.safeList(data, "deal_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Object trades = this.safeList(data, "deal_list", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(data, "market");
         Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
@@ -685,20 +691,20 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         String marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
-        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> fee = new HashMap<String, Object>() {{}};
         Object feeCost = this.omitZero(this.safeString(trade, "fee"));
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             String feeCurrencyId = this.safeString(trade, "fee_ccy", Helpers.GetValue(market, "quote"));
             final Object finalFeeCost = feeCost;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "currency", Coinex.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Coinex.this.safeString(trade, "deal_id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -725,18 +731,18 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, Helpers.GetValue(market, "symbol"));
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -752,20 +758,20 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object marketIds = this.marketIds(symbols);
             Object market = null;
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Boolean symbolsDefined = (!Helpers.isEqual(symbols, null));
             if (Helpers.isTrue(symbolsDefined))
             {
@@ -773,23 +779,23 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     market = this.market(symbol);
-                    ((java.util.List<Object>)messageHashes).add(Helpers.add("tickers::", Helpers.GetValue(market, "symbol")));
+                    ((List<Object>)messageHashes).add(Helpers.add("tickers::", Helpers.GetValue(market, "symbol")));
                 }
             } else
             {
-                marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                ((java.util.List<Object>)messageHashes).add("tickers");
+                marketIds = new ArrayList<Object>(Arrays.asList());
+                ((List<Object>)messageHashes).add("tickers");
             }
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchTickers", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", market, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
-            java.util.List<Object> subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList("all@ticker"));
+            List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList("all@ticker"));
             final Object finalMarketIds = marketIds;
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "state.subscribe" );
-                put( "params", new java.util.HashMap<String, Object>() {{
+                put( "params", new HashMap<String, Object>() {{
                     put( "market_list", finalMarketIds );
                 }} );
                 put( "id", Coinex.this.requestId() );
@@ -816,16 +822,16 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
-            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
     }
@@ -842,25 +848,25 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> subscribedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> subscribedSymbols = new ArrayList<Object>(Arrays.asList());
+            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object market = null;
             String callerMethodName = null;
-            java.util.List<Object> callerMethodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
-            callerMethodName = (String) ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);
+            List<Object> callerMethodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
+            callerMethodName = (String) ((List<Object>) callerMethodNameparametersVariable).get(0);
+            parameters = ((List<Object>) callerMethodNameparametersVariable).get(1);
             Boolean symbolsDefined = (!Helpers.isEqual(symbols, null));
             if (Helpers.isTrue(symbolsDefined))
             {
@@ -868,22 +874,22 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     market = this.market(symbol);
-                    ((java.util.List<Object>)subscribedSymbols).add(Helpers.GetValue(market, "id"));
-                    ((java.util.List<Object>)messageHashes).add(Helpers.add("trades:", Helpers.GetValue(market, "symbol")));
+                    ((List<Object>)subscribedSymbols).add(Helpers.GetValue(market, "id"));
+                    ((List<Object>)messageHashes).add(Helpers.add("trades:", Helpers.GetValue(market, "symbol")));
                 }
             } else
             {
-                ((java.util.List<Object>)messageHashes).add("trades");
+                ((List<Object>)messageHashes).add("trades");
             }
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             // const subscriptionHashes = [ 'trades' ];
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
-                put( "params", new java.util.HashMap<String, Object>() {{
+                put( "params", new HashMap<String, Object>() {{
                     put( "market_list", subscribedSymbols );
                 }} );
                 put( "id", Coinex.this.requestId() );
@@ -909,41 +915,41 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> watchOrderBookSubscriptions = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Map<String, Object> watchOrderBookSubscriptions = new HashMap<String, Object>() {{}};
+            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object market = null;
             Object type = null;
             String callerMethodName = null;
-            java.util.List<Object> callerMethodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
-            callerMethodName = (String) ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);
-            Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
-            Object limits = this.safeList(options, "limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            List<Object> callerMethodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
+            callerMethodName = (String) ((List<Object>) callerMethodNameparametersVariable).get(0);
+            parameters = ((List<Object>) callerMethodNameparametersVariable).get(1);
+            Object options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+            Object limits = this.safeList(options, "limits", new ArrayList<Object>(Arrays.asList()));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = this.safeInteger(options, "defaultLimit", 50);
             }
             if (!Helpers.isTrue(this.inArray(limit, limits)))
             {
-                throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols() limit must be one of "), String.join(", ", (java.util.List<String>)limits))) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols() limit must be one of "), String.join(", ", (List<String>)limits))) ;
             }
             String defaultAggregation = this.safeString(options, "defaultAggregation", "0");
-            Object aggregations = this.safeList(options, "aggregations", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object aggregations = this.safeList(options, "aggregations", new ArrayList<Object>(Arrays.asList()));
             String aggregation = this.safeString(parameters, "aggregation", defaultAggregation);
             if (!Helpers.isTrue(this.inArray(aggregation, aggregations)))
             {
-                throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols() aggregation must be one of "), String.join(", ", (java.util.List<String>)aggregations))) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols() aggregation must be one of "), String.join(", ", (List<String>)aggregations))) ;
             }
             parameters = this.omit(parameters, "aggregation");
             Boolean symbolsDefined = (!Helpers.isEqual(symbols, null));
@@ -955,16 +961,16 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 market = this.market(symbol);
-                ((java.util.List<Object>)messageHashes).add(Helpers.add("orderbook:", Helpers.GetValue(market, "symbol")));
-                Helpers.addElementToObject(watchOrderBookSubscriptions, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), limit, aggregation, true)));
+                ((List<Object>)messageHashes).add(Helpers.add("orderbook:", Helpers.GetValue(market, "symbol")));
+                Helpers.addElementToObject(watchOrderBookSubscriptions, symbol, new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id"), limit, aggregation, true)));
             }
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "depth.subscribe" );
-                put( "params", new java.util.HashMap<String, Object>() {{
+                put( "params", new HashMap<String, Object>() {{
                     put( "market_list", marketList );
                 }} );
                 put( "id", Coinex.this.requestId() );
@@ -992,15 +998,15 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrderBook");
-            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
+            return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
@@ -1050,10 +1056,10 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //
         Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object depth = this.safeDict(data, "depth", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Object depth = this.safeDict(data, "depth", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = Helpers.GetValue(market, "symbol");
         String name = "orderbook";
         Object messageHash = Helpers.add(Helpers.add(name, ":"), symbol);
@@ -1073,8 +1079,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
         } else
         {
-            Object asks = this.safeList(depth, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(depth, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object asks = this.safeList(depth, "asks", new ArrayList<Object>(Arrays.asList()));
+            Object bids = this.safeList(depth, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(currentOrderBook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(currentOrderBook, "bids"), bids);
             Helpers.addElementToObject(currentOrderBook, "nonce", timestamp);
@@ -1099,41 +1105,41 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             String messageHash = "orders";
             Object market = null;
-            java.util.List<Object> marketList = null;
+            List<Object> marketList = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, "spot");
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, "spot");
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type)).join();
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                marketList = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id")));
+                marketList = new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id")));
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             } else
             {
-                marketList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                marketList = new ArrayList<Object>(Arrays.asList());
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
                 {
                     messageHash = Helpers.add(messageHash, ":spot");
@@ -1152,15 +1158,15 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
             final Object finalMethod = method;
             final Object finalMarketList = marketList;
-            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "method", finalMethod );
-                put( "params", new java.util.HashMap<String, Object>() {{
+                put( "params", new HashMap<String, Object>() {{
                     put( "market_list", finalMarketList );
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
-            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1289,13 +1295,13 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //         "id": null
         //     }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> order = this.extend(new java.util.HashMap<String, Object>() {{
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> order = this.extend(new HashMap<String, Object>() {{
             put( "status", Coinex.this.safeString(data, "event") );
-        }}, this.safeDict2(data, "order", "stop", new java.util.HashMap<String, Object>() {{}}));
+        }}, this.safeDict2(data, "order", "stop", new HashMap<String, Object>() {{}}));
         Object parsedOrder = this.parseWsOrder(order);
         Object symbol = Helpers.GetValue(parsedOrder, "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1413,14 +1419,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         {
             String feeCurrencyId = this.safeString(order, "fee_ccy", Helpers.GetValue(market, "quote"));
             final Object finalFeeCost = feeCost;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "currency", Coinex.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Coinex.this.safeString2(order, "order_id", "stop_id") );
             put( "clientOrderId", Coinex.this.safeString(order, "client_id") );
@@ -1448,7 +1454,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
     public String parseWsOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "active_success", "open" );
             put( "active_fail", "canceled" );
             put( "cancel", "canceled" );
@@ -1470,19 +1476,19 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object marketIds = this.marketIds(symbols);
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object market = null;
             Boolean symbolsDefined = (!Helpers.isEqual(symbols, null));
             if (Helpers.isTrue(symbolsDefined))
@@ -1491,21 +1497,21 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     market = this.market(symbol);
-                    ((java.util.List<Object>)messageHashes).add(Helpers.add("bidsasks:", Helpers.GetValue(market, "symbol")));
+                    ((List<Object>)messageHashes).add(Helpers.add("bidsasks:", Helpers.GetValue(market, "symbol")));
                 }
             } else
             {
-                ((java.util.List<Object>)messageHashes).add("bidsasks");
+                ((List<Object>)messageHashes).add("bidsasks");
             }
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", market, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
-            java.util.List<Object> subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList("all@bidsasks"));
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList("all@bidsasks"));
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "bbo.subscribe" );
-                put( "params", new java.util.HashMap<String, Object>() {{
+                put( "params", new HashMap<String, Object>() {{
                     put( "market_list", marketIds );
                 }} );
                 put( "id", Coinex.this.requestId() );
@@ -1536,7 +1542,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //         "id": null
         //     }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object parsedTicker = this.parseWsBidAsk(data);
         Object symbol = Helpers.GetValue(parsedTicker, "symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), parsedTicker);
@@ -1562,7 +1568,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         market = this.safeMarket(marketId, market, null, defaultType);
         Long timestamp = this.safeInteger(ticker, "updated_at");
         final Object finalMarket = market;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Coinex.this.safeSymbol(marketId, finalMarket, null, defaultType) );
             put( "timestamp", timestamp );
             put( "datetime", Coinex.this.iso8601(timestamp) );
@@ -1580,9 +1586,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         String error = this.safeString(message, "message");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            this.handleErrors(1, "", client.url, ((String)method), new java.util.HashMap<String, Object>() {{}}, this.json(error), message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
+            this.handleErrors(1, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, this.json(error), message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
         }
-        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> handlers = new HashMap<String, Object>() {{
             put( "state.update", "handleTicker");
             put( "balance.update", "handleBalance");
             put( "deals.update", "handleTrades");
@@ -1658,7 +1664,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
+                ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
     }
@@ -1675,14 +1681,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 ((io.github.ccxt.ws.Future)future).resolve(true);
             }
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)id);
+            ((Map<String,Object>)client.subscriptions).remove((String)id);
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> authenticate(Object type)
+    public CompletableFuture<Object> authenticate(Object type)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             Client client = this.client(url);
@@ -1696,15 +1702,15 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 return ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             Object requestId = this.requestId();
-            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "future", messageHash );
             }};
             Object hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha256(), "hex");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "method", "server.sign" );
-                put( "params", new java.util.HashMap<String, Object>() {{
+                put( "params", new HashMap<String, Object>() {{
                     put( "access_id", Coinex.this.apiKey );
                     put( "signed_str", ((String)hmac).toLowerCase() );
                     put( "timestamp", time );

@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class GrvtApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1DepositAddresses (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgeGetApiV1DepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgeGetApiV1DepositAddresses", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1BridgeWithdrawalInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgeGetApiV1BridgeWithdrawalInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgeGetApiV1BridgeWithdrawalInfo", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1BridgeWithdrawalStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgeGetApiV1BridgeWithdrawalStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgeGetApiV1BridgeWithdrawalStatus", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1ReferralEpochs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgeGetApiV1ReferralEpochs (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgeGetApiV1ReferralEpochs", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1ReferralPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgeGetApiV1ReferralPoints (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgeGetApiV1ReferralPoints", optionalArgs);
     }
@@ -80,7 +82,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1ReferralData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgeGetApiV1ReferralData (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgeGetApiV1ReferralData", optionalArgs);
     }
@@ -91,7 +93,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1ReferralIndirectData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgeGetApiV1ReferralIndirectData (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgeGetApiV1ReferralIndirectData", optionalArgs);
     }
@@ -102,7 +104,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostAuthApiKeyLogin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgePostAuthApiKeyLogin (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgePostAuthApiKeyLogin", optionalArgs);
     }
@@ -113,7 +115,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostAuthWalletLogin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgePostAuthWalletLogin (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgePostAuthWalletLogin", optionalArgs);
     }
@@ -124,7 +126,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostAuthBuilderAuthorize (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgePostAuthBuilderAuthorize (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgePostAuthBuilderAuthorize", optionalArgs);
     }
@@ -135,7 +137,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostApiV1DepositGenerateAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgePostApiV1DepositGenerateAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgePostApiV1DepositGenerateAddress", optionalArgs);
     }
@@ -146,7 +148,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostApiV1BridgeWithdrawalQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgePostApiV1BridgeWithdrawalQuote (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgePostApiV1BridgeWithdrawalQuote", optionalArgs);
     }
@@ -157,7 +159,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostApiV1BridgeWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEdgePostApiV1BridgeWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgePostApiV1BridgeWithdraw", optionalArgs);
     }
@@ -168,7 +170,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Instrument (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Instrument (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Instrument", optionalArgs);
     }
@@ -179,7 +181,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1AllInstruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1AllInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1AllInstruments", optionalArgs);
     }
@@ -190,7 +192,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Instruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Instruments (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Instruments", optionalArgs);
     }
@@ -201,7 +203,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Currency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Currency (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Currency", optionalArgs);
     }
@@ -212,7 +214,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1MarginRules (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1MarginRules (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1MarginRules", optionalArgs);
     }
@@ -223,7 +225,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Mini (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Mini (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Mini", optionalArgs);
     }
@@ -234,7 +236,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Ticker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Ticker (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Ticker", optionalArgs);
     }
@@ -245,7 +247,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Book (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Book (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Book", optionalArgs);
     }
@@ -256,7 +258,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Trade (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Trade (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Trade", optionalArgs);
     }
@@ -267,7 +269,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1TradeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1TradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1TradeHistory", optionalArgs);
     }
@@ -278,7 +280,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Kline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Kline (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Kline", optionalArgs);
     }
@@ -289,7 +291,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Funding (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1Funding (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Funding", optionalArgs);
     }
@@ -300,7 +302,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1SupportedAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1SupportedAssets (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1SupportedAssets", optionalArgs);
     }
@@ -311,7 +313,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1GetAllCollateralAssetInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarketPostFullV1GetAllCollateralAssetInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1GetAllCollateralAssetInfo", optionalArgs);
     }
@@ -322,7 +324,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1CreateOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1CreateOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1CreateOrder", optionalArgs);
     }
@@ -333,7 +335,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1CancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1CancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1CancelOrder", optionalArgs);
     }
@@ -344,7 +346,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1CancelOnDisconnect (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1CancelOnDisconnect (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1CancelOnDisconnect", optionalArgs);
     }
@@ -355,7 +357,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1CancelAllOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1CancelAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1CancelAllOrders", optionalArgs);
     }
@@ -366,7 +368,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1Order (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1Order", optionalArgs);
     }
@@ -377,7 +379,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1OrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1OrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1OrderHistory", optionalArgs);
     }
@@ -388,7 +390,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1OpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1OpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1OpenOrders", optionalArgs);
     }
@@ -399,7 +401,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1FillHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1FillHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1FillHistory", optionalArgs);
     }
@@ -410,7 +412,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1Positions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1Positions (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1Positions", optionalArgs);
     }
@@ -421,7 +423,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1FundingPaymentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1FundingPaymentHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1FundingPaymentHistory", optionalArgs);
     }
@@ -432,7 +434,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1GetSubAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1GetSubAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1GetSubAccounts", optionalArgs);
     }
@@ -443,7 +445,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1AccountSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1AccountSummary (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1AccountSummary", optionalArgs);
     }
@@ -454,7 +456,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1AccountHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1AccountHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1AccountHistory", optionalArgs);
     }
@@ -465,7 +467,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1AggregatedAccountSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1AggregatedAccountSummary (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1AggregatedAccountSummary", optionalArgs);
     }
@@ -476,7 +478,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1FundingAccountSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1FundingAccountSummary (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1FundingAccountSummary", optionalArgs);
     }
@@ -487,7 +489,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1Transfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1Transfer (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1Transfer", optionalArgs);
     }
@@ -498,7 +500,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1DepositHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1DepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1DepositHistory", optionalArgs);
     }
@@ -509,7 +511,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1TransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1TransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1TransferHistory", optionalArgs);
     }
@@ -520,7 +522,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1Withdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1Withdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1Withdrawal", optionalArgs);
     }
@@ -531,7 +533,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1WithdrawalHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1WithdrawalHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1WithdrawalHistory", optionalArgs);
     }
@@ -542,7 +544,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1AddPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1AddPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1AddPositionMargin", optionalArgs);
     }
@@ -553,7 +555,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1GetPositionMarginLimits (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1GetPositionMarginLimits (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1GetPositionMarginLimits", optionalArgs);
     }
@@ -564,7 +566,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1SetPositionConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1SetPositionConfig (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1SetPositionConfig", optionalArgs);
     }
@@ -575,7 +577,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1SetInitialLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1SetInitialLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1SetInitialLeverage", optionalArgs);
     }
@@ -586,7 +588,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1GetAllInitialLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1GetAllInitialLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1GetAllInitialLeverage", optionalArgs);
     }
@@ -597,7 +599,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1SetDeriskMmRatio (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1SetDeriskMmRatio (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1SetDeriskMmRatio", optionalArgs);
     }
@@ -608,7 +610,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1VaultBurnTokens (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1VaultBurnTokens (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1VaultBurnTokens", optionalArgs);
     }
@@ -619,7 +621,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1VaultInvest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1VaultInvest (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1VaultInvest", optionalArgs);
     }
@@ -630,7 +632,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1VaultInvestorSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1VaultInvestorSummary (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1VaultInvestorSummary", optionalArgs);
     }
@@ -641,7 +643,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1VaultRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1VaultRedeem (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1VaultRedeem", optionalArgs);
     }
@@ -652,7 +654,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1VaultRedeemCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1VaultRedeemCancel (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1VaultRedeemCancel", optionalArgs);
     }
@@ -663,7 +665,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1VaultViewRedemptionQueue (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1VaultViewRedemptionQueue (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1VaultViewRedemptionQueue", optionalArgs);
     }
@@ -674,7 +676,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1VaultManagerInvestorHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1VaultManagerInvestorHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1VaultManagerInvestorHistory", optionalArgs);
     }
@@ -685,7 +687,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1AuthorizeBuilder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1AuthorizeBuilder (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1AuthorizeBuilder", optionalArgs);
     }
@@ -696,7 +698,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1GetAuthorizedBuilders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1GetAuthorizedBuilders (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1GetAuthorizedBuilders", optionalArgs);
     }
@@ -707,7 +709,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1BuilderFillHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1BuilderFillHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1BuilderFillHistory", optionalArgs);
     }
@@ -718,7 +720,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1CreateRfq (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1CreateRfq (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1CreateRfq", optionalArgs);
     }
@@ -729,7 +731,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1CancelRfq (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1CancelRfq (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1CancelRfq", optionalArgs);
     }
@@ -740,7 +742,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1EcnFromBroker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1EcnFromBroker (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1EcnFromBroker", optionalArgs);
     }
@@ -751,7 +753,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV2BulkOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV2BulkOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV2BulkOrders", optionalArgs);
     }
@@ -762,7 +764,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1PositionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1PositionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1PositionHistory", optionalArgs);
     }
@@ -773,7 +775,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1InterestPaymentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1InterestPaymentHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1InterestPaymentHistory", optionalArgs);
     }
@@ -784,7 +786,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1GetCollateralPreference (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1GetCollateralPreference (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1GetCollateralPreference", optionalArgs);
     }
@@ -795,7 +797,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1SpotAccountSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1SpotAccountSummary (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1SpotAccountSummary", optionalArgs);
     }
@@ -806,7 +808,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1SetIndicativePrices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1SetIndicativePrices (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1SetIndicativePrices", optionalArgs);
     }
@@ -817,7 +819,7 @@ public class GrvtApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1WithdrawalFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateTradingPostFullV1WithdrawalFee (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1WithdrawalFee", optionalArgs);
     }

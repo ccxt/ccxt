@@ -7,6 +7,10 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Binanceusdm extends io.github.ccxt.exchanges.Binanceusdm
 {
@@ -24,22 +28,22 @@ public class Binanceusdm extends io.github.ccxt.exchanges.Binanceusdm
         var restInstance = new io.github.ccxt.exchanges.Binanceusdm();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        java.util.Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
-        return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
+        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "binanceusdm" );
             put( "name", "Binance USDⓈ-M" );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg" );
                 put( "doc", "https://developers.binance.com/en" );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("linear")) );
+            put( "options", new HashMap<String, Object>() {{
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("linear")) );
                 }} );
                 put( "defaultSubType", "linear" );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "-5021", InvalidOrder.class );
                     put( "-5022", InvalidOrder.class );
                     put( "-5028", InvalidOrder.class );

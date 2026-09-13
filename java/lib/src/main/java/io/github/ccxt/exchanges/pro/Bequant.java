@@ -7,6 +7,10 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Bequant extends io.github.ccxt.exchanges.Bequant
 {
@@ -24,25 +28,25 @@ public class Bequant extends io.github.ccxt.exchanges.Bequant
         var restInstance = new io.github.ccxt.exchanges.Bequant();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        java.util.Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
-        return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
+        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "bequant" );
             put( "name", "Bequant" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("MT")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("MT")) );
             put( "pro", true );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api.bequant.io/api/3" );
                     put( "private", "https://api.bequant.io/api/3" );
-                    put( "ws", new java.util.HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
                         put( "public", "wss://api.bequant.io/api/3/ws/public" );
                         put( "private", "wss://api.bequant.io/api/3/ws/trading" );
                     }} );
                 }} );
                 put( "www", "https://bequant.io" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://api.bequant.io/")) );
-                put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://bequant.io/fees-and-limits")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://api.bequant.io/")) );
+                put( "fees", new ArrayList<Object>(Arrays.asList("https://bequant.io/fees-and-limits")) );
                 put( "referral", "https://bequant.io" );
             }} );
         }});

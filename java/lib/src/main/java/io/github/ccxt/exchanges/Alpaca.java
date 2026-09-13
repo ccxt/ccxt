@@ -6,6 +6,12 @@ import io.github.ccxt.api.AlpacaApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Alpaca extends AlpacaApi
 {
@@ -19,22 +25,22 @@ public class Alpaca extends AlpacaApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "alpaca" );
             put( "name", "Alpaca" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("US")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("US")) );
             put( "rateLimit", 333 );
             put( "hostname", "alpaca.markets" );
             put( "pro", true );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b" );
                 put( "www", "https://alpaca.markets" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "broker", "https://broker-api.{hostname}" );
                     put( "trader", "https://api.{hostname}" );
                     put( "market", "https://data.{hostname}" );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "broker", "https://broker-api.sandbox.{hostname}" );
                     put( "trader", "https://paper-api.{hostname}" );
                     put( "market", "https://data.{hostname}" );
@@ -42,7 +48,7 @@ public class Alpaca extends AlpacaApi
                 put( "doc", "https://alpaca.markets/docs/" );
                 put( "fees", "https://docs.alpaca.markets/docs/crypto-fees" );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", false );
                 put( "spot", true );
                 put( "margin", false );
@@ -156,331 +162,331 @@ public class Alpaca extends AlpacaApi
                 put( "transfer", false );
                 put( "withdraw", true );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "broker", new java.util.HashMap<String, Object>() {{
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "v1/accounts/{account_id}/tokenization/requests", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "broker", new HashMap<String, Object>() {{
+                    put( "private", new HashMap<String, Object>() {{
+                        put( "get", new HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/tokenization/requests", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", new java.util.HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1/accounts/{account_id}/tokenization/requests:by_client_request_id", new java.util.HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/tokenization/requests:by_client_request_id", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", new java.util.HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1/fpsl/analytics/{account_id}/loans", new java.util.HashMap<String, Object>() {{
+                            put( "v1/fpsl/analytics/{account_id}/loans", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1/ipos", new java.util.HashMap<String, Object>() {{
+                            put( "v1/ipos", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1/ipos/{offering_reference}", new java.util.HashMap<String, Object>() {{
+                            put( "v1/ipos/{offering_reference}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1/wallets/travel-rule/vasps", new java.util.HashMap<String, Object>() {{
+                            put( "v1/wallets/travel-rule/vasps", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/acats", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/acats", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/acats/contrabrokers", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/acats/contrabrokers", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/acats/{account_id}", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/acats/{account_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/acats/{account_id}/{acats_id}", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/acats/{account_id}/{acats_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/acats/{account_id}/{acats_id}/assets", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                        }} );
-                        put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "v1beta1/acats/{account_id}", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/acats/{account_id}/{acats_id}/assets", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
-                        put( "patch", new java.util.HashMap<String, Object>() {{
-                            put( "v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new java.util.HashMap<String, Object>() {{
+                        put( "post", new HashMap<String, Object>() {{
+                            put( "v1beta1/acats/{account_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
-                    }} );
-                }} );
-                put( "trader", new java.util.HashMap<String, Object>() {{
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "v2/account", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/orders", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/orders/{order_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/positions", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/positions/{symbol_or_asset_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/account/portfolio/history", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists/{watchlist_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists:by_name", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/account/configurations", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/account/activities", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/account/activities/{activity_type}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/calendar", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/clock", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/assets", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/assets/{symbol_or_asset_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/corporate_actions/announcements/{id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/corporate_actions/announcements", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/wallets", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/wallets/transfers", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v1/locates", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v1/locates/{locate_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v1/locates/quotes", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/tokenization/requests", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/tokenization/requests/{tokenization_request_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/tokenization/requests:by_client_request_id", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/wallets/travel-rule/vasps", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                        }} );
-                        put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "v2/orders", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists/{watchlist_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists:by_name", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/wallets/transfers", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v1/locates", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                        }} );
-                        put( "put", new java.util.HashMap<String, Object>() {{
-                            put( "v2/orders/{order_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists/{watchlist_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists:by_name", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                        }} );
-                        put( "patch", new java.util.HashMap<String, Object>() {{
-                            put( "v2/orders/{order_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/account/configurations", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                        }} );
-                        put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "v2/orders", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/orders/{order_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/positions", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/positions/{symbol_or_asset_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists/{watchlist_id}", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists:by_name", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "v2/watchlists/{watchlist_id}/{symbol}", new java.util.HashMap<String, Object>() {{
+                        put( "patch", new HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
                     }} );
                 }} );
-                put( "market", new java.util.HashMap<String, Object>() {{
-                    put( "public", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "v1beta3/crypto/{loc}/bars", new java.util.HashMap<String, Object>() {{
+                put( "trader", new HashMap<String, Object>() {{
+                    put( "private", new HashMap<String, Object>() {{
+                        put( "get", new HashMap<String, Object>() {{
+                            put( "v2/account", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta3/crypto/{loc}/latest/bars", new java.util.HashMap<String, Object>() {{
+                            put( "v2/orders", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta3/crypto/{loc}/latest/orderbooks", new java.util.HashMap<String, Object>() {{
+                            put( "v2/orders/{order_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta3/crypto/{loc}/latest/quotes", new java.util.HashMap<String, Object>() {{
+                            put( "v2/positions", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta3/crypto/{loc}/latest/trades", new java.util.HashMap<String, Object>() {{
+                            put( "v2/positions/{symbol_or_asset_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta3/crypto/{loc}/quotes", new java.util.HashMap<String, Object>() {{
+                            put( "v2/account/portfolio/history", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta3/crypto/{loc}/snapshots", new java.util.HashMap<String, Object>() {{
+                            put( "v2/watchlists", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta3/crypto/{loc}/trades", new java.util.HashMap<String, Object>() {{
+                            put( "v2/watchlists/{watchlist_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists:by_name", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/configurations", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/activities", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/activities/{activity_type}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/calendar", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/clock", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/assets", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/assets/{symbol_or_asset_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/corporate_actions/announcements/{id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/corporate_actions/announcements", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/transfers", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates/{locate_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates/quotes", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests/{tokenization_request_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests:by_client_request_id", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/travel-rule/vasps", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "post", new HashMap<String, Object>() {{
+                            put( "v2/orders", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists:by_name", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/transfers", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "put", new HashMap<String, Object>() {{
+                            put( "v2/orders/{order_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists:by_name", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "patch", new HashMap<String, Object>() {{
+                            put( "v2/orders/{order_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/account/configurations", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "delete", new HashMap<String, Object>() {{
+                            put( "v2/orders", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/orders/{order_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/positions", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/positions/{symbol_or_asset_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists:by_name", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/watchlists/{watchlist_id}/{symbol}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
                     }} );
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "v1beta1/corporate-actions", new java.util.HashMap<String, Object>() {{
+                }} );
+                put( "market", new HashMap<String, Object>() {{
+                    put( "public", new HashMap<String, Object>() {{
+                        put( "get", new HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/bars", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/fixed_income/latest/prices", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/latest/bars", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/fixed_income/latest/quotes", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/latest/orderbooks", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/forex/latest/rates", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/latest/quotes", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/forex/rates", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/latest/trades", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/logos/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/quotes", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/news", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/snapshots", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/screener/stocks/most-actives", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta3/crypto/{loc}/trades", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v1beta1/screener/{market_type}/movers", new java.util.HashMap<String, Object>() {{
+                        }} );
+                    }} );
+                    put( "private", new HashMap<String, Object>() {{
+                        put( "get", new HashMap<String, Object>() {{
+                            put( "v1beta1/corporate-actions", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/auctions", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/fixed_income/latest/prices", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/bars", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/fixed_income/latest/quotes", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/bars/latest", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/forex/latest/rates", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/meta/conditions/{ticktype}", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/forex/rates", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/meta/exchanges", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/logos/{symbol}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/quotes", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/news", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/quotes/latest", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/screener/stocks/most-actives", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/snapshots", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/screener/{market_type}/movers", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/trades", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/auctions", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/trades/latest", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/bars", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/{symbol}/auctions", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/bars/latest", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/{symbol}/bars", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/meta/conditions/{ticktype}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/{symbol}/bars/latest", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/meta/exchanges", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/{symbol}/quotes", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/quotes", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/{symbol}/quotes/latest", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/quotes/latest", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/{symbol}/snapshot", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/snapshots", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/{symbol}/trades", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/trades", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "v2/stocks/{symbol}/trades/latest", new java.util.HashMap<String, Object>() {{
+                            put( "v2/stocks/trades/latest", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/auctions", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/bars", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/bars/latest", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/quotes", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/quotes/latest", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/snapshot", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/trades", new HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/stocks/{symbol}/trades/latest", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "1min" );
                 put( "3m", "3min" );
                 put( "5m", "5min" );
@@ -498,53 +504,53 @@ public class Alpaca extends AlpacaApi
                 put( "1M", "1M" );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
+            put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
                 put( "secret", true );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "maker", Alpaca.this.parseNumber("0.0015") );
                     put( "taker", Alpaca.this.parseNumber("0.0025") );
-                    put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("0"), Alpaca.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("100000"), Alpaca.this.parseNumber("0.0022"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("500000"), Alpaca.this.parseNumber("0.0020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("1000000"), Alpaca.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("10000000"), Alpaca.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("25000000"), Alpaca.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("50000000"), Alpaca.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("100000000"), Alpaca.this.parseNumber("0.001"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("0"), Alpaca.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("100000"), Alpaca.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("500000"), Alpaca.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("1000000"), Alpaca.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("10000000"), Alpaca.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("25000000"), Alpaca.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("50000000"), Alpaca.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("100000000"), Alpaca.this.parseNumber("0.00"))))) );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("0"), Alpaca.this.parseNumber("0.0025"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("100000"), Alpaca.this.parseNumber("0.0022"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("500000"), Alpaca.this.parseNumber("0.0020"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("1000000"), Alpaca.this.parseNumber("0.0018"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("10000000"), Alpaca.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("25000000"), Alpaca.this.parseNumber("0.0013"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("50000000"), Alpaca.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("100000000"), Alpaca.this.parseNumber("0.001"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("0"), Alpaca.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("100000"), Alpaca.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("500000"), Alpaca.this.parseNumber("0.001"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("1000000"), Alpaca.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("10000000"), Alpaca.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("25000000"), Alpaca.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("50000000"), Alpaca.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("100000000"), Alpaca.this.parseNumber("0.00"))))) );
                     }} );
                 }} );
             }} );
-            put( "headers", new java.util.HashMap<String, Object>() {{
+            put( "headers", new HashMap<String, Object>() {{
                 put( "APCA-PARTNER-ID", "ccxt" );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "minCostUSD", 10 );
                 put( "defaultExchange", "CBSE" );
-                put( "exchanges", new java.util.ArrayList<Object>(java.util.Arrays.asList("CBSE", "FTX", "GNSS", "ERSX")) );
-                put( "createOrder", new java.util.HashMap<String, Object>() {{
+                put( "exchanges", new ArrayList<Object>(Arrays.asList("CBSE", "FTX", "GNSS", "ERSX")) );
+                put( "createOrder", new HashMap<String, Object>() {{
                     put( "timeInForce", "gtc" );
                 }} );
                 put( "clientOrderId", "ccxt_{id}" );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", true );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", true );
                         put( "triggerPriceType", null );
                         put( "triggerDirection", false );
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
-                        put( "attachedStopLossTakeProfit", new java.util.HashMap<String, Object>() {{
-                            put( "triggerPriceType", new java.util.HashMap<String, Object>() {{
+                        put( "attachedStopLossTakeProfit", new HashMap<String, Object>() {{
+                            put( "triggerPriceType", new HashMap<String, Object>() {{
                                 put( "last", true );
                                 put( "mark", true );
                                 put( "index", true );
                             }} );
                             put( "price", true );
                         }} );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", true );
@@ -559,27 +565,27 @@ public class Alpaca extends AlpacaApi
                         put( "iceberg", false );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 100000 );
                         put( "untilDays", 100000 );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
                         put( "daysBack", 100000 );
@@ -588,7 +594,7 @@ public class Alpaca extends AlpacaApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
                         put( "daysBack", 100000 );
@@ -598,28 +604,28 @@ public class Alpaca extends AlpacaApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 1000 );
                     }} );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "forbidden.", PermissionDenied.class );
                     put( "40410000", InvalidOrder.class );
                     put( "40010001", BadRequest.class );
                     put( "40110000", PermissionDenied.class );
                     put( "42910000", RateLimitExceeded.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+                put( "broad", new HashMap<String, Object>() {{
                     put( "Invalid format for parameter", BadRequest.class );
                     put( "Invalid symbol", BadSymbol.class );
                     put( "cost basis must be", InvalidOrder.class );
@@ -637,13 +643,13 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.traderPrivateGetV2Clock(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.traderPrivateGetV2Clock(parameters)).join();
             //
             //     {
             //         timestamp: '2023-11-22T08:07:57.654738097-05:00',
@@ -687,17 +693,17 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset_class", "crypto" );
                 put( "status", "active" );
             }};
-            java.util.List<Object> assets = (this.traderPrivateGetV2Assets(this.extend(request, parameters))).join();
+            List<Object> assets = (this.traderPrivateGetV2Assets(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -781,7 +787,7 @@ public class Alpaca extends AlpacaApi
         final Object finalBase = base;
         final Object finalQuote = quote;
         final Object finalMinCost = minCost;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -805,24 +811,24 @@ public class Alpaca extends AlpacaApi
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "price", price );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "amount", new java.util.HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", minAmount );
                     put( "max", null );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", finalMinCost );
                     put( "max", null );
                 }} );
@@ -846,27 +852,27 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", marketId );
                 put( "loc", loc );
             }};
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("loc", "method")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
             Object symbolTrades = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocTrades")))
             {
@@ -878,7 +884,7 @@ public class Alpaca extends AlpacaApi
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
-                java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters))).join();
+                Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "next_page_token": null,
@@ -895,11 +901,11 @@ public class Alpaca extends AlpacaApi
                 //        }
                 //    }
                 //
-                Object trades = this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
-                symbolTrades = this.safeList(trades, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
+                symbolTrades = this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
             } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")))
             {
-                java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters))).join();
+                Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters))).join();
                 //
                 //    {
                 //       "trades": {
@@ -913,14 +919,14 @@ public class Alpaca extends AlpacaApi
                 //        }
                 //    }
                 //
-                Object trades = this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
-                Object symbolTrade = this.safeDict(trades, marketId, new java.util.HashMap<String, Object>() {{}});
-                symbolTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbolTrade));
+                Object trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
+                Object symbolTrade = this.safeDict(trades, marketId, new HashMap<String, Object>() {{}});
+                symbolTrades = new ArrayList<Object>(Arrays.asList(symbolTrade));
             } else
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
             }
-            Object symbolTradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object symbolTradesList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbolTrades, null)))
             {
                 symbolTradesList = symbolTrades;
@@ -941,25 +947,25 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object id = Helpers.GetValue(market, "id");
             String loc = this.safeString(parameters, "loc", "us");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", id );
                 put( "loc", loc );
             }};
-            java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestOrderbooks(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestOrderbooks(this.extend(request, parameters))).join();
             //
             //   {
             //       "orderbooks":{
@@ -997,8 +1003,8 @@ public class Alpaca extends AlpacaApi
             //       }
             //   }
             //
-            Object orderbooks = this.safeDict(response, "orderbooks", new java.util.HashMap<String, Object>() {{}});
-            Object rawOrderbook = this.safeDict(orderbooks, id, new java.util.HashMap<String, Object>() {{}});
+            Object orderbooks = this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
+            Object rawOrderbook = this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, Helpers.GetValue(market, "symbol"), timestamp, "b", "a", "p", "s");
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -1023,36 +1029,36 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             Object paginationCalls = 10;
-            java.util.List<Object> paginationCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
-            paginationCalls = ((java.util.List<Object>) paginationCallsparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginationCallsparametersVariable).get(1);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            List<Object> paginationCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+            paginationCalls = ((List<Object>) paginationCallsparametersVariable).get(0);
+            parameters = ((List<Object>) paginationCallsparametersVariable).get(1);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", marketId );
                 put( "loc", loc );
             }};
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("loc", "method")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
             Object ohlcvs = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocBars")))
             {
@@ -1071,7 +1077,7 @@ public class Alpaca extends AlpacaApi
                     Helpers.addElementToObject(request, "end", this.iso8601(until));
                 }
                 Helpers.addElementToObject(request, "timeframe", this.safeString(this.timeframes, timeframe, timeframe));
-                java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
+                Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "bars": {
@@ -1101,8 +1107,8 @@ public class Alpaca extends AlpacaApi
                 //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
                 //     }
                 //
-                Object bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
-                ohlcvs = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+                ohlcvs = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                 if (Helpers.isTrue(paginate))
                 {
                     // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
@@ -1116,8 +1122,8 @@ public class Alpaca extends AlpacaApi
                         }
                         Helpers.addElementToObject(request, "page_token", pageToken);
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
-                        bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
-                        Object page = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+                        Object page = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                         Object pageLength = Helpers.getArrayLength(page);
                         if (Helpers.isTrue(Helpers.isEqual(pageLength, 0)))
                         {
@@ -1129,7 +1135,7 @@ public class Alpaca extends AlpacaApi
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
             {
-                java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters))).join();
+                Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "bars": {
@@ -1146,9 +1152,9 @@ public class Alpaca extends AlpacaApi
                 //        }
                 //     }
                 //
-                Object bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
-                Object bar = this.safeDict(bars, marketId, new java.util.HashMap<String, Object>() {{}});
-                ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList(bar));
+                Object bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+                Object bar = this.safeDict(bars, marketId, new HashMap<String, Object>() {{}});
+                ohlcvs = new ArrayList<Object>(Arrays.asList(bar));
             } else
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
@@ -1175,7 +1181,7 @@ public class Alpaca extends AlpacaApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String datetime = this.safeString(ohlcv, "t");
         Long timestamp = this.parse8601(datetime);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
+        return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
     }
 
     /**
@@ -1188,18 +1194,18 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
+            Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(tickers, symbol);
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -1215,13 +1221,13 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1235,12 +1241,12 @@ public class Alpaca extends AlpacaApi
             symbols = this.marketSymbols(symbols);
             String loc = this.safeString(parameters, "loc", "us");
             Object ids = this.marketIds(symbols);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbols", String.join(",", (java.util.List<String>)ids) );
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbols", String.join(",", (List<String>)ids) );
                 put( "loc", loc );
             }};
             parameters = this.omit(parameters, "loc");
-            java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, parameters))).join();
             //
             //     {
             //         "snapshots": {
@@ -1293,20 +1299,20 @@ public class Alpaca extends AlpacaApi
             //         }
             //     }
             //
-            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object snapshots = this.safeDict(response, "snapshots", new java.util.HashMap<String, Object>() {{}});
+            List<Object> results = new ArrayList<Object>(Arrays.asList());
+            Object snapshots = this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
             Object marketIds = Helpers.objectKeys(snapshots);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object entry = this.safeDict(snapshots, marketId);
-                Object dailyBar = this.safeDict(entry, "dailyBar", new java.util.HashMap<String, Object>() {{}});
-                Object prevDailyBar = this.safeDict(entry, "prevDailyBar", new java.util.HashMap<String, Object>() {{}});
-                Object latestQuote = this.safeDict(entry, "latestQuote", new java.util.HashMap<String, Object>() {{}});
-                Object latestTrade = this.safeDict(entry, "latestTrade", new java.util.HashMap<String, Object>() {{}});
+                Object dailyBar = this.safeDict(entry, "dailyBar", new HashMap<String, Object>() {{}});
+                Object prevDailyBar = this.safeDict(entry, "prevDailyBar", new HashMap<String, Object>() {{}});
+                Object latestQuote = this.safeDict(entry, "latestQuote", new HashMap<String, Object>() {{}});
+                Object latestTrade = this.safeDict(entry, "latestTrade", new HashMap<String, Object>() {{}});
                 String datetime = this.safeString(latestQuote, "t");
-                Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
+                Object ticker = this.safeTicker(new HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
                     put( "timestamp", Alpaca.this.parse8601(datetime) );
@@ -1328,7 +1334,7 @@ public class Alpaca extends AlpacaApi
                     put( "baseVolume", Alpaca.this.safeString(dailyBar, "v") );
                     put( "quoteVolume", Precise.stringMul(Alpaca.this.safeString(dailyBar, "v"), Alpaca.this.safeString(dailyBar, "vw")) );
                 }}, market);
-                ((java.util.List<Object>)results).add(ticker);
+                ((List<Object>)results).add(ticker);
             }
             return this.filterByArray(results, "symbol", symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
@@ -1340,8 +1346,8 @@ public class Alpaca extends AlpacaApi
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
         Object parts = Helpers.split(uuid, "-");
-        Object random_id = String.join("", (java.util.List<String>)parts);
-        Object defaultClientId = this.implodeParams(clientOrderIdprefix, new java.util.HashMap<String, Object>() {{
+        Object random_id = String.join("", (List<String>)parts);
+        Object defaultClientId = this.implodeParams(clientOrderIdprefix, new HashMap<String, Object>() {{
             put( "id", random_id );
         }});
         String clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
@@ -1359,17 +1365,17 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
@@ -1387,17 +1393,17 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
@@ -1415,17 +1421,17 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
@@ -1448,20 +1454,20 @@ public class Alpaca extends AlpacaApi
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object id = Helpers.GetValue(market, "id");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", id );
                 put( "side", side );
                 put( "type", type );
@@ -1494,14 +1500,14 @@ public class Alpaca extends AlpacaApi
                 Helpers.addElementToObject(request, "qty", this.amountToPrecision(symbol, amount));
             }
             Object defaultTIF = null;
-            java.util.List<Object> defaultTIFparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
-            defaultTIF = ((java.util.List<Object>) defaultTIFparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) defaultTIFparametersVariable).get(1);
+            List<Object> defaultTIFparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+            defaultTIF = ((List<Object>) defaultTIFparametersVariable).get(0);
+            parameters = ((List<Object>) defaultTIFparametersVariable).get(1);
             Helpers.addElementToObject(request, "time_in_force", defaultTIF);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "triggerPrice")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
             Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
-            java.util.Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, parameters))).join();
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+            Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, parameters))).join();
             //
             //   {
             //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -1553,17 +1559,17 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            java.util.Map<String, Object> response = (this.traderPrivateDeleteV2OrdersOrderId(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.traderPrivateDeleteV2OrdersOrderId(this.extend(request, parameters))).join();
             //
             //   {
             //       "code": 40410000,
@@ -1584,24 +1590,24 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> response = (this.traderPrivateDeleteV2Orders(parameters)).join();
+            List<Object> response = (this.traderPrivateDeleteV2Orders(parameters)).join();
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 return this.parseOrders(response);
             } else
             {
-                return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
+                return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
             }
@@ -1619,23 +1625,23 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            java.util.Map<String, Object> order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
+            Map<String, Object> order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
             String marketId = this.safeString(order, "symbol");
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             return this.parseOrder(order, market);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -1653,20 +1659,20 @@ public class Alpaca extends AlpacaApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "all" );
             }};
             Object market = null;
@@ -1689,7 +1695,7 @@ public class Alpaca extends AlpacaApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> response = (this.traderPrivateGetV2Orders(this.extend(request, parameters))).join();
+            List<Object> response = (this.traderPrivateGetV2Orders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1747,16 +1753,16 @@ public class Alpaca extends AlpacaApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
@@ -1776,16 +1782,16 @@ public class Alpaca extends AlpacaApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "closed" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
@@ -1810,19 +1816,19 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
             Object market = null;
@@ -1845,16 +1851,16 @@ public class Alpaca extends AlpacaApi
                 Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(symbol, price));
             }
             Object timeInForce = null;
-            java.util.List<Object> timeInForceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
-            timeInForce = ((java.util.List<Object>) timeInForceparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) timeInForceparametersVariable).get(1);
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
+            timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+            parameters = ((List<Object>) timeInForceparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
                 Helpers.addElementToObject(request, "time_in_force", timeInForce);
             }
             Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
-            java.util.Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+            Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -1911,7 +1917,7 @@ public class Alpaca extends AlpacaApi
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
         {
             final Object finalFeeValue = feeValue;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeValue );
                 put( "currency", "USD" );
             }};
@@ -1929,7 +1935,7 @@ public class Alpaca extends AlpacaApi
         Long timestamp = this.parse8601(datetime);
         final Object finalOrderType = orderType;
         final Object finalFee = fee;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Alpaca.this.safeString(order, "id") );
             put( "clientOrderId", Alpaca.this.safeString(order, "client_order_id") );
             put( "timestamp", timestamp );
@@ -1956,7 +1962,7 @@ public class Alpaca extends AlpacaApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending_new", "open" );
             put( "accepted", "open" );
             put( "new", "open" );
@@ -1969,7 +1975,7 @@ public class Alpaca extends AlpacaApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "day", "Day" );
         }};
         return this.safeString(timeInForces, timeInForce, timeInForce);
@@ -1988,21 +1994,21 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "activity_type", "FILL" );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2023,10 +2029,10 @@ public class Alpaca extends AlpacaApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("until", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2100,7 +2106,7 @@ public class Alpaca extends AlpacaApi
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "s", "qty");
         final Object finalSide = side;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Alpaca.this.safeString2(trade, "i", "id") );
             put( "timestamp", timestamp );
@@ -2126,21 +2132,21 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
-            java.util.Map<String, Object> response = (this.traderPrivateGetV2Wallets(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.traderPrivateGetV2Wallets(this.extend(request, parameters))).join();
             //
             //     {
             //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -2169,7 +2175,7 @@ public class Alpaca extends AlpacaApi
             parsedCurrency = Helpers.GetValue(currency, "id");
         }
         final Object finalParsedCurrency = parsedCurrency;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", finalParsedCurrency );
             put( "network", null );
@@ -2190,33 +2196,33 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
     {
         final Object address3 = address2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object address = address3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tag, null))) && Helpers.isTrue((!Helpers.isEqual(tag, "")))))
             {
                 address = Helpers.add(Helpers.add(address, ":"), tag);
             }
             final Object finalAddress = address;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "address", finalAddress );
                 put( "amount", Alpaca.this.numberToString(amount) );
             }};
-            java.util.Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2245,11 +2251,11 @@ public class Alpaca extends AlpacaApi
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsHelper(Object type2, Object code2, Object since, Object limit, Object parameters)
+    public CompletableFuture<Object> fetchTransactionsHelper(Object type2, Object code2, Object since, Object limit, Object parameters)
     {
         final Object type3 = type2;
         final Object code3 = code2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object code = code3;
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2267,10 +2273,10 @@ public class Alpaca extends AlpacaApi
                 // paper-trading hosts do not serve the crypto wallets api at all, so route
                 // through the account activities ledger instead, filtered to transfer-like
                 // entries, see https://github.com/ccxt/ccxt/issues/24847
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "activity_types", "CSD,CSW,TRANS" );
                 }};
-                java.util.List<Object> activities = (this.traderPrivateGetV2AccountActivities(this.extend(request, parameters))).join();
+                List<Object> activities = (this.traderPrivateGetV2AccountActivities(this.extend(request, parameters))).join();
                 //
                 //     [
                 //         {
@@ -2282,8 +2288,8 @@ public class Alpaca extends AlpacaApi
                 //         }
                 //     ]
                 //
-                java.util.List<Object> filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                java.util.List<Object> ledger = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                List<Object> filtered = new ArrayList<Object>(Arrays.asList());
+                List<Object> ledger = new ArrayList<Object>(Arrays.asList());
                 if (Helpers.isTrue(Helpers.isArray(activities)))
                 {
                     ledger = activities;
@@ -2297,12 +2303,12 @@ public class Alpaca extends AlpacaApi
                     String entryDirection = ((Helpers.isTrue(isIncoming))) ? "INCOMING" : "OUTGOING";
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "BOTH"))) || Helpers.isTrue((Helpers.isEqual(entryDirection, type)))))
                     {
-                        ((java.util.List<Object>)filtered).add(entry);
+                        ((List<Object>)filtered).add(entry);
                     }
                 }
                 return this.parseTransactions(filtered, currency, since, limit, parameters);
             }
-            java.util.List<Object> response = (this.traderPrivateGetV2WalletsTransfers(parameters)).join();
+            List<Object> response = (this.traderPrivateGetV2WalletsTransfers(parameters)).join();
             //
             //     {
             //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2320,8 +2326,8 @@ public class Alpaca extends AlpacaApi
             //         "fees": "0.1"
             //     }
             //
-            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> transfers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> results = new ArrayList<Object>(Arrays.asList());
+            List<Object> transfers = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 transfers = response;
@@ -2332,10 +2338,10 @@ public class Alpaca extends AlpacaApi
                 String direction = this.safeString(entry, "direction");
                 if (Helpers.isTrue(Helpers.isEqual(direction, type)))
                 {
-                    ((java.util.List<Object>)results).add(entry);
+                    ((List<Object>)results).add(entry);
                 } else if (Helpers.isTrue(Helpers.isEqual(type, "BOTH")))
                 {
-                    ((java.util.List<Object>)results).add(entry);
+                    ((List<Object>)results).add(entry);
                 }
             }
             return this.parseTransactions(results, currency, since, limit, parameters);
@@ -2354,15 +2360,15 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("BOTH", code, since, limit, parameters)).join();
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
@@ -2379,15 +2385,15 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters)).join();
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
@@ -2404,15 +2410,15 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters)).join();
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
@@ -2508,7 +2514,7 @@ public class Alpaca extends AlpacaApi
             String networkFee = this.safeString(transaction, "network_fee");
             String totalFee = Precise.stringAdd(fees, networkFee);
             final Object finalCode = code;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", Alpaca.this.parseNumber(totalFee) );
                 put( "currency", finalCode );
             }};
@@ -2527,7 +2533,7 @@ public class Alpaca extends AlpacaApi
         final Object finalComment = comment;
         final Object finalIntern = intern;
         final Object finalFee = fee;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Alpaca.this.safeString(transaction, "id") );
             put( "txid", finalTxid );
@@ -2553,7 +2559,7 @@ public class Alpaca extends AlpacaApi
 
     public String parseTransactionStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PROCESSING", "pending" );
             put( "FAILED", "failed" );
             put( "COMPLETE", "ok" );
@@ -2566,7 +2572,7 @@ public class Alpaca extends AlpacaApi
 
     public String parseTransactionType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "INCOMING", "deposit" );
             put( "OUTGOING", "withdrawal" );
         }};
@@ -2581,17 +2587,17 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.traderPrivateGetV2Account(parameters)).join();
+            Map<String, Object> response = (this.traderPrivateGetV2Account(parameters)).join();
             //
             //     {
             //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2647,7 +2653,7 @@ public class Alpaca extends AlpacaApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object account = this.account();
@@ -2666,12 +2672,12 @@ public class Alpaca extends AlpacaApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), Helpers.GetValue(api, 0)));
-        headers = ((Helpers.isTrue((!Helpers.isEqual(headers, null))))) ? headers : new java.util.HashMap<String, Object>() {{}};
+        headers = ((Helpers.isTrue((!Helpers.isEqual(headers, null))))) ? headers : new HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(api, 1), "private")))
         {
             this.checkRequiredCredentials();
@@ -2695,7 +2701,7 @@ public class Alpaca extends AlpacaApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );

@@ -6,6 +6,9 @@ import io.github.ccxt.api.BequantApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class Bequant extends BequantApi
 {
@@ -19,12 +22,12 @@ public class Bequant extends BequantApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bequant" );
             put( "name", "Bequant" );
             put( "pro", true );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("MT")) );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "countries", new ArrayList<Object>(Arrays.asList("MT")) );
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", null );
@@ -32,15 +35,15 @@ public class Bequant extends BequantApi
                 put( "future", null );
                 put( "option", null );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api.bequant.io/api/3" );
                     put( "private", "https://api.bequant.io/api/3" );
                 }} );
                 put( "www", "https://bequant.io" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://api.bequant.io/")) );
-                put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://bequant.io/fees-and-limits")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://api.bequant.io/")) );
+                put( "fees", new ArrayList<Object>(Arrays.asList("https://bequant.io/fees-and-limits")) );
                 put( "referral", "https://bequant.io/referral/dd104e3bee7634ec" );
             }} );
         }});

@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Bullish extends io.github.ccxt.exchanges.Bullish
 {
@@ -20,8 +26,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchTicker", true );
                 put( "watchTickers", false );
@@ -33,26 +39,26 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "watchBalance", true );
                 put( "watchOHLCV", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
-                    put( "ws", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
                         put( "public", "wss://api.exchange.bullish.com" );
                         put( "private", "wss://api.exchange.bullish.com/trading-api/v1/private-data" );
                     }} );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
-                    put( "ws", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
                         put( "public", "wss://api.simnext.bullish-test.com" );
                         put( "private", "wss://api.simnext.bullish-test.com/trading-api/v1/private-data" );
                     }} );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "ws", new java.util.HashMap<String, Object>() {{
-                    put( "cookies", new java.util.HashMap<String, Object>() {{}} );
+            put( "options", new HashMap<String, Object>() {{
+                put( "ws", new HashMap<String, Object>() {{
+                    put( "cookies", new HashMap<String, Object>() {{}} );
                 }} );
             }} );
-            put( "streaming", new java.util.HashMap<String, Object>() {{
+            put( "streaming", new HashMap<String, Object>() {{
                 put( "ping", "ping");
                 put( "keepAlive", 99000 );
             }} );
@@ -71,11 +77,11 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
         Object id = String.valueOf(this.requestId());
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "jsonrpc", "2.0" );
             put( "type", "command" );
             put( "method", "keepalivePing" );
-            put( "params", new java.util.HashMap<String, Object>() {{}} );
+            put( "params", new HashMap<String, Object>() {{}} );
             put( "id", id );
         }};
     }
@@ -97,15 +103,15 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         return message;  // current line is for transpilation compatibility
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPublic(Object url, Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> watchPublic(Object url, Object messageHash, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object request = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object request = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object id = String.valueOf(this.requestId());
-            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
                 put( "method", "subscribe" );
@@ -118,21 +124,21 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPrivate(Object messageHash, Object subscribeHash, Object... optionalArgs)
+    public CompletableFuture<Object> watchPrivate(Object messageHash, Object subscribeHash, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object request = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object request = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Object token = (this.handleToken()).join();
-            java.util.Map<String, Object> cookies = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> cookies = new HashMap<String, Object>() {{
                 put( "JWT_COOKIE", token );
             }};
             Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "cookies", cookies);
             Object id = String.valueOf(this.requestId());
-            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
                 put( "method", "subscribe" );
@@ -156,22 +162,22 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = Helpers.add("trades::", Helpers.GetValue(market, "symbol"));
             Object url = "/trading-api/v1/market-data/trades";
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "topic", "anonymousTrades" );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -211,12 +217,12 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //         }
         //     }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId);
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object rawTrades = this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> trades = this.parseTrades(rawTrades, market);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Object rawTrades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> trades = this.parseTrades(rawTrades, market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -242,17 +248,17 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), Helpers.GetValue(market, "id"));
             String messageHash = Helpers.add("ticker::", symbol);
@@ -308,16 +314,16 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         String updateType = this.safeString(message, "type", "");
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object parsed = this.parseTicker(data, market);
         if (Helpers.isTrue(Helpers.isEqual(updateType, "update")))
         {
-            Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
-            Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> merged = this.extend(rawTicker, data);
+            Object ticker = this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
+            Object rawTicker = this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged, market);
         }
         Helpers.addElementToObject(this.tickers, symbol, parsed);
@@ -335,21 +341,21 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object url = "/trading-api/v1/market-data/orderbook";
             String messageHash = Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "topic", "l2Orderbook" );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -383,7 +389,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         // current channel is 'l2Orderbook' which returns only snapshots
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId);
         String messageHash = Helpers.add("orderbook::", symbol);
@@ -393,14 +399,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object bids = this.separateBidsOrAsks(this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-        Object asks = this.separateBidsOrAsks(this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-        java.util.Map<String, Object> snapshot = new java.util.HashMap<String, Object>() {{
+        Object bids = this.separateBidsOrAsks(this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        Object asks = this.separateBidsOrAsks(this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
+        Map<String, Object> snapshot = new HashMap<String, Object>() {{
             put( "bids", bids );
             put( "asks", asks );
         }};
         Object parsed = this.parseOrderBook(snapshot, symbol, timestamp);
-        Object sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new ArrayList<Object>(Arrays.asList()));
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(sequenceNumberRange), 0)))
         {
             Object lastIndex = Helpers.subtract(Helpers.getArrayLength(sequenceNumberRange), 1);
@@ -413,7 +419,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     public Object separateBidsOrAsks(Object entry)
     {
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
@@ -425,7 +431,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             String price = this.safeString(entry, i);
             String amount = this.safeString(entry, Helpers.add(i, 1));
-            ((java.util.List<Object>)result).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount)));
+            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(price, amount)));
         }
         return result;
     }
@@ -442,15 +448,15 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -462,7 +468,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 symbol = this.symbol(symbol);
                 messageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "topic", "orders" );
             }};
             String tradingAccountId = this.safeString(parameters, "tradingAccountId");
@@ -528,14 +534,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         String type = this.safeString(message, "type");
-        Object rawOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object rawOrders = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(type, "update")))
         {
-            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-            ((java.util.List<Object>)rawOrders).add(data); // update is a single order
+            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            ((List<Object>)rawOrders).add(data); // update is a single order
         } else
         {
-            rawOrders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // snapshot is a list of orders
+            rawOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of orders
         }
         Object numRawOrders = Helpers.getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (Helpers.isTrue(Helpers.isGreaterThan(numRawOrders, 0)))
@@ -546,7 +552,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object orders = this.orders;
-            java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(rawOrders, i);
@@ -582,15 +588,15 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -602,7 +608,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 symbol = this.symbol(symbol);
                 messageHash = Helpers.add(messageHash, Helpers.add("::", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "topic", "trades" );
             }};
             String tradingAccountId = this.safeString(parameters, "tradingAccountId");
@@ -661,14 +667,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         String type = this.safeString(message, "type");
-        Object rawTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object rawTrades = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(type, "update")))
         {
-            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-            ((java.util.List<Object>)rawTrades).add(data); // update is a single trade
+            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            ((List<Object>)rawTrades).add(data); // update is a single trade
         } else
         {
-            rawTrades = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // snapshot is a list of trades
+            rawTrades = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of trades
         }
         Object numRawTrades = Helpers.getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (Helpers.isTrue(Helpers.isGreaterThan(numRawTrades, 0)))
@@ -679,7 +685,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object trades = this.myTrades;
-            java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
             {
                 Object rawTrade = Helpers.GetValue(rawTrades, i);
@@ -712,17 +718,17 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "topic", "assetAccounts" );
             }};
             String messageHash = "balance";
@@ -788,16 +794,16 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         }
         if (!Helpers.isTrue((Helpers.inOp(this.balance, tradingAccountId))))
         {
-            Helpers.addElementToObject(this.balance, tradingAccountId, new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(this.balance, tradingAccountId, new HashMap<String, Object>() {{}});
         }
         String messageType = this.safeString(message, "type");
         if (Helpers.isTrue(Helpers.isEqual(messageType, "snapshot")))
         {
-            Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.balance, tradingAccountId, this.parseBalance(data));
         } else
         {
-            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             String assetId = this.safeString(data, "assetSymbol");
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(data, "availableQuantity"));
@@ -827,15 +833,15 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -845,9 +851,9 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
                 symbols = this.marketSymbols(symbols);
-                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
+                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join(",", (List<String>)symbols)));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "topic", "derivativesPositionsV2" );
             }};
             Object positions = (this.watchPrivate(messageHash, subscribeHash, request, parameters)).join();
@@ -866,27 +872,27 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
         String messageType = this.safeString(message, "type");
-        Object rawPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object rawPositions = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(messageType, "update")))
         {
-            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-            ((java.util.List<Object>)rawPositions).add(data);
+            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            ((List<Object>)rawPositions).add(data);
         } else
         {
-            rawPositions = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            rawPositions = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         }
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object positions = this.positions;
-        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object position = this.parsePosition(rawPosition);
             Helpers.callDynamically(positions, "append", new Object[]{position});
-            ((java.util.List<Object>)newPositions).add(position);
+            ((List<Object>)newPositions).add(position);
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
@@ -917,7 +923,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //         "type": "error"
         //     }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(data));
         try
         {

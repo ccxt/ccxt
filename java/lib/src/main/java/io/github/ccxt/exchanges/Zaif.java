@@ -6,6 +6,12 @@ import io.github.ccxt.api.ZaifApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Zaif extends ZaifApi
 {
@@ -19,13 +25,13 @@ public class Zaif extends ZaifApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "zaif" );
             put( "name", "Zaif" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("JP")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("JP")) );
             put( "rateLimit", 100 );
             put( "version", "1" );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", null );
@@ -84,160 +90,160 @@ public class Zaif extends ZaifApi
                 put( "setMarginMode", false );
                 put( "withdraw", true );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "rest", "https://api.zaif.jp" );
                 }} );
                 put( "www", "https://zaif.jp" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://techbureau-api-document.readthedocs.io/ja/latest/index.html", "https://corp.zaif.jp/api-docs", "https://corp.zaif.jp/api-docs/api_links", "https://www.npmjs.com/package/zaif.jp", "https://github.com/you21979/node-zaif")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://techbureau-api-document.readthedocs.io/ja/latest/index.html", "https://corp.zaif.jp/api-docs", "https://corp.zaif.jp/api-docs/api_links", "https://www.npmjs.com/package/zaif.jp", "https://github.com/you21979/node-zaif")) );
                 put( "fees", "https://zaif.jp/fee?lang=en" );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "percentage", true );
                     put( "taker", Zaif.this.parseNumber("0.001") );
                     put( "maker", Zaif.this.parseNumber("0") );
                 }} );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "depth/{pair}", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "depth/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "currencies/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "currencies/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "currencies/all", new java.util.HashMap<String, Object>() {{
+                        put( "currencies/all", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "currency_pairs/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "currency_pairs/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "currency_pairs/all", new java.util.HashMap<String, Object>() {{
+                        put( "currency_pairs/all", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "last_price/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "last_price/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ticker/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "ticker/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "trades/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "trades/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "vasp_info/{vasp_master_id}", new java.util.HashMap<String, Object>() {{
+                        put( "vasp_info/{vasp_master_id}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "country_info/{code}", new java.util.HashMap<String, Object>() {{
+                        put( "country_info/{code}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "corp_type_id_info/{id}", new java.util.HashMap<String, Object>() {{
+                        put( "corp_type_id_info/{id}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "active_orders", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "active_orders", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "cancel_order", new java.util.HashMap<String, Object>() {{
+                        put( "cancel_order", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "deposit_history", new java.util.HashMap<String, Object>() {{
+                        put( "deposit_history", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "get_id_info", new java.util.HashMap<String, Object>() {{
+                        put( "get_id_info", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "get_info", new java.util.HashMap<String, Object>() {{
+                        put( "get_info", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "get_info2", new java.util.HashMap<String, Object>() {{
+                        put( "get_info2", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "get_personal_info", new java.util.HashMap<String, Object>() {{
+                        put( "get_personal_info", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "trade", new java.util.HashMap<String, Object>() {{
+                        put( "trade", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "trade_history", new java.util.HashMap<String, Object>() {{
+                        put( "trade_history", new HashMap<String, Object>() {{
                             put( "cost", 50 );
                         }} );
-                        put( "withdraw", new java.util.HashMap<String, Object>() {{
+                        put( "withdraw", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "withdraw_history", new java.util.HashMap<String, Object>() {{
+                        put( "withdraw_history", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );
                 }} );
-                put( "ecapi", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "createInvoice", new java.util.HashMap<String, Object>() {{
+                put( "ecapi", new HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "createInvoice", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "getInvoice", new java.util.HashMap<String, Object>() {{
+                        put( "getInvoice", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "getInvoiceIdsByOrderNumber", new java.util.HashMap<String, Object>() {{
+                        put( "getInvoiceIdsByOrderNumber", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "cancelInvoice", new java.util.HashMap<String, Object>() {{
+                        put( "cancelInvoice", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "tlapi", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "get_positions", new java.util.HashMap<String, Object>() {{
+                put( "tlapi", new HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "get_positions", new HashMap<String, Object>() {{
                             put( "cost", 66 );
                         }} );
-                        put( "position_history", new java.util.HashMap<String, Object>() {{
+                        put( "position_history", new HashMap<String, Object>() {{
                             put( "cost", 66 );
                         }} );
-                        put( "active_positions", new java.util.HashMap<String, Object>() {{
+                        put( "active_positions", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "create_position", new java.util.HashMap<String, Object>() {{
+                        put( "create_position", new HashMap<String, Object>() {{
                             put( "cost", 33 );
                         }} );
-                        put( "change_position", new java.util.HashMap<String, Object>() {{
+                        put( "change_position", new HashMap<String, Object>() {{
                             put( "cost", 33 );
                         }} );
-                        put( "cancel_position", new java.util.HashMap<String, Object>() {{
+                        put( "cancel_position", new HashMap<String, Object>() {{
                             put( "cost", 33 );
                         }} );
                     }} );
                 }} );
-                put( "fapi", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "groups/{group_id}", new java.util.HashMap<String, Object>() {{
+                put( "fapi", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "groups/{group_id}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "last_price/{group_id}/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "last_price/{group_id}/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ticker/{group_id}/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "ticker/{group_id}/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "trades/{group_id}/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "trades/{group_id}/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "depth/{group_id}/{pair}", new java.util.HashMap<String, Object>() {{
+                        put( "depth/{group_id}/{pair}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{}} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{}} );
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", true );
                         put( "triggerPrice", true );
                         put( "triggerDirection", false );
@@ -245,7 +251,7 @@ public class Zaif extends ZaifApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", false );
                             put( "FOK", false );
                             put( "PO", false );
@@ -262,7 +268,7 @@ public class Zaif extends ZaifApi
                     put( "createOrders", null );
                     put( "fetchMyTrades", null );
                     put( "fetchOrder", null );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", true );
                         put( "limit", null );
                         put( "trigger", false );
@@ -270,7 +276,7 @@ public class Zaif extends ZaifApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchOrders", null );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", true );
                         put( "limit", 1000 );
                         put( "daysBack", 100000 );
@@ -282,21 +288,21 @@ public class Zaif extends ZaifApi
                     }} );
                     put( "fetchOHLCV", null );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "unsupported currency_pair", BadRequest.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{}} );
+                put( "broad", new HashMap<String, Object>() {{}} );
             }} );
         }});
     }
@@ -309,13 +315,13 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> markets = (this.publicGetCurrencyPairsAll(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            List<Object> markets = (this.publicGetCurrencyPairsAll(parameters)).join();
             //
             //     [
             //         {
@@ -351,13 +357,13 @@ public class Zaif extends ZaifApi
             throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing name")) ;
         }
         var baseIdquoteIdVariable = Helpers.split(name, "/");
-        var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
-        var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
+        var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
+        var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -381,24 +387,24 @@ public class Zaif extends ZaifApi
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Zaif.this.safeNumber(market, "item_unit_step") );
                 put( "price", Zaif.this.parseNumber(Zaif.this.parsePrecision(Zaif.this.safeString(market, "aux_unit_point"))) );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "amount", new java.util.HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", Zaif.this.safeNumber(market, "item_unit_min") );
                     put( "max", null );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", Zaif.this.safeNumber(market, "aux_unit_min") );
                     put( "max", null );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -410,14 +416,14 @@ public class Zaif extends ZaifApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
+        Object balances = this.safeValue(response, "return", new HashMap<String, Object>() {{}});
         Object deposit = this.safeValue(balances, "deposit");
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object funds = this.safeDict(balances, "funds", new java.util.HashMap<String, Object>() {{}});
+        Object funds = this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
         Object currencyIds = Helpers.objectKeys(funds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
@@ -450,17 +456,17 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privatePostGetInfo(parameters)).join();
+            Map<String, Object> response = (this.privatePostGetInfo(parameters)).join();
             return this.parseBalance(response);
         }).thenApply(io.github.ccxt.types.Balances::new);
 
@@ -476,22 +482,22 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetDepthPair(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetDepthPair(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
         }).thenApply(io.github.ccxt.types.OrderBook::new);
 
@@ -516,7 +522,7 @@ public class Zaif extends ZaifApi
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
         String last = this.safeString(ticker, "last");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -549,21 +555,21 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> ticker = (this.publicGetTickerPair(this.extend(request, parameters))).join();
+            Map<String, Object> ticker = (this.publicGetTickerPair(this.extend(request, parameters))).join();
             //
             // {
             //     "last": 9e-08,
@@ -604,7 +610,7 @@ public class Zaif extends ZaifApi
         String marketId = this.safeString(trade, "currency_pair");
         String symbol = this.safeSymbol(marketId, market, "_");
         final Object finalSide = side;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -632,23 +638,23 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
             //
             //      [
             //          {
@@ -661,14 +667,14 @@ public class Zaif extends ZaifApi
             //          }, ...
             //      ]
             //
-            java.util.List<Object> trades = this.toArray(response);
+            List<Object> trades = this.toArray(response);
             Object numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
             {
-                Object firstTrade = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
+                Object firstTrade = this.safeDict(trades, 0, new HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(Helpers.objectKeys(firstTrade)), 0)))
                 {
-                    trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    trades = new ArrayList<Object>(Arrays.asList());
                 }
             }
             return this.parseTrades(trades, market, since, limit);
@@ -689,13 +695,13 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -704,17 +710,17 @@ public class Zaif extends ZaifApi
             {
                 throw new ExchangeError(Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_pair", Helpers.GetValue(market, "id") );
                 put( "action", ((Helpers.isTrue((Helpers.isEqual(finalSide, "buy"))))) ? "bid" : "ask" );
                 put( "amount", amount );
                 put( "price", price );
             }};
-            java.util.Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", String.valueOf(Helpers.GetValue(data, "order_id")) );
             }}, market);
@@ -732,17 +738,17 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": 1,
@@ -757,7 +763,7 @@ public class Zaif extends ZaifApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -797,7 +803,7 @@ public class Zaif extends ZaifApi
         String amount = this.safeString(order, "amount");
         String id = this.safeString2(order, "id", "order_id");
         final Object finalSide = side;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -833,28 +839,28 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
-            java.util.Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -871,28 +877,28 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
-            java.util.Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -910,27 +916,27 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object code = code3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(Helpers.isEqual(code, "JPY")))
             {
                 throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not allow "), code), " withdrawals")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
                 put( "address", address );
@@ -939,7 +945,7 @@ public class Zaif extends ZaifApi
             {
                 Helpers.addElementToObject(request, "message", tag);
             }
-            java.util.Map<String, Object> result = (this.privatePostWithdraw(this.extend(request, parameters))).join();
+            Map<String, Object> result = (this.privatePostWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": 1,
@@ -956,7 +962,7 @@ public class Zaif extends ZaifApi
             //         }
             //     }
             //
-            Object returnData = this.safeDict(result, "return", new java.util.HashMap<String, Object>() {{}});
+            Object returnData = this.safeDict(result, "return", new HashMap<String, Object>() {{}});
             return this.parseTransaction(returnData, currency);
         }).thenApply(io.github.ccxt.types.Transaction::new);
 
@@ -985,14 +991,14 @@ public class Zaif extends ZaifApi
         {
             final Object finalFeeCost = feeCost;
             final Object finalCurrency = currency;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", Helpers.GetValue(finalCurrency, "code") );
             }};
         }
         final Object finalCurrency_2 = currency;
         final Object finalFee = fee;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "id", Zaif.this.safeString(transaction, "id") );
             put( "txid", Zaif.this.safeString(transaction, "txid") );
             put( "timestamp", null );
@@ -1027,7 +1033,7 @@ public class Zaif extends ZaifApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), "/");
@@ -1051,12 +1057,12 @@ public class Zaif extends ZaifApi
                 url = Helpers.add(url, "tapi");
             }
             Object nonce = this.customNonce();
-            body = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
+            body = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "method", path );
                 put( "nonce", nonce );
             }}, parameters));
             final Object finalBody = body;
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "Key", Zaif.this.apiKey );
                 put( "Sign", Zaif.this.hmac(Zaif.this.encode(finalBody), Zaif.this.encode(Zaif.this.secret), sha512()) );
@@ -1065,7 +1071,7 @@ public class Zaif extends ZaifApi
         final Object finalUrl = url;
         final Object finalBody_2 = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", method );
             put( "body", finalBody_2 );

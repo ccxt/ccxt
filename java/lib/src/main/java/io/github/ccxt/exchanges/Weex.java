@@ -6,6 +6,12 @@ import io.github.ccxt.api.WeexApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Weex extends WeexApi
 {
@@ -19,15 +25,15 @@ public class Weex extends WeexApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "weex" );
             put( "name", "Weex" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("SG")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("SG")) );
             put( "rateLimit", 20 );
             put( "version", "v3" );
             put( "certified", false );
             put( "pro", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
@@ -191,356 +197,356 @@ public class Weex extends WeexApi
                 put( "transfer", false );
                 put( "withdraw", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api-spot.weex.com" );
                     put( "private", "https://api-spot.weex.com" );
                     put( "contract", "https://api-contract.weex.com" );
                     put( "contractPrivate", "https://api-contract.weex.com" );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "public", "https://api-spot.weex.com" );
                     put( "private", "https://api-spot.weex.com" );
                     put( "contract", "https://api-contract.weex.com" );
                     put( "contractPrivate", "https://api-contract.weex.com" );
                 }} );
                 put( "www", "https://www.weex.com" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.weex.com/api-doc")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://www.weex.com/api-doc")) );
                 put( "referral", "https://www.weex.com/register?vipCode=qfyh" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "api/v3/time", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "api/v3/time", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/coins", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/coins", new HashMap<String, Object>() {{
                             put( "cost", 25 );
                         }} );
-                        put( "api/v3/exchangeInfo", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/exchangeInfo", new HashMap<String, Object>() {{
                             put( "cost", 100 );
                         }} );
-                        put( "api/v3/ping", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/ping", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/apiTradingSymbols", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/apiTradingSymbols", new HashMap<String, Object>() {{
                             put( "cost", 25 );
                         }} );
-                        put( "api/v3/market/ticker/price", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/market/ticker/price", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
-                        put( "api/v3/market/ticker/24hr", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/market/ticker/24hr", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "api/v3/market/trades", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/market/trades", new HashMap<String, Object>() {{
                             put( "cost", 125 );
                         }} );
-                        put( "api/v3/market/klines", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/market/klines", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "api/v3/market/depth", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/market/depth", new HashMap<String, Object>() {{
                             put( "cost", 25 );
                         }} );
-                        put( "api/v3/market/ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/market/ticker/bookTicker", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "api/v3/account/", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "api/v3/account/", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/account/transferRecords", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/account/transferRecords", new HashMap<String, Object>() {{
                             put( "cost", 3 );
                         }} );
-                        put( "api/v3/order", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/order", new HashMap<String, Object>() {{
                             put( "cost", 2 );
                         }} );
-                        put( "api/v3/openOrders", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/openOrders", new HashMap<String, Object>() {{
                             put( "cost", 3 );
                         }} );
-                        put( "api/v3/allOrders", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/allOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "api/v3/myTrades", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/myTrades", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/rebate/affiliate/getAffiliateUIDs", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/rebate/affiliate/getAffiliateUIDs", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
-                        put( "api/v3/rebate/affiliate/getChannelUserTradeAndAsset", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/rebate/affiliate/getChannelUserTradeAndAsset", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
-                        put( "api/v3/rebate/affiliate/getAffiliateCommission", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/rebate/affiliate/getAffiliateCommission", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
-                        put( "api/v3/rebate/affiliate/getInternalWithdrawalStatus", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/rebate/affiliate/getInternalWithdrawalStatus", new HashMap<String, Object>() {{
                             put( "cost", 100 );
                         }} );
-                        put( "api/v3/rebate/affiliate/querySubChannelTransactions", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/rebate/affiliate/querySubChannelTransactions", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "api/v3/agency/verifyReferrals", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/agency/verifyReferrals", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
-                        put( "api/v3/agency/getAssert", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/agency/getAssert", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
-                        put( "api/v3/agency/getDealData", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/agency/getDealData", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
-                        put( "api/v3/apiReferral/checkUserEligibility", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/apiReferral/checkUserEligibility", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/apiReferral/rebate/recentRecord", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/apiReferral/rebate/recentRecord", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/apiReferral/rebateRatio", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/apiReferral/rebateRatio", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/content/articles/detail", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/content/articles/detail", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "api/v3/content/articles/list", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/content/articles/list", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "api/v3/content/articles/listByCoin", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/content/articles/listByCoin", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "api/v3/content/banners/latest", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/content/banners/latest", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "api/v3/account/bills", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "api/v3/account/bills", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/account/fundingBills", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/account/fundingBills", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/order", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/order", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "api/v3/order/batch", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/order/batch", new HashMap<String, Object>() {{
                             put( "cost", 50 );
                         }} );
-                        put( "api/v3/rebate/affiliate/internalWithdrawal", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/rebate/affiliate/internalWithdrawal", new HashMap<String, Object>() {{
                             put( "cost", 100 );
                         }} );
-                        put( "api/v3/tax/income", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/tax/income", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );
-                    put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "api/v3/order", new java.util.HashMap<String, Object>() {{
+                    put( "delete", new HashMap<String, Object>() {{
+                        put( "api/v3/order", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "api/v3/openOrders", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/openOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "api/v3/order/batch", new java.util.HashMap<String, Object>() {{
+                        put( "api/v3/order/batch", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
                     }} );
                 }} );
-                put( "contract", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "capi/v3/market/time", new java.util.HashMap<String, Object>() {{
+                put( "contract", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "capi/v3/market/time", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/exchangeInfo", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/exchangeInfo", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/depth", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/depth", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/ticker/24hr", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/ticker/24hr", new HashMap<String, Object>() {{
                             put( "cost", 200 );
                         }} );
-                        put( "capi/v3/market/ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/ticker/bookTicker", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/trades", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/trades", new HashMap<String, Object>() {{
                             put( "cost", 25 );
                         }} );
-                        put( "capi/v3/market/klines", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/klines", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/indexPriceKlines", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/indexPriceKlines", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/markPriceKlines", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/markPriceKlines", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/historyKlines", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/historyKlines", new HashMap<String, Object>() {{
                             put( "cost", 25 );
                         }} );
-                        put( "capi/v3/market/symbolPrice", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/symbolPrice", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/openInterest", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/openInterest", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/market/premiumIndex", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/premiumIndex", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/market/fundingRate", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/fundingRate", new HashMap<String, Object>() {{
                             put( "cost", 25 );
                         }} );
-                        put( "capi/v3/market/apiTradingSymbols", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/market/apiTradingSymbols", new HashMap<String, Object>() {{
                             put( "cost", 25 );
                         }} );
                     }} );
                 }} );
-                put( "contractPrivate", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "capi/v3/account/balance", new java.util.HashMap<String, Object>() {{
+                put( "contractPrivate", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "capi/v3/account/balance", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/account/commissionRate", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/commissionRate", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/account/accountConfig", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/accountConfig", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/account/symbolConfig", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/symbolConfig", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/account/position/allPosition", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/position/allPosition", new HashMap<String, Object>() {{
                             put( "cost", 15 );
                         }} );
-                        put( "capi/v3/account/position/singlePosition", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/position/singlePosition", new HashMap<String, Object>() {{
                             put( "cost", 3 );
                         }} );
-                        put( "capi/v3/order", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/order", new HashMap<String, Object>() {{
                             put( "cost", 3 );
                         }} );
-                        put( "capi/v3/openOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/openOrders", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/order/history", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/order/history", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/userTrades", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/userTrades", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/openAlgoOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/openAlgoOrders", new HashMap<String, Object>() {{
                             put( "cost", 3 );
                         }} );
-                        put( "capi/v3/allAlgoOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/allAlgoOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/sim/balance", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/sim/balance", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/sim/position/allPosition", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/sim/position/allPosition", new HashMap<String, Object>() {{
                             put( "cost", 15 );
                         }} );
-                        put( "capi/v3/sim/order/history", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/sim/order/history", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/copy/follower/historyOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/follower/historyOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/copy/follower/myTraders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/follower/myTraders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/copy/follower/openOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/follower/openOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/copy/follower/settings", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/follower/settings", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/copy/trader/historyOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/trader/historyOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/copy/trader/openOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/trader/openOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/copy/trader/pairs", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/trader/pairs", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "capi/v3/trailing/openOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/trailing/openOrders", new HashMap<String, Object>() {{
                             put( "cost", 2 );
                         }} );
-                        put( "capi/v3/trailing/historyOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/trailing/historyOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
                     }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "capi/v3/account/income", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "capi/v3/account/income", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/account/marginType", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/marginType", new HashMap<String, Object>() {{
                             put( "cost", 50 );
                         }} );
-                        put( "capi/v3/account/leverage", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/leverage", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
-                        put( "capi/v3/account/positionMargin", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/positionMargin", new HashMap<String, Object>() {{
                             put( "cost", 30 );
                         }} );
-                        put( "capi/v3/account/modifyAutoAppendMargin", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/account/modifyAutoAppendMargin", new HashMap<String, Object>() {{
                             put( "cost", 30 );
                         }} );
-                        put( "capi/v3/order", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/order", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/batchOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/batchOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/closePositions", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/closePositions", new HashMap<String, Object>() {{
                             put( "cost", 50 );
                         }} );
-                        put( "capi/v3/algoOrder", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/algoOrder", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/placeTpSlOrder", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/placeTpSlOrder", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/modifyTpSlOrder", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/modifyTpSlOrder", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/sim/order", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/sim/order", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "capi/v3/copy/follower/closePos", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/follower/closePos", new HashMap<String, Object>() {{
                             put( "cost", 50 );
                         }} );
-                        put( "capi/v3/copy/follower/settings", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/follower/settings", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/copy/follower/stopCopy", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/copy/follower/stopCopy", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
                     }} );
-                    put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "capi/v3/order", new java.util.HashMap<String, Object>() {{
+                    put( "delete", new HashMap<String, Object>() {{
+                        put( "capi/v3/order", new HashMap<String, Object>() {{
                             put( "cost", 3 );
                         }} );
-                        put( "capi/v3/batchOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/batchOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/allOpenOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/allOpenOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "capi/v3/algoOrder", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/algoOrder", new HashMap<String, Object>() {{
                             put( "cost", 3 );
                         }} );
-                        put( "capi/v3/algoOpenOrders", new java.util.HashMap<String, Object>() {{
+                        put( "capi/v3/algoOpenOrders", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
+            put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
                 put( "secret", true );
                 put( "password", true );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "1m" );
                 put( "5m", "5m" );
                 put( "15m", "15m" );
@@ -556,8 +562,8 @@ public class Weex extends WeexApi
                 put( "1M", "1M" );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "-1000", ExchangeError.class );
                     put( "-1054", ExchangeError.class );
                     put( "-1040", AuthenticationError.class );
@@ -603,54 +609,54 @@ public class Weex extends WeexApi
                     put( "-3613", ExchangeError.class );
                     put( "FAILED_ORDER_NOT_FOUND", OrderNotFound.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+                put( "broad", new HashMap<String, Object>() {{
                     put( "amount not enough", InsufficientFunds.class );
                     put( "INVALID_ARGUMENT", BadRequest.class );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "feeSide", "get" );
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "taker", Weex.this.parseNumber("0.1") );
                     put( "maker", Weex.this.parseNumber("0.1") );
-                    put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.09"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.07"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.09"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.06"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.07"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.01"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
                     }} );
                 }} );
-                put( "spot", new java.util.HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "feeSide", "get" );
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "taker", Weex.this.parseNumber("0.1") );
                     put( "maker", Weex.this.parseNumber("0.1") );
-                    put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.09"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.07"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.09"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.06"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.07"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.01"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
                     }} );
                 }} );
-                put( "contract", new java.util.HashMap<String, Object>() {{
+                put( "contract", new HashMap<String, Object>() {{
                     put( "feeSide", "quote" );
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "taker", Weex.this.parseNumber("0.08") );
                     put( "maker", Weex.this.parseNumber("0.02") );
-                    put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.055"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("30000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.048"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0.045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("300000000"), Weex.this.parseNumber("0.042"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000000"), Weex.this.parseNumber("0.04"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("30000000"), Weex.this.parseNumber("0.016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0.014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("300000000"), Weex.this.parseNumber("0.012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000000"), Weex.this.parseNumber("0.01"))))) );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.075"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.06"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.055"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("30000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.048"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0.045"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("300000000"), Weex.this.parseNumber("0.042"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000000"), Weex.this.parseNumber("0.04"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.018"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.018"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("30000000"), Weex.this.parseNumber("0.016"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.016"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0.014"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("300000000"), Weex.this.parseNumber("0.012"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000000"), Weex.this.parseNumber("0.01"))))) );
                     }} );
                 }} );
             }} );
-            put( "commonCurrencies", new java.util.HashMap<String, Object>() {{
+            put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "XBT", "XBT" );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "partner", "b-WEEX111125" );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
-                put( "accountsByType", new java.util.HashMap<String, Object>() {{
+                put( "accountsByType", new HashMap<String, Object>() {{
                     put( "spot", "spot" );
                     put( "trading", "spot" );
                     put( "fund", "funding" );
@@ -659,7 +665,7 @@ public class Weex extends WeexApi
                     put( "contract", "contract" );
                     put( "futures", "contract" );
                 }} );
-                put( "networks", new java.util.HashMap<String, Object>() {{
+                put( "networks", new HashMap<String, Object>() {{
                     put( "BEP20", "BEP20(BSC)" );
                     put( "BSC", "BEP20(BSC)" );
                     put( "ERC20", "ERC20" );
@@ -672,7 +678,7 @@ public class Weex extends WeexApi
                     put( "OPTIMISM", "OPTIMISM(OP)" );
                     put( "AVAXC", "AVALANCHE_C(AVAX_C)" );
                 }} );
-                put( "networksById", new java.util.HashMap<String, Object>() {{
+                put( "networksById", new HashMap<String, Object>() {{
                     put( "BEP20(BSC)", "BEP20" );
                     put( "ERC20", "ERC20" );
                     put( "POLYGON(MATIC)", "MATIC" );
@@ -681,8 +687,8 @@ public class Weex extends WeexApi
                     put( "OPTIMISM(OP)", "OP" );
                     put( "AVALANCHE_C(AVAX_C)", "AVAXC" );
                 }} );
-                put( "timeframes", new java.util.HashMap<String, Object>() {{
-                    put( "spot", new java.util.HashMap<String, Object>() {{
+                put( "timeframes", new HashMap<String, Object>() {{
+                    put( "spot", new HashMap<String, Object>() {{
                         put( "1m", "1m" );
                         put( "5m", "5m" );
                         put( "15m", "15m" );
@@ -697,7 +703,7 @@ public class Weex extends WeexApi
                         put( "1w", "1w" );
                         put( "1M", "1M" );
                     }} );
-                    put( "contract", new java.util.HashMap<String, Object>() {{
+                    put( "contract", new HashMap<String, Object>() {{
                         put( "1m", "1m" );
                         put( "5m", "5m" );
                         put( "15m", "15m" );
@@ -710,10 +716,10 @@ public class Weex extends WeexApi
                     }} );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "test", false );
                         put( "marginMode", false );
                         put( "triggerPrice", false );
@@ -722,7 +728,7 @@ public class Weex extends WeexApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", false );
@@ -736,30 +742,30 @@ public class Weex extends WeexApi
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
-                    put( "createOrders", new java.util.HashMap<String, Object>() {{
+                    put( "createOrders", new HashMap<String, Object>() {{
                         put( "max", 10 );
                     }} );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", null );
                         put( "untilDays", null );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1000 );
                         put( "daysBack", 100000 );
@@ -769,28 +775,28 @@ public class Weex extends WeexApi
                         put( "symbolRequired", true );
                     }} );
                     put( "fetchClosedOrders", null );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 300 );
                     }} );
                 }} );
-                put( "forDerivs", new java.util.HashMap<String, Object>() {{
+                put( "forDerivs", new HashMap<String, Object>() {{
                     put( "sandbox", true );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", true );
                         put( "triggerPrice", true );
                         put( "triggerPriceType", null );
                         put( "triggerDirection", false );
                         put( "stopLossPrice", true );
                         put( "takeProfitPrice", true );
-                        put( "attachedStopLossTakeProfit", new java.util.HashMap<String, Object>() {{
-                            put( "triggerPriceType", new java.util.HashMap<String, Object>() {{
+                        put( "attachedStopLossTakeProfit", new HashMap<String, Object>() {{
+                            put( "triggerPriceType", new HashMap<String, Object>() {{
                                 put( "last", true );
                                 put( "mark", true );
                                 put( "index", false );
                             }} );
                             put( "price", false );
                         }} );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", false );
@@ -804,23 +810,23 @@ public class Weex extends WeexApi
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
-                    put( "createOrders", new java.util.HashMap<String, Object>() {{
+                    put( "createOrders", new HashMap<String, Object>() {{
                         put( "max", 10 );
                     }} );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", null );
                         put( "untilDays", null );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "trigger", true );
@@ -828,7 +834,7 @@ public class Weex extends WeexApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchOrders", null );
-                    put( "fetchCanceledAndClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchCanceledAndClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1000 );
                         put( "daysBack", 100000 );
@@ -838,12 +844,12 @@ public class Weex extends WeexApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchClosedOrders", null );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 1000 );
                     }} );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "linear", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "forDerivs" );
                     }} );
                     put( "inverse", null );
@@ -865,15 +871,15 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetApiV3Ping(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetApiV3Ping(parameters)).join();
             // returns an empty response if the exchange is alive, otherwise will trigger an error
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "status", "ok" );
                 put( "updated", null );
                 put( "eta", null );
@@ -894,16 +900,16 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
@@ -930,13 +936,13 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> response = (this.publicGetApiV3Coins(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            List<Object> response = (this.publicGetApiV3Coins(parameters)).join();
             //
             //     [
             //         {
@@ -1057,8 +1063,8 @@ public class Weex extends WeexApi
         String currencyId = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(rawCurrency, "name");
-        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
+        Object chains = this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = this.safeDict(chains, j);
@@ -1067,7 +1073,7 @@ public class Weex extends WeexApi
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -1077,12 +1083,12 @@ public class Weex extends WeexApi
     put( "fee", Weex.this.safeNumber(chain, "withdrawFee") );
     put( "precision", Weex.this.safeNumber(chain, "withdrawIntegerMultiple") );
     put( "isDefault", Weex.this.safeBool(chain, "isDefault", false) );
-    put( "limits", new java.util.HashMap<String, Object>() {{
-        put( "withdraw", new java.util.HashMap<String, Object>() {{
+    put( "limits", new HashMap<String, Object>() {{
+        put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Weex.this.safeNumber(chain, "withdrawMin") );
             put( "max", null );
         }} );
-        put( "deposit", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new HashMap<String, Object>() {{
             put( "min", Weex.this.safeNumber(chain, "depositDust") );
             put( "max", null );
         }} );
@@ -1094,7 +1100,7 @@ public class Weex extends WeexApi
         Object networksLength = Helpers.getArrayLength(networkKeys);
         Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
-        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", code );
             put( "id", currencyId );
@@ -1105,16 +1111,16 @@ public class Weex extends WeexApi
             put( "withdraw", valueForEmpty );
             put( "fee", null );
             put( "precision", null );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "amount", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "deposit", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -1132,23 +1138,23 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
-            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)));
+            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)));
             var spotResponsecontractResponseVariable = (Helpers.promiseAll(promises)).join();
-            var spotResponse = ((java.util.List<Object>) spotResponsecontractResponseVariable).get(0);
-            var contractResponse = ((java.util.List<Object>) spotResponsecontractResponseVariable).get(1);
-            Object spotArray = this.safeList(spotResponse, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object contractArray = this.safeList(contractResponse, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = (java.util.List<Object>) this.arrayConcat(spotArray, contractArray);
+            var spotResponse = ((List<Object>) spotResponsecontractResponseVariable).get(0);
+            var contractResponse = ((List<Object>) spotResponsecontractResponseVariable).get(1);
+            Object spotArray = this.safeList(spotResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
+            Object contractArray = this.safeList(contractResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.arrayConcat(spotArray, contractArray);
             return this.parseMarkets(result);
         });
 
@@ -1250,7 +1256,7 @@ public class Weex extends WeexApi
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
-        Object fees = this.safeDict(this.fees, ((Helpers.isTrue(isSpot))) ? "spot" : "contract", new java.util.HashMap<String, Object>() {{}});
+        Object fees = this.safeDict(this.fees, ((Helpers.isTrue(isSpot))) ? "spot" : "contract", new HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
             throw new ExchangeError(Helpers.add(this.id, " method() missing id")) ;
@@ -1265,7 +1271,7 @@ public class Weex extends WeexApi
         final Object finalIsInverse = isInverse;
         final Object finalAmountPrecision = amountPrecision;
         final Object finalPricePrecision = pricePrecision;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "lowercaseId", ((String)finalId).toLowerCase() );
             put( "numericId", Weex.this.safeInteger(market, "contractId") );
@@ -1294,24 +1300,24 @@ public class Weex extends WeexApi
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", finalAmountPrecision );
                 put( "price", finalPricePrecision );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", Weex.this.safeNumber(market, "minLeverage") );
                     put( "max", Weex.this.safeNumber(market, "maxLeverage") );
                 }} );
-                put( "amount", new java.util.HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", Weex.this.safeNumber2(market, "minTradeAmount", "minOrderSize") );
                     put( "max", Weex.this.safeNumber2(market, "maxTradeAmount", "maxOrderSize") );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -1335,13 +1341,13 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1349,15 +1355,15 @@ public class Weex extends WeexApi
             symbols = this.marketSymbols(symbols, null, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object symbolsLength = 0;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 symbolsLength = Helpers.getArrayLength(symbols);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
             {
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
@@ -1413,7 +1419,7 @@ public class Weex extends WeexApi
             }
             if (!Helpers.isTrue(Helpers.isArray(response)))
             {
-                response = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
+                response = new ArrayList<Object>(Arrays.asList(response));
             }
             return this.parseTickers(response, symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
@@ -1431,13 +1437,13 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1445,9 +1451,9 @@ public class Weex extends WeexApi
             symbols = this.marketSymbols(symbols, null, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
@@ -1458,16 +1464,16 @@ public class Weex extends WeexApi
             }
             if (!Helpers.isTrue(Helpers.isArray(response)))
             {
-                response = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
+                response = new ArrayList<Object>(Arrays.asList(response));
             }
-            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object rawTicker = Helpers.GetValue(response, i);
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
-                java.util.Map<String, Object> tickerMarket = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-                ((java.util.List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
+                Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
+                ((List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
             }
             return this.filterByArrayTickers(results, "symbol", symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
@@ -1549,7 +1555,7 @@ public class Weex extends WeexApi
         String percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         final Object finalMarket = market;
         final Object finalMarkPrice = markPrice;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Weex.this.iso8601(timestamp) );
@@ -1584,13 +1590,13 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprice structures
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.LastPrices> fetchLastPrices(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1598,14 +1604,14 @@ public class Weex extends WeexApi
             symbols = this.marketSymbols(symbols, null, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
             }
-            java.util.List<Object> response = (this.publicGetApiV3MarketTickerPrice(parameters)).join();
+            List<Object> response = (this.publicGetApiV3MarketTickerPrice(parameters)).join();
             //
             //     [
             //         {
@@ -1631,7 +1637,7 @@ public class Weex extends WeexApi
         String marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market, null, "spot");
         final Object finalMarket = market;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1651,31 +1657,31 @@ public class Weex extends WeexApi
      * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchMarkPrice(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchMarkPrice(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarkPrice() supports contract markets only")) ;
             }
             Object priceType = null;
-            java.util.List<Object> priceTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
-            priceType = ((java.util.List<Object>) priceTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) priceTypeparametersVariable).get(1); // the endpoint defaults to INDEX
+            List<Object> priceTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
+            priceType = ((List<Object>) priceTypeparametersVariable).get(0);
+            parameters = ((List<Object>) priceTypeparametersVariable).get(1); // the endpoint defaults to INDEX
             final Object finalPriceType = priceType;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "priceType", finalPriceType );
             }};
-            java.util.Map<String, Object> response = (this.contractGetCapiV3MarketSymbolPrice(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.contractGetCapiV3MarketSymbolPrice(this.extend(request, parameters))).join();
             //
             //     {
             //         "symbol": "ETHUSDT",
@@ -1684,7 +1690,7 @@ public class Weex extends WeexApi
             //     }
             //
             // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
-            java.util.Map<String, Object> ticker = this.extend(new java.util.HashMap<String, Object>() {{}}, response);
+            Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{}}, response);
             if (Helpers.isTrue(Helpers.isEqual(priceType, "INDEX")))
             {
                 Helpers.addElementToObject(ticker, "indexPrice", this.safeString(ticker, "price"));
@@ -1706,19 +1712,19 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
-            java.util.List<Object> response = (this.contractGetCapiV3MarketPremiumIndex(parameters)).join();
+            List<Object> response = (this.contractGetCapiV3MarketPremiumIndex(parameters)).join();
             //
             //     [
             //         {
@@ -1750,19 +1756,19 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThan(limit, 15)))))
@@ -1818,20 +1824,20 @@ public class Weex extends WeexApi
      * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 return (this.fetchSpotOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
@@ -1856,25 +1862,25 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchSpotOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchSpotOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", Weex.this.safeString(Weex.this.timeframes, timeframe, timeframe) );
             }};
-            java.util.List<Object> response = (this.publicGetApiV3MarketKlines(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetApiV3MarketKlines(this.extend(request, parameters))).join();
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
@@ -1899,45 +1905,45 @@ public class Weex extends WeexApi
      * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchContractOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchContractOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object maxHistoricalLimit = 100;
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "historical", true );
                 }});
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxHistoricalLimit)).join();
             }
             Long until = this.safeInteger(parameters, "until");
             Object historical = false;
-            java.util.List<Object> historicalparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "historical");
-            historical = ((java.util.List<Object>) historicalparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) historicalparametersVariable).get(1);
-            Object timeframeOption = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
-            Object contractTimeframes = this.safeDict(timeframeOption, "contract", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            List<Object> historicalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "historical");
+            historical = ((List<Object>) historicalparametersVariable).get(0);
+            parameters = ((List<Object>) historicalparametersVariable).get(1);
+            Object timeframeOption = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Object contractTimeframes = this.safeDict(timeframeOption, "contract", new HashMap<String, Object>() {{}});
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", Weex.this.safeString(contractTimeframes, timeframe, timeframe) );
             }};
             String priceType = this.safeStringUpper(parameters, "price");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("historical", "until", "price")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("historical", "until", "price")));
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -2001,7 +2007,7 @@ public class Weex extends WeexApi
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
     /**
@@ -2016,20 +2022,20 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2057,7 +2063,7 @@ public class Weex extends WeexApi
             //         }
             //     ]
             //
-            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object responseList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
                 responseList = this.toArray(response);
@@ -2154,7 +2160,7 @@ public class Weex extends WeexApi
             }
             final Object finalCommission = commission;
             final Object finalFeeCurrency = feeCurrency;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalCommission );
                 put( "currency", finalFeeCurrency );
             }};
@@ -2172,7 +2178,7 @@ public class Weex extends WeexApi
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalSide = side;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Weex.this.safeString(trade, "id") );
             put( "order", Weex.this.safeString(trade, "orderId") );
@@ -2198,21 +2204,21 @@ public class Weex extends WeexApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.contractGetCapiV3MarketOpenInterest(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.contractGetCapiV3MarketOpenInterest(this.extend(request, parameters))).join();
             return this.parseOpenInterest(response, market);
         }).thenApply(io.github.ccxt.types.OpenInterest::new);
 
@@ -2231,7 +2237,7 @@ public class Weex extends WeexApi
         String marketId = this.safeString(interest, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, "swap");
         Long timestamp = this.safeInteger(interest, "time");
-        return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", Weex.this.safeString(interest, "openInterest") );
             put( "openInterestValue", null );
@@ -2251,13 +2257,13 @@ public class Weex extends WeexApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2268,13 +2274,13 @@ public class Weex extends WeexApi
             {
                 symbolsLength = Helpers.getArrayLength(symbols);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
             {
                 Object market = this.getMarketFromSymbols(symbols);
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
-            java.util.List<Object> response = (this.contractGetCapiV3MarketPremiumIndex(this.extend(request, parameters))).join();
+            List<Object> response = (this.contractGetCapiV3MarketPremiumIndex(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2310,7 +2316,7 @@ public class Weex extends WeexApi
             interval = Helpers.add(interval, "h");
         }
         final Object finalInterval = interval;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
             put( "markPrice", Weex.this.safeNumber(contract, "markPrice") );
@@ -2344,15 +2350,15 @@ public class Weex extends WeexApi
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -2361,8 +2367,8 @@ public class Weex extends WeexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2373,10 +2379,10 @@ public class Weex extends WeexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.contractGetCapiV3MarketFundingRate(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.contractGetCapiV3MarketFundingRate(this.extend(request, parameters))).join();
             return this.parseFundingRateHistories(response, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingRateHistory::new));
 
@@ -2396,7 +2402,7 @@ public class Weex extends WeexApi
         String marketId = this.safeString(contract, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, "swap");
         Long timestamp = this.safeInteger(contract, "fundingTime");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
             put( "fundingRate", Weex.this.safeNumber(contract, "fundingRate") );
@@ -2416,17 +2422,17 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             String requestedType = this.safeString(parameters, "type");
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sandboxMode, true))) && Helpers.isTrue((Helpers.isEqual(requestedType, null)))))
             {
@@ -2494,7 +2500,7 @@ public class Weex extends WeexApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -2532,20 +2538,20 @@ public class Weex extends WeexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.TransferEntry>> fetchTransfers(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.TransferEntry>> fetchTransfers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2553,9 +2559,9 @@ public class Weex extends WeexApi
             }
             Integer maxLimit = 100;
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit)).join();
@@ -2568,10 +2574,10 @@ public class Weex extends WeexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("before", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.privateGetApiV3AccountTransferRecords(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.privateGetApiV3AccountTransferRecords(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2598,7 +2604,7 @@ public class Weex extends WeexApi
         String currencyId = this.safeString(transfer, "coinName");
         String currencyCode = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transfer, "status");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -2613,7 +2619,7 @@ public class Weex extends WeexApi
 
     public String parseTransferStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Successful", "ok" );
         }};
         return this.safeString(statuses, status, status);
@@ -2637,18 +2643,18 @@ public class Weex extends WeexApi
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
@@ -2680,20 +2686,20 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createSpotOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createSpotOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
-            java.util.Map<String, Object> response = (this.privatePostApiV3Order(request)).join();
+            Map<String, Object> response = (this.privatePostApiV3Order(request)).join();
             //
             //     {
             //         "symbol": "DOGEUSDT",
@@ -2714,7 +2720,7 @@ public class Weex extends WeexApi
     public Object createSpotOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
@@ -2723,14 +2729,14 @@ public class Weex extends WeexApi
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " createSpotOrderRequest() requires a side argument")) ;
         }
         final Object finalSide = side;
         final Object finalType = type;
-        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", ((String)finalSide).toUpperCase() );
             put( "type", ((String)finalType).toUpperCase() );
@@ -2783,18 +2789,18 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createContractOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createContractOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
             String triggerPrice = this.safeString(request, "triggerPrice");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -2825,7 +2831,7 @@ public class Weex extends WeexApi
     public Object createContractOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
@@ -2834,14 +2840,14 @@ public class Weex extends WeexApi
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " createContractOrderRequest() requires a side argument")) ;
         }
         final Object finalSide = side;
         final Object finalType = type;
-        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Weex.this.toSandboxMarketId(market) );
             put( "side", ((String)finalSide).toUpperCase() );
             put( "quantity", Weex.this.amountToPrecision(symbol, amount) );
@@ -2852,11 +2858,11 @@ public class Weex extends WeexApi
         {
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
-        java.util.List<Object> triggerPricestopLossPricetakeProfitPricequeryVariable = (java.util.List<Object>) this.handleTriggerPricesAndParams(symbol, parameters);
-        var triggerPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(0);
-        var stopLossPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(1);
-        var takeProfitPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(2);
-        var query = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(3);
+        List<Object> triggerPricestopLossPricetakeProfitPricequeryVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, parameters);
+        var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(0);
+        var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(1);
+        var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(2);
+        var query = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(3);
         Boolean isTrigger = (!Helpers.isEqual(triggerPrice, null));
         Boolean isStopLoss = (!Helpers.isEqual(stopLossPrice, null));
         Boolean isTakeProfit = (!Helpers.isEqual(takeProfitPrice, null));
@@ -3024,13 +3030,13 @@ public class Weex extends WeexApi
                 }
             }
         }
-        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName")));
+        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName")));
         return this.extend(request, parameters);
     }
 
     public String encodeTriggerPriceType(Object triggerPriceType)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "mark", "MARK_PRICE" );
             put( "last", "CONTRACT_PRICE" );
         }};
@@ -3051,13 +3057,13 @@ public class Weex extends WeexApi
      * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object id = id3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3068,17 +3074,17 @@ public class Weex extends WeexApi
                 market = this.market(symbol);
             }
             Object type = null;
-            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            type = ((List<Object>) typeparametersVariable).get(0);
+            parameters = ((List<Object>) typeparametersVariable).get(1);
             Object trigger = this.safeBool(parameters, "trigger", false);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) && Helpers.isTrue(Helpers.isEqual(id, null))))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an id argument for trigger orders")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "trigger")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger")));
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "origClientOrderId", clientOrderId);
@@ -3136,18 +3142,18 @@ public class Weex extends WeexApi
      * @param {boolean} [params.trigger] *swap only* true for cancelling trigger orders (default is false)
      * @returns Response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3155,9 +3161,9 @@ public class Weex extends WeexApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object trigger = this.safeBool(parameters, "trigger", false);
             parameters = this.omit(parameters, "trigger");
             Object response = null;
@@ -3175,7 +3181,7 @@ public class Weex extends WeexApi
             {
                 response = (this.contractPrivateDeleteCapiV3AllOpenOrders(this.extend(request, parameters))).join();
             }
-            java.util.Map<String, Object> extendedParams = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> extendedParams = new HashMap<String, Object>() {{
                 put( "status", "canceled" );
             }};
             return this.parseOrders(response, market, null, null, extendedParams);
@@ -3196,27 +3202,27 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelOrders(Object ids2, Object... optionalArgs)
     {
         final Object ids3 = ids2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object ids = ids3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (Helpers.isEqual(marketType, "spot"));
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
             parameters = this.omit(parameters, "clientOrderIds");
@@ -3250,8 +3256,8 @@ public class Weex extends WeexApi
             {
                 response = (this.contractPrivateDeleteCapiV3BatchOrders(this.extend(request, parameters))).join();
             }
-            Object ordersResponse = this.safeList(response, "orderList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> extendedParams = new java.util.HashMap<String, Object>() {{
+            Object ordersResponse = this.safeList(response, "orderList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> extendedParams = new HashMap<String, Object>() {{
                 put( "status", "canceled" );
             }};
             return this.parseOrders(ordersResponse, market, null, null, extendedParams);
@@ -3272,13 +3278,13 @@ public class Weex extends WeexApi
      * @param {string} [params.clientOrderId] *spot only* a unique id for the order, used if id is not provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object id = id3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3289,11 +3295,11 @@ public class Weex extends WeexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (Helpers.isEqual(marketType, "spot"));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) && !Helpers.isTrue(isSpot)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires an id argument for non-spot markets")) ;
@@ -3360,15 +3366,15 @@ public class Weex extends WeexApi
      * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3379,14 +3385,14 @@ public class Weex extends WeexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (Helpers.isEqual(marketType, "spot"));
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate", false);
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate", false);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Helpers.isTrue(paginate))
             {
@@ -3396,7 +3402,7 @@ public class Weex extends WeexApi
                 }
                 return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters, maxLimit)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
@@ -3435,9 +3441,9 @@ public class Weex extends WeexApi
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
-                java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
-                request = ((java.util.List<Object>) requestparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+                request = ((List<Object>) requestparametersVariable).get(0);
+                parameters = ((List<Object>) requestparametersVariable).get(1);
                 Object trigger = this.safeBool(parameters, "trigger", false);
                 if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
@@ -3503,7 +3509,7 @@ public class Weex extends WeexApi
                     response = (this.contractPrivateGetCapiV3OpenOrders(this.extend(request, parameters))).join();
                 }
             }
-            java.util.Map<String, Object> extendedParams = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> extendedParams = new HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
             return this.parseOrders(response, market, since, limit, extendedParams);
@@ -3526,15 +3532,15 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3545,9 +3551,9 @@ public class Weex extends WeexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object orders = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
@@ -3580,15 +3586,15 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3599,9 +3605,9 @@ public class Weex extends WeexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object orders = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
@@ -3632,15 +3638,15 @@ public class Weex extends WeexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
@@ -3649,21 +3655,21 @@ public class Weex extends WeexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchOrders() supports spot markets only")) ;
             }
             Integer maxLimit = 1000;
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, maxLimit)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3674,10 +3680,10 @@ public class Weex extends WeexApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit));
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.List<Object> response = (this.privateGetApiV3AllOrders(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.privateGetApiV3AllOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -3718,15 +3724,15 @@ public class Weex extends WeexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3737,23 +3743,23 @@ public class Weex extends WeexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 1000;
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, maxLimit)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Helpers.addElementToObject(request, "symbol", this.toSandboxMarketId(market));
@@ -3766,9 +3772,9 @@ public class Weex extends WeexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
@@ -3923,7 +3929,7 @@ public class Weex extends WeexApi
             String marketType = ((Helpers.isTrue((Helpers.isEqual(positionSide, null))))) ? "spot" : "swap";
             market = this.safeMarket(marketId, null, null, marketType);
         }
-        Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactTime", "time", "createTime")));
+        Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("transactTime", "time", "createTime")));
         String rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         Object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         String rawType = this.safeStringUpper2(order, "type", "orderType");
@@ -3955,9 +3961,9 @@ public class Weex extends WeexApi
         final Object finalRawType = rawType;
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", Weex.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "algoId", "successOrderId"))) );
-            put( "clientOrderId", Weex.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId", "clientAlgoId"))) );
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "id", Weex.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("orderId", "algoId", "successOrderId"))) );
+            put( "clientOrderId", Weex.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId", "clientAlgoId"))) );
             put( "symbol", Weex.this.safeString(finalMarket, "symbol") );
             put( "type", Weex.this.parseOrderType(finalRawType) );
             put( "timeInForce", Weex.this.safeString(order, "timeInForce") );
@@ -3986,7 +3992,7 @@ public class Weex extends WeexApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "new", "open" );
             put( "partial_fill", "closed" );
             put( "full_fill", "closed" );
@@ -4001,7 +4007,7 @@ public class Weex extends WeexApi
 
     public String parseOrderType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
             put( "STOP_LOSS", "limit" );
@@ -4049,20 +4055,20 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
@@ -4084,15 +4090,15 @@ public class Weex extends WeexApi
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -4103,24 +4109,24 @@ public class Weex extends WeexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (Helpers.isEqual(marketType, "spot"));
             if (Helpers.isTrue(Helpers.isTrue(isSpot) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, maxLimit)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
@@ -4133,9 +4139,9 @@ public class Weex extends WeexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(isSpot))
             {
@@ -4179,7 +4185,7 @@ public class Weex extends WeexApi
                 //
                 response = (this.contractPrivateGetCapiV3UserTrades(this.extend(request, parameters))).join();
             }
-            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object responseList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
                 responseList = this.toArray(response);
@@ -4205,35 +4211,35 @@ public class Weex extends WeexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, maxLimit)).join();
             }
             Object accountType = null;
-            java.util.List<Object> accountTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
-            accountType = ((java.util.List<Object>) accountTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) accountTypeparametersVariable).get(1);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
+            List<Object> accountTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+            accountType = ((List<Object>) accountTypeparametersVariable).get(0);
+            parameters = ((List<Object>) accountTypeparametersVariable).get(1);
+            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             accountType = this.safeString(accountsByType, accountType, accountType);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             Object items = null;
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -4258,11 +4264,11 @@ public class Weex extends WeexApi
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
-                java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
-                request = ((java.util.List<Object>) requestparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                java.util.Map<String, Object> contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters))).join();
-                items = this.safeList(contractResponse, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+                request = ((List<Object>) requestparametersVariable).get(0);
+                parameters = ((List<Object>) requestparametersVariable).get(1);
+                Map<String, Object> contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters))).join();
+                items = this.safeList(contractResponse, "items", new ArrayList<Object>(Arrays.asList()));
             } else if (Helpers.isTrue(Helpers.isEqual(accountType, "funding")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4273,11 +4279,11 @@ public class Weex extends WeexApi
                 {
                     Helpers.addElementToObject(request, "pageSize", limit);
                 }
-                java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
-                request = ((java.util.List<Object>) requestparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                java.util.Map<String, Object> fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(request, parameters))).join();
-                items = this.safeList(fundingResponse, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+                request = ((List<Object>) requestparametersVariable).get(0);
+                parameters = ((List<Object>) requestparametersVariable).get(1);
+                Map<String, Object> fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(request, parameters))).join();
+                items = this.safeList(fundingResponse, "items", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4288,10 +4294,10 @@ public class Weex extends WeexApi
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
-                java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("before", request, parameters);
-                request = ((java.util.List<Object>) requestparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                java.util.List<Object> billsResponse = (this.privatePostApiV3AccountBills(this.extend(request, parameters))).join();
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
+                request = ((List<Object>) requestparametersVariable).get(0);
+                parameters = ((List<Object>) requestparametersVariable).get(1);
+                List<Object> billsResponse = (this.privatePostApiV3AccountBills(this.extend(request, parameters))).join();
                 items = this.toArray(billsResponse);
             }
             return this.parseLedger(items, currency, since, limit);
@@ -4373,7 +4379,7 @@ public class Weex extends WeexApi
         }
         final Object finalDirection = direction;
         final Object finalRawType = rawType;
-        return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
+        return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", Weex.this.safeString(item, "billId") );
             put( "timestamp", timestamp );
@@ -4388,7 +4394,7 @@ public class Weex extends WeexApi
             put( "before", Weex.this.parseNumber(before) );
             put( "after", Weex.this.parseNumber(after) );
             put( "status", null );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Weex.this.safeNumber2(item, "fees", "fillFee") );
             }} );
@@ -4397,7 +4403,7 @@ public class Weex extends WeexApi
 
     public String parseLedgerType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "transfer_in", "transfer" );
             put( "transfer_out", "transfer" );
             put( "deposit", "deposit" );
@@ -4422,13 +4428,13 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -4457,12 +4463,12 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositionsForSymbol((Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
         }).thenApply(io.github.ccxt.types.Position::new);
@@ -4479,28 +4485,28 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsForSymbol(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> fetchPositionsForSymbol(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 // the demo trading API does not provide a single-position endpoint
-                return (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
+                return (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters))).join();
-            return this.parsePositions(response, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))));
+            List<Object> response = (this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters))).join();
+            return this.parsePositions(response, new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol"))));
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
     }
@@ -4601,7 +4607,7 @@ public class Weex extends WeexApi
         final Object finalMarket = market;
         final Object finalMarginMode = marginMode;
         final Object finalHedged = hedged;
-        return this.safePosition(new java.util.HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "id", Weex.this.safeString2(position, "id", "positionId") );
             put( "timestamp", timestamp );
@@ -4641,17 +4647,17 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> closeAllPositions(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> closeAllPositions(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(parameters)).join();
+            List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(parameters)).join();
             //
             //     [
             //         {
@@ -4677,23 +4683,23 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closePosition(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object side = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
-            java.util.List<Object> orders = this.parseOrders(response, market);
+            List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
+            List<Object> orders = this.parseOrders(response, market);
             return this.safeDict(orders, 0);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -4708,25 +4714,25 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported for spot markets")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.contractPrivateGetCapiV3AccountCommissionRate(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.contractPrivateGetCapiV3AccountCommissionRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "symbol": "DOGEUSDT",
@@ -4751,7 +4757,7 @@ public class Weex extends WeexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", Weex.this.safeSymbol(marketId, market, null, "contract") );
             put( "maker", Weex.this.safeNumber(fee, "makerCommissionRate") );
@@ -4770,21 +4776,21 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
+            List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4797,7 +4803,7 @@ public class Weex extends WeexApi
             //         }
             //     ]
             //
-            Object marginMode = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            Object marginMode = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseMarginMode(marginMode, market);
         }).thenApply(io.github.ccxt.types.MarginMode::new);
 
@@ -4812,19 +4818,19 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
+            List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
         }).thenApply(io.github.ccxt.types.MarginModes::new);
 
@@ -4835,7 +4841,7 @@ public class Weex extends WeexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(marginMode, "symbol");
         String marginType = this.safeString(marginMode, "marginType");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Weex.this.safeSymbol(marketId, market, null, "swap") );
             put( "marginMode", Weex.this.parseMarginType(marginType) );
@@ -4844,7 +4850,7 @@ public class Weex extends WeexApi
 
     public String parseMarginType(Object marginType)
     {
-        java.util.Map<String, Object> marginTypes = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> marginTypes = new HashMap<String, Object>() {{
             put( "CROSSED", "cross" );
             put( "ISOLATED", "isolated" );
         }};
@@ -4861,13 +4867,13 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> setMarginMode(Object marginMode, Object... optionalArgs)
+    public CompletableFuture<Object> setMarginMode(Object marginMode, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
@@ -4876,8 +4882,8 @@ public class Weex extends WeexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginType", Weex.this.encodeMarginMode(marginMode) );
             }};
@@ -4888,7 +4894,7 @@ public class Weex extends WeexApi
 
     public String encodeMarginMode(Object marginMode)
     {
-        java.util.Map<String, Object> marginTypes = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> marginTypes = new HashMap<String, Object>() {{
             put( "cross", "CROSSED" );
             put( "isolated", "ISOLATED" );
         }};
@@ -4909,22 +4915,22 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
-            Object marginMode = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
+            Object marginMode = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(marginMode, market);
         }).thenApply(io.github.ccxt.types.Leverage::new);
 
@@ -4939,19 +4945,19 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Leverages> fetchLeverages(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
+            List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseLeverages(this.toArray(response), symbols, "symbol", "swap");
         }).thenApply(io.github.ccxt.types.Leverages::new);
 
@@ -4974,7 +4980,7 @@ public class Weex extends WeexApi
         final Object finalMarginMode = marginMode;
         final Object finalLongLeverage = longLeverage;
         final Object finalShortLeverage = shortLeverage;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Weex.this.safeSymbol(marketId, market, null, "swap") );
             put( "marginMode", finalMarginMode );
@@ -5002,13 +5008,13 @@ public class Weex extends WeexApi
      * the leverage value will be applied to cross leverage
      * @returns {object} response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
@@ -5017,14 +5023,14 @@ public class Weex extends WeexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object marginMode = null;
-            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
-            marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
+            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
+            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            parameters = ((List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
             {
                 Helpers.addElementToObject(request, "marginType", this.encodeMarginMode(marginMode));
@@ -5057,26 +5063,26 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.PositionModeInfo> fetchPositionMode(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.PositionModeInfo> fetchPositionMode(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
-            Object entry = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
+            Object entry = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             String separatedType = this.safeString(entry, "separatedType");
             final Object finalSeparatedType = separatedType;
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "hedged", (Helpers.isEqual(finalSeparatedType, "SEPARATED")) );
             }};
@@ -5095,13 +5101,13 @@ public class Weex extends WeexApi
      * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
+    public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setPositionMode() requires a symbol argument")) ;
@@ -5110,18 +5116,18 @@ public class Weex extends WeexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginMode = null;
-            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setPositionMode", parameters);
-            marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
+            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setPositionMode", parameters);
+            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            parameters = ((List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
             }
             String separatedType = ((Helpers.isTrue(hedged))) ? "SEPARATED" : "COMBINED";
             final Object finalMarginMode = marginMode;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginType", Weex.this.encodeMarginMode(finalMarginMode) );
                 put( "separatedType", separatedType );
@@ -5131,33 +5137,33 @@ public class Weex extends WeexApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type2, Object... optionalArgs)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            String isolatedPositionId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("positionId", "id", "isolatedPositionId")));
+            String isolatedPositionId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("positionId", "id", "isolatedPositionId")));
             if (Helpers.isTrue(Helpers.isEqual(isolatedPositionId, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("positionId", "id")));
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("positionId", "id")));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalIsolatedPositionId = isolatedPositionId;
             final Object finalType = type;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "isolatedPositionId", finalIsolatedPositionId );
                 put( "amount", Weex.this.costToPrecision(symbol, amount) );
                 put( "type", finalType );
             }};
             String parsedType = ((Helpers.isTrue((Helpers.isEqual(type, 1))))) ? "add" : "reduce";
-            java.util.Map<String, Object> response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters))).join();
-            return this.extend(this.parseMarginModification(response, market), new java.util.HashMap<String, Object>() {{
+            Map<String, Object> response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters))).join();
+            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "amount", Weex.this.parseNumber(amount) );
                 put( "type", parsedType );
             }});
@@ -5178,7 +5184,7 @@ public class Weex extends WeexApi
         String msg = this.safeString(data, "msg");
         String status = ((Helpers.isTrue((Helpers.isEqual(msg, "success"))))) ? "ok" : "failed";
         Long timestamp = this.safeInteger(data, "requestTime");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", Weex.this.safeString(market, "symbol") );
             put( "type", null );
@@ -5203,12 +5209,12 @@ public class Weex extends WeexApi
      * @param {string} params.positionId the id of the position to reduce margin from, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
         }).thenApply(io.github.ccxt.types.MarginModification::new);
 
@@ -5225,12 +5231,12 @@ public class Weex extends WeexApi
      * @param {string} params.positionId the id of the position to add margin to, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
         }).thenApply(io.github.ccxt.types.MarginModification::new);
 
@@ -5293,7 +5299,7 @@ public class Weex extends WeexApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object endpoint = this.implodeParams(path, parameters);
@@ -5323,7 +5329,7 @@ public class Weex extends WeexApi
             }
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             final Object finalTimestamp = timestamp;
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "ACCESS-KEY", Weex.this.apiKey );
                 put( "ACCESS-SIGN", signature );
                 put( "ACCESS-PASSPHRASE", Weex.this.password );
@@ -5335,7 +5341,7 @@ public class Weex extends WeexApi
             }
         } else
         {
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "User-Agent", "ccxt" );
             }};
         }
@@ -5343,7 +5349,7 @@ public class Weex extends WeexApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", url );
             put( "method", finalMethod );
             put( "body", finalBody );

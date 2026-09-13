@@ -7,6 +7,11 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
 {
@@ -20,15 +25,15 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "kucoinfutures" );
             put( "name", "KuCoin Futures" );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg" );
                 put( "www", "https://futures.kucoin.com/" );
                 put( "referral", "https://futures.kucoin.com/?rcode=E5wkqe" );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
                 put( "margin", false );
@@ -37,9 +42,9 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "option", null );
                 put( "fetchBidsAsks", true );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("swap", "future", "contract")) );
+            put( "options", new HashMap<String, Object>() {{
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("swap", "future", "contract")) );
                     put( "fetchTickersFees", false );
                 }} );
                 put( "defaultType", "swap" );
@@ -56,14 +61,14 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "futuresPublicGetAllTickers" );
             }};
             return (this.fetchTickers((Object)(symbols), (Object)(this.extend(request, parameters)))).join();
@@ -82,19 +87,19 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
     {
         final Object toAccount3 = toAccount2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object toAccount = toAccount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object amountToPrecision = this.currencyToPrecision(code, amount);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Kucoinfutures.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
@@ -112,9 +117,9 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
             {
                 throw new BadRequest(Helpers.add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
             }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             final Object finalToAccount = toAccount;
-            return this.extend(this.parseTransfer(data, currency), new java.util.HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
                 put( "amount", Kucoinfutures.this.parseNumber(amountToPrecision) );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );
@@ -125,7 +130,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
 
     public String parseTransferType(Object transferType)
     {
-        java.util.Map<String, Object> transferTypes = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> transferTypes = new HashMap<String, Object>() {{
             put( "spot", "TRADE" );
             put( "funding", "MAIN" );
         }};

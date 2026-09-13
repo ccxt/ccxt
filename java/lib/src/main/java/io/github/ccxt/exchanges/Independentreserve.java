@@ -6,6 +6,12 @@ import io.github.ccxt.api.IndependentreserveApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Independentreserve extends IndependentreserveApi
 {
@@ -19,13 +25,13 @@ public class Independentreserve extends IndependentreserveApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "independentreserve" );
             put( "name", "Independent Reserve" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("AU", "NZ")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("AU", "NZ")) );
             put( "rateLimit", 1000 );
             put( "pro", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
@@ -121,175 +127,175 @@ public class Independentreserve extends IndependentreserveApi
                 put( "setPositionMode", false );
                 put( "withdraw", true );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api.independentreserve.com/Public" );
                     put( "private", "https://api.independentreserve.com/Private" );
                 }} );
                 put( "www", "https://www.independentreserve.com" );
                 put( "doc", "https://www.independentreserve.com/API" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "GetValidPrimaryCurrencyCodes", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "GetValidPrimaryCurrencyCodes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetValidSecondaryCurrencyCodes", new java.util.HashMap<String, Object>() {{
+                        put( "GetValidSecondaryCurrencyCodes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetValidLimitOrderTypes", new java.util.HashMap<String, Object>() {{
+                        put( "GetValidLimitOrderTypes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetValidMarketOrderTypes", new java.util.HashMap<String, Object>() {{
+                        put( "GetValidMarketOrderTypes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetValidOrderTypes", new java.util.HashMap<String, Object>() {{
+                        put( "GetValidOrderTypes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetValidTransactionTypes", new java.util.HashMap<String, Object>() {{
+                        put( "GetValidTransactionTypes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetMarketSummary", new java.util.HashMap<String, Object>() {{
+                        put( "GetMarketSummary", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOrderBook", new java.util.HashMap<String, Object>() {{
+                        put( "GetOrderBook", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAllOrders", new java.util.HashMap<String, Object>() {{
+                        put( "GetAllOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetTradeHistorySummary", new java.util.HashMap<String, Object>() {{
+                        put( "GetTradeHistorySummary", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetRecentTrades", new java.util.HashMap<String, Object>() {{
+                        put( "GetRecentTrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetFxRates", new java.util.HashMap<String, Object>() {{
+                        put( "GetFxRates", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOrderMinimumVolumes", new java.util.HashMap<String, Object>() {{
+                        put( "GetOrderMinimumVolumes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDepositFees", new java.util.HashMap<String, Object>() {{
+                        put( "GetDepositFees", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetFiatWithdrawalFees", new java.util.HashMap<String, Object>() {{
+                        put( "GetFiatWithdrawalFees", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetCryptoWithdrawalFees", new java.util.HashMap<String, Object>() {{
+                        put( "GetCryptoWithdrawalFees", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetCryptoWithdrawalFees2", new java.util.HashMap<String, Object>() {{
+                        put( "GetCryptoWithdrawalFees2", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetNetworks", new java.util.HashMap<String, Object>() {{
+                        put( "GetNetworks", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetPrimaryCurrencyConfig2", new java.util.HashMap<String, Object>() {{
+                        put( "GetPrimaryCurrencyConfig2", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "GetOpenOrders", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "GetOpenOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetClosedOrders", new java.util.HashMap<String, Object>() {{
+                        put( "GetClosedOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetClosedFilledOrders", new java.util.HashMap<String, Object>() {{
+                        put( "GetClosedFilledOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOrderDetails", new java.util.HashMap<String, Object>() {{
+                        put( "GetOrderDetails", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAccounts", new java.util.HashMap<String, Object>() {{
+                        put( "GetAccounts", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetTransactions", new java.util.HashMap<String, Object>() {{
+                        put( "GetTransactions", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetFiatBankAccounts", new java.util.HashMap<String, Object>() {{
+                        put( "GetFiatBankAccounts", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDigitalCurrencyDepositAddress", new java.util.HashMap<String, Object>() {{
+                        put( "GetDigitalCurrencyDepositAddress", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDigitalCurrencyDepositAddress2", new java.util.HashMap<String, Object>() {{
+                        put( "GetDigitalCurrencyDepositAddress2", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDigitalCurrencyDepositAddresses", new java.util.HashMap<String, Object>() {{
+                        put( "GetDigitalCurrencyDepositAddresses", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDigitalCurrencyDepositAddresses2", new java.util.HashMap<String, Object>() {{
+                        put( "GetDigitalCurrencyDepositAddresses2", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetTrades", new java.util.HashMap<String, Object>() {{
+                        put( "GetTrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetTradesByOrder", new java.util.HashMap<String, Object>() {{
+                        put( "GetTradesByOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetBrokerageFees", new java.util.HashMap<String, Object>() {{
+                        put( "GetBrokerageFees", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDigitalCurrencyWithdrawal", new java.util.HashMap<String, Object>() {{
+                        put( "GetDigitalCurrencyWithdrawal", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetFiatWithdrawal", new java.util.HashMap<String, Object>() {{
+                        put( "GetFiatWithdrawal", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDepositLimits", new java.util.HashMap<String, Object>() {{
+                        put( "GetDepositLimits", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetWithdrawalLimits", new java.util.HashMap<String, Object>() {{
+                        put( "GetWithdrawalLimits", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "PlaceLimitOrder", new java.util.HashMap<String, Object>() {{
+                        put( "PlaceLimitOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "PlaceMarketOrder", new java.util.HashMap<String, Object>() {{
+                        put( "PlaceMarketOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CancelOrder", new java.util.HashMap<String, Object>() {{
+                        put( "CancelOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CancelOrders", new java.util.HashMap<String, Object>() {{
+                        put( "CancelOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SynchDigitalCurrencyDepositAddressWithBlockchain", new java.util.HashMap<String, Object>() {{
+                        put( "SynchDigitalCurrencyDepositAddressWithBlockchain", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "RequestFiatWithdrawal", new java.util.HashMap<String, Object>() {{
+                        put( "RequestFiatWithdrawal", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "WithdrawFiatCurrency", new java.util.HashMap<String, Object>() {{
+                        put( "WithdrawFiatCurrency", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "WithdrawDigitalCurrency", new java.util.HashMap<String, Object>() {{
+                        put( "WithdrawDigitalCurrency", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "WithdrawCrypto", new java.util.HashMap<String, Object>() {{
+                        put( "WithdrawCrypto", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "taker", Independentreserve.this.parseNumber("0.005") );
                     put( "maker", Independentreserve.this.parseNumber("0.005") );
                     put( "percentage", true );
                     put( "tierBased", false );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", false );
                         put( "triggerPriceType", null );
@@ -297,7 +303,7 @@ public class Independentreserve extends IndependentreserveApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "GTC", true );
                             put( "IOC", true );
                             put( "FOK", true );
@@ -313,20 +319,20 @@ public class Independentreserve extends IndependentreserveApi
                         put( "iceberg", false );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", null );
                         put( "untilDays", null );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "trigger", false );
@@ -334,7 +340,7 @@ public class Independentreserve extends IndependentreserveApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchOrders", null );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", null );
@@ -346,21 +352,21 @@ public class Independentreserve extends IndependentreserveApi
                     }} );
                     put( "fetchOHLCV", null );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
-            put( "commonCurrencies", new java.util.HashMap<String, Object>() {{
+            put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "PLA", "PlayChip" );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "defaultNetworks", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
+                put( "defaultNetworks", new HashMap<String, Object>() {{
                     put( "USDT", "Ethereum" );
                     put( "USDC", "Ethereum" );
                     put( "BTC", "Bitcoin" );
@@ -396,7 +402,7 @@ public class Independentreserve extends IndependentreserveApi
                     put( "RLUSD", "Ethereum" );
                     put( "PEPE", "Ethereum" );
                 }} );
-                put( "networks", new java.util.HashMap<String, Object>() {{
+                put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "Bitcoin" );
                     put( "ETH", "Ethereum" );
                     put( "BCH", "BitcoinCash" );
@@ -423,21 +429,21 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes(parameters);
             //     ['Xbt', 'Eth', 'Usdt', ...]
             Object quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes(parameters);
             //     ['Aud', 'Usd', 'Nzd', 'Sgd']
             Object limitsPromise = this.publicGetGetOrderMinimumVolumes(parameters);
-            var baseCurrenciesquoteCurrencieslimitsVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise)))).join();
-            var baseCurrencies = ((java.util.List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(0);
-            var quoteCurrencies = ((java.util.List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(1);
-            var limits = ((java.util.List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(2);
+            var baseCurrenciesquoteCurrencieslimitsVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise)))).join();
+            var baseCurrencies = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(0);
+            var quoteCurrencies = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(1);
+            var limits = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(2);
             //
             //     {
             //         "Xbt": 0.0001,
@@ -446,9 +452,9 @@ public class Independentreserve extends IndependentreserveApi
             //         "Xrp": 1.0,
             //     }
             //
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> baseCurrencyIds = this.toArray(baseCurrencies);
-            java.util.List<Object> quoteCurrencyIds = this.toArray(quoteCurrencies);
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            List<Object> baseCurrencyIds = this.toArray(baseCurrencies);
+            List<Object> quoteCurrencyIds = this.toArray(quoteCurrencies);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseCurrencyIds)); i++)
             {
                 Object baseId = Helpers.GetValue(baseCurrencyIds, i);
@@ -461,7 +467,7 @@ public class Independentreserve extends IndependentreserveApi
                     Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
     final Object finalBase = base;
                     final Object finalBaseId = baseId;
-                                    ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                                    ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
                         put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
                         put( "base", finalBase );
@@ -485,24 +491,24 @@ public class Independentreserve extends IndependentreserveApi
                         put( "expiryDatetime", null );
                         put( "strike", null );
                         put( "optionType", null );
-                        put( "precision", new java.util.HashMap<String, Object>() {{
+                        put( "precision", new HashMap<String, Object>() {{
                             put( "amount", null );
                             put( "price", null );
                         }} );
-                        put( "limits", new java.util.HashMap<String, Object>() {{
-                            put( "leverage", new java.util.HashMap<String, Object>() {{
+                        put( "limits", new HashMap<String, Object>() {{
+                            put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                            put( "amount", new java.util.HashMap<String, Object>() {{
+                            put( "amount", new HashMap<String, Object>() {{
                                 put( "min", minAmount );
                                 put( "max", null );
                             }} );
-                            put( "price", new java.util.HashMap<String, Object>() {{
+                            put( "price", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                            put( "cost", new java.util.HashMap<String, Object>() {{
+                            put( "cost", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
                             }} );
@@ -519,7 +525,7 @@ public class Independentreserve extends IndependentreserveApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -545,17 +551,17 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privatePostGetAccounts(parameters)).join();
+            Map<String, Object> response = (this.privatePostGetAccounts(parameters)).join();
             return this.parseBalance(response);
         }).thenApply(io.github.ccxt.types.Balances::new);
 
@@ -570,23 +576,23 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", Helpers.GetValue(market, "baseId") );
                 put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
             Long timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -620,7 +626,7 @@ public class Independentreserve extends IndependentreserveApi
         market = this.safeMarket(defaultMarketId, market, "/");
         Object symbol = Helpers.GetValue(market, "symbol");
         String last = this.safeString(ticker, "LastPrice");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Independentreserve.this.iso8601(timestamp) );
@@ -652,22 +658,22 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", Helpers.GetValue(market, "baseId") );
                 put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetGetMarketSummary(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetGetMarketSummary(this.extend(request, parameters))).join();
             // {
             //     "DayHighestPrice":43489.49,
             //     "DayLowestPrice":41998.32,
@@ -788,7 +794,7 @@ public class Independentreserve extends IndependentreserveApi
         final Object finalFeeRate = feeRate;
         final Object finalFeeCost = feeCost;
         final Object finalBase = base;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Independentreserve.this.safeString(order, "OrderGuid") );
             put( "clientOrderId", null );
@@ -808,7 +814,7 @@ public class Independentreserve extends IndependentreserveApi
             put( "filled", finalFilled );
             put( "remaining", Independentreserve.this.safeString(order, "Outstanding") );
             put( "status", Independentreserve.this.parseOrderStatus(Independentreserve.this.safeString(order, "Status")) );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "rate", finalFeeRate );
                 put( "cost", finalFeeCost );
                 put( "currency", finalBase );
@@ -819,7 +825,7 @@ public class Independentreserve extends IndependentreserveApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Open", "open" );
             put( "PartiallyFilled", "open" );
             put( "Filled", "closed" );
@@ -834,7 +840,7 @@ public class Independentreserve extends IndependentreserveApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "Gtc", "GTC" );
             put( "Moc", "PO" );
             put( "Fok", "FOK" );
@@ -852,18 +858,18 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privatePostGetOrderDetails(this.extend(new java.util.HashMap<String, Object>() {{
+            Map<String, Object> response = (this.privatePostGetOrderDetails(this.extend(new HashMap<String, Object>() {{
                 put( "orderGuid", id );
             }}, parameters))).join();
             Object market = null;
@@ -886,20 +892,20 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -913,8 +919,8 @@ public class Independentreserve extends IndependentreserveApi
             }
             Helpers.addElementToObject(request, "pageIndex", 1);
             Helpers.addElementToObject(request, "pageSize", limit);
-            java.util.Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
+            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -930,20 +936,20 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -957,8 +963,8 @@ public class Independentreserve extends IndependentreserveApi
             }
             Helpers.addElementToObject(request, "pageIndex", 1);
             Helpers.addElementToObject(request, "pageSize", limit);
-            java.util.Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
+            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -974,15 +980,15 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, 50);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -993,17 +999,17 @@ public class Independentreserve extends IndependentreserveApi
                 limit = 50;
             }
             final Object finalLimit = limit;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pageIndex", pageIndex );
                 put( "pageSize", finalLimit );
             }};
-            java.util.Map<String, Object> response = (this.privatePostGetTrades(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetTrades(this.extend(request, parameters))).join();
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
-            Object data = this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -1040,7 +1046,7 @@ public class Independentreserve extends IndependentreserveApi
             }
         }
         final Object finalSide = side;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1067,26 +1073,26 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", Helpers.GetValue(market, "baseId") );
                 put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
                 put( "numberOfRecentTradesToRetrieve", 50 );
             }};
-            java.util.Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
-            Object trades = this.safeList(response, "Trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
+            Object trades = this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -1099,17 +1105,17 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> response = (this.privatePostGetBrokerageFees(parameters)).join();
+            List<Object> response = (this.privatePostGetBrokerageFees(parameters)).join();
             //
             //     [
             //         {
@@ -1119,8 +1125,8 @@ public class Independentreserve extends IndependentreserveApi
             //         ...
             //     ]
             //
-            java.util.Map<String, Object> fees = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> rows = this.toArray(response);
+            Map<String, Object> fees = new HashMap<String, Object>() {{}};
+            List<Object> rows = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object fee = Helpers.GetValue(rows, i);
@@ -1129,20 +1135,20 @@ public class Independentreserve extends IndependentreserveApi
                 Double tradingFee = this.safeNumber(fee, "Fee");
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
-                    Helpers.addElementToObject(fees, code, new java.util.HashMap<String, Object>() {{
+                    Helpers.addElementToObject(fees, code, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "fee", tradingFee );
     }});
                 }
             }
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> symbols = this.symbols;
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                Object fee = this.safeValue(fees, Helpers.GetValue(market, "base"), new java.util.HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Object fee = this.safeValue(fees, Helpers.GetValue(market, "base"), new HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
         put( "info", Independentreserve.this.safeValue(fee, "info") );
         put( "symbol", symbol );
         put( "maker", Independentreserve.this.safeNumber(fee, "fee") );
@@ -1168,24 +1174,24 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderType = this.capitalize(type);
             orderType = Helpers.add(orderType, ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "Offer" : "Bid");
             final Object finalOrderType = orderType;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", Helpers.GetValue(market, "baseId") );
                 put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
                 put( "orderType", finalOrderType );
@@ -1201,7 +1207,7 @@ public class Independentreserve extends IndependentreserveApi
                 response = (this.privatePostPlaceMarketOrder(this.extend(request, parameters))).join();
             }
             final Object finalResponse = response;
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", Helpers.GetValue(finalResponse, "OrderGuid") );
             }}, market);
@@ -1219,21 +1225,21 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderGuid", id );
             }};
-            java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "AvgPrice": 455.48,
@@ -1263,21 +1269,21 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", Helpers.GetValue(currency, "id") );
             }};
-            java.util.Map<String, Object> response = (this.privatePostGetDigitalCurrencyDepositAddress(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetDigitalCurrencyDepositAddress(this.extend(request, parameters))).join();
             //
             //    {
             //        Tag: '3307446684',
@@ -1304,7 +1310,7 @@ public class Independentreserve extends IndependentreserveApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "DepositAddress");
         this.checkAddress(address);
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", Independentreserve.this.safeString(currency, "code") );
             put( "network", null );
@@ -1328,22 +1334,22 @@ public class Independentreserve extends IndependentreserveApi
      * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", Helpers.GetValue(currency, "id") );
                 put( "withdrawalAddress", address );
                 put( "amount", Independentreserve.this.currencyToPrecision(code, amount) );
@@ -1353,14 +1359,14 @@ public class Independentreserve extends IndependentreserveApi
                 Helpers.addElementToObject(request, "destinationTag", tag);
             }
             String networkCode = null;
-            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
-            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
+            List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
+            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 throw new BadRequest(Helpers.add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
             }
-            java.util.Map<String, Object> response = (this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters))).join();
             //
             //    {
             //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1410,7 +1416,7 @@ public class Independentreserve extends IndependentreserveApi
         String address = this.safeString(destination, "Address");
         String tag = this.safeString(destination, "Tag");
         String code = this.safeCurrencyCode(currencyId, currency);
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Independentreserve.this.safeString(transaction, "TransactionGuid") );
             put( "txid", null );
@@ -1429,7 +1435,7 @@ public class Independentreserve extends IndependentreserveApi
             put( "tagTo", tag );
             put( "updated", null );
             put( "comment", null );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Independentreserve.this.safeNumber(amount, "Fee") );
                 put( "rate", null );
@@ -1442,7 +1448,7 @@ public class Independentreserve extends IndependentreserveApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), path);
@@ -1456,17 +1462,17 @@ public class Independentreserve extends IndependentreserveApi
         {
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
-            Object auth = new java.util.ArrayList<Object>(java.util.Arrays.asList(url, Helpers.add("apiKey=", this.apiKey), Helpers.add("nonce=", String.valueOf(nonce))));
+            Object auth = new ArrayList<Object>(Arrays.asList(url, Helpers.add("apiKey=", this.apiKey), Helpers.add("nonce=", String.valueOf(nonce))));
             Object keys = Helpers.objectKeys(parameters);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object value = String.valueOf(Helpers.GetValue(parameters, key));
-                ((java.util.List<Object>)auth).add(Helpers.add(Helpers.add(key, "="), value));
+                ((List<Object>)auth).add(Helpers.add(Helpers.add(key, "="), value));
             }
-            Object message = String.join(",", (java.util.List<String>)auth);
+            Object message = String.join(",", (List<String>)auth);
             Object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256());
-            java.util.Map<String, Object> query = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> query = new HashMap<String, Object>() {{}};
             Helpers.addElementToObject(query, "apiKey", this.apiKey);
             Helpers.addElementToObject(query, "nonce", nonce);
             Helpers.addElementToObject(query, "signature", ((String)signature).toUpperCase());
@@ -1476,14 +1482,14 @@ public class Independentreserve extends IndependentreserveApi
                 Helpers.addElementToObject(query, key, Helpers.GetValue(parameters, key));
             }
             body = this.json(query);
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
         }
         final Object finalUrl = url;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", method );
             put( "body", finalBody );

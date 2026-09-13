@@ -6,6 +6,12 @@ import io.github.ccxt.api.BtcturkApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Btcturk extends BtcturkApi
 {
@@ -19,13 +25,13 @@ public class Btcturk extends BtcturkApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "btcturk" );
             put( "name", "BTCTurk" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("TR")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("TR")) );
             put( "rateLimit", 100 );
             put( "pro", false );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", true );
                 put( "spot", true );
                 put( "margin", false );
@@ -117,7 +123,7 @@ public class Btcturk extends BtcturkApi
                 put( "setPositionMode", false );
                 put( "ws", false );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", 1 );
                 put( "15m", 15 );
                 put( "30m", 30 );
@@ -127,9 +133,9 @@ public class Btcturk extends BtcturkApi
                 put( "1w", "1 w" );
                 put( "1y", "1 y" );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/710711ff-1278-4e7a-9b03-b5503dd85b59" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api.btcturk.com/api/v2" );
                     put( "private", "https://api.btcturk.com/api/v1" );
                     put( "graph", "https://graph-api.btcturk.com/v1" );
@@ -137,94 +143,94 @@ public class Btcturk extends BtcturkApi
                 put( "www", "https://www.btcturk.com" );
                 put( "doc", "https://github.com/BTCTrader/broker-api-docs" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "orderbook", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "orderbook", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ticker", new java.util.HashMap<String, Object>() {{
+                        put( "ticker", new HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
-                        put( "ticker/currency", new java.util.HashMap<String, Object>() {{
+                        put( "ticker/currency", new HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
-                        put( "trades", new java.util.HashMap<String, Object>() {{
+                        put( "trades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ohlc", new java.util.HashMap<String, Object>() {{
+                        put( "ohlc", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "server/exchangeinfo", new java.util.HashMap<String, Object>() {{
+                        put( "server/exchangeinfo", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "users/balances", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "users/balances", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "openOrders", new java.util.HashMap<String, Object>() {{
+                        put( "openOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "allOrders", new java.util.HashMap<String, Object>() {{
+                        put( "allOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "order/{orderId}", new java.util.HashMap<String, Object>() {{
+                        put( "order/{orderId}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "users/transactions/trade", new java.util.HashMap<String, Object>() {{
+                        put( "users/transactions/trade", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "users/transactions/crypto", new java.util.HashMap<String, Object>() {{
+                        put( "users/transactions/crypto", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "users/transactions/fiat", new java.util.HashMap<String, Object>() {{
+                        put( "users/transactions/fiat", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "crypto-deposit-declarations", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                    }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "users/transactions/crypto", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "users/transactions/fiat", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "order", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "cancelOrder", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "crypto-deposit-declarations/confirm", new java.util.HashMap<String, Object>() {{
+                        put( "crypto-deposit-declarations", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "order", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "users/transactions/crypto", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "users/transactions/fiat", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelOrder", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "crypto-deposit-declarations/confirm", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "delete", new HashMap<String, Object>() {{
+                        put( "order", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "graph", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "ohlcs", new java.util.HashMap<String, Object>() {{
+                put( "graph", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "ohlcs", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "klines/history", new java.util.HashMap<String, Object>() {{
+                        put( "klines/history", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", true );
                         put( "triggerPriceType", null );
@@ -232,7 +238,7 @@ public class Btcturk extends BtcturkApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", false );
                             put( "FOK", false );
                             put( "PO", false );
@@ -247,7 +253,7 @@ public class Btcturk extends BtcturkApi
                         put( "iceberg", false );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 100000 );
@@ -255,14 +261,14 @@ public class Btcturk extends BtcturkApi
                         put( "symbolRequired", true );
                     }} );
                     put( "fetchOrder", null );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1000 );
                         put( "daysBack", 100000 );
@@ -272,27 +278,27 @@ public class Btcturk extends BtcturkApi
                         put( "symbolRequired", true );
                     }} );
                     put( "fetchClosedOrders", null );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", null );
                     }} );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "maker", Btcturk.this.parseNumber("0.0005") );
                     put( "taker", Btcturk.this.parseNumber("0.0009") );
                 }} );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "FAILED_ORDER_WITH_OPEN_ORDERS", InsufficientFunds.class );
                     put( "FAILED_LIMIT_ORDER", InvalidOrder.class );
                     put( "FAILED_MARKET_ORDER", InvalidOrder.class );
@@ -310,13 +316,13 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetServerExchangeinfo(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetServerExchangeinfo(parameters)).join();
             //
             //    {
             //        "data": {
@@ -360,8 +366,8 @@ public class Btcturk extends BtcturkApi
             //        ],
             //    }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object markets = this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -374,7 +380,7 @@ public class Btcturk extends BtcturkApi
         String quoteId = this.safeString(entry, "denominator");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object filters = this.safeList(entry, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object filters = this.safeList(entry, "filters", new ArrayList<Object>(Arrays.asList()));
         Object minPrice = null;
         Object maxPrice = null;
         Object minAmount = null;
@@ -401,7 +407,7 @@ public class Btcturk extends BtcturkApi
         final Object finalMinPrice = minPrice;
         final Object finalMaxPrice = maxPrice;
         final Object finalMinCost = minCost;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "base", finalBase );
@@ -425,24 +431,24 @@ public class Btcturk extends BtcturkApi
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Btcturk.this.parseNumber(Btcturk.this.parsePrecision(Btcturk.this.safeString(entry, "numeratorScale"))) );
                 put( "price", Btcturk.this.parseNumber(Btcturk.this.parsePrecision(Btcturk.this.safeString(entry, "denominatorScale"))) );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "amount", new java.util.HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", finalMinAmount );
                     put( "max", finalMaxAmount );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", finalMinPrice );
                     put( "max", finalMaxPrice );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", finalMinCost );
                     put( "max", null );
                 }} );
@@ -454,8 +460,8 @@ public class Btcturk extends BtcturkApi
 
     public Object parseBalance(Object response)
     {
-        Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
@@ -485,17 +491,17 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetUsersBalances(parameters)).join();
+            Map<String, Object> response = (this.privateGetUsersBalances(parameters)).join();
             //
             //     {
             //       "data": [
@@ -527,22 +533,22 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //     {
             //       "data": {
             //         "timestamp": 1618827901241,
@@ -554,7 +560,7 @@ public class Btcturk extends BtcturkApi
             //         ]
             //       }
             //     }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -589,7 +595,7 @@ public class Btcturk extends BtcturkApi
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Btcturk.this.iso8601(timestamp) );
@@ -622,18 +628,18 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.publicGetTicker(parameters)).join();
+            Map<String, Object> response = (this.publicGetTicker(parameters)).join();
             Object tickers = this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
@@ -649,17 +655,17 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
+            Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
@@ -710,13 +716,13 @@ public class Btcturk extends BtcturkApi
         {
             String feeCurrency = this.safeString(trade, "denominatorSymbol");
             final Object finalFeeAmountString = feeAmountString;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", Precise.stringAbs(finalFeeAmountString) );
                 put( "currency", Btcturk.this.safeCurrencyCode(feeCurrency) );
             }};
         }
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", order );
@@ -744,28 +750,28 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             // let maxCount = 50;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "last", limit);
             }
-            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //       "data": [
@@ -784,7 +790,7 @@ public class Btcturk extends BtcturkApi
             //     }
             //
             Object data = this.safeList(response, "data");
-            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object dataList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(data, null)))
             {
                 dataList = data;
@@ -807,7 +813,7 @@ public class Btcturk extends BtcturkApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
+        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
     }
 
     /**
@@ -823,22 +829,22 @@ public class Btcturk extends BtcturkApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1h");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalTimeframe = timeframe;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "resolution", Btcturk.this.safeValue(Btcturk.this.timeframes, finalTimeframe, finalTimeframe) );
             }};
@@ -869,7 +875,7 @@ public class Btcturk extends BtcturkApi
                     Helpers.addElementToObject(request, "from", Helpers.subtract(this.parseToInt(Helpers.divide(0, 1000)), limitSeconds));
                 }
             }
-            java.util.Map<String, Object> response = (this.graphGetKlinesHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.graphGetKlinesHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "s": "ok",
@@ -910,24 +916,24 @@ public class Btcturk extends BtcturkApi
 
     }
 
-    public java.util.List<Object> parseOHLCVs(Object ohlcvs, Object... optionalArgs)
+    public List<Object> parseOHLCVs(Object ohlcvs, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timeframe = Helpers.getArg(optionalArgs, 1, "1m");
         Object since = Helpers.getArg(optionalArgs, 2, null);
         Object limit = Helpers.getArg(optionalArgs, 3, null);
         Object tail = Helpers.getArg(optionalArgs, 4, false);
-        java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object timestamp = this.safeList(ohlcvs, "t", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object high = this.safeList(ohlcvs, "h", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object open = this.safeList(ohlcvs, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object low = this.safeList(ohlcvs, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object close = this.safeList(ohlcvs, "c", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object volume = this.safeList(ohlcvs, "v", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        List<Object> results = new ArrayList<Object>(Arrays.asList());
+        Object timestamp = this.safeList(ohlcvs, "t", new ArrayList<Object>(Arrays.asList()));
+        Object high = this.safeList(ohlcvs, "h", new ArrayList<Object>(Arrays.asList()));
+        Object open = this.safeList(ohlcvs, "o", new ArrayList<Object>(Arrays.asList()));
+        Object low = this.safeList(ohlcvs, "l", new ArrayList<Object>(Arrays.asList()));
+        Object close = this.safeList(ohlcvs, "c", new ArrayList<Object>(Arrays.asList()));
+        Object volume = this.safeList(ohlcvs, "v", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(timestamp)); i++)
         {
             final Object finalI = i;
-            java.util.Map<String, Object> ohlcv = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> ohlcv = new HashMap<String, Object>() {{
                 put( "timestamp", Btcturk.this.safeInteger(timestamp, finalI) );
                 put( "high", Btcturk.this.safeNumber(high, finalI) );
                 put( "open", Btcturk.this.safeNumber(open, finalI) );
@@ -935,9 +941,9 @@ public class Btcturk extends BtcturkApi
                 put( "close", Btcturk.this.safeNumber(close, finalI) );
                 put( "volume", Btcturk.this.safeNumber(volume, finalI) );
             }};
-            ((java.util.List<Object>)results).add(this.parseOHLCV(ohlcv, market));
+            ((List<Object>)results).add(this.parseOHLCV(ohlcv, market));
         }
-        java.util.List<Object> sorted = this.sortBy(results, 0);
+        List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 
@@ -954,20 +960,20 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalType = type;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderType", side );
                 put( "orderMethod", finalType );
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
@@ -984,8 +990,8 @@ public class Btcturk extends BtcturkApi
             {
                 Helpers.addElementToObject(request, "newClientOrderId", this.uuid());
             }
-            java.util.Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -1001,17 +1007,17 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            java.util.Map<String, Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1019,7 +1025,7 @@ public class Btcturk extends BtcturkApi
             //        "code": 0
             //    }
             //
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
             }});
         }).thenApply(io.github.ccxt.types.Order::new);
@@ -1037,30 +1043,30 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pairSymbol", Helpers.GetValue(market, "id"));
             }
-            java.util.Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object bids = this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object asks = this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -1077,21 +1083,21 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1103,7 +1109,7 @@ public class Btcturk extends BtcturkApi
             {
                 Helpers.addElementToObject(request, "startTime", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
             }
-            java.util.Map<String, Object> response = (this.privateGetAllOrders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetAllOrders(this.extend(request, parameters))).join();
             // {
             //   "data": [
             //     {
@@ -1132,7 +1138,7 @@ public class Btcturk extends BtcturkApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Untouched", "open" );
             put( "Partial", "open" );
             put( "Canceled", "canceled" );
@@ -1190,7 +1196,7 @@ public class Btcturk extends BtcturkApi
         Long timestamp = (Long) this.safeInteger2(order, "updateTime", "datetime");
         String rawStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus(rawStatus);
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "price", price );
@@ -1221,15 +1227,15 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1239,7 +1245,7 @@ public class Btcturk extends BtcturkApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> response = (this.privateGetUsersTransactionsTrade()).join();
+            Map<String, Object> response = (this.privateGetUsersTransactionsTrade()).join();
             //
             //     {
             //       "data": [
@@ -1262,7 +1268,7 @@ public class Btcturk extends BtcturkApi
             //     }
             //
             Object data = this.safeList(response, "data");
-            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object dataList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(data, null)))
             {
                 dataList = data;
@@ -1281,7 +1287,7 @@ public class Btcturk extends BtcturkApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         if (Helpers.isTrue(Helpers.isEqual(this.id, "btctrader")))
@@ -1305,7 +1311,7 @@ public class Btcturk extends BtcturkApi
             Object nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
             Object auth = Helpers.add(this.apiKey, nonce);
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "X-PCK", Btcturk.this.apiKey );
                 put( "X-Stamp", nonce );
                 put( "X-Signature", Btcturk.this.hmac(Btcturk.this.encode(auth), secret, sha256(), "base64") );
@@ -1316,7 +1322,7 @@ public class Btcturk extends BtcturkApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );

@@ -6,6 +6,10 @@ import io.github.ccxt.api.BinanceusdmApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 public class Binanceusdm extends BinanceusdmApi
 {
@@ -19,14 +23,14 @@ public class Binanceusdm extends BinanceusdmApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "binanceusdm" );
             put( "name", "Binance USDⓈ-M" );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://binance-docs.github.io/apidocs/futures/en/", "https://binance-docs.github.io/apidocs/spot/en", "https://developers.binance.com/en")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://binance-docs.github.io/apidocs/futures/en/", "https://binance-docs.github.io/apidocs/spot/en", "https://developers.binance.com/en")) );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
                 put( "margin", false );
@@ -35,18 +39,18 @@ public class Binanceusdm extends BinanceusdmApi
                 put( "option", null );
                 put( "createStopMarketOrder", true );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("linear")) );
+            put( "options", new HashMap<String, Object>() {{
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("linear")) );
                 }} );
                 put( "defaultType", "swap" );
                 put( "defaultSubType", "linear" );
                 put( "leverageBrackets", null );
-                put( "marginTypes", new java.util.HashMap<String, Object>() {{}} );
-                put( "marginModes", new java.util.HashMap<String, Object>() {{}} );
+                put( "marginTypes", new HashMap<String, Object>() {{}} );
+                put( "marginModes", new HashMap<String, Object>() {{}} );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "-5021", InvalidOrder.class );
                     put( "-5022", InvalidOrder.class );
                     put( "-5028", InvalidOrder.class );
@@ -55,25 +59,25 @@ public class Binanceusdm extends BinanceusdmApi
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // transfer from spot wallet to usdm futures wallet
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.futuresTransfer(code, amount, 1, parameters)).join();
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // transfer from usdm futures wallet to spot wallet
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.futuresTransfer(code, amount, 2, parameters)).join();
         });
 

@@ -6,6 +6,12 @@ import io.github.ccxt.api.TokocryptoApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Tokocrypto extends TokocryptoApi
 {
@@ -19,14 +25,14 @@ public class Tokocrypto extends TokocryptoApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "tokocrypto" );
             put( "name", "Tokocrypto" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("ID")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("ID")) );
             put( "certified", false );
             put( "pro", false );
             put( "version", "v1" );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", true );
@@ -142,7 +148,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "transfer", false );
                 put( "withdraw", true );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "1m" );
                 put( "3m", "3m" );
                 put( "5m", "5m" );
@@ -159,10 +165,10 @@ public class Tokocrypto extends TokocryptoApi
                 put( "1w", "1w" );
                 put( "1M", "1M" );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg" );
-                put( "api", new java.util.HashMap<String, Object>() {{
-                    put( "rest", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
+                    put( "rest", new HashMap<String, Object>() {{
                         put( "public", "https://www.tokocrypto.com" );
                         put( "binance", "https://api.binance.com/api/v3" );
                         put( "private", "https://www.tokocrypto.com" );
@@ -172,140 +178,140 @@ public class Tokocrypto extends TokocryptoApi
                 put( "doc", "https://www.tokocrypto.com/apidocs/" );
                 put( "fees", "https://www.tokocrypto.com/fees/newschedule" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "binance", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "ping", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "binance", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "ping", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "time", new java.util.HashMap<String, Object>() {{
+                        put( "time", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "depth", new java.util.HashMap<String, Object>() {{
+                        put( "depth", new HashMap<String, Object>() {{
                             put( "cost", 1 );
-                            put( "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(100, 1)), new java.util.ArrayList<Object>(java.util.Arrays.asList(500, 5)), new java.util.ArrayList<Object>(java.util.Arrays.asList(1000, 10)), new java.util.ArrayList<Object>(java.util.Arrays.asList(5000, 50)))) );
+                            put( "byLimit", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(100, 1)), new ArrayList<Object>(Arrays.asList(500, 5)), new ArrayList<Object>(Arrays.asList(1000, 10)), new ArrayList<Object>(Arrays.asList(5000, 50)))) );
                         }} );
-                        put( "trades", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "aggTrades", new java.util.HashMap<String, Object>() {{
+                        put( "trades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "historicalTrades", new java.util.HashMap<String, Object>() {{
+                        put( "aggTrades", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "historicalTrades", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "klines", new java.util.HashMap<String, Object>() {{
+                        put( "klines", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ticker/24hr", new java.util.HashMap<String, Object>() {{
+                        put( "ticker/24hr", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "noSymbol", 40 );
                         }} );
-                        put( "ticker/price", new java.util.HashMap<String, Object>() {{
+                        put( "ticker/price", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "noSymbol", 2 );
                         }} );
-                        put( "ticker/bookTicker", new java.util.HashMap<String, Object>() {{
+                        put( "ticker/bookTicker", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "noSymbol", 2 );
                         }} );
-                        put( "exchangeInfo", new java.util.HashMap<String, Object>() {{
+                        put( "exchangeInfo", new HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
-                        put( "executionRules", new java.util.HashMap<String, Object>() {{
+                        put( "executionRules", new HashMap<String, Object>() {{
                             put( "cost", 2 );
                             put( "noSymbol", 40 );
                         }} );
                     }} );
-                    put( "put", new java.util.HashMap<String, Object>() {{
-                        put( "userDataStream", new java.util.HashMap<String, Object>() {{
+                    put( "put", new HashMap<String, Object>() {{
+                        put( "userDataStream", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "userDataStream", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "userDataStream", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "userDataStream", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                    }} );
-                }} );
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "open/v1/common/time", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "open/v1/common/symbols", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "open/v1/market/depth", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "open/v1/market/trades", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "open/v1/market/agg-trades", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "open/v1/market/klines", new java.util.HashMap<String, Object>() {{
+                    put( "delete", new HashMap<String, Object>() {{
+                        put( "userDataStream", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "open/v1/orders/detail", new java.util.HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "open/v1/common/time", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/orders", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/common/symbols", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/account/spot", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/market/depth", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/account/spot/asset", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/market/trades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/orders/trades", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/market/agg-trades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/withdraws", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "open/v1/deposits", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "open/v1/deposits/address", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/market/klines", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "open/v1/orders", new java.util.HashMap<String, Object>() {{
+                }} );
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "open/v1/orders/detail", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/orders/cancel", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/orders/oco", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/account/spot", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/withdraws", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/account/spot/asset", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/user-data-stream", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/orders/trades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "open/v1/user-listen-token", new java.util.HashMap<String, Object>() {{
+                        put( "open/v1/withdraws", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/deposits", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/deposits/address", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "open/v1/orders", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/orders/cancel", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/orders/oco", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/withdraws", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/user-data-stream", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/user-listen-token", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "taker", Tokocrypto.this.parseNumber("0.0075") );
@@ -313,7 +319,7 @@ public class Tokocrypto extends TokocryptoApi
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", true );
                 put( "defaultTimeInForce", "GTC" );
                 put( "hasAlreadyAuthenticatedSuccessfully", false );
@@ -321,12 +327,12 @@ public class Tokocrypto extends TokocryptoApi
                 put( "recvWindow", Helpers.multiply(5, 1000) );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
-                put( "newOrderRespType", new java.util.HashMap<String, Object>() {{
+                put( "newOrderRespType", new HashMap<String, Object>() {{
                     put( "market", "FULL" );
                     put( "limit", "FULL" );
                 }} );
                 put( "quoteOrderQty", false );
-                put( "networks", new java.util.HashMap<String, Object>() {{
+                put( "networks", new HashMap<String, Object>() {{
                     put( "ERC20", "ETH" );
                     put( "TRC20", "TRX" );
                     put( "BEP2", "BNB" );
@@ -335,7 +341,7 @@ public class Tokocrypto extends TokocryptoApi
                     put( "EOS", "EOS" );
                     put( "SOL", "SOL" );
                 }} );
-                put( "reverseNetworks", new java.util.HashMap<String, Object>() {{
+                put( "reverseNetworks", new HashMap<String, Object>() {{
                     put( "tronscan.org", "TRC20" );
                     put( "etherscan.io", "ERC20" );
                     put( "bscscan.com", "BSC" );
@@ -429,15 +435,15 @@ public class Tokocrypto extends TokocryptoApi
                     put( "explorer.zcha.in", "ZEC" );
                     put( "explorer.zensystem.io", "ZEN" );
                 }} );
-                put( "impliedNetworks", new java.util.HashMap<String, Object>() {{
-                    put( "ETH", new java.util.HashMap<String, Object>() {{
+                put( "impliedNetworks", new HashMap<String, Object>() {{
+                    put( "ETH", new HashMap<String, Object>() {{
                         put( "ERC20", "ETH" );
                     }} );
-                    put( "TRX", new java.util.HashMap<String, Object>() {{
+                    put( "TRX", new HashMap<String, Object>() {{
                         put( "TRC20", "TRX" );
                     }} );
                 }} );
-                put( "legalMoney", new java.util.HashMap<String, Object>() {{
+                put( "legalMoney", new HashMap<String, Object>() {{
                     put( "MXN", true );
                     put( "UGX", true );
                     put( "SEK", true );
@@ -472,8 +478,8 @@ public class Tokocrypto extends TokocryptoApi
                     put( "NZD", true );
                 }} );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "System is under maintenance.", OnMaintenance.class );
                     put( "System abnormality", ExchangeError.class );
                     put( "You are not authorized to execute this request.", PermissionDenied.class );
@@ -693,15 +699,15 @@ public class Tokocrypto extends TokocryptoApi
                     put( "3218", OrderNotFound.class );
                     put( "1106", BadRequest.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+                put( "broad", new HashMap<String, Object>() {{
                     put( "has no operation privilege", PermissionDenied.class );
                     put( "MAX_POSITION", InvalidOrder.class );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", true );
                         put( "triggerDirection", false );
@@ -709,7 +715,7 @@ public class Tokocrypto extends TokocryptoApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", true );
@@ -724,27 +730,27 @@ public class Tokocrypto extends TokocryptoApi
                         put( "iceberg", true );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1000 );
                         put( "daysBack", 100000 );
                         put( "untilDays", 100000 );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1000 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1000 );
                         put( "daysBack", 100000 );
@@ -753,7 +759,7 @@ public class Tokocrypto extends TokocryptoApi
                         put( "trailing", false );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1000 );
                         put( "daysBack", 100000 );
@@ -763,15 +769,15 @@ public class Tokocrypto extends TokocryptoApi
                         put( "trailing", false );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 1000 );
                     }} );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
@@ -792,13 +798,13 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetOpenV1CommonTime(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetOpenV1CommonTime(parameters)).join();
             //
             // {
             //     "code": 0,
@@ -820,13 +826,13 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetOpenV1CommonSymbols(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetOpenV1CommonSymbols(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -867,9 +873,9 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadTimeDifference()).join();
             }
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object list = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(list)); i++)
             {
                 Object market = Helpers.GetValue(list, i);
@@ -882,11 +888,11 @@ public class Tokocrypto extends TokocryptoApi
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                Object filters = this.safeValue(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
+                Object filters = this.safeValue(market, "filters", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
                 Boolean active = (Helpers.isEqual(status, "1"));
-                Object permissions = this.safeList(market, "permissions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object permissions = this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(permissions)); j++)
                 {
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(permissions, j), "TRD_GRP_003")))
@@ -899,7 +905,7 @@ public class Tokocrypto extends TokocryptoApi
                 final Object finalBase = base;
                 final Object finalMarginTradingEnable = marginTradingEnable;
                 final Object finalActive = active;
-                java.util.Map<String, Object> entry = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> entry = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "lowercaseId", lowercaseId );
                     put( "symbol", symbol );
@@ -924,26 +930,26 @@ public class Tokocrypto extends TokocryptoApi
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
-                    put( "precision", new java.util.HashMap<String, Object>() {{
+                    put( "precision", new HashMap<String, Object>() {{
                         put( "amount", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quantityPrecision"))) );
                         put( "price", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "pricePrecision"))) );
                         put( "base", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "basePrecision"))) );
                         put( "quote", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quotePrecision"))) );
                     }} );
-                    put( "limits", new java.util.HashMap<String, Object>() {{
-                        put( "leverage", new java.util.HashMap<String, Object>() {{
+                    put( "limits", new HashMap<String, Object>() {{
+                        put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "amount", new java.util.HashMap<String, Object>() {{
+                        put( "amount", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "price", new java.util.HashMap<String, Object>() {{
+                        put( "price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                        put( "cost", new java.util.HashMap<String, Object>() {{
+                        put( "cost", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
@@ -953,13 +959,13 @@ public class Tokocrypto extends TokocryptoApi
                 }};
                 if (Helpers.isTrue(Helpers.inOp(filtersByType, "PRICE_FILTER")))
                 {
-                    Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
+                    Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
                     // PRICE_FILTER reports zero values for maxPrice
                     // since they updated filter types in November 2018
                     // https://github.com/ccxt/ccxt/issues/4286
                     // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "price", new java.util.HashMap<String, Object>() {{
+                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "price", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minPrice") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxPrice") );
     }});
@@ -967,27 +973,27 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 if (Helpers.isTrue(Helpers.inOp(filtersByType, "LOT_SIZE")))
                 {
-                    Object filter = this.safeValue(filtersByType, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
+                    Object filter = this.safeValue(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", this.safeNumber(filter, "stepSize"));
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "amount", new java.util.HashMap<String, Object>() {{
+                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "amount", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
     }});
                 }
                 if (Helpers.isTrue(Helpers.inOp(filtersByType, "MARKET_LOT_SIZE")))
                 {
-                    Object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new java.util.HashMap<String, Object>() {{
+                    Object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
+                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
     }});
                 }
                 if (Helpers.isTrue(Helpers.inOp(filtersByType, "MIN_NOTIONAL")))
                 {
-                    Object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new java.util.HashMap<String, Object>() {{}});
+                    Object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
                 }
-                ((java.util.List<Object>)result).add(entry);
+                ((List<Object>)result).add(entry);
             }
             return result;
         });
@@ -1004,19 +1010,19 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Tokocrypto.this.getMarketIdByType(market) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1194,7 +1200,7 @@ public class Tokocrypto extends TokocryptoApi
         Object fee = null;
         if (Helpers.isTrue(Helpers.inOp(trade, "commission")))
         {
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", Tokocrypto.this.safeString(trade, "commission") );
                 put( "currency", Tokocrypto.this.safeCurrencyCode(Tokocrypto.this.safeString(trade, "commissionAsset")) );
             }};
@@ -1211,7 +1217,7 @@ public class Tokocrypto extends TokocryptoApi
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
@@ -1240,20 +1246,20 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             // the venue routes market data by the symbol type reported by fetchMarkets,
             // not by the quote currency: type 1 markets are served by the binance host
             // with the underscore-less id, every other type by open/v1 with the raw id
@@ -1266,7 +1272,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 // open/v1/market/trades answers an empty list for every market, the
                 // aggregate endpoint is the one that carries data for these markets
-                java.util.Map<String, Object> responseInner = (this.publicGetOpenV1MarketAggTrades(this.extend(request, parameters))).join();
+                Map<String, Object> responseInner = (this.publicGetOpenV1MarketAggTrades(this.extend(request, parameters))).join();
                 //
                 //    {
                 //       "code": 0,
@@ -1287,8 +1293,8 @@ public class Tokocrypto extends TokocryptoApi
                 //        "timestamp": 1787318052414
                 //    }
                 //
-                Object data = this.safeDict(responseInner, "data", new java.util.HashMap<String, Object>() {{}});
-                Object list = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object data = this.safeDict(responseInner, "data", new HashMap<String, Object>() {{}});
+                Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(list, market, since, limit);
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1347,7 +1353,7 @@ public class Tokocrypto extends TokocryptoApi
             //         }
             //     ]
             //
-            java.util.List<Object> responseList = this.toArray(response);
+            List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -1420,7 +1426,7 @@ public class Tokocrypto extends TokocryptoApi
         }
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
@@ -1453,13 +1459,13 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1473,7 +1479,7 @@ public class Tokocrypto extends TokocryptoApi
                 // a user-supplied symbol param makes the endpoint answer a single
                 // ticker object, the unified fetchTickers contract returns a
                 // symbol-keyed dict either way
-                return this.parseTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(response)), symbols);
+                return this.parseTickers(new ArrayList<Object>(Arrays.asList(response)), symbols);
             }
             return this.parseTickers(response, symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
@@ -1490,7 +1496,7 @@ public class Tokocrypto extends TokocryptoApi
      */
     public Object isNativeMarket(Object market)
     {
-        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+        Object marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         String symbolType = this.safeString(marketInfo, "type");
         // a market with an unknown symbol type falls back to the binance backed
         // host, the route that answers with data for every symbol type 1 market
@@ -1525,28 +1531,28 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(this.isNativeMarket(market)))
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTicker() does not support "), symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Tokocrypto.this.getMarketIdByType(market) );
             }};
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object firstTicker = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+                Object firstTicker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
             }
             return this.parseTicker(response, market);
@@ -1563,18 +1569,18 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> response = (this.binanceGetTickerBookTicker(parameters)).join();
+            List<Object> response = (this.binanceGetTickerBookTicker(parameters)).join();
             return this.parseTickers(response, symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
 
@@ -1617,7 +1623,7 @@ public class Tokocrypto extends TokocryptoApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
     /**
@@ -1634,30 +1640,30 @@ public class Tokocrypto extends TokocryptoApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
             Object defaultLimit = 500;
             Integer maxLimit = 1500;
             String price = this.safeString(parameters, "price");
             Long until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "until")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? defaultLimit : Helpers.mathMin(limit, maxLimit);
             final Object finalLimit = limit;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "interval", Tokocrypto.this.safeString(Tokocrypto.this.timeframes, timeframe, timeframe) );
                 put( "limit", finalLimit );
             }};
@@ -1718,7 +1724,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1659492212507
             //     }
             //
-            Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 data = response;
@@ -1730,8 +1736,8 @@ public class Tokocrypto extends TokocryptoApi
                     data = dataList;
                 } else
                 {
-                    Object dataDict = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                    data = this.safeList(dataDict, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    data = this.safeList(dataDict, "list", new ArrayList<Object>(Arrays.asList()));
                 }
             }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
@@ -1750,12 +1756,12 @@ public class Tokocrypto extends TokocryptoApi
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1764,8 +1770,8 @@ public class Tokocrypto extends TokocryptoApi
             String type = this.safeString(parameters, "type", defaultType);
             String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
             String marginMode = this.safeStringLower(parameters, "marginMode", defaultMarginMode);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> response = (this.privateGetOpenV1AccountSpot(this.extend(request, parameters))).join();
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> response = (this.privateGetOpenV1AccountSpot(this.extend(request, parameters))).join();
             //
             // spot
             //
@@ -1800,13 +1806,13 @@ public class Tokocrypto extends TokocryptoApi
         Object type = Helpers.getArg(optionalArgs, 0, null);
         Object marginMode = Helpers.getArg(optionalArgs, 1, null);
         Long timestamp = this.safeInteger(response, "updateTime");
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
         }};
-        Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-        Object balances = this.safeList(data, "accountAssets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+        Object balances = this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -1825,7 +1831,7 @@ public class Tokocrypto extends TokocryptoApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "-2", "open" );
             put( "0", "open" );
             put( "1", "open" );
@@ -1956,7 +1962,7 @@ public class Tokocrypto extends TokocryptoApi
         String amount = this.safeString(order, "origQty");
         // - Spot/Margin market: cummulativeQuoteQty
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        String cost = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase")));
+        String cost = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase")));
         String id = this.safeString(order, "orderId");
         String type = this.parseOrderType(this.safeStringLower(order, "type"));
         String side = this.safeStringLower(order, "side");
@@ -1967,7 +1973,7 @@ public class Tokocrypto extends TokocryptoApi
         {
             side = "sell";
         }
-        Object fills = this.safeValue(order, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object fills = this.safeValue(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String clientOrderId = this.safeString2(order, "clientOrderId", "clientId");
         String timeInForce = this.safeString(order, "timeInForce");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTX")))
@@ -1979,7 +1985,7 @@ public class Tokocrypto extends TokocryptoApi
         final Object finalType = type;
         final Object finalTimeInForce = timeInForce;
         final Object finalSide = side;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2007,7 +2013,7 @@ public class Tokocrypto extends TokocryptoApi
 
     public String parseOrderType(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "2", "market" );
             put( "1", "limit" );
             put( "4", "limit" );
@@ -2031,20 +2037,20 @@ public class Tokocrypto extends TokocryptoApi
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             // only supported for spot/margin api
@@ -2052,13 +2058,13 @@ public class Tokocrypto extends TokocryptoApi
             {
                 type = "LIMIT_MAKER";
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId")));
             Object initialUppercaseType = ((String)type).toUpperCase();
             Object uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
                 if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "MARKET")))
                 {
                     uppercaseType = "STOP_LOSS";
@@ -2078,7 +2084,7 @@ public class Tokocrypto extends TokocryptoApi
                     throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
                 }
             }
-            java.util.Map<String, Object> reverseOrderTypeMapping = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> reverseOrderTypeMapping = new HashMap<String, Object>() {{
                 put( "LIMIT", 1 );
                 put( "MARKET", 2 );
                 put( "STOP_LOSS", 3 );
@@ -2088,7 +2094,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "LIMIT_MAKER", 7 );
             }};
             final Object finalUppercaseType = uppercaseType;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.add(Helpers.add(Helpers.GetValue(market, "baseId"), "_"), Helpers.GetValue(market, "quoteId")) );
                 put( "type", Tokocrypto.this.safeString(reverseOrderTypeMapping, finalUppercaseType) );
             }};
@@ -2136,11 +2142,11 @@ public class Tokocrypto extends TokocryptoApi
                     Object precision = Helpers.GetValue(Helpers.GetValue(market, "precision"), "price");
                     Object quoteAmount = null;
                     Object createMarketBuyOrderRequiresPrice = true;
-                    java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+                    parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
-                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost", "quoteOrderQty")));
+                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quoteOrderQty")));
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
                         quoteAmount = cost;
@@ -2208,7 +2214,7 @@ public class Tokocrypto extends TokocryptoApi
                     Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
             }
-            java.util.Map<String, Object> response = (this.privatePostOpenV1Orders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostOpenV1Orders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2237,7 +2243,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710994975
             //     }
             //
-            Object rawOrder = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object rawOrder = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder, market);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -2253,17 +2259,17 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            java.util.Map<String, Object> response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2294,9 +2300,9 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710056523
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object list = this.safeValue(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawOrder = this.safeDict(list, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object list = this.safeValue(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Object rawOrder = this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -2313,15 +2319,15 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
@@ -2330,8 +2336,8 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2342,7 +2348,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2376,8 +2382,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1572860756458
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2394,16 +2400,16 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", 1 );
             }}; // -1 = all, 1 = open, 2 = closed
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
@@ -2422,16 +2428,16 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", 2 );
             }}; // -1 = all, 1 = open, 2 = closed
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
@@ -2449,17 +2455,17 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            java.util.Map<String, Object> response = (this.privatePostOpenV1OrdersCancel(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostOpenV1OrdersCancel(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2487,7 +2493,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710683634
             //     }
             //
-            Object rawOrder = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object rawOrder = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -2504,15 +2510,15 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
@@ -2521,8 +2527,8 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Long endTime = (Long) this.safeInteger2(parameters, "until", "endTime");
@@ -2533,13 +2539,13 @@ public class Tokocrypto extends TokocryptoApi
             if (Helpers.isTrue(!Helpers.isEqual(endTime, null)))
             {
                 Helpers.addElementToObject(request, "endTime", endTime);
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.privateGetOpenV1OrdersTrades(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetOpenV1OrdersTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2565,8 +2571,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1573723498893
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object trades = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -2581,21 +2587,21 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
-            Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+            Object networks = this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
@@ -2605,7 +2611,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             // has support for the 'network' parameter
             // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-            java.util.Map<String, Object> response = (this.privateGetOpenV1DepositsAddress(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetOpenV1DepositsAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":0,
@@ -2621,7 +2627,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1660685915746
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             String address = this.safeString(data, "address");
             String tag = this.safeString(data, "addressTag", "");
             if (Helpers.isTrue(Helpers.isEqual(tag.length(), 0)))
@@ -2630,7 +2636,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             this.checkAddress(address);
             final Object finalTag = tag;
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
                 put( "network", Tokocrypto.this.safeString(data, "network") );
@@ -2653,21 +2659,21 @@ public class Tokocrypto extends TokocryptoApi
      * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2689,7 +2695,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.privateGetOpenV1Deposits(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetOpenV1Deposits(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":0,
@@ -2713,8 +2719,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659758865998
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object deposits = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
@@ -2731,20 +2737,20 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2761,7 +2767,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.privateGetOpenV1Withdraws(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetOpenV1Withdraws(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":0,
@@ -2787,8 +2793,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659759062187
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object withdrawals = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object withdrawals = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Transaction::new));
 
@@ -2797,12 +2803,12 @@ public class Tokocrypto extends TokocryptoApi
     public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
     {
         Object type = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> statusesByType = new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statusesByType = new HashMap<String, Object>() {{
+            put( "deposit", new HashMap<String, Object>() {{
                 put( "0", "pending" );
                 put( "1", "ok" );
             }} );
-            put( "withdrawal", new java.util.HashMap<String, Object>() {{
+            put( "withdrawal", new HashMap<String, Object>() {{
                 put( "0", "pending" );
                 put( "1", "canceled" );
                 put( "2", "pending" );
@@ -2812,7 +2818,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "10", "ok" );
             }} );
         }};
-        Object statuses = this.safeValue(statusesByType, type, new java.util.HashMap<String, Object>() {{}});
+        Object statuses = this.safeValue(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -2896,7 +2902,7 @@ public class Tokocrypto extends TokocryptoApi
             }
         }
         Double feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
-        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "currency", null );
             put( "cost", null );
             put( "rate", null );
@@ -2915,7 +2921,7 @@ public class Tokocrypto extends TokocryptoApi
         String id = this.safeString(transaction, "id");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
-            Object data = this.safeValue(transaction, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeValue(transaction, "data", new HashMap<String, Object>() {{}});
             id = this.safeString(data, "withdrawId");
             type = "withdrawal";
         }
@@ -2925,7 +2931,7 @@ public class Tokocrypto extends TokocryptoApi
         final Object finalTimestamp = timestamp;
         final Object finalTag = tag;
         final Object finalIntern = intern;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
             put( "txid", finalTxid );
@@ -2961,23 +2967,23 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "address", address );
                 put( "amount", Tokocrypto.this.numberToString(amount) );
@@ -2986,15 +2992,15 @@ public class Tokocrypto extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "addressTag", tag);
             }
-            java.util.List<Object> networkCodequeryVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
-            String networkCode = (String) ((java.util.List<Object>) networkCodequeryVariable).get(0);
-            var query = ((java.util.List<Object>) networkCodequeryVariable).get(1);
+            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
+            var query = ((List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 Helpers.addElementToObject(request, "network", ((String)networkId).toUpperCase());
             }
-            java.util.Map<String, Object> response = (this.privatePostOpenV1Withdraws(this.extend(request, query))).join();
+            Map<String, Object> response = (this.privatePostOpenV1Withdraws(this.extend(request, query))).join();
             //
             //     {
             //         "code": 0,
@@ -3014,7 +3020,7 @@ public class Tokocrypto extends TokocryptoApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), api))))
@@ -3033,7 +3039,7 @@ public class Tokocrypto extends TokocryptoApi
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))) && Helpers.isTrue((!Helpers.isEqual(this.apiKey, "")))))
             {
                 // v1 special case for userDataStream
-                headers = new java.util.HashMap<String, Object>() {{
+                headers = new HashMap<String, Object>() {{
                     put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                 }};
@@ -3050,7 +3056,7 @@ public class Tokocrypto extends TokocryptoApi
             this.checkRequiredCredentials();
             Object query = null;
             Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-            java.util.Map<String, Object> extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
+            Map<String, Object> extendedParams = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", Tokocrypto.this.nonce() );
             }}, parameters);
             if (Helpers.isTrue(!Helpers.isEqual(defaultRecvWindow, null)))
@@ -3074,7 +3080,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             Object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
             query = Helpers.add(query, Helpers.add(Helpers.add("&", "signature="), signature));
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
             }};
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))) || Helpers.isTrue((Helpers.isEqual(api, "wapi")))))
@@ -3096,7 +3102,7 @@ public class Tokocrypto extends TokocryptoApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );
@@ -3195,7 +3201,7 @@ public class Tokocrypto extends TokocryptoApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
-        Object config = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        Object config = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "noCoin"))) && !Helpers.isTrue((Helpers.inOp(parameters, "coin")))))
         {
             return Helpers.GetValue(config, "noCoin");
@@ -3208,7 +3214,7 @@ public class Tokocrypto extends TokocryptoApi
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "byLimit"))) && Helpers.isTrue((Helpers.inOp(parameters, "limit")))))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byLimit)); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);

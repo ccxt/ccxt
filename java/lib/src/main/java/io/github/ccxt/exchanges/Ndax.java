@@ -6,6 +6,12 @@ import io.github.ccxt.api.NdaxApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Ndax extends NdaxApi
 {
@@ -19,13 +25,13 @@ public class Ndax extends NdaxApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "ndax" );
             put( "name", "NDAX" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("CA")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("CA")) );
             put( "rateLimit", 1000 );
             put( "pro", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
@@ -134,7 +140,7 @@ public class Ndax extends NdaxApi
                 put( "transfer", false );
                 put( "withdraw", true );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "60" );
                 put( "5m", "300" );
                 put( "15m", "900" );
@@ -149,353 +155,353 @@ public class Ndax extends NdaxApi
                 put( "1M", "2419200" );
                 put( "4M", "9676800" );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg" );
-                put( "test", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "public", "https://ndaxmarginstaging.cdnhop.net:8443/AP" );
                     put( "private", "https://ndaxmarginstaging.cdnhop.net:8443/AP" );
                 }} );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api.ndax.io:8443/AP" );
                     put( "private", "https://api.ndax.io:8443/AP" );
                 }} );
                 put( "www", "https://ndax.io" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://apidoc.ndax.io/")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://apidoc.ndax.io/")) );
                 put( "fees", "https://ndax.io/fees" );
                 put( "referral", "https://one.ndax.io/bfQiSL" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "Activate2FA", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "Activate2FA", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Authenticate2FA", new java.util.HashMap<String, Object>() {{
+                        put( "Authenticate2FA", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "AuthenticateUser", new java.util.HashMap<String, Object>() {{
+                        put( "AuthenticateUser", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "EnableXP2FA", new java.util.HashMap<String, Object>() {{
+                        put( "EnableXP2FA", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetL2Snapshot", new java.util.HashMap<String, Object>() {{
+                        put( "GetL2Snapshot", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetLevel1", new java.util.HashMap<String, Object>() {{
+                        put( "GetLevel1", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetValidate2FARequiredEndpoints", new java.util.HashMap<String, Object>() {{
+                        put( "GetValidate2FARequiredEndpoints", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "LogOut", new java.util.HashMap<String, Object>() {{
+                        put( "LogOut", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetTickerHistory", new java.util.HashMap<String, Object>() {{
+                        put( "GetTickerHistory", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetProduct", new java.util.HashMap<String, Object>() {{
+                        put( "GetProduct", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetProducts", new java.util.HashMap<String, Object>() {{
+                        put( "GetProducts", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetInstrument", new java.util.HashMap<String, Object>() {{
+                        put( "GetInstrument", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetInstruments", new java.util.HashMap<String, Object>() {{
+                        put( "GetInstruments", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetEarliestTickTime", new java.util.HashMap<String, Object>() {{
+                        put( "GetEarliestTickTime", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Ping", new java.util.HashMap<String, Object>() {{
+                        put( "Ping", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "assets", new java.util.HashMap<String, Object>() {{
+                        put( "assets", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "orderbook", new java.util.HashMap<String, Object>() {{
+                        put( "orderbook", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ticker", new java.util.HashMap<String, Object>() {{
+                        put( "ticker", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "summary", new java.util.HashMap<String, Object>() {{
+                        put( "summary", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "trades", new java.util.HashMap<String, Object>() {{
+                        put( "trades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetLastTrades", new java.util.HashMap<String, Object>() {{
+                        put( "GetLastTrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ConfirmWithdraw", new java.util.HashMap<String, Object>() {{
+                        put( "ConfirmWithdraw", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubscribeLevel1", new java.util.HashMap<String, Object>() {{
+                        put( "SubscribeLevel1", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubscribeLevel2", new java.util.HashMap<String, Object>() {{
+                        put( "SubscribeLevel2", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubscribeTicker", new java.util.HashMap<String, Object>() {{
+                        put( "SubscribeTicker", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubscribeTrades", new java.util.HashMap<String, Object>() {{
+                        put( "SubscribeTrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubscribeBlockTrades", new java.util.HashMap<String, Object>() {{
+                        put( "SubscribeBlockTrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "UnsubscribeBlockTrades", new java.util.HashMap<String, Object>() {{
+                        put( "UnsubscribeBlockTrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "UnsubscribeLevel1", new java.util.HashMap<String, Object>() {{
+                        put( "UnsubscribeLevel1", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "UnsubscribeLevel2", new java.util.HashMap<String, Object>() {{
+                        put( "UnsubscribeLevel2", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "UnsubscribeTicker", new java.util.HashMap<String, Object>() {{
+                        put( "UnsubscribeTicker", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "UnsubscribeTrades", new java.util.HashMap<String, Object>() {{
+                        put( "UnsubscribeTrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "Authenticate", new java.util.HashMap<String, Object>() {{
+                        put( "Authenticate", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "GetUserAccountInfos", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "GetUserAccountInfos", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetUserAccounts", new java.util.HashMap<String, Object>() {{
+                        put( "GetUserAccounts", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetUserAffiliateCount", new java.util.HashMap<String, Object>() {{
+                        put( "GetUserAffiliateCount", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetUserAffiliateTag", new java.util.HashMap<String, Object>() {{
+                        put( "GetUserAffiliateTag", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetUserConfig", new java.util.HashMap<String, Object>() {{
+                        put( "GetUserConfig", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAllUnredactedUserConfigsForUser", new java.util.HashMap<String, Object>() {{
+                        put( "GetAllUnredactedUserConfigsForUser", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetUnredactedUserConfigByKey", new java.util.HashMap<String, Object>() {{
+                        put( "GetUnredactedUserConfigByKey", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetUserDevices", new java.util.HashMap<String, Object>() {{
+                        put( "GetUserDevices", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetUserReportTickets", new java.util.HashMap<String, Object>() {{
+                        put( "GetUserReportTickets", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetUserReportWriterResultRecords", new java.util.HashMap<String, Object>() {{
+                        put( "GetUserReportWriterResultRecords", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAccountInfo", new java.util.HashMap<String, Object>() {{
+                        put( "GetAccountInfo", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAccountPositions", new java.util.HashMap<String, Object>() {{
+                        put( "GetAccountPositions", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAllAccountConfigs", new java.util.HashMap<String, Object>() {{
+                        put( "GetAllAccountConfigs", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetTreasuryProductsForAccount", new java.util.HashMap<String, Object>() {{
+                        put( "GetTreasuryProductsForAccount", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAccountTrades", new java.util.HashMap<String, Object>() {{
+                        put( "GetAccountTrades", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAccountTransactions", new java.util.HashMap<String, Object>() {{
+                        put( "GetAccountTransactions", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOpenTradeReports", new java.util.HashMap<String, Object>() {{
+                        put( "GetOpenTradeReports", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAllOpenTradeReports", new java.util.HashMap<String, Object>() {{
+                        put( "GetAllOpenTradeReports", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetTradesHistory", new java.util.HashMap<String, Object>() {{
+                        put( "GetTradesHistory", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOpenOrders", new java.util.HashMap<String, Object>() {{
+                        put( "GetOpenOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOpenQuotes", new java.util.HashMap<String, Object>() {{
+                        put( "GetOpenQuotes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOrderFee", new java.util.HashMap<String, Object>() {{
+                        put( "GetOrderFee", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOrderHistory", new java.util.HashMap<String, Object>() {{
+                        put( "GetOrderHistory", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOrdersHistory", new java.util.HashMap<String, Object>() {{
+                        put( "GetOrdersHistory", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOrderStatus", new java.util.HashMap<String, Object>() {{
+                        put( "GetOrderStatus", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOmsFeeTiers", new java.util.HashMap<String, Object>() {{
+                        put( "GetOmsFeeTiers", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAccountDepositTransactions", new java.util.HashMap<String, Object>() {{
+                        put( "GetAccountDepositTransactions", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAccountWithdrawTransactions", new java.util.HashMap<String, Object>() {{
+                        put( "GetAccountWithdrawTransactions", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetAllDepositRequestInfoTemplates", new java.util.HashMap<String, Object>() {{
+                        put( "GetAllDepositRequestInfoTemplates", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDepositInfo", new java.util.HashMap<String, Object>() {{
+                        put( "GetDepositInfo", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDepositRequestInfoTemplate", new java.util.HashMap<String, Object>() {{
+                        put( "GetDepositRequestInfoTemplate", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDeposits", new java.util.HashMap<String, Object>() {{
+                        put( "GetDeposits", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDepositTicket", new java.util.HashMap<String, Object>() {{
+                        put( "GetDepositTicket", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDepositTickets", new java.util.HashMap<String, Object>() {{
+                        put( "GetDepositTickets", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOMSWithdrawFees", new java.util.HashMap<String, Object>() {{
+                        put( "GetOMSWithdrawFees", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetWithdrawFee", new java.util.HashMap<String, Object>() {{
+                        put( "GetWithdrawFee", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetWithdraws", new java.util.HashMap<String, Object>() {{
+                        put( "GetWithdraws", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetWithdrawTemplate", new java.util.HashMap<String, Object>() {{
+                        put( "GetWithdrawTemplate", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetWithdrawTemplateTypes", new java.util.HashMap<String, Object>() {{
+                        put( "GetWithdrawTemplateTypes", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetWithdrawTicket", new java.util.HashMap<String, Object>() {{
+                        put( "GetWithdrawTicket", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetWithdrawTicketAttachment", new java.util.HashMap<String, Object>() {{
+                        put( "GetWithdrawTicketAttachment", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetWithdrawTickets", new java.util.HashMap<String, Object>() {{
+                        put( "GetWithdrawTickets", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetDepositTicketAttachment", new java.util.HashMap<String, Object>() {{
+                        put( "GetDepositTicketAttachment", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "AddUserAffiliateTag", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "AddUserAffiliateTag", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "AddDepositTicketAttachment", new java.util.HashMap<String, Object>() {{
+                        put( "AddDepositTicketAttachment", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "AddWithdrawTicketAttachment", new java.util.HashMap<String, Object>() {{
+                        put( "AddWithdrawTicketAttachment", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CancelUserReport", new java.util.HashMap<String, Object>() {{
+                        put( "CancelUserReport", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "RegisterNewDevice", new java.util.HashMap<String, Object>() {{
+                        put( "RegisterNewDevice", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubscribeAccountEvents", new java.util.HashMap<String, Object>() {{
+                        put( "SubscribeAccountEvents", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "UpdateUserAffiliateTag", new java.util.HashMap<String, Object>() {{
+                        put( "UpdateUserAffiliateTag", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GenerateTradeActivityReport", new java.util.HashMap<String, Object>() {{
+                        put( "GenerateTradeActivityReport", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GenerateTransactionActivityReport", new java.util.HashMap<String, Object>() {{
+                        put( "GenerateTransactionActivityReport", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GenerateTreasuryActivityReport", new java.util.HashMap<String, Object>() {{
+                        put( "GenerateTreasuryActivityReport", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ScheduleTradeActivityReport", new java.util.HashMap<String, Object>() {{
+                        put( "ScheduleTradeActivityReport", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ScheduleTransactionActivityReport", new java.util.HashMap<String, Object>() {{
+                        put( "ScheduleTransactionActivityReport", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ScheduleTreasuryActivityReport", new java.util.HashMap<String, Object>() {{
+                        put( "ScheduleTreasuryActivityReport", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CancelAllOrders", new java.util.HashMap<String, Object>() {{
+                        put( "CancelAllOrders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CancelOrder", new java.util.HashMap<String, Object>() {{
+                        put( "CancelOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CancelQuote", new java.util.HashMap<String, Object>() {{
+                        put( "CancelQuote", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CancelReplaceOrder", new java.util.HashMap<String, Object>() {{
+                        put( "CancelReplaceOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CreateQuote", new java.util.HashMap<String, Object>() {{
+                        put( "CreateQuote", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "ModifyOrder", new java.util.HashMap<String, Object>() {{
+                        put( "ModifyOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SendOrder", new java.util.HashMap<String, Object>() {{
+                        put( "SendOrder", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubmitBlockTrade", new java.util.HashMap<String, Object>() {{
+                        put( "SubmitBlockTrade", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "UpdateQuote", new java.util.HashMap<String, Object>() {{
+                        put( "UpdateQuote", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CancelWithdraw", new java.util.HashMap<String, Object>() {{
+                        put( "CancelWithdraw", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CreateDepositTicket", new java.util.HashMap<String, Object>() {{
+                        put( "CreateDepositTicket", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "CreateWithdrawTicket", new java.util.HashMap<String, Object>() {{
+                        put( "CreateWithdrawTicket", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubmitDepositTicketComment", new java.util.HashMap<String, Object>() {{
+                        put( "SubmitDepositTicketComment", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "SubmitWithdrawTicketComment", new java.util.HashMap<String, Object>() {{
+                        put( "SubmitWithdrawTicketComment", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "GetOrderHistoryByOrderId", new java.util.HashMap<String, Object>() {{
+                        put( "GetOrderHistoryByOrderId", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", true );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", true );
                         put( "triggerDirection", false );
-                        put( "triggerPriceType", new java.util.HashMap<String, Object>() {{
+                        put( "triggerPriceType", new HashMap<String, Object>() {{
                             put( "last", true );
                             put( "mark", false );
                             put( "index", false );
@@ -503,7 +509,7 @@ public class Ndax extends NdaxApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", true );
@@ -518,27 +524,27 @@ public class Ndax extends NdaxApi
                         put( "iceberg", true );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 100000 );
                         put( "untilDays", 100000 );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", null );
                         put( "daysBack", null );
@@ -548,28 +554,28 @@ public class Ndax extends NdaxApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchClosedOrders", null );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", null );
                     }} );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
                     put( "maker", Ndax.this.parseNumber("0.002") );
                     put( "taker", Ndax.this.parseNumber("0.0025") );
                 }} );
             }} );
-            put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
+            put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
                 put( "secret", true );
                 put( "uid", true );
@@ -577,20 +583,20 @@ public class Ndax extends NdaxApi
                 put( "password", true );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "Not_Enough_Funds", InsufficientFunds.class );
                     put( "Server Error", ExchangeError.class );
                     put( "Resource Not Found", OrderNotFound.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+                put( "broad", new HashMap<String, Object>() {{
                     put( "Invalid InstrumentId", BadSymbol.class );
                     put( "This endpoint requires 2FACode along with the payload", AuthenticationError.class );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "omsId", 1 );
-                put( "orderTypes", new java.util.HashMap<String, Object>() {{
+                put( "orderTypes", new HashMap<String, Object>() {{
                     put( "Market", 1 );
                     put( "Limit", 2 );
                     put( "StopMarket", 3 );
@@ -618,13 +624,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetPing(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetPing(parameters)).join();
             //
             //     {
             //         "msg":"PONG"
@@ -632,7 +638,7 @@ public class Ndax extends NdaxApi
             //
             String message = this.safeString(response, "msg");
             final Object finalMessage = message;
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "status", ((Helpers.isTrue((Helpers.isEqual(finalMessage, "PONG"))))) ? "ok" : "error" );
                 put( "updated", null );
                 put( "eta", null );
@@ -651,21 +657,21 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> signIn(Object... optionalArgs)
+    public CompletableFuture<Object> signIn(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(this.login, null)) || Helpers.isTrue(Helpers.isEqual(this.password, null))))
             {
                 throw new AuthenticationError(Helpers.add(this.id, " signIn() requires exchange.login, exchange.password")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "grant_type", "client_credentials" );
             }};
-            java.util.Map<String, Object> response = (this.publicGetAuthenticate(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetAuthenticate(this.extend(request, parameters))).join();
             //
             //     {
             //         "Authenticated":true,
@@ -689,10 +695,10 @@ public class Ndax extends NdaxApi
                     throw new AuthenticationError(Helpers.add(this.id, " signIn() requires exchange.twofa credentials")) ;
                 }
                 Helpers.addElementToObject(this.options, "pending2faToken", pending2faToken);
-                request = new java.util.HashMap<String, Object>() {{
+                request = new HashMap<String, Object>() {{
                     put( "Code", totp(Ndax.this.twofa) );
                 }};
-                java.util.Map<String, Object> responseInner = (this.publicGetAuthenticate2FA(this.extend(request, parameters))).join();
+                Map<String, Object> responseInner = (this.publicGetAuthenticate2FA(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "Authenticated": true,
@@ -717,17 +723,17 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
             }};
-            java.util.List<Object> response = (this.publicGetGetProducts(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetGetProducts(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -764,7 +770,7 @@ public class Ndax extends NdaxApi
             type = "other";
         }
         final Object finalType = type;
-        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", Ndax.this.safeString(rawCurrency, "ProductFullName") );
             put( "code", code );
@@ -775,17 +781,17 @@ public class Ndax extends NdaxApi
             put( "deposit", Ndax.this.safeBool(rawCurrency, "DepositEnabled") );
             put( "withdraw", Ndax.this.safeBool(rawCurrency, "WithdrawEnabled") );
             put( "fee", null );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "amount", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
             }} );
-            put( "networks", new java.util.HashMap<String, Object>() {{}} );
+            put( "networks", new HashMap<String, Object>() {{}} );
             put( "margin", Ndax.this.safeBool(rawCurrency, "MarginEnabled") );
         }});
     }
@@ -798,17 +804,17 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
             }};
-            java.util.List<Object> response = (this.publicGetGetInstruments(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetGetInstruments(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -874,7 +880,7 @@ public class Ndax extends NdaxApi
         final Object finalBase = base;
         final Object finalSessionRunning = sessionRunning;
         final Object finalIsDisable = isDisable;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "base", finalBase );
@@ -898,24 +904,24 @@ public class Ndax extends NdaxApi
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Ndax.this.safeNumber(market, "QuantityIncrement") );
                 put( "price", Ndax.this.safeNumber(market, "PriceIncrement") );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "amount", new java.util.HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", Ndax.this.safeNumber(market, "MinimumQuantity") );
                     put( "max", null );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", Ndax.this.safeNumber(market, "MinimumPrice") );
                     put( "max", null );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -934,10 +940,10 @@ public class Ndax extends NdaxApi
         Object amountKey = Helpers.getArg(optionalArgs, 4, 8);
         Object countOrIdKey = Helpers.getArg(optionalArgs, 5, 2);
         Object nonce = null;
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-            put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
+            put( "bids", new ArrayList<Object>(Arrays.asList()) );
+            put( "asks", new ArrayList<Object>(Arrays.asList()) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "nonce", null );
@@ -970,7 +976,7 @@ public class Ndax extends NdaxApi
             Object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Long levelSide = this.safeInteger(level, 9);
             Object side = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(levelSide, null)) && Helpers.isTrue(!Helpers.isEqual(levelSide, null))) && Helpers.isTrue(!Helpers.isEqual(levelSide, 0)))))) ? asksKey : bidsKey;
-            ((java.util.List<Object>)Helpers.GetValue(result, side)).add(bidask);
+            ((List<Object>)Helpers.GetValue(result, side)).add(bidask);
         }
         Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
         Helpers.addElementToObject(result, "asks", this.sortBy(Helpers.GetValue(result, "asks"), 0));
@@ -990,27 +996,27 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 100 : limit; // default 100
             final Object finalLimit = limit;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", Helpers.GetValue(market, "id") );
                 put( "Depth", finalLimit );
             }};
-            java.util.List<Object> response = (this.publicGetGetL2Snapshot(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetGetL2Snapshot(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -1101,7 +1107,7 @@ public class Ndax extends NdaxApi
         String open = this.safeString(ticker, "SessionOpen");
         String baseVolume = this.safeString2(ticker, "Rolling24HrVolume", "base_volume");
         String quoteVolume = this.safeString2(ticker, "Rolling24HrNotional", "quote_volume");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Ndax.this.iso8601(timestamp) );
@@ -1134,19 +1140,19 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.List<Object> response = (this.publicGetSummary(parameters)).join();
+            List<Object> response = (this.publicGetSummary(parameters)).join();
             //
             //     [
             //         {
@@ -1177,23 +1183,23 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetGetLevel1(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetGetLevel1(this.extend(request, parameters))).join();
             //
             //     {
             //         "OMSId":1,
@@ -1245,7 +1251,7 @@ public class Ndax extends NdaxApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
     /**
@@ -1260,22 +1266,22 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", Helpers.GetValue(market, "id") );
                 put( "Interval", Ndax.this.safeString(Ndax.this.timeframes, timeframe, timeframe) );
@@ -1300,7 +1306,7 @@ public class Ndax extends NdaxApi
                     Helpers.addElementToObject(request, "ToDate", this.ymdhms(this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000))));
                 }
             }
-            java.util.List<Object> response = (this.publicGetGetTickerHistory(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetGetTickerHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
@@ -1308,7 +1314,7 @@ public class Ndax extends NdaxApi
             //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
             //     ]
             //
-            java.util.List<Object> candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> candles = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 candles = response;
@@ -1438,7 +1444,7 @@ public class Ndax extends NdaxApi
         Object side = null;
         String orderId = null;
         Object takerOrMaker = null;
-        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> fee = new HashMap<String, Object>() {{}};
         Object type = null;
         if (Helpers.isTrue(Helpers.isArray(trade)))
         {
@@ -1468,7 +1474,7 @@ public class Ndax extends NdaxApi
                 String feeCurrencyId = this.safeString(trade, "FeeProductId");
                 String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
                 final Object finalFeeCostString = feeCostString;
-                fee = new java.util.HashMap<String, Object>() {{
+                fee = new HashMap<String, Object>() {{
                     put( "cost", finalFeeCostString );
                     put( "currency", feeCurrencyCode );
                 }};
@@ -1485,7 +1491,7 @@ public class Ndax extends NdaxApi
         final Object finalAmountString = amountString;
         final Object finalCostString = costString;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
             put( "symbol", symbol );
@@ -1512,21 +1518,21 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", Helpers.GetValue(market, "id") );
             }};
@@ -1534,7 +1540,7 @@ public class Ndax extends NdaxApi
             {
                 Helpers.addElementToObject(request, "Count", limit);
             }
-            java.util.List<Object> response = (this.publicGetGetLastTrades(this.extend(request, parameters))).join();
+            List<Object> response = (this.publicGetGetLastTrades(this.extend(request, parameters))).join();
             //
             //     [
             //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
@@ -1555,32 +1561,32 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Account>> fetchAccounts(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Account>> fetchAccounts(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.login, null))) || Helpers.isTrue((Helpers.isEqual(this.login, "")))))
             {
                 throw new AuthenticationError(Helpers.add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
             }
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             this.checkRequiredCredentials();
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "UserId", Ndax.this.uid );
                 put( "UserName", Ndax.this.login );
             }};
-            java.util.List<Object> response = (this.privateGetGetUserAccounts(this.extend(request, parameters))).join();
+            List<Object> response = (this.privateGetGetUserAccounts(this.extend(request, parameters))).join();
             //
             //     [ 449 ] // comma-separated list of account ids
             //
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 String accountId = this.safeString(response, i);
-                ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", null );
                     put( "currency", null );
@@ -1594,7 +1600,7 @@ public class Ndax extends NdaxApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1626,12 +1632,12 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1644,13 +1650,13 @@ public class Ndax extends NdaxApi
             {
                 accountId = this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id"));
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             final Object finalAccountId = accountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", finalAccountId );
             }};
-            java.util.Map<String, Object> response = (this.privateGetGetAccountPositions(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetGetAccountPositions(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1689,7 +1695,7 @@ public class Ndax extends NdaxApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Trade", "trade" );
             put( "Deposit", "transaction" );
             put( "Withdraw", "transaction" );
@@ -1755,7 +1761,7 @@ public class Ndax extends NdaxApi
         final Object finalCurrency = currency;
         final Object finalAmount = amount;
         final Object finalBefore = before;
-        return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
+        return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", Ndax.this.safeString(item, "TransactionId") );
             put( "direction", finalDirection );
@@ -1785,15 +1791,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1802,8 +1808,8 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
@@ -1811,7 +1817,7 @@ public class Ndax extends NdaxApi
             {
                 Helpers.addElementToObject(request, "Depth", limit);
             }
-            java.util.List<Object> response = (this.privateGetGetAccountTransactions(this.extend(request, parameters))).join();
+            List<Object> response = (this.privateGetGetAccountTransactions(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1842,7 +1848,7 @@ public class Ndax extends NdaxApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Accepted", "open" );
             put( "Rejected", "rejected" );
             put( "Working", "open" );
@@ -1929,7 +1935,7 @@ public class Ndax extends NdaxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(order, "ReceiveTime");
         String marketId = this.safeString(order, "Instrument");
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Ndax.this.safeString2(order, "ReplacementOrderId", "OrderId") );
             put( "clientOrderId", Ndax.this.safeString2(order, "ReplacementClOrdId", "ClientOrderId") );
             put( "info", order );
@@ -1969,15 +1975,15 @@ public class Ndax extends NdaxApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1999,13 +2005,13 @@ public class Ndax extends NdaxApi
                     orderType = 4;
                 }
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderSide = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? 0 : 1;
             Object amountString = this.amountToPrecision(symbol, amount);
             final Object finalAmountString = amountString;
             final Object finalOrderType = orderType;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "InstrumentId", Ndax.this.parseToInt(Helpers.GetValue(market, "id")) );
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
@@ -2032,7 +2038,7 @@ public class Ndax extends NdaxApi
             {
                 Helpers.addElementToObject(request, "StopPrice", triggerPrice);
             }
-            java.util.Map<String, Object> response = (this.privatePostSendOrder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostSendOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "status":"Accepted",
@@ -2059,14 +2065,14 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
     {
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object side = side3;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2076,12 +2082,12 @@ public class Ndax extends NdaxApi
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderSide = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? 0 : 1;
             Object amountString = this.amountToPrecision(symbol, amount);
             final Object finalAmountString = amountString;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "OrderIdToReplace", Helpers.parseInt(id) );
                 put( "InstrumentId", Ndax.this.parseToInt(Helpers.GetValue(market, "id")) );
                 put( "omsId", omsId );
@@ -2105,7 +2111,7 @@ public class Ndax extends NdaxApi
             {
                 Helpers.addElementToObject(request, "ClientOrderId", clientOrderId);
             }
-            java.util.Map<String, Object> response = (this.privatePostCancelReplaceOrder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostCancelReplaceOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "replacementOrderId": 1234,
@@ -2130,15 +2136,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2147,8 +2153,8 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
@@ -2166,7 +2172,7 @@ public class Ndax extends NdaxApi
             {
                 Helpers.addElementToObject(request, "Depth", limit);
             }
-            java.util.List<Object> response = (this.privateGetGetTradesHistory(this.extend(request, parameters))).join();
+            List<Object> response = (this.privateGetGetTradesHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2224,13 +2230,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2239,17 +2245,17 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "IntrumentId", Helpers.GetValue(market, "id"));
             }
-            java.util.Map<String, Object> response = (this.privatePostCancelAllOrders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostCancelAllOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":true,
@@ -2258,7 +2264,7 @@ public class Ndax extends NdaxApi
             //         "detail":null
             //     }
             //
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
@@ -2276,13 +2282,13 @@ public class Ndax extends NdaxApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2297,7 +2303,7 @@ public class Ndax extends NdaxApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
             }};
             Long clientOrderId = (Long) this.safeInteger2(parameters, "clientOrderId", "ClOrderId");
@@ -2308,11 +2314,11 @@ public class Ndax extends NdaxApi
             {
                 Helpers.addElementToObject(request, "OrderId", Helpers.parseInt(id));
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "ClOrderId")));
-            java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
+            Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             Object order = this.parseOrder(response, market);
             final Object finalClientOrderId = clientOrderId;
-            return this.extend(order, new java.util.HashMap<String, Object>() {{
+            return this.extend(order, new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "clientOrderId", finalClientOrderId );
             }});
@@ -2331,15 +2337,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2348,17 +2354,17 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
-            java.util.List<Object> response = (this.privateGetGetOpenOrders(this.extend(request, parameters))).join();
+            List<Object> response = (this.privateGetGetOpenOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2425,15 +2431,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2442,8 +2448,8 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
@@ -2461,7 +2467,7 @@ public class Ndax extends NdaxApi
             {
                 Helpers.addElementToObject(request, "Depth", limit);
             }
-            java.util.List<Object> response = (this.privateGetGetOrdersHistory(this.extend(request, parameters))).join();
+            List<Object> response = (this.privateGetGetOrdersHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2527,13 +2533,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2542,18 +2548,18 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
                 put( "OrderId", Helpers.parseInt(id) );
             }};
-            java.util.Map<String, Object> response = (this.privateGetGetOrderStatus(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetGetOrderStatus(this.extend(request, parameters))).join();
             //
             //     {
             //         "Side":"Sell",
@@ -2619,15 +2625,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2642,11 +2648,11 @@ public class Ndax extends NdaxApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "OMSId", Ndax.this.parseToInt(omsId) );
                 put( "OrderId", Helpers.parseInt(id) );
             }};
-            java.util.List<Object> response = (this.privatePostGetOrderHistoryByOrderId(this.extend(request, parameters))).join();
+            List<Object> response = (this.privatePostGetOrderHistoryByOrderId(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2697,8 +2703,8 @@ public class Ndax extends NdaxApi
             //         },
             //     ]
             //
-            java.util.Map<String, Object> grouped = this.groupBy(response, "ChangeReason");
-            Object trades = this.safeList(grouped, "Trade", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Map<String, Object> grouped = this.groupBy(response, "ChangeReason");
+            Object trades = this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -2712,12 +2718,12 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2726,15 +2732,15 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
                 put( "ProductId", Helpers.GetValue(currency, "id") );
                 put( "GenerateNewKey", false );
             }};
-            java.util.Map<String, Object> response = (this.privateGetGetDepositInfo(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetGetDepositInfo(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":true,
@@ -2783,7 +2789,7 @@ public class Ndax extends NdaxApi
         }
         this.checkAddress(address);
         final Object finalCode = code;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", finalCode );
             put( "network", null );
@@ -2800,13 +2806,13 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "GenerateNewKey", true );
             }};
             return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
@@ -2825,15 +2831,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2842,13 +2848,13 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
@@ -2901,15 +2907,15 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2918,17 +2924,17 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
             }};
-            java.util.List<Object> response = (this.privateGetGetWithdraws(this.extend(request, parameters))).join();
+            List<Object> response = (this.privateGetGetWithdraws(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2962,8 +2968,8 @@ public class Ndax extends NdaxApi
     {
         Object status = Helpers.getArg(optionalArgs, 0, null);
         Object type = Helpers.getArg(optionalArgs, 1, null);
-        java.util.Map<String, Object> statusesByType = new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statusesByType = new HashMap<String, Object>() {{
+            put( "deposit", new HashMap<String, Object>() {{
                 put( "New", "pending" );
                 put( "AdminProcessing", "pending" );
                 put( "Accepted", "pending" );
@@ -2980,7 +2986,7 @@ public class Ndax extends NdaxApi
                 put( "LimitsAccepted", "pending" );
                 put( "LimitsRejected", "rejected" );
             }} );
-            put( "withdrawal", new java.util.HashMap<String, Object>() {{
+            put( "withdrawal", new HashMap<String, Object>() {{
                 put( "New", "pending" );
                 put( "AdminProcessing", "pending" );
                 put( "Accepted", "pending" );
@@ -3006,7 +3012,7 @@ public class Ndax extends NdaxApi
                 put( "Confirmed2Fa", "pending" );
             }} );
         }};
-        Object statuses = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeValue(statusesByType, type, new java.util.HashMap<String, Object>() {{}});
+        Object statuses = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? new HashMap<String, Object>() {{}} : this.safeValue(statusesByType, type, new HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {
             return null;
@@ -3090,11 +3096,11 @@ public class Ndax extends NdaxApi
         Long timestamp = this.safeInteger(templateForm, "TimeSubmitted");
         Double feeCost = this.safeNumber(transaction, "FeeAmount");
         String transactionStatus = this.safeString(transaction, "TicketStatus");
-        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
+        Map<String, Object> fee = new HashMap<String, Object>() {{}};
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", finalFeeCost );
             }};
@@ -3104,7 +3110,7 @@ public class Ndax extends NdaxApi
         final Object finalType = type;
         final Object finalUpdated = updated;
         final Object finalFee = fee;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
             put( "txid", Ndax.this.safeString2(finalTemplateForm, "TxId", "TXId") );
@@ -3139,16 +3145,16 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
             // this method required login, password and twofa key
             String sessionToken = this.safeString(this.options, "sessionToken");
             if (Helpers.isTrue(Helpers.isEqual(sessionToken, null)))
@@ -3168,14 +3174,14 @@ public class Ndax extends NdaxApi
             (this.loadAccounts()).join();
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("accountId", "AccountId")));
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> withdrawTemplateTypesRequest = new java.util.HashMap<String, Object>() {{
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> withdrawTemplateTypesRequest = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
                 put( "ProductId", Helpers.GetValue(currency, "id") );
             }};
-            java.util.Map<String, Object> withdrawTemplateTypesResponse = (this.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)).join();
+            Map<String, Object> withdrawTemplateTypesResponse = (this.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)).join();
             //
             //     {
             //         "result": true,
@@ -3188,7 +3194,7 @@ public class Ndax extends NdaxApi
             //         ]
             //     }
             //
-            Object templateTypes = this.safeValue(withdrawTemplateTypesResponse, "TemplateTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object templateTypes = this.safeValue(withdrawTemplateTypesResponse, "TemplateTypes", new ArrayList<Object>(Arrays.asList()));
             Object firstTemplateType = this.safeValue(templateTypes, 0);
             if (Helpers.isTrue(Helpers.isEqual(firstTemplateType, null)))
             {
@@ -3196,14 +3202,14 @@ public class Ndax extends NdaxApi
             }
             String templateName = this.safeString(firstTemplateType, "TemplateName");
             final Object finalFirstTemplateType = firstTemplateType;
-            java.util.Map<String, Object> withdrawTemplateRequest = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> withdrawTemplateRequest = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
                 put( "ProductId", Helpers.GetValue(currency, "id") );
                 put( "TemplateType", templateName );
                 put( "AccountProviderId", Helpers.GetValue(finalFirstTemplateType, "AccountProviderId") );
             }};
-            java.util.Map<String, Object> withdrawTemplateResponse = (this.privateGetGetWithdrawTemplate(withdrawTemplateRequest)).join();
+            Map<String, Object> withdrawTemplateResponse = (this.privateGetGetWithdrawTemplate(withdrawTemplateRequest)).join();
             //
             //     {
             //         "result": true,
@@ -3226,19 +3232,19 @@ public class Ndax extends NdaxApi
                     Helpers.addElementToObject(withdrawTemplate, "Memo", tag);
                 }
             }
-            java.util.Map<String, Object> withdrawPayload = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> withdrawPayload = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
                 put( "ProductId", Helpers.GetValue(currency, "id") );
                 put( "TemplateForm", Ndax.this.json(withdrawTemplate) );
                 put( "TemplateType", templateName );
             }};
-            java.util.Map<String, Object> withdrawRequest = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> withdrawRequest = new HashMap<String, Object>() {{
                 put( "TfaType", "Google" );
                 put( "TFaCode", totp(Ndax.this.twofa) );
                 put( "Payload", Ndax.this.json(withdrawPayload) );
             }};
-            java.util.Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, parameters))).join();
+            Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, parameters))).join();
             return this.parseTransaction(response, currency);
         }).thenApply(io.github.ccxt.types.Transaction::new);
 
@@ -3253,7 +3259,7 @@ public class Ndax extends NdaxApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), this.implodeParams(path, parameters));
@@ -3264,7 +3270,7 @@ public class Ndax extends NdaxApi
             {
                 Object auth = Helpers.add(Helpers.add(this.login, ":"), this.password);
                 Object auth64 = this.stringToBase64(auth);
-                headers = new java.util.HashMap<String, Object>() {{
+                headers = new HashMap<String, Object>() {{
                     put( "Authorization", Helpers.add("Basic ", auth64) );
                 }};
             } else if (Helpers.isTrue(Helpers.isEqual(path, "Authenticate2FA")))
@@ -3273,7 +3279,7 @@ public class Ndax extends NdaxApi
                 if (Helpers.isTrue(!Helpers.isEqual(pending2faToken, null)))
                 {
                     final Object finalPending2faToken = pending2faToken;
-                    headers = new java.util.HashMap<String, Object>() {{
+                    headers = new HashMap<String, Object>() {{
                         put( "Pending2FaToken", finalPending2faToken );
                     }};
                     query = this.omit(query, "pending2faToken");
@@ -3293,7 +3299,7 @@ public class Ndax extends NdaxApi
                 Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalNonce = nonce;
-                headers = new java.util.HashMap<String, Object>() {{
+                headers = new HashMap<String, Object>() {{
                     put( "Nonce", finalNonce );
                     put( "APIKey", Ndax.this.apiKey );
                     put( "Signature", signature );
@@ -3302,7 +3308,7 @@ public class Ndax extends NdaxApi
             } else
             {
                 final Object finalSessionToken = sessionToken;
-                headers = new java.util.HashMap<String, Object>() {{
+                headers = new HashMap<String, Object>() {{
                     put( "APToken", finalSessionToken );
                 }};
             }
@@ -3322,7 +3328,7 @@ public class Ndax extends NdaxApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );

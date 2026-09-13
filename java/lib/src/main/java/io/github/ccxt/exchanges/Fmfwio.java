@@ -6,6 +6,9 @@ import io.github.ccxt.api.FmfwioApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class Fmfwio extends FmfwioApi
 {
@@ -19,13 +22,13 @@ public class Fmfwio extends FmfwioApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "fmfwio" );
             put( "name", "FMFW.io" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("KN")) );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "countries", new ArrayList<Object>(Arrays.asList("KN")) );
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api.fmfw.io/api/3" );
                     put( "private", "https://api.fmfw.io/api/3" );
                 }} );
@@ -34,8 +37,8 @@ public class Fmfwio extends FmfwioApi
                 put( "fees", "https://fmfw.io/fees-and-limits" );
                 put( "referral", "https://fmfw.io/referral/da948b21d6c92d69" );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "maker", Fmfwio.this.parseNumber("0.005") );
                     put( "taker", Fmfwio.this.parseNumber("0.005") );
                 }} );

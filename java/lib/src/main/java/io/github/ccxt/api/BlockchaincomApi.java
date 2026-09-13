@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class BlockchaincomApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickers", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickersSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickersSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickersSymbol", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSymbols (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSymbols", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSymbolsSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSymbolsSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSymbolsSymbol", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetL2Symbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetL2Symbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetL2Symbol", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetL3Symbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetL3Symbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetL3Symbol", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFees (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFees (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFees", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetInternalOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetInternalOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetInternalOrders", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrders", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersOrderId", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTrades", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetFills (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFills (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFills", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetDeposits (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeposits", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDepositsDepositId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDepositsDepositId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDepositsDepositId", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccounts", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountsAccountCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountsAccountCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountsAccountCurrency", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWhitelist (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWhitelist (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWhitelist", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWhitelistCurrency (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWhitelistCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWhitelistCurrency", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWithdrawals (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawals", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWithdrawalsWithdrawalId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWithdrawalsWithdrawalId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawalsWithdrawalId", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrders", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDepositsCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDepositsCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDepositsCurrency", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawals", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrders", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class BlockchaincomApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrdersOrderId", optionalArgs);
     }

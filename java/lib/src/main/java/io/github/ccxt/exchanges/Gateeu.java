@@ -6,6 +6,9 @@ import io.github.ccxt.api.GateeuApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class Gateeu extends GateeuApi
 {
@@ -19,24 +22,24 @@ public class Gateeu extends GateeuApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "gateeu" );
             put( "name", "Gate EU" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("EU")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("EU")) );
             put( "version", "v4" );
             put( "rateLimit", 20 );
             put( "pro", true );
             put( "certified", false );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
-                    put( "public", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
+                    put( "public", new HashMap<String, Object>() {{
                         put( "wallet", "https://api.gateeu.com/api/v4" );
                         put( "margin", "https://api.gateeu.com/api/v4" );
                         put( "spot", "https://api.gateeu.com/api/v4" );
                         put( "sub_accounts", "https://api.gateeu.com/api/v4" );
                         put( "earn", "https://api.gateeu.com/api/v4" );
                     }} );
-                    put( "private", new java.util.HashMap<String, Object>() {{
+                    put( "private", new HashMap<String, Object>() {{
                         put( "withdrawals", "https://api.gateeu.com/api/v4" );
                         put( "wallet", "https://api.gateeu.com/api/v4" );
                         put( "margin", "https://api.gateeu.com/api/v4" );
@@ -51,7 +54,7 @@ public class Gateeu extends GateeuApi
                     }} );
                 }} );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", true );
                 put( "spot", true );
                 put( "margin", true );
@@ -59,9 +62,9 @@ public class Gateeu extends GateeuApi
                 put( "future", false );
                 put( "option", null );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot")) );
+            put( "options", new HashMap<String, Object>() {{
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("spot")) );
                 }} );
                 put( "mica", true );
             }} );

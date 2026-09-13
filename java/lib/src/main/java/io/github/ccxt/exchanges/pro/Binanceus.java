@@ -7,6 +7,10 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Binanceus extends io.github.ccxt.exchanges.Binanceus
 {
@@ -24,16 +28,16 @@ public class Binanceus extends io.github.ccxt.exchanges.Binanceus
         var restInstance = new io.github.ccxt.exchanges.Binanceus();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        java.util.Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
-        return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
+        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "binanceus" );
             put( "name", "Binance US" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("US")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("US")) );
             put( "certified", false );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg" );
-                put( "api", new java.util.HashMap<String, Object>() {{
-                    put( "ws", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
+                    put( "ws", new HashMap<String, Object>() {{
                         put( "spot", "wss://stream.binance.us:9443/ws" );
                     }} );
                     put( "web", "https://www.binance.us" );
@@ -49,7 +53,7 @@ public class Binanceus extends io.github.ccxt.exchanges.Binanceus
                 put( "doc", "https://github.com/binance-us/binance-official-api-docs" );
                 put( "fees", "https://www.binance.us/en/fee/schedule" );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "createOrderWithTakeProfitAndStopLossWs", false );
                 put( "createReduceOnlyOrderWs", false );
                 put( "createStopLossOrderWs", false );
@@ -68,11 +72,11 @@ public class Binanceus extends io.github.ccxt.exchanges.Binanceus
                 put( "watchPosition", false );
                 put( "watchPositions", false );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "quoteOrderQty", false );
                 put( "defaultType", "spot" );
-                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot")) );
+                put( "fetchMarkets", new HashMap<String, Object>() {{
+                    put( "types", new ArrayList<Object>(Arrays.asList("spot")) );
                 }} );
             }} );
         }});

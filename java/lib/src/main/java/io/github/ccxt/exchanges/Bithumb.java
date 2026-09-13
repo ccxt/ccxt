@@ -6,6 +6,12 @@ import io.github.ccxt.api.BithumbApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Bithumb extends BithumbApi
 {
@@ -19,13 +25,13 @@ public class Bithumb extends BithumbApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bithumb" );
             put( "name", "Bithumb" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("KR")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("KR")) );
             put( "rateLimit", 8.334 );
             put( "pro", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", true );
                 put( "spot", true );
                 put( "margin", false );
@@ -130,9 +136,9 @@ public class Bithumb extends BithumbApi
                 put( "withdraw", true );
             }} );
             put( "hostname", "bithumb.com" );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api.{hostname}" );
                     put( "private", "https://api.{hostname}" );
                 }} );
@@ -140,241 +146,241 @@ public class Bithumb extends BithumbApi
                 put( "doc", "https://apidocs.bithumb.com" );
                 put( "fees", "https://en.bithumb.com/customer_support/info_fee" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "public/ticker/ALL_{quoteId}", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "public/ticker/ALL_{quoteId}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/ticker/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/ticker/{baseId}_{quoteId}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/orderbook/ALL_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/orderbook/ALL_{quoteId}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/orderbook/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/orderbook/{baseId}_{quoteId}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/transaction_history/{baseId}_{quoteId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/transaction_history/{baseId}_{quoteId}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/network-info", new java.util.HashMap<String, Object>() {{
+                        put( "public/network-info", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/assetsstatus/multichain/ALL", new java.util.HashMap<String, Object>() {{
+                        put( "public/assetsstatus/multichain/ALL", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/assetsstatus/multichain/{currency}", new java.util.HashMap<String, Object>() {{
+                        put( "public/assetsstatus/multichain/{currency}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/withdraw/minimum/ALL", new java.util.HashMap<String, Object>() {{
+                        put( "public/withdraw/minimum/ALL", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/withdraw/minimum/{currency}", new java.util.HashMap<String, Object>() {{
+                        put( "public/withdraw/minimum/{currency}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/assetsstatus/ALL", new java.util.HashMap<String, Object>() {{
+                        put( "public/assetsstatus/ALL", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/assetsstatus/{baseId}", new java.util.HashMap<String, Object>() {{
+                        put( "public/assetsstatus/{baseId}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "public/candlestick/{baseId}_{quoteId}/{interval}", new java.util.HashMap<String, Object>() {{
+                        put( "public/candlestick/{baseId}_{quoteId}/{interval}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/market/all", new java.util.HashMap<String, Object>() {{
+                        put( "v1/market/all", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/candles/minutes/{unit}", new java.util.HashMap<String, Object>() {{
+                        put( "v1/candles/minutes/{unit}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/candles/days", new java.util.HashMap<String, Object>() {{
+                        put( "v1/candles/days", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/candles/weeks", new java.util.HashMap<String, Object>() {{
+                        put( "v1/candles/weeks", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/candles/months", new java.util.HashMap<String, Object>() {{
+                        put( "v1/candles/months", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/trades/ticks", new java.util.HashMap<String, Object>() {{
+                        put( "v1/trades/ticks", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/ticker", new java.util.HashMap<String, Object>() {{
+                        put( "v1/ticker", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/orderbook", new java.util.HashMap<String, Object>() {{
+                        put( "v1/orderbook", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/market/virtual_asset_warning", new java.util.HashMap<String, Object>() {{
+                        put( "v1/market/virtual_asset_warning", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/notices", new java.util.HashMap<String, Object>() {{
+                        put( "v1/notices", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/fee/inout/{currency}", new java.util.HashMap<String, Object>() {{
+                        put( "v2/fee/inout/{currency}", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "v1/accounts", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "v1/accounts", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/orders/chance", new java.util.HashMap<String, Object>() {{
+                        put( "v1/orders/chance", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/order", new java.util.HashMap<String, Object>() {{
+                        put( "v1/order", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/orders", new java.util.HashMap<String, Object>() {{
+                        put( "v1/orders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/orders/pending", new java.util.HashMap<String, Object>() {{
+                        put( "v2/orders/pending", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/orders/history", new java.util.HashMap<String, Object>() {{
+                        put( "v2/orders/history", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/twap", new java.util.HashMap<String, Object>() {{
+                        put( "v1/twap", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/withdraws", new java.util.HashMap<String, Object>() {{
+                        put( "v1/withdraws", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/withdraws/krw", new java.util.HashMap<String, Object>() {{
+                        put( "v1/withdraws/krw", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/withdraw", new java.util.HashMap<String, Object>() {{
+                        put( "v1/withdraw", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/withdraws/chance", new java.util.HashMap<String, Object>() {{
+                        put( "v1/withdraws/chance", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/withdraws/coin_addresses", new java.util.HashMap<String, Object>() {{
+                        put( "v1/withdraws/coin_addresses", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/deposits", new java.util.HashMap<String, Object>() {{
+                        put( "v1/deposits", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/deposits/krw", new java.util.HashMap<String, Object>() {{
+                        put( "v1/deposits/krw", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/deposit", new java.util.HashMap<String, Object>() {{
+                        put( "v1/deposit", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/deposits/coin_addresses", new java.util.HashMap<String, Object>() {{
+                        put( "v1/deposits/coin_addresses", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/deposits/coin_address", new java.util.HashMap<String, Object>() {{
+                        put( "v1/deposits/coin_address", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/status/wallet", new java.util.HashMap<String, Object>() {{
+                        put( "v1/status/wallet", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/api_keys", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                    }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "info/account", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "info/balance", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "info/wallet_address", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "info/ticker", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "info/orders", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "info/user_transactions", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "info/order_detail", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "trade/place", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 5 );
-                        }} );
-                        put( "trade/cancel", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 5 );
-                        }} );
-                        put( "trade/btc_withdrawal", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "trade/krw_deposit", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "trade/krw_withdrawal", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "trade/market_buy", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "trade/market_sell", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "trade/stop_limit", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v2/orders", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v2/orders/batch", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 6 );
-                        }} );
-                        put( "v2/orders/cancel", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 6 );
-                        }} );
-                        put( "v2/orders/search", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v1/twap", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v1/withdraws/coin", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v1/withdraws/krw", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v1/deposits/generate_coin_address", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v1/deposits/krw", new java.util.HashMap<String, Object>() {{
+                        put( "v1/api_keys", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
-                    put( "delete", new java.util.HashMap<String, Object>() {{
-                        put( "v2/order", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "info/account", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/twap", new java.util.HashMap<String, Object>() {{
+                        put( "info/balance", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v1/withdraws/coin", new java.util.HashMap<String, Object>() {{
+                        put( "info/wallet_address", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "info/ticker", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "info/orders", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "info/user_transactions", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "info/order_detail", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/place", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "trade/cancel", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "trade/btc_withdrawal", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/krw_deposit", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/krw_withdrawal", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/market_buy", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/market_sell", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "trade/stop_limit", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/orders", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/orders/batch", new HashMap<String, Object>() {{
+                            put( "cost", 6 );
+                        }} );
+                        put( "v2/orders/cancel", new HashMap<String, Object>() {{
+                            put( "cost", 6 );
+                        }} );
+                        put( "v2/orders/search", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/twap", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/coin", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/krw", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposits/generate_coin_address", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/deposits/krw", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "delete", new HashMap<String, Object>() {{
+                        put( "v2/order", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/twap", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/withdraws/coin", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "maker", Bithumb.this.parseNumber("0.0025") );
                     put( "taker", Bithumb.this.parseNumber("0.0025") );
                 }} );
             }} );
             put( "precisionMode", SIGNIFICANT_DIGITS );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", false );
                         put( "triggerPriceType", null );
@@ -382,7 +388,7 @@ public class Bithumb extends BithumbApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "GTC", true );
                             put( "IOC", true );
                             put( "FOK", true );
@@ -397,7 +403,7 @@ public class Bithumb extends BithumbApi
                         put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
-                    put( "createOrders", new java.util.HashMap<String, Object>() {{
+                    put( "createOrders", new HashMap<String, Object>() {{
                         put( "max", 20 );
                         put( "marginMode", false );
                         put( "triggerPrice", false );
@@ -406,7 +412,7 @@ public class Bithumb extends BithumbApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "GTC", true );
                             put( "IOC", true );
                             put( "FOK", true );
@@ -422,20 +428,20 @@ public class Bithumb extends BithumbApi
                         put( "iceberg", false );
                     }} );
                     put( "fetchMyTrades", null );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 0 );
@@ -444,14 +450,14 @@ public class Bithumb extends BithumbApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchCanceledOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
                         put( "daysBack", 0 );
@@ -461,20 +467,20 @@ public class Bithumb extends BithumbApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 200 );
                     }} );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
                 put( "400", BadRequest.class );
                 put( "Bad Request(SSL)", BadRequest.class );
                 put( "Bad Request(Bad Method)", BadRequest.class );
@@ -491,7 +497,7 @@ public class Bithumb extends BithumbApi
                 put( "After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions", ExchangeError.class );
                 put( "Missing request parameter error. Check the required parameters!", BadRequest.class );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", 1 );
                 put( "3m", 3 );
                 put( "5m", 5 );
@@ -501,22 +507,22 @@ public class Bithumb extends BithumbApi
                 put( "1h", 60 );
                 put( "4h", 240 );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "generation", 2 );
                 put( "fetchTickersGeneration2MaxMarketIdsPerRequest", 300 );
                 put( "createMarketBuyOrderRequiresPrice", true );
-                put( "quoteCurrencies", new java.util.HashMap<String, Object>() {{
-                    put( "KRW", new java.util.HashMap<String, Object>() {{
-                        put( "limits", new java.util.HashMap<String, Object>() {{
-                            put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "quoteCurrencies", new HashMap<String, Object>() {{
+                    put( "KRW", new HashMap<String, Object>() {{
+                        put( "limits", new HashMap<String, Object>() {{
+                            put( "cost", new HashMap<String, Object>() {{
                                 put( "min", 500 );
                                 put( "max", 5000000000L );
                             }} );
                         }} );
                     }} );
-                    put( "BTC", new java.util.HashMap<String, Object>() {{
-                        put( "limits", new java.util.HashMap<String, Object>() {{
-                            put( "cost", new java.util.HashMap<String, Object>() {{
+                    put( "BTC", new HashMap<String, Object>() {{
+                        put( "limits", new HashMap<String, Object>() {{
+                            put( "cost", new HashMap<String, Object>() {{
                                 put( "min", 0.0002 );
                                 put( "max", 100 );
                             }} );
@@ -524,7 +530,7 @@ public class Bithumb extends BithumbApi
                     }} );
                 }} );
             }} );
-            put( "commonCurrencies", new java.util.HashMap<String, Object>() {{
+            put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "FTC", "FTC2" );
                 put( "SOC", "Soda Coin" );
             }} );
@@ -546,7 +552,7 @@ public class Bithumb extends BithumbApi
 
     public Object amountToPrecision(Object symbol, Object amount)
     {
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
@@ -572,22 +578,22 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 Helpers.addElementToObject(request, "isDetails", true);
-                java.util.List<Object> response = (this.publicGetV1MarketAll(this.extend(request, parameters))).join();
+                List<Object> response = (this.publicGetV1MarketAll(this.extend(request, parameters))).join();
                 //
                 //     [
                 //         {
@@ -624,7 +630,7 @@ public class Bithumb extends BithumbApi
                     final Object finalQuote = quote;
                     final Object finalBaseId = baseId;
                     final Object finalQuoteId = quoteId;
-                                    ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                                    ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", finalMarketId );
                         put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
                         put( "base", finalBase );
@@ -648,24 +654,24 @@ public class Bithumb extends BithumbApi
                         put( "expiryDatetime", null );
                         put( "strike", null );
                         put( "optionType", null );
-                        put( "precision", new java.util.HashMap<String, Object>() {{
+                        put( "precision", new HashMap<String, Object>() {{
                             put( "amount", Helpers.parseInt("4") );
                             put( "price", Helpers.parseInt("4") );
                         }} );
-                        put( "limits", new java.util.HashMap<String, Object>() {{
-                            put( "leverage", new java.util.HashMap<String, Object>() {{
+                        put( "limits", new HashMap<String, Object>() {{
+                            put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                            put( "amount", new java.util.HashMap<String, Object>() {{
+                            put( "amount", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                            put( "price", new java.util.HashMap<String, Object>() {{
+                            put( "price", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                            put( "cost", new java.util.HashMap<String, Object>() {{
+                            put( "cost", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
                             }} );
@@ -676,13 +682,13 @@ public class Bithumb extends BithumbApi
                 }
             } else
             {
-                Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new java.util.HashMap<String, Object>() {{}});
+                Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
                 Object quotes = Helpers.objectKeys(quoteCurrencies);
-                java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
                 {
                     Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(quotes, i));
-                    ((java.util.List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+                    ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
                 }
                 Object results = (Helpers.promiseAll(promises)).join();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
@@ -690,8 +696,8 @@ public class Bithumb extends BithumbApi
                     Object quote = Helpers.GetValue(quotes, i);
                     Object quoteId = quote;
                     Object response = Helpers.GetValue(results, i);
-                    Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                    Object extension = this.safeDict(quoteCurrencies, quote, new java.util.HashMap<String, Object>() {{}});
+                    Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Object extension = this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
                     Object currencyIds = Helpers.objectKeys(data);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
                     {
@@ -716,7 +722,7 @@ public class Bithumb extends BithumbApi
                         final Object finalQuote = quote;
                         final Object finalQuoteId = quoteId;
                         final Object finalActive = active;
-                        java.util.Map<String, Object> entry = this.deepExtend(new java.util.HashMap<String, Object>() {{
+                        Map<String, Object> entry = this.deepExtend(new HashMap<String, Object>() {{
                             put( "id", finalCurrencyId );
                             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
                             put( "base", finalBase );
@@ -740,29 +746,29 @@ public class Bithumb extends BithumbApi
                             put( "expiryDatetime", null );
                             put( "strike", null );
                             put( "optionType", null );
-                            put( "precision", new java.util.HashMap<String, Object>() {{
+                            put( "precision", new HashMap<String, Object>() {{
                                 put( "amount", Helpers.parseInt("4") );
                                 put( "price", Helpers.parseInt("4") );
                             }} );
-                            put( "limits", new java.util.HashMap<String, Object>() {{
-                                put( "leverage", new java.util.HashMap<String, Object>() {{
+                            put( "limits", new HashMap<String, Object>() {{
+                                put( "leverage", new HashMap<String, Object>() {{
                                     put( "min", null );
                                     put( "max", null );
                                 }} );
-                                put( "amount", new java.util.HashMap<String, Object>() {{
+                                put( "amount", new HashMap<String, Object>() {{
                                     put( "min", null );
                                     put( "max", null );
                                 }} );
-                                put( "price", new java.util.HashMap<String, Object>() {{
+                                put( "price", new HashMap<String, Object>() {{
                                     put( "min", null );
                                     put( "max", null );
                                 }} );
-                                put( "cost", new java.util.HashMap<String, Object>() {{}} );
+                                put( "cost", new HashMap<String, Object>() {{}} );
                             }} );
                             put( "created", null );
                             put( "info", market );
                         }}, extension);
-                        ((java.util.List<Object>)result).add(entry);
+                        ((List<Object>)result).add(entry);
                     }
                 }
             }
@@ -798,7 +804,7 @@ public class Bithumb extends BithumbApi
         //         },
         //     ]
         //
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.safeDict(response, "data");
@@ -809,7 +815,7 @@ public class Bithumb extends BithumbApi
             {
                 Object code = Helpers.GetValue(codes, i);
                 Object account = this.account();
-                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 String lowerCurrencyId = this.safeStringLower(currency, "id");
                 Helpers.addElementToObject(account, "total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
                 Helpers.addElementToObject(account, "used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
@@ -846,27 +852,27 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 response = (this.privateGetV1Accounts(parameters)).join();
             } else
             {
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "currency", "ALL" );
                 }};
                 response = (this.privatePostInfoBalance(this.extend(request, parameters))).join();
@@ -888,23 +894,23 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object data = null;
             Object timestamp = null;
@@ -930,24 +936,24 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     ]
                 //
-                Object result = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+                Object result = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(result, "timestamp");
-                Object orderBookUnits = this.safeList(result, "orderbook_units", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object orderBookUnits = this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+                List<Object> bids = new ArrayList<Object>(Arrays.asList());
+                List<Object> asks = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderBookUnits)); i++)
                 {
                     Object entry = Helpers.GetValue(orderBookUnits, i);
-                    ((java.util.List<Object>)bids).add(new java.util.HashMap<String, Object>() {{
+                    ((List<Object>)bids).add(new HashMap<String, Object>() {{
                         put( "price", Bithumb.this.safeString(entry, "bid_price") );
                         put( "quantity", Bithumb.this.safeString(entry, "bid_size") );
                     }});
-                    ((java.util.List<Object>)asks).add(new java.util.HashMap<String, Object>() {{
+                    ((List<Object>)asks).add(new HashMap<String, Object>() {{
                         put( "price", Bithumb.this.safeString(entry, "ask_price") );
                         put( "quantity", Bithumb.this.safeString(entry, "ask_size") );
                     }});
                 }
-                data = new java.util.HashMap<String, Object>() {{
+                data = new HashMap<String, Object>() {{
                     put( "bids", bids );
                     put( "asks", asks );
                 }};
@@ -980,7 +986,7 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(data, "timestamp");
             }
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
@@ -1112,7 +1118,7 @@ public class Bithumb extends BithumbApi
         final Object finalClose = close;
         final Object finalChange = change;
         final Object finalPercentage = percentage;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bithumb.this.iso8601(timestamp) );
@@ -1147,47 +1153,47 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 // Bithumb v2 ticker payloads are inconsistent for all-market calls,
                 // so we aggregate 300 markets per request only when symbols are not provided.
-                Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object marketIds = new ArrayList<Object>(Arrays.asList());
                 Object symbolsForMarketIds = ((Helpers.isTrue((Helpers.isEqual(symbols, null))))) ? this.symbols : symbols;
                 Object symbolsForMarketIdsLength = Helpers.getArrayLength(symbolsForMarketIds);
                 for (var i = 0; Helpers.isLessThan(i, symbolsForMarketIdsLength); i++)
                 {
-                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbolsForMarketIds, i));
-                    ((java.util.List<Object>)marketIds).add(this.getGen2MarketId(market));
+                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbolsForMarketIds, i));
+                    ((List<Object>)marketIds).add(this.getGen2MarketId(market));
                 }
                 Object marketIdsLength = Helpers.getArrayLength(marketIds);
                 if (Helpers.isTrue(Helpers.isEqual(marketIdsLength, 0)))
                 {
                     return result;
                 }
-                java.util.List<Object> marketIdsChunks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                List<Object> marketIdsChunks = new ArrayList<Object>(Arrays.asList());
+                List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Helpers.addElementToObject(request, "markets", String.join(",", (java.util.List<String>)marketIds));
-                    ((java.util.List<Object>)marketIdsChunks).add(marketIds);
-                    ((java.util.List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                    Helpers.addElementToObject(request, "markets", String.join(",", (List<String>)marketIds));
+                    ((List<Object>)marketIdsChunks).add(marketIds);
+                    ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
                 } else
                 {
                     Object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
@@ -1195,18 +1201,18 @@ public class Bithumb extends BithumbApi
                     {
                         maxMarketIdsPerRequest = 300;
                     }
-                    Object marketIdsChunk = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    Object marketIdsChunk = new ArrayList<Object>(Arrays.asList());
                     for (var i = 0; Helpers.isLessThan(i, marketIdsLength); i++)
                     {
-                        ((java.util.List<Object>)marketIdsChunk).add(Helpers.GetValue(marketIds, i));
+                        ((List<Object>)marketIdsChunk).add(Helpers.GetValue(marketIds, i));
                         Object marketIdsChunkLength = Helpers.getArrayLength(marketIdsChunk);
                         Boolean isLastMarketId = (Helpers.isEqual(i, (Helpers.subtract(marketIdsLength, 1))));
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest))) || Helpers.isTrue(isLastMarketId)))
                         {
-                            ((java.util.List<Object>)marketIdsChunks).add(marketIdsChunk);
-                            Helpers.addElementToObject(request, "markets", String.join(",", (java.util.List<String>)marketIdsChunk));
-                            ((java.util.List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
-                            marketIdsChunk = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                            ((List<Object>)marketIdsChunks).add(marketIdsChunk);
+                            Helpers.addElementToObject(request, "markets", String.join(",", (List<String>)marketIdsChunk));
+                            ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                            marketIdsChunk = new ArrayList<Object>(Arrays.asList());
                         }
                     }
                 }
@@ -1252,13 +1258,13 @@ public class Bithumb extends BithumbApi
                         response = Helpers.GetValue(response, "data");
                     }
                     String expectedMarketId = null;
-                    Object marketIdsChunk = this.safeList(marketIdsChunks, i, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object marketIdsChunk = this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
                     String firstMarketId = this.safeString(marketIdsChunk, 0);
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstMarketId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(marketIdsChunk, 1), null)))))
                     {
                         expectedMarketId = firstMarketId;
                     }
-                    Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    Object tickers = new ArrayList<Object>(Arrays.asList());
                     if (Helpers.isTrue(Helpers.isArray(response)))
                     {
                         tickers = response;
@@ -1266,7 +1272,7 @@ public class Bithumb extends BithumbApi
                     {
                         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(response, "market"))) || Helpers.isTrue((Helpers.inOp(response, "trade_date")))) || Helpers.isTrue((Helpers.inOp(response, "trade_timestamp")))))
                         {
-                            tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
+                            tickers = new ArrayList<Object>(Arrays.asList(response));
                         } else
                         {
                             Object ids = Helpers.objectKeys(response);
@@ -1277,7 +1283,7 @@ public class Bithumb extends BithumbApi
                                 if (Helpers.isTrue(!Helpers.isEqual(ticker, null)))
                                 {
                                     Helpers.addElementToObject(ticker, "market", this.safeString(ticker, "market", id));
-                                    ((java.util.List<Object>)tickers).add(ticker);
+                                    ((List<Object>)tickers).add(ticker);
                                 }
                             }
                         }
@@ -1290,7 +1296,7 @@ public class Bithumb extends BithumbApi
                         {
                             continue;
                         }
-                        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+                        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                         String symbol = this.safeSymbol(marketId, market);
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                         {
@@ -1301,15 +1307,15 @@ public class Bithumb extends BithumbApi
                 }
             } else
             {
-                Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new java.util.HashMap<String, Object>() {{}});
+                Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
                 Object quotes = Helpers.objectKeys(quoteCurrencies);
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    java.util.Map<String, Object> requiredQuotes = new java.util.HashMap<String, Object>() {{}};
+                    Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                     {
                         Object symbol = Helpers.GetValue(symbols, i);
-                        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         String quoteId = this.safeString(market, "quoteId");
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(quoteId, null))) && Helpers.isTrue((Helpers.inOp(quoteCurrencies, quoteId)))))
                         {
@@ -1323,18 +1329,18 @@ public class Bithumb extends BithumbApi
                         quotes = requiredQuoteIds;
                     }
                 }
-                java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
                 {
                     Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(quotes, i));
-                    ((java.util.List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+                    ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
                 }
                 Object responses = (Helpers.promiseAll(promises)).join();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
                 {
                     Object quote = Helpers.GetValue(quotes, i);
                     Object response = Helpers.GetValue(responses, i);
-                    Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
                     Object currencyIds = Helpers.objectKeys(tickers);
@@ -1344,7 +1350,7 @@ public class Bithumb extends BithumbApi
                         Object ticker = Helpers.GetValue(data, currencyId);
                         String base = this.safeCurrencyCode(currencyId);
                         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
+                        Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
                         Helpers.addElementToObject(ticker, "date", timestamp);
                         Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
                     }
@@ -1366,24 +1372,24 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            Object data = new java.util.HashMap<String, Object>() {{}};
+            Object data = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 Helpers.addElementToObject(request, "markets", this.getGen2MarketId(market));
@@ -1420,7 +1426,7 @@ public class Bithumb extends BithumbApi
                 //         },
                 //     ]
                 //
-                data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+                data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             } else
             {
                 Helpers.addElementToObject(request, "baseId", Helpers.GetValue(market, "baseId"));
@@ -1445,7 +1451,7 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseTicker(data, market);
         }).thenApply(io.github.ccxt.types.Ticker::new);
@@ -1491,7 +1497,7 @@ public class Bithumb extends BithumbApi
         {
             timestamp = this.parse8601(this.safeString2(ohlcv, "candle_date_time_utc", "candle_date_time_kst"));
         }
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeNumber2(ohlcv, 1, "opening_price"), this.safeNumber2(ohlcv, 3, "high_price"), this.safeNumber2(ohlcv, 4, "low_price"), this.safeNumber2(ohlcv, 2, "trade_price"), this.safeNumber2(ohlcv, 5, "candle_acc_trade_volume")));
+        return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber2(ohlcv, 1, "opening_price"), this.safeNumber2(ohlcv, 3, "high_price"), this.safeNumber2(ohlcv, 4, "low_price"), this.safeNumber2(ohlcv, 2, "trade_price"), this.safeNumber2(ohlcv, 5, "candle_acc_trade_volume")));
     }
 
     /**
@@ -1511,27 +1517,27 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
@@ -1578,7 +1584,7 @@ public class Bithumb extends BithumbApi
                 data = response;
             } else
             {
-                java.util.Map<String, Object> legacyTimeframes = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> legacyTimeframes = new HashMap<String, Object>() {{
                     put( "1m", "1m" );
                     put( "3m", "3m" );
                     put( "5m", "5m" );
@@ -1618,7 +1624,7 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
@@ -1739,7 +1745,7 @@ public class Bithumb extends BithumbApi
             String feeCurrencyId = this.safeString(trade, "fee_currency");
             Object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
             final Object finalFeeCostString = feeCostString;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrencyCode );
             }};
@@ -1749,7 +1755,7 @@ public class Bithumb extends BithumbApi
         final Object finalSide = side;
         final Object finalAmountString = amountString;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", finalTimestamp );
@@ -1779,30 +1785,30 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
             Object response = null;
-            Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
@@ -1843,7 +1849,7 @@ public class Bithumb extends BithumbApi
                 //         ]
                 //     }
                 //
-                data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
@@ -1863,20 +1869,20 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " createOrders is only supported for the generation 2 API")) ;
@@ -1886,8 +1892,8 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires a non-empty orders array")) ;
             }
-            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
+            Object orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -1896,7 +1902,7 @@ public class Bithumb extends BithumbApi
                 {
                     throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires each order to have a symbol")) ;
                 }
-                ((java.util.List<Object>)orderSymbols).add(symbol);
+                ((List<Object>)orderSymbols).add(symbol);
                 String type = this.safeString(rawOrder, "type");
                 if (Helpers.isTrue(Helpers.isEqual(type, null)))
                 {
@@ -1909,16 +1915,16 @@ public class Bithumb extends BithumbApi
                 }
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-                ((java.util.List<Object>)ordersRequests).add(orderRequest);
+                ((List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batch_orders", ordersRequests );
             }};
-            java.util.Map<String, Object> response = (this.privatePostV2OrdersBatch(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostV2OrdersBatch(this.extend(request, parameters))).join();
             //
             //     {
             //         "batch_orders_response": [
@@ -1933,7 +1939,7 @@ public class Bithumb extends BithumbApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "batch_orders_response", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -1955,9 +1961,9 @@ public class Bithumb extends BithumbApi
         * @returns {object} request to be sent to the exchange
         */
         Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", Bithumb.this.getGen2MarketId(market) );
         }};
         String sideRequest = null;
@@ -1981,9 +1987,9 @@ public class Bithumb extends BithumbApi
             parameters = this.omit(parameters, "timeInForce");
         }
         Boolean postOnly = false;
-        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
-        parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
+        List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
+        parameters = ((List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue(postOnly) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
         {
             Helpers.addElementToObject(request, "time_in_force", "post_only");
@@ -2010,9 +2016,9 @@ public class Bithumb extends BithumbApi
                 String cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 Object createMarketBuyOrderRequiresPrice = true;
-                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+                parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
                 {
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
@@ -2067,25 +2073,25 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
+            Object request = new HashMap<String, Object>() {{}};
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
@@ -2126,7 +2132,7 @@ public class Bithumb extends BithumbApi
             final Object finalType = type;
             final Object finalSide = side;
             final Object finalId = id;
-            return this.extend(this.parseOrder(response, market), new java.util.HashMap<String, Object>() {{
+            return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "symbol", symbol );
                 put( "type", finalType );
@@ -2148,20 +2154,20 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
@@ -2187,30 +2193,30 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createTwapOrder(String symbol, Object side2, Object amount2, Object duration, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createTwapOrder(String symbol, Object side2, Object amount2, Object duration, Object... optionalArgs)
     {
         final Object side3 = side2;
         final Object amount3 = amount2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object side = side3;
             Object amount = amount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " createTwapOrder() is only supported for the generation 2 API")) ;
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object durationString = this.numberToString(duration);
             String durationSeconds = Precise.stringDiv(durationString, "1000");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", Bithumb.this.getGen2MarketId(market) );
                 put( "duration", durationSeconds );
             }};
@@ -2227,7 +2233,7 @@ public class Bithumb extends BithumbApi
                 sideRequest = "ask";
             }
             Helpers.addElementToObject(request, "side", sideRequest);
-            java.util.Map<String, Object> response = (this.privatePostV1Twap(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostV1Twap(this.extend(request, parameters))).join();
             //
             //     {
             //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
@@ -2254,21 +2260,21 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2276,7 +2282,7 @@ public class Bithumb extends BithumbApi
             }
             Object twap = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object data = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
@@ -2287,7 +2293,7 @@ public class Bithumb extends BithumbApi
                     {
                         Helpers.addElementToObject(request, "market", this.getGen2MarketId(market));
                     }
-                    Helpers.addElementToObject(request, "uuids", new java.util.ArrayList<Object>(java.util.Arrays.asList(id)));
+                    Helpers.addElementToObject(request, "uuids", new ArrayList<Object>(Arrays.asList(id)));
                     response = (this.privateGetV1Twap(this.extend(request, parameters))).join();
                     //
                     //     {
@@ -2313,15 +2319,15 @@ public class Bithumb extends BithumbApi
                     //         ]
                     //     }
                     //
-                    Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    data = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
+                    Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+                    data = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
                 } else
                 {
                     String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
                     if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
                     {
                         Helpers.addElementToObject(request, "client_order_id", clientOrderId);
-                        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
+                        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
                     } else
                     {
                         Helpers.addElementToObject(request, "uuid", id);
@@ -2397,10 +2403,10 @@ public class Bithumb extends BithumbApi
                 //
                 data = this.safeDict(response, "data");
             }
-            java.util.Map<String, Object> orderData = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> orderData = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            java.util.Map<String, Object> parsedOrder = this.extend(data, orderData);
+            Map<String, Object> parsedOrder = this.extend(data, orderData);
             return this.parseOrder(parsedOrder, market);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -2408,7 +2414,7 @@ public class Bithumb extends BithumbApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Pending", "open" );
             put( "Completed", "closed" );
             put( "Cancel", "canceled" );
@@ -2587,7 +2593,7 @@ public class Bithumb extends BithumbApi
                 type = "limit";
             }
         }
-        Object amount = this.fixCommaNumber(this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_qty", "units", "volume"))));
+        Object amount = this.fixCommaNumber(this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_qty", "units", "volume"))));
         Object remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
         if (Helpers.isTrue(Helpers.isEqual(remaining, null)))
         {
@@ -2614,8 +2620,8 @@ public class Bithumb extends BithumbApi
             market = this.safeMarket(marketId, market);
             symbol = Helpers.GetValue(market, "symbol");
         }
-        String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "uuid", "algo_order_id")));
-        Object rawTrades = this.safeList2(order, "contract", "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        String id = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_id", "uuid", "algo_order_id")));
+        Object rawTrades = this.safeList2(order, "contract", "trades", new ArrayList<Object>(Arrays.asList()));
         Double feeCost = this.safeNumber(order, "reserved_fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -2627,7 +2633,7 @@ public class Bithumb extends BithumbApi
             }
             final Object finalCurrency = currency;
             final Object finalFeeCost = feeCost;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "currency", finalCurrency );
                 put( "cost", finalFeeCost );
                 put( "rate", null );
@@ -2651,7 +2657,7 @@ public class Bithumb extends BithumbApi
         final Object finalRemaining = remaining;
         final Object finalStatus = status;
         final Object finalFee = fee;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", Bithumb.this.safeString(order, "client_order_id") );
@@ -2692,24 +2698,24 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
@@ -2744,7 +2750,7 @@ public class Bithumb extends BithumbApi
                 Helpers.addElementToObject(request, "payment_currency", Helpers.GetValue(market, "quote"));
                 response = (this.privatePostInfoOrders(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2766,28 +2772,28 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchOrders is only supported for the generation 2 API")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object twap = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             if (!Helpers.isTrue(twap))
@@ -2796,7 +2802,7 @@ public class Bithumb extends BithumbApi
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
                 {
                     Helpers.addElementToObject(request, "client_order_ids", clientOrderIds);
-                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds")));
+                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds")));
                 }
             }
             Object market = null;
@@ -2838,7 +2844,7 @@ public class Bithumb extends BithumbApi
                 //         ]
                 //     }
                 //
-                data = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 response = (this.privateGetV1Orders(this.extend(request, parameters))).join();
@@ -2887,15 +2893,15 @@ public class Bithumb extends BithumbApi
      * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "state", "done");
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBySinceLimit(orders, since, limit);
@@ -2918,15 +2924,15 @@ public class Bithumb extends BithumbApi
      * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "state", "cancel");
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBySinceLimit(orders, since, limit);
@@ -2949,27 +2955,27 @@ public class Bithumb extends BithumbApi
      * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object twap = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
@@ -2982,7 +2988,7 @@ public class Bithumb extends BithumbApi
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(generation, 2))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, null)))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
-                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
+                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
                 } else
                 {
                     Helpers.addElementToObject(request, "order_id", id);
@@ -3030,7 +3036,7 @@ public class Bithumb extends BithumbApi
                 Helpers.addElementToObject(request, "payment_currency", quote);
                 response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
             }
-            return this.extend(this.parseOrder(response, market), new java.util.HashMap<String, Object>() {{
+            return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
                 put( "id", id );
             }});
         }).thenApply(io.github.ccxt.types.Order::new);
@@ -3049,21 +3055,21 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " cancelOrders is only supported for the generation 2 API")) ;
@@ -3073,17 +3079,17 @@ public class Bithumb extends BithumbApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
                 Helpers.addElementToObject(request, "client_order_ids", clientOrderIds);
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds")));
             } else
             {
                 Helpers.addElementToObject(request, "order_ids", ids);
             }
-            java.util.Map<String, Object> response = (this.privatePostV2OrdersCancel(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostV2OrdersCancel(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": [
@@ -3095,19 +3101,19 @@ public class Bithumb extends BithumbApi
             //         "fail": []
             //     }
             //
-            Object data = this.safeList(response, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
 
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelUnifiedOrder(Object order, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelUnifiedOrder(Object order, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", Helpers.GetValue(order, "side") );
             }};
             return (this.cancelOrder((Object)(((String)Helpers.GetValue(order, "id"))), (Object)(Helpers.GetValue(order, "symbol")), (Object)(this.extend(request, parameters)))).join();
@@ -3141,35 +3147,35 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object code = code3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((java.util.List<Object>) tagparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             String network = this.safeString2(parameters, "network", "net_type");
             parameters = this.omit(parameters, "network");
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object destinationRequest = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, "XRP")) || Helpers.isTrue(Helpers.isEqual(code, "XMR"))) || Helpers.isTrue(Helpers.isEqual(code, "EOS"))) || Helpers.isTrue(Helpers.isEqual(code, "STEEM"))) || Helpers.isTrue(Helpers.isEqual(code, "TON"))))
             {
                 String destination = this.safeString2(parameters, "destination", "secondary_address");
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("destination", "secondary_address")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tag, null))) && Helpers.isTrue((Helpers.isEqual(destination, null)))))
                 {
                     throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
@@ -3182,7 +3188,7 @@ public class Bithumb extends BithumbApi
                 }
             }
             String receiverType = this.safeString2(parameters, "receiver_type", "cust_type_cd");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("receiver_type", "cust_type_cd")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
@@ -3192,7 +3198,7 @@ public class Bithumb extends BithumbApi
                     {
                         throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
                     }
-                    java.util.Map<String, Object> krwRequest = new java.util.HashMap<String, Object>() {{
+                    Map<String, Object> krwRequest = new HashMap<String, Object>() {{
                         put( "amount", Bithumb.this.numberToString(amount) );
                     }}; // KRW withdraw only accepts amount and two_factor_type parameters
                     response = (this.privatePostV1WithdrawsKrw(this.extend(krwRequest, parameters))).join();
@@ -3291,7 +3297,7 @@ public class Bithumb extends BithumbApi
         final Object finalTimestamp = timestamp;
         final Object finalDatetime = datetime;
         final Object finalCurrency = currency;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "id", Bithumb.this.safeString(transaction, "uuid") );
             put( "txid", Bithumb.this.safeString(transaction, "txid") );
             put( "timestamp", finalTimestamp );
@@ -3310,7 +3316,7 @@ public class Bithumb extends BithumbApi
             put( "tagTo", null );
             put( "comment", null );
             put( "internal", null );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "currency", null );
                 put( "cost", Bithumb.this.safeNumber(transaction, "fee") );
                 put( "rate", null );
@@ -3326,8 +3332,8 @@ public class Bithumb extends BithumbApi
         {
             return status;
         }
-        java.util.Map<String, Object> statusesByType = new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statusesByType = new HashMap<String, Object>() {{
+            put( "deposit", new HashMap<String, Object>() {{
                 put( "DEPOSIT_PROCESSING", "pending" );
                 put( "DEPOSIT_ACCEPTED", "ok" );
                 put( "DEPOSIT_CANCELLED", "canceled" );
@@ -3335,7 +3341,7 @@ public class Bithumb extends BithumbApi
                 put( "ACCEPTED", "ok" );
                 put( "CANCELLED", "canceled" );
             }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "withdraw", new HashMap<String, Object>() {{
                 put( "processing", "pending" );
                 put( "done", "ok" );
                 put( "cancelled", "canceled" );
@@ -3344,7 +3350,7 @@ public class Bithumb extends BithumbApi
                 put( "CANCELLED", "canceled" );
             }} );
         }};
-        Object statuses = this.safeDict(statusesByType, ((String)type), new java.util.HashMap<String, Object>() {{}});
+        Object statuses = this.safeDict(statusesByType, ((String)type), new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -3357,25 +3363,25 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawalWhitelist(Object... optionalArgs)
+    public CompletableFuture<Object> fetchWithdrawalWhitelist(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
             }
-            java.util.List<Object> response = (this.privateGetV1WithdrawsCoinAddresses(parameters)).join();
+            List<Object> response = (this.privateGetV1WithdrawsCoinAddresses(parameters)).join();
             //
             //     [
             //         {
@@ -3407,21 +3413,21 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(String id2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchWithdrawal(String id2, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object id = id3;
             Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchWithdrawal() is only supported for the generation 2 API")) ;
@@ -3430,15 +3436,15 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchWithdrawal() requires a code argument")) ;
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Helpers.addElementToObject(request, "uuid", id);
             }
-            java.util.Map<String, Object> response = (this.privateGetV1Withdraw(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetV1Withdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "type": "withdraw",
@@ -3477,28 +3483,28 @@ public class Bithumb extends BithumbApi
      * @param {string[]} [params.txids] an array of txid strings
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchWithdrawals() is only supported for the generation 2 API")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
@@ -3552,21 +3558,21 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposit(String id2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchDeposit(String id2, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object id = id3;
             Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchDeposit() is only supported for the generation 2 API")) ;
@@ -3575,15 +3581,15 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchDeposit() requires a code argument")) ;
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Helpers.addElementToObject(request, "uuid", id);
             }
-            java.util.Map<String, Object> response = (this.privateGetV1Deposit(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetV1Deposit(this.extend(request, parameters))).join();
             //
             //     {
             //         "type": "deposit",
@@ -3622,28 +3628,28 @@ public class Bithumb extends BithumbApi
      * @param {string[]} [params.txids] an array of txid strings
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchDeposits() is only supported for the generation 2 API")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
@@ -3696,26 +3702,26 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.network] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " createDepositAddress() is only supported for the generation 2 API")) ;
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             String network = this.safeString2(parameters, "network", "net_type");
@@ -3725,7 +3731,7 @@ public class Bithumb extends BithumbApi
                 throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " createDepositAddress() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "net_type", network);
-            java.util.Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "currency": "BTC",
@@ -3750,26 +3756,26 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.network] network for fetch deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchDepositAddress() is only supported for the generation 2 API")) ;
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             String network = this.safeString2(parameters, "network", "net_type");
@@ -3779,7 +3785,7 @@ public class Bithumb extends BithumbApi
                 throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " fetchDepositAddress() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "net_type", network);
-            java.util.Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "currency": "BTC",
@@ -3803,26 +3809,26 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
-            generation = ((java.util.List<Object>) generationparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
+            generation = ((List<Object>) generationparametersVariable).get(0);
+            parameters = ((List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchDepositAddresses() is only supported for the generation 2 API")) ;
             }
-            java.util.List<Object> response = (this.privateGetV1DepositsCoinAddresses(parameters)).join();
+            List<Object> response = (this.privateGetV1DepositsCoinAddresses(parameters)).join();
             //
             //     [
             //         {
@@ -3833,7 +3839,7 @@ public class Bithumb extends BithumbApi
             //         }
             //     ]
             //
-            return this.parseDepositAddresses(response, codes, false, new java.util.HashMap<String, Object>() {{}});
+            return this.parseDepositAddresses(response, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.DepositAddress::new));
 
     }
@@ -3860,7 +3866,7 @@ public class Bithumb extends BithumbApi
         }
         this.checkAddress(address);
         final Object finalAddress = address;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", response );
             put( "currency", code );
             put( "network", Bithumb.this.safeString(response, "net_type") );
@@ -3933,7 +3939,7 @@ public class Bithumb extends BithumbApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
@@ -3954,10 +3960,10 @@ public class Bithumb extends BithumbApi
             Boolean isVersionedApi = (Helpers.isTrue(endpoint.startsWith(((String)"/v1/"))) || Helpers.isTrue(endpoint.startsWith(((String)"/v2/"))));
             if (Helpers.isTrue(isVersionedApi))
             {
-                headers = new java.util.HashMap<String, Object>() {{
+                headers = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
                 }};
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "access_key", Bithumb.this.apiKey );
                     put( "nonce", Bithumb.this.uuid() );
                     put( "timestamp", Bithumb.this.milliseconds() );
@@ -3987,17 +3993,17 @@ public class Bithumb extends BithumbApi
             } else
             {
                 final Object finalEndpoint = endpoint;
-                body = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
+                body = this.urlencode(this.extend(new HashMap<String, Object>() {{
                     put( "endpoint", finalEndpoint );
                 }}, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 Object bodyParts = Helpers.split(body, "%20");
-                body = String.join("+", (java.util.List<String>)bodyParts);
+                body = String.join("+", (List<String>)bodyParts);
                 Object nonce = String.valueOf(this.nonce());
                 Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
                 Object signature64 = this.stringToBase64(signature);
-                headers = new java.util.HashMap<String, Object>() {{
+                headers = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                     put( "Api-Key", Bithumb.this.apiKey );
@@ -4010,7 +4016,7 @@ public class Bithumb extends BithumbApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );

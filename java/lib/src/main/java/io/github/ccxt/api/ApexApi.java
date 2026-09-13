@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class ApexApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3Symbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3Symbols (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3Symbols", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3HistoryFunding (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3HistoryFunding (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3HistoryFunding", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3Ticker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3Ticker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3Ticker", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3Klines (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3Klines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3Klines", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3Trades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3Trades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3Trades", optionalArgs);
     }
@@ -80,7 +82,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3Depth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3Depth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3Depth", optionalArgs);
     }
@@ -91,7 +93,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3Time (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3Time (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3Time", optionalArgs);
     }
@@ -102,7 +104,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV3DataAllTickerInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV3DataAllTickerInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV3DataAllTickerInfo", optionalArgs);
     }
@@ -113,7 +115,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3Account (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3Account (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3Account", optionalArgs);
     }
@@ -124,7 +126,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3AccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3AccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3AccountBalance", optionalArgs);
     }
@@ -135,7 +137,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3Fills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3Fills (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3Fills", optionalArgs);
     }
@@ -146,7 +148,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3OrderFills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3OrderFills (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3OrderFills", optionalArgs);
     }
@@ -157,7 +159,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3Order (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3Order", optionalArgs);
     }
@@ -168,7 +170,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3HistoryOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3HistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3HistoryOrders", optionalArgs);
     }
@@ -179,7 +181,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3OrderByClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3OrderByClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3OrderByClientOrderId", optionalArgs);
     }
@@ -190,7 +192,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3Funding (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3Funding (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3Funding", optionalArgs);
     }
@@ -201,7 +203,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3HistoricalPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3HistoricalPnl (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3HistoricalPnl", optionalArgs);
     }
@@ -212,7 +214,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3OpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3OpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3OpenOrders", optionalArgs);
     }
@@ -223,7 +225,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3Transfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3Transfers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3Transfers", optionalArgs);
     }
@@ -234,7 +236,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3Transfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3Transfer (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3Transfer", optionalArgs);
     }
@@ -245,7 +247,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3StockAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV3StockAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV3StockAccount", optionalArgs);
     }
@@ -256,7 +258,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3DeleteOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3DeleteOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3DeleteOpenOrders", optionalArgs);
     }
@@ -267,7 +269,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3DeleteClientOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3DeleteClientOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3DeleteClientOrderId", optionalArgs);
     }
@@ -278,7 +280,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3DeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3DeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3DeleteOrder", optionalArgs);
     }
@@ -289,7 +291,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3Order (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3Order", optionalArgs);
     }
@@ -300,7 +302,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3SetInitialMarginRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3SetInitialMarginRate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3SetInitialMarginRate", optionalArgs);
     }
@@ -311,7 +313,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3TransferOut (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3TransferOut (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3TransferOut", optionalArgs);
     }
@@ -322,7 +324,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3ContractTransferOut (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3ContractTransferOut (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3ContractTransferOut", optionalArgs);
     }
@@ -333,7 +335,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3ContractTransferTo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3ContractTransferTo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3ContractTransferTo", optionalArgs);
     }
@@ -344,7 +346,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3SubmitWithdrawClaim (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3SubmitWithdrawClaim (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3SubmitWithdrawClaim", optionalArgs);
     }
@@ -355,7 +357,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3StockRegisterAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3StockRegisterAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3StockRegisterAccount", optionalArgs);
     }
@@ -366,7 +368,7 @@ public class ApexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3StockGenerateApi (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV3StockGenerateApi (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3StockGenerateApi", optionalArgs);
     }

@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.HashMap;
 
 public class Myokx extends io.github.ccxt.exchanges.Myokx
 {
@@ -20,27 +21,27 @@ public class Myokx extends io.github.ccxt.exchanges.Myokx
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "myokx" );
             put( "name", "MyOKX (EEA)" );
             put( "hostname", "eea.okx.com" );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "rest", "https://{hostname}" );
                     put( "ws", "wss://wseea.okx.com:8443/ws/v5" );
                 }} );
                 put( "www", "https://my.okx.com" );
                 put( "doc", "https://my.okx.com/docs-v5/en/#overview" );
                 put( "fees", "https://my.okx.com/pages/products/fees.html" );
-                put( "referral", new java.util.HashMap<String, Object>() {{
+                put( "referral", new HashMap<String, Object>() {{
                     put( "url", "https://www.my.okx.com/join/CCXT2023" );
                     put( "discount", 0.2 );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "ws", "wss://wseeapap.okx.com:8443/ws/v5" );
                 }} );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "swap", false );
                 put( "future", false );
                 put( "option", false );

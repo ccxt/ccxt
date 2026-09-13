@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 {
@@ -20,8 +26,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
-            put( "has", new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchBalance", true );
                 put( "watchBidsAsks", false );
@@ -50,21 +56,21 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "unWatchOrdersForSymbols", false );
                 put( "unWatchPositions", false );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "ws", "wss://stream.bydfi.com/v1/public/fapi" );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
-                put( "watchOrderBookForSymbols", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
+                put( "watchOrderBookForSymbols", new HashMap<String, Object>() {{
                     put( "depth", "100" );
                     put( "frequency", "1000ms" );
                 }} );
-                put( "watchBalance", new java.util.HashMap<String, Object>() {{
+                put( "watchBalance", new HashMap<String, Object>() {{
                     put( "fetchBalanceSnapshot", false );
                     put( "awaitBalanceSnapshot", true );
                 }} );
-                put( "timeframes", new java.util.HashMap<String, Object>() {{
+                put( "timeframes", new HashMap<String, Object>() {{
                     put( "1m", "1m" );
                     put( "3m", "3m" );
                     put( "5m", "5m" );
@@ -81,7 +87,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                     put( "1M", "1M" );
                 }} );
             }} );
-            put( "streaming", new java.util.HashMap<String, Object>() {{
+            put( "streaming", new HashMap<String, Object>() {{
                 put( "ping", "ping");
                 put( "keepAlive", 119000 );
             }} );
@@ -90,7 +96,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     public Object ping(Client client)
     {
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "id", Bydfi.this.requestId() );
             put( "method", "ping" );
         }};
@@ -106,16 +112,16 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         return reqid;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPublic(Object messageHashes, Object channels, Object... optionalArgs)
+    public CompletableFuture<Object> watchPublic(Object messageHashes, Object channels, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object subscription = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object subscription = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object id = this.requestId();
-            java.util.Map<String, Object> subscriptionParams = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object unsubscribe = this.safeBool(parameters, "unsubscribe", false);
@@ -128,7 +134,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Helpers.addElementToObject(subscriptionParams, "messageHashes", messageHashes);
             }
             final Object finalMethod = method;
-            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", finalMethod );
                 put( "params", channels );
@@ -138,28 +144,28 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPrivate(Object messageHashes, Object... optionalArgs)
+    public CompletableFuture<Object> watchPrivate(Object messageHashes, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String subHash = "private";
             Client client = this.client(url);
             Object privateSubscription = this.safeValue(client.subscriptions, subHash);
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> subscription = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(privateSubscription, null)))
             {
                 Object id = this.requestId();
                 Object timestamp = String.valueOf(this.milliseconds());
                 Object payload = Helpers.add(this.apiKey, timestamp);
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "LOGIN" );
-                    put( "params", new java.util.HashMap<String, Object>() {{
+                    put( "params", new HashMap<String, Object>() {{
                         put( "apiKey", Bydfi.this.apiKey );
                         put( "timestamp", timestamp );
                         put( "sign", signature );
@@ -168,7 +174,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 parameters = this.deepExtend(request, parameters);
                 Helpers.addElementToObject(subscription, "id", id);
             }
-            return (this.watchMultiple(url, messageHashes, parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("private")), subscription)).join();
+            return (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), subscription)).join();
         });
 
     }
@@ -182,21 +188,21 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             String messageHash = Helpers.add("ticker::", symbol);
             Object channel = Helpers.add(marketId, "@ticker");
-            return (this.watchPublic(new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)), parameters)).join();
+            return (this.watchPublic(new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(channel)), parameters)).join();
         }).thenApply(io.github.ccxt.types.Ticker::new);
 
     }
@@ -210,13 +216,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
     }
@@ -231,34 +237,34 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new ArrayList<Object>(Arrays.asList());
             Object messageHash = "ticker::";
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object channels = new ArrayList<Object>(Arrays.asList());
             String channel = "@ticker";
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                ((java.util.List<Object>)messageHashes).add(Helpers.add(messageHash, "all"));
-                ((java.util.List<Object>)channels).add("!ticker@arr");
+                ((List<Object>)messageHashes).add(Helpers.add(messageHash, "all"));
+                ((List<Object>)channels).add("!ticker@arr");
             } else
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     Object marketId = this.marketId(symbol);
-                    ((java.util.List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
-                    ((java.util.List<Object>)channels).add(Helpers.add(marketId, channel));
+                    ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
+                    ((List<Object>)channels).add(Helpers.add(marketId, channel));
                 }
             }
             (this.watchPublic(messageHashes, channels, parameters)).join();
@@ -277,19 +283,19 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             symbols = this.marketSymbols(symbols, null, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new ArrayList<Object>(Arrays.asList());
             Object messageHash = "unsubscribe::ticker::";
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object channels = new ArrayList<Object>(Arrays.asList());
             String channel = "@ticker";
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new HashMap<String, Object>() {{
                 put( "topic", "ticker" );
             }};
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
@@ -310,23 +316,23 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                             continue;
                         }
                         Object marketId = this.marketId(symbol);
-                        ((java.util.List<Object>)channels).add(Helpers.add(marketId, channel));
+                        ((List<Object>)channels).add(Helpers.add(marketId, channel));
                     }
                 }
-                ((java.util.List<Object>)messageHashes).add(messageHash);
-                ((java.util.List<Object>)channels).add("!ticker@arr");
+                ((List<Object>)messageHashes).add(messageHash);
+                ((List<Object>)channels).add("!ticker@arr");
             } else
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     Object marketId = this.marketId(symbol);
-                    ((java.util.List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
-                    ((java.util.List<Object>)channels).add(Helpers.add(marketId, channel));
+                    ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
+                    ((List<Object>)channels).add(Helpers.add(marketId, channel));
                 }
                 Helpers.addElementToObject(subscription, "symbols", symbols);
             }
-            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
             return (this.watchPublic(messageHashes, channels, parameters, subscription)).join();
@@ -339,14 +345,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
         Client client = this.client(url);
         Object subscriptions = client.subscriptions;
-        java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
         Object keys = Helpers.objectKeys(subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(key, "ticker::"), 0)))
             {
-                ((java.util.List<Object>)messageHashes).add(key);
+                ((List<Object>)messageHashes).add(key);
             }
         }
         return messageHashes;
@@ -386,16 +392,16 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object result = (this.watchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
@@ -411,14 +417,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe)))), parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
         });
 
     }
@@ -434,42 +440,42 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
             (this.loadMarkets()).join();
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object channels = new ArrayList<Object>(Arrays.asList());
+            Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
+                Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
-                Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+                Object timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
                 String interval = this.safeString(timeframes, tf, tf);
-                ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval));
-                ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", Helpers.GetValue(market, "symbol")), "::"), interval));
+                ((List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval));
+                ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", Helpers.GetValue(market, "symbol")), "::"), interval));
             }
             var symboltimeframecandlesVariable = (this.watchPublic(messageHashes, channels, parameters)).join();
-            var symbol = ((java.util.List<Object>) symboltimeframecandlesVariable).get(0);
-            var timeframe = ((java.util.List<Object>) symboltimeframecandlesVariable).get(1);
-            var candles = ((java.util.List<Object>) symboltimeframecandlesVariable).get(2);
+            var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
+            var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
+            var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
-            java.util.List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+            List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -484,34 +490,34 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
             (this.loadMarkets()).join();
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object channels = new ArrayList<Object>(Arrays.asList());
+            Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
+                Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
-                ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval));
-                ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("unsubscribe::ohlcv::", Helpers.GetValue(market, "symbol")), "::"), interval));
+                ((List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval));
+                ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("unsubscribe::ohlcv::", Helpers.GetValue(market, "symbol")), "::"), interval));
             }
-            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new HashMap<String, Object>() {{
                 put( "topic", "ohlcv" );
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
@@ -537,14 +543,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String marketId = this.safeString(message, "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         String interval = this.safeString(message, "i");
-        Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+        Object timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(interval, timeframes);
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
-            Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
@@ -556,7 +562,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Object parsed = this.parseWsOHLCV(message);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
         String messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
-        client.resolve(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
+        client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
     }
 
     /**
@@ -569,14 +575,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(io.github.ccxt.types.OrderBook::new);
 
     }
@@ -590,13 +596,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.unWatchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
     }
@@ -611,39 +617,39 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object depth = "100";
-            java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
-            depth = ((java.util.List<Object>) depthparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
+            List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
+            depth = ((List<Object>) depthparametersVariable).get(0);
+            parameters = ((List<Object>) depthparametersVariable).get(1);
             Object frequency = "100ms";
-            java.util.List<Object> frequencyparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
-            frequency = ((java.util.List<Object>) frequencyparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) frequencyparametersVariable).get(1);
+            List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
+            frequency = ((List<Object>) frequencyparametersVariable).get(0);
+            parameters = ((List<Object>) frequencyparametersVariable).get(1);
             String channelSuffix = "";
             if (Helpers.isTrue(Helpers.isEqual(frequency, "100ms")))
             {
                 channelSuffix = "@100ms";
             }
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object channels = new ArrayList<Object>(Arrays.asList());
+            Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@depth"), depth), channelSuffix));
-                ((java.util.List<Object>)messageHashes).add(Helpers.add("orderbook::", symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                ((List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@depth"), depth), channelSuffix));
+                ((List<Object>)messageHashes).add(Helpers.add("orderbook::", symbol));
             }
             Object orderbook = (this.watchPublic(messageHashes, channels, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -661,45 +667,45 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object depth = "100";
-            java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
-            depth = ((java.util.List<Object>) depthparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
+            List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
+            depth = ((List<Object>) depthparametersVariable).get(0);
+            parameters = ((List<Object>) depthparametersVariable).get(1);
             Object frequency = "100ms";
-            java.util.List<Object> frequencyparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
-            frequency = ((java.util.List<Object>) frequencyparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) frequencyparametersVariable).get(1);
+            List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
+            frequency = ((List<Object>) frequencyparametersVariable).get(0);
+            parameters = ((List<Object>) frequencyparametersVariable).get(1);
             String channelSuffix = "";
             if (Helpers.isTrue(Helpers.isEqual(frequency, "100ms")))
             {
                 channelSuffix = "@100ms";
             }
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object channels = new ArrayList<Object>(Arrays.asList());
+            Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@depth"), depth), channelSuffix));
-                ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe::orderbook::", symbol));
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                ((List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@depth"), depth), channelSuffix));
+                ((List<Object>)messageHashes).add(Helpers.add("unsubscribe::orderbook::", symbol));
             }
             final Object finalSymbols = symbols;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new HashMap<String, Object>() {{
                 put( "topic", "orderbook" );
                 put( "symbols", finalSymbols );
             }};
-            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
             return (this.watchPublic(messageHashes, channels, parameters, subscription)).join();
@@ -744,21 +750,21 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Object symbols = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
+                symbols = new ArrayList<Object>(Arrays.asList(symbol));
             }
-            return (this.watchOrdersForSymbols((Object)((java.util.List<String>)(symbols)), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.watchOrdersForSymbols((Object)((List<String>)(symbols)), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
@@ -774,29 +780,29 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> watchOrdersForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> watchOrdersForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                ((java.util.List<Object>)messageHashes).add("orders");
+                ((List<Object>)messageHashes).add("orders");
             } else
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    ((java.util.List<Object>)messageHashes).add(Helpers.add("orders::", symbol));
+                    ((List<Object>)messageHashes).add(Helpers.add("orders::", symbol));
                 }
             }
             Object orders = (this.watchPrivate(messageHashes, parameters)).join();
@@ -841,9 +847,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         }
         //     }
         //
-        Object rawOrder = this.safeDict(message, "o", new java.util.HashMap<String, Object>() {{}});
+        Object rawOrder = this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawOrder, "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = "orders";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
@@ -897,14 +903,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         {
             final Object finalFeeCost = feeCost;
             final Object finalMarket = market;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", Precise.stringAbs(finalFeeCost) );
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
         final Object finalMarket_2 = market;
         final Object finalFee = fee;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bydfi.this.safeString(order, "o") );
             put( "clientOrderId", Bydfi.this.safeString(order, "cid") );
@@ -944,31 +950,31 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> watchPositions(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new ArrayList<Object>(Arrays.asList());
             String messageHash = "positions";
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                ((java.util.List<Object>)messageHashes).add(messageHash);
+                ((List<Object>)messageHashes).add(messageHash);
             } else
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(messageHash, "::"), symbol));
+                    ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(messageHash, "::"), symbol));
                 }
             }
             Object positions = (this.watchPrivate(messageHashes, parameters)).join();
@@ -1023,11 +1029,11 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
-        Object positionsData = this.safeList(data, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object rawPosition = this.safeDict(positionsData, 0, new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+        Object positionsData = this.safeList(data, "p", new ArrayList<Object>(Arrays.asList()));
+        Object rawPosition = this.safeDict(positionsData, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawPosition, "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = "positions";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
@@ -1041,8 +1047,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
         Helpers.callDynamically(cache, "append", new Object[]{parsedPosition});
-        client.resolve(new java.util.ArrayList<Object>(java.util.Arrays.asList(parsedPosition)), messageHash);
-        client.resolve(new java.util.ArrayList<Object>(java.util.Arrays.asList(parsedPosition)), symbolMessageHash);
+        client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), messageHash);
+        client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolMessageHash);
     }
 
     public Object parseWsPosition(Object position, Object... optionalArgs)
@@ -1074,7 +1080,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String positionMode = this.safeString(position, "pt");
         final Object finalMarket = market;
         final Object finalPositionMode = positionMode;
-        return this.safePosition(new java.util.HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bydfi.this.safeString(position, "id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1106,7 +1112,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     public String parseWsPositionSide(Object rawPositionSide)
     {
-        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "1", "long" );
             put( "2", "short" );
         }};
@@ -1121,12 +1127,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1142,7 +1148,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 client.future("fetchBalanceSnapshot").getFuture().join();
             }
             String messageHash = "balance";
-            return (this.watchPrivate(new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), parameters)).join();
+            return (this.watchPrivate(new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
         }).thenApply(io.github.ccxt.types.Balances::new);
 
     }
@@ -1162,12 +1168,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = new java.util.HashMap<String, Object>() {{
+            Object parameters = new HashMap<String, Object>() {{
                 put( "type", "swap" );
             }};
             Object response = (this.fetchBalance((Object)(parameters))).join();
@@ -1226,10 +1232,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String messageHash = "balance";
         if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
         {
-            Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
-            Object balances = this.safeList(data, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+            Object balances = this.safeList(data, "B", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(message, "T");
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
                 put( "datetime", Bydfi.this.iso8601(timestamp) );
@@ -1262,8 +1268,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String id = this.safeString(message, "id");
-        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
+        Object subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
         Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (Helpers.isTrue(Helpers.isEqual(isUnSubMessage, true)))
         {
@@ -1274,7 +1280,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
@@ -1345,14 +1351,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 this.handleOrder(client, message);
             } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "ACCOUNT_UPDATE")))
             {
-                Object account = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
-                Object balances = this.safeList(account, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object account = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+                Object balances = this.safeList(account, "B", new ArrayList<Object>(Arrays.asList()));
                 Object balancesLength = Helpers.getArrayLength(balances);
                 if (Helpers.isTrue(Helpers.isGreaterThan(balancesLength, 0)))
                 {
                     this.handleBalance(client, message);
                 }
-                Object positions = this.safeList(account, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object positions = this.safeList(account, "p", new ArrayList<Object>(Arrays.asList()));
                 Object positionsLength = Helpers.getArrayLength(positions);
                 if (Helpers.isTrue(Helpers.isGreaterThan(positionsLength, 0)))
                 {

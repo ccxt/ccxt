@@ -6,6 +6,12 @@ import io.github.ccxt.api.WoofiproApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Woofipro extends WoofiproApi
 {
@@ -19,16 +25,16 @@ public class Woofipro extends WoofiproApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "woofipro" );
             put( "name", "WOOFI PRO" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("KY")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("KY")) );
             put( "rateLimit", 100 );
             put( "version", "v1" );
             put( "certified", true );
             put( "pro", true );
             put( "dex", true );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
                 put( "margin", false );
@@ -139,7 +145,7 @@ public class Woofipro extends WoofiproApi
                 put( "transfer", false );
                 put( "withdraw", true );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "1m" );
                 put( "5m", "5m" );
                 put( "15m", "15m" );
@@ -152,520 +158,520 @@ public class Woofipro extends WoofiproApi
                 put( "1M", "1mon" );
                 put( "1y", "1y" );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://api-evm.orderly.org" );
                     put( "private", "https://api-evm.orderly.org" );
                 }} );
-                put( "test", new java.util.HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "public", "https://testnet-api-evm.orderly.org" );
                     put( "private", "https://testnet-api-evm.orderly.org" );
                 }} );
                 put( "www", "https://dex.woo.org" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://orderly.network/docs/build-on-omnichain/building-on-omnichain")) );
-                put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://dex.woo.org/en/orderly")) );
-                put( "referral", new java.util.HashMap<String, Object>() {{
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://orderly.network/docs/build-on-omnichain/building-on-omnichain")) );
+                put( "fees", new ArrayList<Object>(Arrays.asList("https://dex.woo.org/en/orderly")) );
+                put( "referral", new HashMap<String, Object>() {{
                     put( "url", "https://dex.woo.org/en/trade?ref=CCXT" );
                     put( "discount", 0.05 );
                 }} );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "v1", new java.util.HashMap<String, Object>() {{
-                    put( "public", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "public/volume/stats", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "v1", new HashMap<String, Object>() {{
+                    put( "public", new HashMap<String, Object>() {{
+                        put( "get", new HashMap<String, Object>() {{
+                            put( "public/volume/stats", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/broker/name", new java.util.HashMap<String, Object>() {{
+                            put( "public/broker/name", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/chain_info/{broker_id}", new java.util.HashMap<String, Object>() {{
+                            put( "public/chain_info/{broker_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/system_info", new java.util.HashMap<String, Object>() {{
+                            put( "public/system_info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/vault_balance", new java.util.HashMap<String, Object>() {{
+                            put( "public/vault_balance", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/insurancefund", new java.util.HashMap<String, Object>() {{
+                            put( "public/insurancefund", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/chain_info", new java.util.HashMap<String, Object>() {{
+                            put( "public/chain_info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "faucet/usdc", new java.util.HashMap<String, Object>() {{
+                            put( "faucet/usdc", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/account", new java.util.HashMap<String, Object>() {{
+                            put( "public/account", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "get_account", new java.util.HashMap<String, Object>() {{
+                            put( "get_account", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "registration_nonce", new java.util.HashMap<String, Object>() {{
+                            put( "registration_nonce", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "get_orderly_key", new java.util.HashMap<String, Object>() {{
+                            put( "get_orderly_key", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/liquidation", new java.util.HashMap<String, Object>() {{
+                            put( "public/liquidation", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/liquidated_positions", new java.util.HashMap<String, Object>() {{
+                            put( "public/liquidated_positions", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/config", new java.util.HashMap<String, Object>() {{
+                            put( "public/config", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/campaign/ranking", new java.util.HashMap<String, Object>() {{
+                            put( "public/campaign/ranking", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "public/campaign/stats", new java.util.HashMap<String, Object>() {{
+                            put( "public/campaign/stats", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "public/campaign/user", new java.util.HashMap<String, Object>() {{
+                            put( "public/campaign/user", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "public/campaign/stats/details", new java.util.HashMap<String, Object>() {{
+                            put( "public/campaign/stats/details", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "public/campaigns", new java.util.HashMap<String, Object>() {{
+                            put( "public/campaigns", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "public/points/leaderboard", new java.util.HashMap<String, Object>() {{
+                            put( "public/points/leaderboard", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/points", new java.util.HashMap<String, Object>() {{
+                            put( "client/points", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/points/epoch", new java.util.HashMap<String, Object>() {{
+                            put( "public/points/epoch", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/points/epoch_dates", new java.util.HashMap<String, Object>() {{
+                            put( "public/points/epoch_dates", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/points/rankings", new java.util.HashMap<String, Object>() {{
+                            put( "public/points/rankings", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/points/stages", new java.util.HashMap<String, Object>() {{
+                            put( "public/points/stages", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/referral/check_ref_code", new java.util.HashMap<String, Object>() {{
+                            put( "public/referral/check_ref_code", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/referral/verify_ref_code", new java.util.HashMap<String, Object>() {{
+                            put( "public/referral/verify_ref_code", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/admin_info", new java.util.HashMap<String, Object>() {{
+                            put( "referral/admin_info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/info", new java.util.HashMap<String, Object>() {{
+                            put( "referral/info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/referee_info", new java.util.HashMap<String, Object>() {{
+                            put( "referral/referee_info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/referee_rebate_summary", new java.util.HashMap<String, Object>() {{
+                            put( "referral/referee_rebate_summary", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/referee_history", new java.util.HashMap<String, Object>() {{
+                            put( "referral/referee_history", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/referral_history", new java.util.HashMap<String, Object>() {{
+                            put( "referral/referral_history", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/rebate_summary", new java.util.HashMap<String, Object>() {{
+                            put( "referral/rebate_summary", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/distribution_history", new java.util.HashMap<String, Object>() {{
+                            put( "client/distribution_history", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "tv/config", new java.util.HashMap<String, Object>() {{
+                            put( "tv/config", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "tv/history", new java.util.HashMap<String, Object>() {{
+                            put( "tv/history", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "tv/symbol_info", new java.util.HashMap<String, Object>() {{
+                            put( "tv/symbol_info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "tv/kline_history", new java.util.HashMap<String, Object>() {{
+                            put( "tv/kline_history", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/funding_rate_history", new java.util.HashMap<String, Object>() {{
+                            put( "public/funding_rate_history", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/funding_rate/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "public/funding_rate/{symbol}", new HashMap<String, Object>() {{
                                 put( "cost", 0.33 );
                             }} );
-                            put( "public/funding_rates", new java.util.HashMap<String, Object>() {{
+                            put( "public/funding_rates", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/info", new java.util.HashMap<String, Object>() {{
+                            put( "public/info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/info/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "public/info/{symbol}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/market_trades", new java.util.HashMap<String, Object>() {{
+                            put( "public/market_trades", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/token", new java.util.HashMap<String, Object>() {{
+                            put( "public/token", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/futures", new java.util.HashMap<String, Object>() {{
+                            put( "public/futures", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "public/futures/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "public/futures/{symbol}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "staking/valor2/batch_info", new java.util.HashMap<String, Object>() {{
+                            put( "staking/valor2/batch_info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "staking/valor2/pool_info", new java.util.HashMap<String, Object>() {{
+                            put( "staking/valor2/pool_info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "staking/valor2/revenue_buyback", new java.util.HashMap<String, Object>() {{
+                            put( "staking/valor2/revenue_buyback", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
-                        put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "register_account", new java.util.HashMap<String, Object>() {{
+                        put( "post", new HashMap<String, Object>() {{
+                            put( "register_account", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
                     }} );
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "client/key_info", new java.util.HashMap<String, Object>() {{
+                    put( "private", new HashMap<String, Object>() {{
+                        put( "get", new HashMap<String, Object>() {{
+                            put( "client/key_info", new HashMap<String, Object>() {{
                                 put( "cost", 6 );
                             }} );
-                            put( "client/orderly_key_ip_restriction", new java.util.HashMap<String, Object>() {{
+                            put( "client/orderly_key_ip_restriction", new HashMap<String, Object>() {{
                                 put( "cost", 6 );
                             }} );
-                            put( "order/{oid}", new java.util.HashMap<String, Object>() {{
+                            put( "order/{oid}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/order/{client_order_id}", new java.util.HashMap<String, Object>() {{
+                            put( "client/order/{client_order_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "algo/order/{oid}", new java.util.HashMap<String, Object>() {{
+                            put( "algo/order/{oid}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "algo/client/order/{client_order_id}", new java.util.HashMap<String, Object>() {{
+                            put( "algo/client/order/{client_order_id}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "orders", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "algo/orders", new java.util.HashMap<String, Object>() {{
+                            put( "algo/orders", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "trade/{tid}", new java.util.HashMap<String, Object>() {{
+                            put( "trade/{tid}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "trades", new java.util.HashMap<String, Object>() {{
+                            put( "trades", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "order/{oid}/trades", new java.util.HashMap<String, Object>() {{
+                            put( "order/{oid}/trades", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/liquidator_liquidations", new java.util.HashMap<String, Object>() {{
+                            put( "client/liquidator_liquidations", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "liquidations", new java.util.HashMap<String, Object>() {{
+                            put( "liquidations", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "asset/history", new java.util.HashMap<String, Object>() {{
+                            put( "asset/history", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "client/holding", new java.util.HashMap<String, Object>() {{
+                            put( "client/holding", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "withdraw_nonce", new java.util.HashMap<String, Object>() {{
+                            put( "withdraw_nonce", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "settle_nonce", new java.util.HashMap<String, Object>() {{
+                            put( "settle_nonce", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "transfer_nonce", new java.util.HashMap<String, Object>() {{
+                            put( "transfer_nonce", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "pnl_settlement/history", new java.util.HashMap<String, Object>() {{
+                            put( "pnl_settlement/history", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "volume/user/daily", new java.util.HashMap<String, Object>() {{
+                            put( "volume/user/daily", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "volume/user/stats", new java.util.HashMap<String, Object>() {{
+                            put( "volume/user/stats", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "client/statistics", new java.util.HashMap<String, Object>() {{
+                            put( "client/statistics", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "client/info", new java.util.HashMap<String, Object>() {{
+                            put( "client/info", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "client/statistics/daily", new java.util.HashMap<String, Object>() {{
+                            put( "client/statistics/daily", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "positions", new java.util.HashMap<String, Object>() {{
+                            put( "positions", new HashMap<String, Object>() {{
                                 put( "cost", 3.33 );
                             }} );
-                            put( "position/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "position/{symbol}", new HashMap<String, Object>() {{
                                 put( "cost", 3.33 );
                             }} );
-                            put( "funding_fee/history", new java.util.HashMap<String, Object>() {{
+                            put( "funding_fee/history", new HashMap<String, Object>() {{
                                 put( "cost", 30 );
                             }} );
-                            put( "notification/inbox/notifications", new java.util.HashMap<String, Object>() {{
+                            put( "notification/inbox/notifications", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "notification/inbox/unread", new java.util.HashMap<String, Object>() {{
+                            put( "notification/inbox/unread", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "volume/broker/daily", new java.util.HashMap<String, Object>() {{
+                            put( "volume/broker/daily", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "broker/fee_rate/default", new java.util.HashMap<String, Object>() {{
+                            put( "broker/fee_rate/default", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "broker/user_info", new java.util.HashMap<String, Object>() {{
+                            put( "broker/user_info", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "broker/daily_fee_revenue", new java.util.HashMap<String, Object>() {{
+                            put( "broker/daily_fee_revenue", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "orderbook/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "orderbook/{symbol}", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "kline", new java.util.HashMap<String, Object>() {{
+                            put( "kline", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/margin_modes", new java.util.HashMap<String, Object>() {{
+                            put( "client/margin_modes", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                            put( "client/leverages", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/points/user_statistics", new java.util.HashMap<String, Object>() {{
+                            put( "client/points/user_statistics", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "staking/valor2/redeem", new java.util.HashMap<String, Object>() {{
+                            put( "staking/valor2/redeem", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/admin/info", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin/info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/admin/referee_list", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin/referee_list", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/admin/summary", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin/summary", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/max_rebate_rate", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/max_rebate_rate", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/rebate_info", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/rebate_info", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/referee_list", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/referee_list", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/statistics", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/statistics", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "referral/multi_level/volume_prerequisite", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/volume_prerequisite", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
-                        put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "orderly_key", new java.util.HashMap<String, Object>() {{
+                        put( "post", new HashMap<String, Object>() {{
+                            put( "orderly_key", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/set_orderly_key_ip_restriction", new java.util.HashMap<String, Object>() {{
+                            put( "client/set_orderly_key_ip_restriction", new HashMap<String, Object>() {{
                                 put( "cost", 6 );
                             }} );
-                            put( "client/reset_orderly_key_ip_restriction", new java.util.HashMap<String, Object>() {{
+                            put( "client/reset_orderly_key_ip_restriction", new HashMap<String, Object>() {{
                                 put( "cost", 6 );
                             }} );
-                            put( "order", new java.util.HashMap<String, Object>() {{
+                            put( "order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "batch-order", new java.util.HashMap<String, Object>() {{
+                            put( "batch-order", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "algo/order", new java.util.HashMap<String, Object>() {{
+                            put( "algo/order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "liquidation", new java.util.HashMap<String, Object>() {{
+                            put( "liquidation", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "claim_insurance_fund", new java.util.HashMap<String, Object>() {{
+                            put( "claim_insurance_fund", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "withdraw_request", new java.util.HashMap<String, Object>() {{
+                            put( "withdraw_request", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "settle_pnl", new java.util.HashMap<String, Object>() {{
+                            put( "settle_pnl", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "notification/inbox/mark_read", new java.util.HashMap<String, Object>() {{
+                            put( "notification/inbox/mark_read", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "notification/inbox/mark_read_all", new java.util.HashMap<String, Object>() {{
+                            put( "notification/inbox/mark_read_all", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "client/leverage", new java.util.HashMap<String, Object>() {{
+                            put( "client/leverage", new HashMap<String, Object>() {{
                                 put( "cost", 120 );
                             }} );
-                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                            put( "client/leverages", new HashMap<String, Object>() {{
                                 put( "cost", 120 );
                             }} );
-                            put( "client/margin_mode", new java.util.HashMap<String, Object>() {{
+                            put( "client/margin_mode", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "position_margin", new java.util.HashMap<String, Object>() {{
+                            put( "position_margin", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/maintenance_config", new java.util.HashMap<String, Object>() {{
+                            put( "client/maintenance_config", new HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
-                            put( "delegate_signer", new java.util.HashMap<String, Object>() {{
+                            put( "delegate_signer", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "delegate_orderly_key", new java.util.HashMap<String, Object>() {{
+                            put( "delegate_orderly_key", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "delegate_settle_pnl", new java.util.HashMap<String, Object>() {{
+                            put( "delegate_settle_pnl", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "delegate_withdraw_request", new java.util.HashMap<String, Object>() {{
+                            put( "delegate_withdraw_request", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "broker/fee_rate/set", new java.util.HashMap<String, Object>() {{
+                            put( "broker/fee_rate/set", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "broker/fee_rate/set_default", new java.util.HashMap<String, Object>() {{
+                            put( "broker/fee_rate/set_default", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "broker/fee_rate/default", new java.util.HashMap<String, Object>() {{
+                            put( "broker/fee_rate/default", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/create", new java.util.HashMap<String, Object>() {{
+                            put( "referral/create", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/update", new java.util.HashMap<String, Object>() {{
+                            put( "referral/update", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/bind", new java.util.HashMap<String, Object>() {{
+                            put( "referral/bind", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/edit_split", new java.util.HashMap<String, Object>() {{
+                            put( "referral/edit_split", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/edit_referee_description", new java.util.HashMap<String, Object>() {{
+                            put( "referral/edit_referee_description", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/multi_level/admin/create/affiliate", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin/create/affiliate", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/multi_level/admin/reset/affiliate", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin/reset/affiliate", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/multi_level/admin/update", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin/update", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/multi_level/admin/update/affiliate", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/admin/update/affiliate", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/multi_level/claim_code", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/claim_code", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/multi_level/rebate_rate/set_default", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/rebate_rate/set_default", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
-                            put( "referral/multi_level/rebate_rate/update", new java.util.HashMap<String, Object>() {{
+                            put( "referral/multi_level/rebate_rate/update", new HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
                         }} );
-                        put( "put", new java.util.HashMap<String, Object>() {{
-                            put( "order", new java.util.HashMap<String, Object>() {{
+                        put( "put", new HashMap<String, Object>() {{
+                            put( "order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "algo/order", new java.util.HashMap<String, Object>() {{
+                            put( "algo/order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
-                        put( "delete", new java.util.HashMap<String, Object>() {{
-                            put( "order", new java.util.HashMap<String, Object>() {{
+                        put( "delete", new HashMap<String, Object>() {{
+                            put( "order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "algo/order", new java.util.HashMap<String, Object>() {{
+                            put( "algo/order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/order", new java.util.HashMap<String, Object>() {{
+                            put( "client/order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "algo/client/order", new java.util.HashMap<String, Object>() {{
+                            put( "algo/client/order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "algo/orders", new java.util.HashMap<String, Object>() {{
+                            put( "algo/orders", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "orders", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "batch-order", new java.util.HashMap<String, Object>() {{
+                            put( "batch-order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "client/batch-order", new java.util.HashMap<String, Object>() {{
+                            put( "client/batch-order", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
                     }} );
                 }} );
-                put( "v2", new java.util.HashMap<String, Object>() {{
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "post", new java.util.HashMap<String, Object>() {{
-                            put( "internal_transfer", new java.util.HashMap<String, Object>() {{
+                put( "v2", new HashMap<String, Object>() {{
+                    put( "private", new HashMap<String, Object>() {{
+                        put( "post", new HashMap<String, Object>() {{
+                            put( "internal_transfer", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
                     }} );
                 }} );
             }} );
-            put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
+            put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
                 put( "secret", true );
                 put( "accountId", true );
                 put( "privateKey", false );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "maker", Woofipro.this.parseNumber("0.0002") );
                     put( "taker", Woofipro.this.parseNumber("0.0005") );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "sandboxMode", false );
                 put( "brokerId", "CCXT" );
                 put( "verifyingContractAddress", "0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203" );
             }} );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "default", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "default", new HashMap<String, Object>() {{
                     put( "sandbox", true );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", true );
                         put( "triggerPriceType", null );
@@ -673,7 +679,7 @@ public class Woofipro extends WoofiproApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
                             put( "FOK", true );
                             put( "PO", true );
@@ -687,23 +693,23 @@ public class Woofipro extends WoofiproApi
                         put( "selfTradePrevention", false );
                         put( "iceberg", true );
                     }} );
-                    put( "createOrders", new java.util.HashMap<String, Object>() {{
+                    put( "createOrders", new HashMap<String, Object>() {{
                         put( "max", 10 );
                     }} );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
                         put( "daysBack", null );
                         put( "untilDays", 100000 );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", true );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
                         put( "trigger", true );
@@ -711,7 +717,7 @@ public class Woofipro extends WoofiproApi
                         put( "symbolRequired", false );
                     }} );
                     put( "fetchOrders", null );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
                         put( "daysBack", null );
@@ -721,37 +727,37 @@ public class Woofipro extends WoofiproApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 1000 );
                     }} );
                 }} );
-                put( "spot", new java.util.HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "extends", "default" );
                 }} );
-                put( "forDerivatives", new java.util.HashMap<String, Object>() {{
+                put( "forDerivatives", new HashMap<String, Object>() {{
                     put( "extends", "default" );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "triggerPriceType", null );
-                        put( "attachedStopLossTakeProfit", new java.util.HashMap<String, Object>() {{
+                        put( "attachedStopLossTakeProfit", new HashMap<String, Object>() {{
                             put( "triggerPriceType", null );
                             put( "price", false );
                         }} );
                     }} );
                 }} );
-                put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "linear", new java.util.HashMap<String, Object>() {{
+                put( "swap", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "forDerivatives" );
                     }} );
                     put( "inverse", null );
                 }} );
-                put( "future", new java.util.HashMap<String, Object>() {{
+                put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
                     put( "inverse", null );
                 }} );
             }} );
-            put( "commonCurrencies", new java.util.HashMap<String, Object>() {{}} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{
+            put( "commonCurrencies", new HashMap<String, Object>() {{}} );
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
                     put( "-1000", ExchangeError.class );
                     put( "-1001", AuthenticationError.class );
                     put( "-1002", AuthenticationError.class );
@@ -777,7 +783,7 @@ public class Woofipro extends WoofiproApi
                     put( "2", BadRequest.class );
                     put( "15", BadRequest.class );
                 }} );
-                put( "broad", new java.util.HashMap<String, Object>() {{}} );
+                put( "broad", new HashMap<String, Object>() {{}} );
             }} );
             put( "precisionMode", TICK_SIZE );
         }});
@@ -797,13 +803,13 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Status> fetchStatus(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -814,7 +820,7 @@ public class Woofipro extends WoofiproApi
             //         "timestamp": "1709274106602"
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String status = this.safeString(data, "status");
             if (Helpers.isTrue(Helpers.isEqual(status, null)))
             {
@@ -827,7 +833,7 @@ public class Woofipro extends WoofiproApi
                 status = "maintenance";
             }
             final Object finalStatus = status;
-            return new java.util.HashMap<String, Object>() {{
+            return new HashMap<String, Object>() {{
                 put( "status", finalStatus );
                 put( "updated", null );
                 put( "eta", null );
@@ -846,13 +852,13 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public java.util.concurrent.CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -913,7 +919,7 @@ public class Woofipro extends WoofiproApi
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         final Object finalMarketId = marketId;
         final Object finalBase = base;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -937,24 +943,24 @@ public class Woofipro extends WoofiproApi
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Woofipro.this.safeNumber(market, "base_tick") );
                 put( "price", Woofipro.this.safeNumber(market, "quote_tick") );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "amount", new java.util.HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", Woofipro.this.safeNumber(market, "base_min") );
                     put( "max", Woofipro.this.safeNumber(market, "base_max") );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", Woofipro.this.safeNumber(market, "quote_min") );
                     put( "max", Woofipro.this.safeNumber(market, "quote_max") );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", Woofipro.this.safeNumber(market, "min_notional") );
                     put( "max", null );
                 }} );
@@ -972,13 +978,13 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicInfo(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.v1PublicGetPublicInfo(parameters)).join();
             //
             //   {
             //     "success": true,
@@ -1014,8 +1020,8 @@ public class Woofipro extends WoofiproApi
             //     }
             //   }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(rows);
         });
 
@@ -1030,13 +1036,13 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             Object tokenPromise = this.v1PublicGetPublicToken(parameters);
             //
             // {
@@ -1061,18 +1067,18 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object chainPromise = this.v1PublicGetPublicChainInfo(parameters);
-            var tokenResponsechainResponseVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(tokenPromise, chainPromise)))).join();
-            var tokenResponse = ((java.util.List<Object>) tokenResponsechainResponseVariable).get(0);
-            var chainResponse = ((java.util.List<Object>) tokenResponsechainResponseVariable).get(1);
-            Object tokenData = this.safeDict(tokenResponse, "data", new java.util.HashMap<String, Object>() {{}});
-            Object tokenRows = this.safeList(tokenData, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object chainData = this.safeDict(chainResponse, "data", new java.util.HashMap<String, Object>() {{}});
-            Object chainRows = this.safeList(chainData, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> indexedChains = this.indexBy(chainRows, "chain_id");
+            var tokenResponsechainResponseVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(tokenPromise, chainPromise)))).join();
+            var tokenResponse = ((List<Object>) tokenResponsechainResponseVariable).get(0);
+            var chainResponse = ((List<Object>) tokenResponsechainResponseVariable).get(1);
+            Object tokenData = this.safeDict(tokenResponse, "data", new HashMap<String, Object>() {{}});
+            Object tokenRows = this.safeList(tokenData, "rows", new ArrayList<Object>(Arrays.asList()));
+            Object chainData = this.safeDict(chainResponse, "data", new HashMap<String, Object>() {{}});
+            Object chainRows = this.safeList(chainData, "rows", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> indexedChains = this.indexBy(chainRows, "chain_id");
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokenRows)); i++)
             {
                 Object token = Helpers.GetValue(tokenRows, i);
-                Object parsed = this.parseCurrency(new java.util.HashMap<String, Object>() {{
+                Object parsed = this.parseCurrency(new HashMap<String, Object>() {{
                     put( "_token", token );
                     put( "_indexedChains", indexedChains );
                 }});
@@ -1089,12 +1095,12 @@ public class Woofipro extends WoofiproApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object token = this.safeDict(rawCurrency, "_token", new java.util.HashMap<String, Object>() {{}});
+        Object token = this.safeDict(rawCurrency, "_token", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(token, "token");
-        Object networks = this.safeList(token, "chain_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = this.safeList(token, "chain_details", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeCurrencyCode(currencyId);
-        Object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> resultingNetworks = new java.util.HashMap<String, Object>() {{}};
+        Object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new HashMap<String, Object>() {{}});
+        Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
             Object networkEntry = Helpers.GetValue(networks, j);
@@ -1105,15 +1111,15 @@ public class Woofipro extends WoofiproApi
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(resultingNetworks, networkCode, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(resultingNetworks, networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
-    put( "limits", new java.util.HashMap<String, Object>() {{
-        put( "withdraw", new java.util.HashMap<String, Object>() {{
+    put( "limits", new HashMap<String, Object>() {{
+        put( "withdraw", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
         }} );
-        put( "deposit", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
         }} );
@@ -1123,14 +1129,14 @@ public class Woofipro extends WoofiproApi
     put( "withdraw", null );
     put( "fee", Woofipro.this.safeNumber(networkEntry, "withdrawal_fee") );
     put( "precision", Woofipro.this.parseNumber(Woofipro.this.parsePrecision(Woofipro.this.safeString(networkEntry, "decimals"))) );
-    put( "info", new java.util.HashMap<String, Object>() {{
+    put( "info", new HashMap<String, Object>() {{
         put( "network", networkEntry );
         put( "networkRow", networkRow );
     }} );
 }});
             }
         }
-        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", null );
             put( "code", code );
@@ -1140,12 +1146,12 @@ public class Woofipro extends WoofiproApi
             put( "networks", resultingNetworks );
             put( "deposit", null );
             put( "withdraw", null );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", Woofipro.this.safeNumber(token, "minimum_withdraw_amount") );
                     put( "max", null );
                 }} );
@@ -1163,7 +1169,7 @@ public class Woofipro extends WoofiproApi
             String feeCurrencyId = this.safeString(item, feeTokenKey);
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
             }};
@@ -1226,7 +1232,7 @@ public class Woofipro extends WoofiproApi
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", timestamp );
             put( "datetime", Woofipro.this.iso8601(timestamp) );
@@ -1254,27 +1260,27 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicMarketTrades(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PublicGetPublicMarketTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1290,8 +1296,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(rows, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -1320,7 +1326,7 @@ public class Woofipro extends WoofiproApi
         String nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
         String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         final Object finalMarket = market;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", fundingRate );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "markPrice", null );
@@ -1344,7 +1350,7 @@ public class Woofipro extends WoofiproApi
 
     public String parseFundingInterval(Object interval)
     {
-        java.util.Map<String, Object> intervals = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> intervals = new HashMap<String, Object>() {{
             put( "3600000", "1h" );
             put( "14400000", "4h" );
             put( "28800000", "8h" );
@@ -1363,12 +1369,12 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingInterval(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingInterval(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
         }).thenApply(io.github.ccxt.types.FundingRate::new);
 
@@ -1383,21 +1389,21 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1413,7 +1419,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
         }).thenApply(io.github.ccxt.types.FundingRate::new);
 
@@ -1428,19 +1434,19 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRates(parameters)).join();
+            Map<String, Object> response = (this.v1PublicGetPublicFundingRates(parameters)).join();
             //
             // {
             //     "success": true,
@@ -1458,8 +1464,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rows, symbols);
         }).thenApply(io.github.ccxt.types.FundingRates::new);
 
@@ -1490,7 +1496,7 @@ public class Woofipro extends WoofiproApi
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         final Object finalMarket = market;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Woofipro.this.iso8601(timestamp) );
@@ -1525,21 +1531,21 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1562,7 +1568,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             return this.parseTicker(data, market);
         }).thenApply(io.github.ccxt.types.Ticker::new);
@@ -1578,19 +1584,19 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
+            Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
             //
             // {
             //     "success": true,
@@ -1615,10 +1621,10 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "timestamp");
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object row = Helpers.GetValue(rows, i);
@@ -1627,10 +1633,10 @@ public class Woofipro extends WoofiproApi
                 {
                     continue;
                 }
-                java.util.Map<String, Object> ticker = this.extend(new java.util.HashMap<String, Object>() {{
+                Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                 }}, row);
-                ((java.util.List<Object>)result).add(this.parseTicker(ticker));
+                ((List<Object>)result).add(this.parseTicker(ticker));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(io.github.ccxt.types.Tickers::new);
@@ -1659,7 +1665,7 @@ public class Woofipro extends WoofiproApi
         Long timestamp = this.safeInteger(interest, "timestamp");
         Double amount = this.safeNumber2(interest, "open_interest", "openInterest");
         final Object finalMarket = market;
-        return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "openInterestAmount", amount );
             put( "openInterestValue", null );
@@ -1678,21 +1684,21 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1707,7 +1713,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOpenInterest(data, market);
         }).thenApply(io.github.ccxt.types.OpenInterest::new);
@@ -1723,19 +1729,19 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
+            Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
             //
             // {
             //     "success": true,
@@ -1752,10 +1758,10 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "timestamp");
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object row = Helpers.GetValue(rows, i);
@@ -1764,10 +1770,10 @@ public class Woofipro extends WoofiproApi
                 {
                     continue;
                 }
-                java.util.Map<String, Object> interest = this.extend(new java.util.HashMap<String, Object>() {{
+                Map<String, Object> interest = this.extend(new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                 }}, row);
-                ((java.util.List<Object>)result).add(this.parseOpenInterest(interest));
+                ((List<Object>)result).add(this.parseOpenInterest(interest));
             }
             return this.filterByArray(result, "symbol", symbols);
         }).thenApply(io.github.ccxt.types.OpenInterests::new);
@@ -1787,31 +1793,31 @@ public class Woofipro extends WoofiproApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "page", 25)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
@@ -1819,10 +1825,10 @@ public class Woofipro extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "start_t", since);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters, 0.001);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters, 0.001);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1842,15 +1848,15 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object result = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object result = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
                 String marketId = this.safeString(entry, "symbol");
                 Long timestamp = this.safeInteger(entry, "funding_rate_timestamp");
-                ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
+                ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Woofipro.this.safeSymbol(marketId) );
                     put( "fundingRate", Woofipro.this.safeNumber(entry, "funding_rate") );
@@ -1858,7 +1864,7 @@ public class Woofipro extends WoofiproApi
                     put( "datetime", Woofipro.this.iso8601(timestamp) );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+            List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingRateHistory::new));
 
@@ -1888,7 +1894,7 @@ public class Woofipro extends WoofiproApi
         String paymentType = this.safeString(income, "payment_type");
         amount = ((Helpers.isTrue((Helpers.isEqual(paymentType, "Pay"))))) ? Precise.stringNeg(amount) : amount;
         final Object finalAmount = amount;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", symbol );
             put( "code", code );
@@ -1912,28 +1918,28 @@ public class Woofipro extends WoofiproApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.FundingHistory>> fetchFundingHistory(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1945,7 +1951,7 @@ public class Woofipro extends WoofiproApi
                 Helpers.addElementToObject(request, "start_t", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "end_t", until);
@@ -1954,7 +1960,7 @@ public class Woofipro extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, 500));
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1978,8 +1984,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(rows, market, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.FundingHistory::new));
 
@@ -1993,17 +1999,17 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetClientInfo(parameters)).join();
+            Map<String, Object> response = (this.v1PrivateGetClientInfo(parameters)).join();
             //
             // {
             //     "success": true,
@@ -2031,15 +2037,15 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String maker = this.safeString(data, "futures_maker_fee_rate");
             String taker = this.safeString(data, "futures_taker_fee_rate");
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> symbols = this.symbols;
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Woofipro.this.parseNumber(Precise.stringDiv(maker, "10000")) );
@@ -2063,19 +2069,19 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2083,7 +2089,7 @@ public class Woofipro extends WoofiproApi
                 limit = Helpers.mathMin(limit, 1000);
                 Helpers.addElementToObject(request, "max_level", limit);
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -2101,7 +2107,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -2111,7 +2117,7 @@ public class Woofipro extends WoofiproApi
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "start_timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "start_timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
     }
 
     /**
@@ -2126,21 +2132,21 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", Woofipro.this.safeString(Woofipro.this.timeframes, timeframe, timeframe) );
             }};
@@ -2148,8 +2154,8 @@ public class Woofipro extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetKline(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.v1PrivateGetKline(this.extend(request, parameters))).join();
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             //
             // {
             //     "success": true,
@@ -2170,7 +2176,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, timeframe, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
@@ -2224,8 +2230,8 @@ public class Woofipro extends WoofiproApi
         //   }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "created_time", "createdTime")));
-        String orderId = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "orderId", "algoOrderId")));
+        Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("timestamp", "created_time", "createdTime")));
+        String orderId = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_id", "orderId", "algoOrderId")));
         Object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
@@ -2241,7 +2247,7 @@ public class Woofipro extends WoofiproApi
             status = ((Helpers.isTrue((success)))) ? "NEW" : "REJECTED";
         }
         String side = this.safeStringLower(order, "side");
-        String filled = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
+        String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
         Object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
         String remaining = Precise.stringSub(amount, filled);
         Object fee = this.safeValue2(order, "total_fee", "totalFee");
@@ -2254,7 +2260,7 @@ public class Woofipro extends WoofiproApi
         if (Helpers.isTrue(!Helpers.isEqual(childOrders, null)))
         {
             Object first = this.safeValue(childOrders, 0);
-            Object innerChildOrders = this.safeList(first, "childOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object innerChildOrders = this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
             Object innerChildOrdersLength = Helpers.getArrayLength(innerChildOrders);
             if (Helpers.isTrue(Helpers.isGreaterThan(innerChildOrdersLength, 0)))
             {
@@ -2268,7 +2274,7 @@ public class Woofipro extends WoofiproApi
         final Object finalStatus = status;
         final Object finalTakeProfitPrice = takeProfitPrice;
         final Object finalStopLossPrice = stopLossPrice;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -2292,7 +2298,7 @@ public class Woofipro extends WoofiproApi
             put( "remaining", remaining );
             put( "cost", cost );
             put( "trades", transactions );
-            put( "fee", new java.util.HashMap<String, Object>() {{
+            put( "fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", feeCurrency );
             }} );
@@ -2302,7 +2308,7 @@ public class Woofipro extends WoofiproApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "ioc", "IOC" );
             put( "fok", "FOK" );
             put( "post_only", "PO" );
@@ -2314,7 +2320,7 @@ public class Woofipro extends WoofiproApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
-            java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> statuses = new HashMap<String, Object>() {{
                 put( "NEW", "open" );
                 put( "FILLED", "closed" );
                 put( "CANCEL_SENT", "canceled" );
@@ -2332,7 +2338,7 @@ public class Woofipro extends WoofiproApi
 
     public String parseOrderType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
             put( "POST_ONLY", "limit" );
@@ -2343,7 +2349,7 @@ public class Woofipro extends WoofiproApi
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
@@ -2371,10 +2377,10 @@ public class Woofipro extends WoofiproApi
         {
             throw new ArgumentsRequired(Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object orderSide = ((String)side).toUpperCase();
         final Object finalOrderSide = orderSide;
-        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", finalOrderSide );
         }};
@@ -2420,7 +2426,7 @@ public class Woofipro extends WoofiproApi
         {
             Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
         }
-        String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+        String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -2432,41 +2438,41 @@ public class Woofipro extends WoofiproApi
         } else if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
         {
             Helpers.addElementToObject(request, "algo_type", "TP_SL");
-            java.util.List<Object> childOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> childOrders = new ArrayList<Object>(Arrays.asList());
             String closeSide = ((Helpers.isTrue((Helpers.isEqual(orderSide, "BUY"))))) ? "SELL" : "BUY";
             if (Helpers.isTrue(hasStopLoss))
             {
                 Object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
-                java.util.Map<String, Object> stopLossOrder = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> stopLossOrder = new HashMap<String, Object>() {{
                     put( "side", closeSide );
                     put( "algo_type", "TP_SL" );
                     put( "trigger_price", Woofipro.this.priceToPrecision(symbol, stopLossPrice) );
                     put( "type", "LIMIT" );
                     put( "reduce_only", true );
                 }};
-                ((java.util.List<Object>)childOrders).add(stopLossOrder);
+                ((List<Object>)childOrders).add(stopLossOrder);
             }
             if (Helpers.isTrue(hasTakeProfit))
             {
                 Object takeProfitPrice = this.safeValue2(takeProfit, "triggerPrice", "price", takeProfit);
-                java.util.Map<String, Object> takeProfitOrder = new java.util.HashMap<String, Object>() {{
+                Map<String, Object> takeProfitOrder = new HashMap<String, Object>() {{
                     put( "side", closeSide );
                     put( "algo_type", "TP_SL" );
                     put( "trigger_price", Woofipro.this.priceToPrecision(symbol, takeProfitPrice) );
                     put( "type", "LIMIT" );
                     put( "reduce_only", true );
                 }};
-                ((java.util.List<Object>)childOrders).add(takeProfitOrder);
+                ((List<Object>)childOrders).add(takeProfitOrder);
             }
-            java.util.Map<String, Object> outterOrder = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> outterOrder = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "reduce_only", false );
                 put( "algo_type", "POSITIONAL_TP_SL" );
                 put( "child_orders", childOrders );
             }};
-            Helpers.addElementToObject(request, "child_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList(outterOrder)));
+            Helpers.addElementToObject(request, "child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
         }
-        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));
+        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));
         return this.extend(request, parameters);
     }
 
@@ -2492,18 +2498,18 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -2517,7 +2523,7 @@ public class Woofipro extends WoofiproApi
             {
                 response = (this.v1PrivatePostOrder(request)).join();
             }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             Object order = this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
@@ -2535,17 +2541,17 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -2554,7 +2560,7 @@ public class Woofipro extends WoofiproApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
                 Object stopLoss = this.safeValue(orderParams, "stopLoss");
                 Object takeProfit = this.safeValue(orderParams, "takeProfit");
@@ -2564,12 +2570,12 @@ public class Woofipro extends WoofiproApi
                     throw new NotSupported(Helpers.add(this.id, " createOrders() only support non-stop order")) ;
                 }
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-                ((java.util.List<Object>)ordersRequests).add(orderRequest);
+                ((List<Object>)ordersRequests).add(orderRequest);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
-            java.util.Map<String, Object> response = (this.v1PrivatePostBatchOrder(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivatePostBatchOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -2587,8 +2593,8 @@ public class Woofipro extends WoofiproApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rows);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
@@ -2612,23 +2618,23 @@ public class Woofipro extends WoofiproApi
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
     {
         final Object side3 = side2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object side = side3;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
+            String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -2644,7 +2650,7 @@ public class Woofipro extends WoofiproApi
             {
                 Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -2674,8 +2680,8 @@ public class Woofipro extends WoofiproApi
                 {
                     Helpers.addElementToObject(request, "order_type", orderType);
                 }
-                String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
+                String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -2693,7 +2699,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOrder(data, market);
         }).thenApply(io.github.ccxt.types.Order::new);
@@ -2715,15 +2721,15 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
@@ -2738,7 +2744,7 @@ public class Woofipro extends WoofiproApi
                 market = this.market(symbol);
             }
             final Object finalMarket = market;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Woofipro.this.safeString(finalMarket, "id") );
             }};
             String clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
@@ -2750,7 +2756,7 @@ public class Woofipro extends WoofiproApi
                 if (Helpers.isTrue(isByClientOrder))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific);
-                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
                     response = (this.v1PrivateDeleteAlgoClientOrder(this.extend(request, parameters))).join();
                 } else
                 {
@@ -2762,7 +2768,7 @@ public class Woofipro extends WoofiproApi
                 if (Helpers.isTrue(isByClientOrder))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific);
-                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+                    parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
                     response = (this.v1PrivateDeleteClientOrder(this.extend(request, parameters))).join();
                 } else
                 {
@@ -2786,7 +2792,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             final Object finalSymbol = symbol;
-            java.util.Map<String, Object> extendParams = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> extendParams = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             if (Helpers.isTrue(isByClientOrder))
@@ -2798,10 +2804,10 @@ public class Woofipro extends WoofiproApi
             }
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                Object parsedResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
+                Object parsedResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new HashMap<String, Object>() {{}} : response;
                 return this.extend(this.parseOrder(parsedResponse), extendParams);
             }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.extend(this.parseOrder(data), extendParams);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -2819,28 +2825,28 @@ public class Woofipro extends WoofiproApi
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object clientOrderIds = this.safeListN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
-                Helpers.addElementToObject(request, "client_order_ids", String.join(",", (java.util.List<String>)clientOrderIds));
+                Helpers.addElementToObject(request, "client_order_ids", String.join(",", (List<String>)clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "order_ids", String.join(",", (java.util.List<String>)ids));
+                Helpers.addElementToObject(request, "order_ids", String.join(",", (List<String>)ids));
                 response = (this.v1PrivateDeleteBatchOrder(this.extend(request, parameters))).join();
             }
             //
@@ -2853,7 +2859,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             final Object finalResponse = response;
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
@@ -2871,23 +2877,23 @@ public class Woofipro extends WoofiproApi
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
@@ -2914,7 +2920,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             final Object finalResponse = response;
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
@@ -2936,13 +2942,13 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -2953,9 +2959,9 @@ public class Woofipro extends WoofiproApi
                 market = this.market(symbol);
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
@@ -3008,7 +3014,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object orders = this.safeDict(response, "data", response);
-            Object parsedOrders = ((Helpers.isTrue((Helpers.isEqual(orders, null))))) ? new java.util.HashMap<String, Object>() {{}} : orders;
+            Object parsedOrders = ((Helpers.isTrue((Helpers.isEqual(orders, null))))) ? new HashMap<String, Object>() {{}} : orders;
             return this.parseOrder(parsedOrders, market);
         }).thenApply(io.github.ccxt.types.Order::new);
 
@@ -3031,15 +3037,15 @@ public class Woofipro extends WoofiproApi
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3047,16 +3053,16 @@ public class Woofipro extends WoofiproApi
             Object paginate = false;
             Object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
             Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 100 : 500;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", maxLimit)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             Object market = null;
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -3077,9 +3083,9 @@ public class Woofipro extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "algo_type", "STOP");
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
@@ -3146,20 +3152,20 @@ public class Woofipro extends WoofiproApi
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "INCOMPLETE" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
@@ -3184,20 +3190,20 @@ public class Woofipro extends WoofiproApi
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "COMPLETED" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
@@ -3217,15 +3223,15 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3235,10 +3241,10 @@ public class Woofipro extends WoofiproApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "oid", id );
             }};
-            java.util.Map<String, Object> response = (this.v1PrivateGetOrderOidTrades(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetOrderOidTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -3260,8 +3266,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -3280,28 +3286,28 @@ public class Woofipro extends WoofiproApi
      * @param {int} params.until timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3319,10 +3325,10 @@ public class Woofipro extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "size", 500);
             }
-            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters);
-            request = ((java.util.List<Object>) requestparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -3349,8 +3355,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
 
@@ -3358,10 +3364,10 @@ public class Woofipro extends WoofiproApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object balances = this.safeList(response, "holding", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object balances = this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -3385,17 +3391,17 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetClientHolding(parameters)).join();
+            Map<String, Object> response = (this.v1PrivateGetClientHolding(parameters)).join();
             //
             // {
             //     "success": true,
@@ -3417,20 +3423,20 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> getAssetHistoryRows(Object... optionalArgs)
+    public CompletableFuture<Object> getAssetHistoryRows(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -3451,7 +3457,7 @@ public class Woofipro extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "type", transactionType);
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetAssetHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetAssetHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -3477,8 +3483,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList(currency, this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()))));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return new ArrayList<Object>(Arrays.asList(currency, this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()))));
         });
 
     }
@@ -3494,7 +3500,7 @@ public class Woofipro extends WoofiproApi
         String direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
         Long timestamp = this.safeInteger(item, "created_time");
         Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
-        return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
+        return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Woofipro.this.safeString(item, "id") );
             put( "currency", code );
             put( "account", Woofipro.this.safeString(item, "account") );
@@ -3515,7 +3521,7 @@ public class Woofipro extends WoofiproApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> types = new HashMap<String, Object>() {{
             put( "BALANCE", "transaction" );
             put( "COLLATERAL", "transfer" );
         }};
@@ -3533,15 +3539,15 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
             Object currency = this.safeValue(currencyRows, 0);
             Object rows = this.safeList(currencyRows, 1);
@@ -3565,7 +3571,7 @@ public class Woofipro extends WoofiproApi
         String addressFrom = this.safeString(transaction, "source_address");
         Long timestamp = this.safeInteger(transaction, "created_time");
         final Object finalMovementDirection = movementDirection;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Woofipro.this.safeString2(transaction, "id", "withdraw_id") );
             put( "txid", Woofipro.this.safeString(transaction, "tx_id") );
@@ -3591,7 +3597,7 @@ public class Woofipro extends WoofiproApi
 
     public String parseTransactionStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "pending" );
             put( "CONFIRMING", "pending" );
             put( "PROCESSING", "pending" );
@@ -3612,16 +3618,16 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", "DEPOSIT" );
             }};
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
@@ -3640,16 +3646,16 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", "WITHDRAW" );
             }};
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
@@ -3668,16 +3674,16 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
             Object currency = this.safeValue(currencyRows, 0);
             Object rows = this.safeList(currencyRows, 1);
@@ -3692,7 +3698,7 @@ public class Woofipro extends WoofiproApi
             //         "success":true
             //     }
             //
-            Object rowsList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rowsList = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(rows, null)))
             {
                 rowsList = rows;
@@ -3702,13 +3708,13 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> getWithdrawNonce(Object... optionalArgs)
+    public CompletableFuture<Object> getWithdrawNonce(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PrivateGetWithdrawNonce(parameters)).join();
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.v1PrivateGetWithdrawNonce(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -3718,7 +3724,7 @@ public class Woofipro extends WoofiproApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeNumber(data, "withdraw_nonce");
         });
 
@@ -3755,13 +3761,13 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object code = code3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -3775,11 +3781,11 @@ public class Woofipro extends WoofiproApi
                     throw new NotSupported(Helpers.add(this.id, " withdraw() only support USDC")) ;
                 }
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             String verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
             String chainId = this.safeString(parameters, "chainId");
-            Object currencyNetworks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-            Object coinNetwork = this.safeDict(currencyNetworks, chainId, new java.util.HashMap<String, Object>() {{}});
+            Object currencyNetworks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+            Object coinNetwork = this.safeDict(currencyNetworks, chainId, new HashMap<String, Object>() {{}});
             Double coinNetworkId = this.safeNumber(coinNetwork, "id");
             if (Helpers.isTrue(Helpers.isEqual(coinNetworkId, null)))
             {
@@ -3787,38 +3793,38 @@ public class Woofipro extends WoofiproApi
             }
             Object withdrawNonce = (this.getWithdrawNonce(parameters)).join();
             Object nonce = this.nonce();
-            java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "chainId", chainId );
                 put( "name", "Orderly" );
                 put( "verifyingContract", verifyingContractAddress );
                 put( "version", "1" );
             }};
-            java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
-                put( "Withdraw", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
+            Map<String, Object> messageTypes = new HashMap<String, Object>() {{
+                put( "Withdraw", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "brokerId" );
         put( "type", "string" );
-    }}, new java.util.HashMap<String, Object>() {{
+    }}, new HashMap<String, Object>() {{
         put( "name", "chainId" );
         put( "type", "uint256" );
-    }}, new java.util.HashMap<String, Object>() {{
+    }}, new HashMap<String, Object>() {{
         put( "name", "receiver" );
         put( "type", "address" );
-    }}, new java.util.HashMap<String, Object>() {{
+    }}, new HashMap<String, Object>() {{
         put( "name", "token" );
         put( "type", "string" );
-    }}, new java.util.HashMap<String, Object>() {{
+    }}, new HashMap<String, Object>() {{
         put( "name", "amount" );
         put( "type", "uint256" );
-    }}, new java.util.HashMap<String, Object>() {{
+    }}, new HashMap<String, Object>() {{
         put( "name", "withdrawNonce" );
         put( "type", "uint64" );
-    }}, new java.util.HashMap<String, Object>() {{
+    }}, new HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "uint64" );
     }})) );
             }};
             final Object finalCode = code;
-            java.util.Map<String, Object> withdrawRequest = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> withdrawRequest = new HashMap<String, Object>() {{
                 put( "brokerId", Woofipro.this.safeString(Woofipro.this.options, "keyBrokerId", "woofi_pro") );
                 put( "chainId", Woofipro.this.parseToInt(chainId) );
                 put( "receiver", address );
@@ -3829,14 +3835,14 @@ public class Woofipro extends WoofiproApi
             }};
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
             Object signature = this.signMessage(msg, this.privateKey);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "signature", signature );
                 put( "userAddress", address );
                 put( "verifyingContract", verifyingContractAddress );
                 put( "message", withdrawRequest );
             }};
             parameters = this.omit(parameters, "chainId");
-            java.util.Map<String, Object> response = (this.v1PrivatePostWithdrawRequest(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivatePostWithdrawRequest(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -3846,7 +3852,7 @@ public class Woofipro extends WoofiproApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
         }).thenApply(io.github.ccxt.types.Transaction::new);
 
@@ -3864,7 +3870,7 @@ public class Woofipro extends WoofiproApi
         String marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
         final Object finalMarket = market;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "marginMode", Woofipro.this.safeStringLower(marginMode, "default_margin_mode") );
@@ -3880,19 +3886,19 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginModes> fetchMarginModes(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> response = (this.v1PrivateGetClientMarginModes(parameters)).join();
+            Map<String, Object> response = (this.v1PrivateGetClientMarginModes(parameters)).join();
             //
             // {
             //     "success": true,
@@ -3905,8 +3911,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarginModes(rows, symbols, "symbol");
         }).thenApply(io.github.ccxt.types.MarginModes::new);
 
@@ -3921,18 +3927,18 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object marginModes = (this.fetchMarginModes((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object marginModes = (this.fetchMarginModes((Object)(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             Object marginMode = this.safeDict(marginModes, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
             {
@@ -3953,13 +3959,13 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
+    public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
     {
         final Object marginMode3 = marginMode2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object marginMode = marginMode3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
@@ -3973,9 +3979,9 @@ public class Woofipro extends WoofiproApi
             {
                 throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "default_margin_mode", ((String)finalMarginMode).toUpperCase() );
             }};
@@ -4002,7 +4008,7 @@ public class Woofipro extends WoofiproApi
         Long timestamp = this.safeInteger(data, "timestamp");
         Object success = this.safeBool(data, "success", false);
         final Object finalSuccess = success;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", Woofipro.this.safeString(market, "symbol") );
             put( "type", null );
@@ -4028,24 +4034,24 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type2, Object... optionalArgs)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalType = type;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "amount", Woofipro.this.numberToString(amount) );
                 put( "type", finalType );
             }};
-            java.util.Map<String, Object> response = (this.v1PrivatePostPositionMargin(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivatePostPositionMargin(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -4070,12 +4076,12 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
         }).thenApply(io.github.ccxt.types.MarginModification::new);
 
@@ -4091,12 +4097,12 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
         }).thenApply(io.github.ccxt.types.MarginModification::new);
 
@@ -4106,7 +4112,7 @@ public class Woofipro extends WoofiproApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long leverageValue = this.safeInteger(leverage, "max_leverage");
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Woofipro.this.safeString(market, "symbol") );
             put( "marginMode", null );
@@ -4124,18 +4130,18 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> response = (this.v1PrivateGetClientInfo(parameters)).join();
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> response = (this.v1PrivateGetClientInfo(parameters)).join();
             //
             // {
             //     "success": true,
@@ -4163,7 +4169,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(io.github.ccxt.types.Leverage::new);
 
@@ -4179,13 +4185,13 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> setLeverage(Object leverage2, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage2, Object... optionalArgs)
     {
         final Object leverage3 = leverage2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object leverage = leverage3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -4195,7 +4201,7 @@ public class Woofipro extends WoofiproApi
                 throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 50")) ;
             }
             final Object finalLeverage = leverage;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "leverage", finalLeverage );
             }};
             return (this.v1PrivatePostClientLeverage(this.extend(request, parameters))).join();
@@ -4249,7 +4255,7 @@ public class Woofipro extends WoofiproApi
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;
-        return this.safePosition(new java.util.HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Woofipro.this.safeString(finalMarket, "symbol") );
@@ -4290,21 +4296,21 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.v1PrivateGetPositionSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetPositionSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -4331,7 +4337,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parsePosition(data, market);
         }).thenApply(io.github.ccxt.types.Position::new);
 
@@ -4346,18 +4352,18 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetPositions(parameters)).join();
+            Map<String, Object> response = (this.v1PrivateGetPositions(parameters)).join();
             //
             // {
             //     "success": true,
@@ -4396,8 +4402,8 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object positions = this.safeList(result, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object positions = this.safeList(result, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Position::new));
 
@@ -4412,7 +4418,7 @@ public class Woofipro extends WoofiproApi
     {
         Object section = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object version = Helpers.GetValue(section, 0);
@@ -4439,7 +4445,7 @@ public class Woofipro extends WoofiproApi
                     String brokerId = this.safeString(this.options, "brokerId", "CCXT");
                     if (Helpers.isTrue(Helpers.isEqual(path, "batch-order")))
                     {
-                        Object ordersList = this.safeList(parameters, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        Object ordersList = this.safeList(parameters, "orders", new ArrayList<Object>(Arrays.asList()));
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ordersList)); i++)
                         {
                             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(parameters, "orders"), i), "order_tag", brokerId);
@@ -4461,7 +4467,7 @@ public class Woofipro extends WoofiproApi
             }
             final Object finalApiKey = apiKey;
             final Object finalTs = ts;
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "orderly-account-id", Woofipro.this.accountId );
                 put( "orderly-key", finalApiKey );
                 put( "orderly-timestamp", finalTs );
@@ -4498,7 +4504,7 @@ public class Woofipro extends WoofiproApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );

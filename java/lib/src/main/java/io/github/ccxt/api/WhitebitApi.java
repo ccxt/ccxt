@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class WhitebitApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  webGetV1Healthcheck (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  webGetV1Healthcheck (Object... optionalArgs)
     {
         return this.callAsync ("webGetV1Healthcheck", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetMarkets", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetTickers", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetTicker", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetSymbols (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetSymbols", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetDepthResult (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetDepthResult (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetDepthResult", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetHistory", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PublicGetKline (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetKline", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostAccountBalance", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostOrderNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostOrderNew (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostOrderNew", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostOrderCancel", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostOrders", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostAccountOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostAccountOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostAccountOrderHistory", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostAccountExecutedHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostAccountExecutedHistory (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostAccountExecutedHistory", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostAccountExecutedHistoryAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostAccountExecutedHistoryAll (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostAccountExecutedHistoryAll", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostAccountOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v1PrivatePostAccountOrder (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostAccountOrder", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PublicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v2PublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("v2PublicGetMarkets", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PublicGetTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v2PublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("v2PublicGetTicker", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PublicGetAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v2PublicGetAssets (Object... optionalArgs)
     {
         return this.callAsync ("v2PublicGetAssets", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PublicGetFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v2PublicGetFee (Object... optionalArgs)
     {
         return this.callAsync ("v2PublicGetFee", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PublicGetDepthMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v2PublicGetDepthMarket (Object... optionalArgs)
     {
         return this.callAsync ("v2PublicGetDepthMarket", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PublicGetTradesMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v2PublicGetTradesMarket (Object... optionalArgs)
     {
         return this.callAsync ("v2PublicGetTradesMarket", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetAssets (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetAssets", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetCollateralMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetCollateralMarkets (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetCollateralMarkets", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetFee (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetFee", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PublicGetFundingHistoryMarket (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PublicGetFundingHistoryMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetFundingHistoryMarket", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetOrderbookDepthMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetOrderbookDepthMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetOrderbookDepthMarket", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetOrderbookMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetOrderbookMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetOrderbookMarket", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetTicker", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PublicGetTradesMarket (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PublicGetTradesMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetTradesMarket", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetTime", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PublicGetPing (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetPing", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PublicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetMarkets", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetFutures (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetFutures", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetPlatformStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetPlatformStatus (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetPlatformStatus", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PublicGetMiningPool (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PublicGetMiningPool (Object... optionalArgs)
     {
         return this.callAsync ("v4PublicGetMiningPool", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostCollateralAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostCollateralAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostCollateralAccountBalance", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostCollateralAccountBalanceSummary (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostCollateralAccountBalanceSummary (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostCollateralAccountBalanceSummary", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostCollateralAccountPositionsHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostCollateralAccountPositionsHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostCollateralAccountPositionsHistory", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostCollateralAccountLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostCollateralAccountLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostCollateralAccountLeverage", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostCollateralAccountPositionsOpen (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostCollateralAccountPositionsOpen (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostCollateralAccountPositionsOpen", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostCollateralAccountPositionsClosedPnl (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostCollateralAccountPositionsClosedPnl (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostCollateralAccountPositionsClosedPnl", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostCollateralAccountSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostCollateralAccountSummary (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostCollateralAccountSummary", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostCollateralAccountFundingHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostCollateralAccountFundingHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostCollateralAccountFundingHistory", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountAddress (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountAddress", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountBalance", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountCreateNewAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountCreateNewAddress (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountCreateNewAddress", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountCodes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountCodes (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountCodes", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountCodesApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountCodesApply (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountCodesApply", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountCodesMy (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountCodesMy (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountCodesMy", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountCodesHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountCodesHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountCodesHistory", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountFiatDepositUrl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountFiatDepositUrl (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountFiatDepositUrl", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountHistory", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountWithdraw", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostMainAccountWithdrawPay (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostMainAccountWithdrawPay (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountWithdrawPay", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountExpressWithdrawToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountExpressWithdrawToken (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountExpressWithdrawToken", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostMainAccountTransfer (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostMainAccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountTransfer", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostMainAccountSmartPlans (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostMainAccountSmartPlans (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartPlans", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartInvestment (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartInvestment (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartInvestment", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartInvestmentClose (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartInvestmentClose (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartInvestmentClose", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartInvestments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartInvestments (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartInvestments", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostMainAccountFee (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostMainAccountFee (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountFee", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartInterestPaymentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartInterestPaymentHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartInterestPaymentHistory", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostMainAccountSmartFlexPlans (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostMainAccountSmartFlexPlans (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartFlexPlans", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestments (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestments", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsHistory", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsInvest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsInvest (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsInvest", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsClose (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsClose (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsClose", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTradeAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostTradeAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTradeAccountBalance", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  v4PrivatePostTradeAccountExecutedHistory (Object... optionalArgs)
+    public CompletableFuture<Object>  v4PrivatePostTradeAccountExecutedHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTradeAccountExecutedHistory", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTradeAccountOrderHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostTradeAccountOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTradeAccountOrderHistory", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostTradeAccountOrderHistoryQuery (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostTradeAccountOrderHistoryQuery (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTradeAccountOrderHistoryQuery", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTradeAccountOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostTradeAccountOrder (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTradeAccountOrder", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderCollateralLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderCollateralLimit (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCollateralLimit", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderCollateralMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderCollateralMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCollateralMarket", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderCollateralStopLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderCollateralStopLimit (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCollateralStopLimit", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderCollateralTriggerMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderCollateralTriggerMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCollateralTriggerMarket", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderCollateralBulk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOrderCollateralBulk (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCollateralBulk", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderNew (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderNew (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderNew", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderMarket", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderStockMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderStockMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderStockMarket", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderStopLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderStopLimit (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderStopLimit", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderStopMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderStopMarket (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderStopMarket", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCancel", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCancelAll", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderCancelBulk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOrderCancelBulk (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCancelBulk", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderKillSwitch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderKillSwitch (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderKillSwitch", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderKillSwitchStatus (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOrderKillSwitchStatus (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderKillSwitchStatus", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderBulk (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOrderBulk (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderBulk", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderModify (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderModify (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderModify", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderConditionalCancel (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOrderConditionalCancel (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderConditionalCancel", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrders", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOcoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOcoOrders (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOcoOrders", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderCollateralOco (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderCollateralOco (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCollateralOco", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostOrderOcoCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostOrderOcoCancel (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderOcoCancel", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderOtoCancel (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v4PrivatePostOrderOtoCancel (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderOtoCancel", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostProfileWebsocketToken (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostProfileWebsocketToken (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostProfileWebsocketToken", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostConvertEstimate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostConvertEstimate (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostConvertEstimate", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostConvertConfirm (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostConvertConfirm (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostConvertConfirm", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostConvertHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostConvertHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostConvertHistory", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountCreate (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountCreate", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountDelete (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountDelete (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountDelete", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountEdit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountEdit (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountEdit", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountList (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountList", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountTransfer", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountBlock (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountBlock (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountBlock", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountUnblock (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountUnblock (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountUnblock", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountBalances (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountBalances", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountTransferHistory", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountApiKeyCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountApiKeyCreate (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountApiKeyCreate", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountApiKeyEdit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountApiKeyEdit (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountApiKeyEdit", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountApiKeyDelete (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountApiKeyDelete (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountApiKeyDelete", optionalArgs);
     }
@@ -1290,7 +1293,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountApiKeyList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountApiKeyList (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountApiKeyList", optionalArgs);
     }
@@ -1301,7 +1304,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountApiKeyReset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountApiKeyReset (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountApiKeyReset", optionalArgs);
     }
@@ -1312,7 +1315,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountApiKeyIpAddressList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountApiKeyIpAddressList (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountApiKeyIpAddressList", optionalArgs);
     }
@@ -1323,7 +1326,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountApiKeyIpAddressCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountApiKeyIpAddressCreate (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountApiKeyIpAddressCreate", optionalArgs);
     }
@@ -1334,7 +1337,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountApiKeyIpAddressDelete (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostSubAccountApiKeyIpAddressDelete (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountApiKeyIpAddressDelete", optionalArgs);
     }
@@ -1345,7 +1348,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningRewards (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningRewards (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningRewards", optionalArgs);
     }
@@ -1356,7 +1359,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningHashrate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningHashrate (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningHashrate", optionalArgs);
     }
@@ -1367,7 +1370,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningPayoutDestination (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningPayoutDestination (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningPayoutDestination", optionalArgs);
     }
@@ -1378,7 +1381,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningPayoutDestinationEdit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningPayoutDestinationEdit (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningPayoutDestinationEdit", optionalArgs);
     }
@@ -1389,7 +1392,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningMinersInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningMinersInfo (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningMinersInfo", optionalArgs);
     }
@@ -1400,7 +1403,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningWorkersNames (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningWorkersNames (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningWorkersNames", optionalArgs);
     }
@@ -1411,7 +1414,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningWorkersHashrate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningWorkersHashrate (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningWorkersHashrate", optionalArgs);
     }
@@ -1422,7 +1425,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningWatcherLinksCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningWatcherLinksCreate (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningWatcherLinksCreate", optionalArgs);
     }
@@ -1433,7 +1436,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningWatcherLinksList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningWatcherLinksList (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningWatcherLinksList", optionalArgs);
     }
@@ -1444,7 +1447,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningAccountsCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningAccountsCreate (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningAccountsCreate", optionalArgs);
     }
@@ -1455,7 +1458,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMiningAccounts (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMiningAccounts", optionalArgs);
     }
@@ -1466,7 +1469,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMarketFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMarketFee (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMarketFee", optionalArgs);
     }
@@ -1477,7 +1480,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMarketFeeSingle (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostMarketFeeSingle (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMarketFeeSingle", optionalArgs);
     }
@@ -1488,7 +1491,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostConditionalOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostConditionalOrders (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostConditionalOrders", optionalArgs);
     }
@@ -1499,7 +1502,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTravelRuleVasps (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostTravelRuleVasps (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTravelRuleVasps", optionalArgs);
     }
@@ -1510,7 +1513,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTravelRuleDepositVerification (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostTravelRuleDepositVerification (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTravelRuleDepositVerification", optionalArgs);
     }
@@ -1521,7 +1524,7 @@ public class WhitebitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostJwt (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v4PrivatePostJwt (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostJwt", optionalArgs);
     }

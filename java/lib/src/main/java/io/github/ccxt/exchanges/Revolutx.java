@@ -6,6 +6,12 @@ import io.github.ccxt.api.RevolutxApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class Revolutx extends RevolutxApi
 {
@@ -19,14 +25,14 @@ public class Revolutx extends RevolutxApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "revolutx" );
             put( "name", "Revolut X" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("GB")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("GB")) );
             put( "rateLimit", 1000 );
             put( "certified", false );
             put( "pro", false );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
@@ -51,7 +57,7 @@ public class Revolutx extends RevolutxApi
                 put( "fetchTickers", true );
                 put( "fetchTrades", true );
             }} );
-            put( "timeframes", new java.util.HashMap<String, Object>() {{
+            put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", 1 );
                 put( "5m", 5 );
                 put( "15m", 15 );
@@ -65,9 +71,9 @@ public class Revolutx extends RevolutxApi
                 put( "2w", 20160 );
                 put( "4w", 40320 );
             }} );
-            put( "urls", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/594ab1a5-3985-4f79-89f4-c40ef7c33867" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "public", "https://revx.revolut.com/api" );
                     put( "private", "https://revx.revolut.com/api" );
                 }} );
@@ -75,9 +81,9 @@ public class Revolutx extends RevolutxApi
                 put( "doc", "https://developer.revolut.com/docs/api/revolut-x-crypto-exchange" );
                 put( "fees", "https://exchange.revolut.com/fees" );
             }} );
-            put( "api", new java.util.HashMap<String, Object>() {{
-                put( "public", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
                         put( "2.0/public/order-book/{symbol}", 1 );
                         put( "1.0/public/tickers", 1 );
                         put( "1.0/public/candles/{symbol}", 1 );
@@ -86,8 +92,8 @@ public class Revolutx extends RevolutxApi
                         put( "1.0/public/configuration/pairs", 1 );
                     }} );
                 }} );
-                put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.HashMap<String, Object>() {{
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
                         put( "1.0/balances", 1 );
                         put( "1.0/orders/active", 1 );
                         put( "1.0/orders/historical", 1 );
@@ -96,39 +102,39 @@ public class Revolutx extends RevolutxApi
                         put( "1.0/trades/private/{symbol}", 1 );
                         put( "1.0/transactions", 1 );
                     }} );
-                    put( "post", new java.util.HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
                         put( "1.0/orders", 1 );
                     }} );
-                    put( "put", new java.util.HashMap<String, Object>() {{
+                    put( "put", new HashMap<String, Object>() {{
                         put( "1.0/orders/{venue_order_id}", 1 );
                     }} );
-                    put( "delete", new java.util.HashMap<String, Object>() {{
+                    put( "delete", new HashMap<String, Object>() {{
                         put( "1.0/orders", 1 );
                         put( "1.0/orders/{venue_order_id}", 1 );
                     }} );
                 }} );
             }} );
-            put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
+            put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
                 put( "secret", false );
                 put( "privateKey", true );
             }} );
-            put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "trading", new java.util.HashMap<String, Object>() {{
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
                     put( "taker", Revolutx.this.parseNumber("0.0009") );
                     put( "maker", Revolutx.this.parseNumber("0") );
                 }} );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "region", null );
             }} );
             put( "precisionMode", TICK_SIZE );
-            put( "features", new java.util.HashMap<String, Object>() {{
-                put( "spot", new java.util.HashMap<String, Object>() {{
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
                     put( "sandbox", false );
-                    put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "triggerPrice", false );
                         put( "triggerPriceType", null );
@@ -136,7 +142,7 @@ public class Revolutx extends RevolutxApi
                         put( "stopLossPrice", false );
                         put( "takeProfitPrice", false );
                         put( "attachedStopLossTakeProfit", null );
-                        put( "timeInForce", new java.util.HashMap<String, Object>() {{
+                        put( "timeInForce", new HashMap<String, Object>() {{
                             put( "GTC", true );
                             put( "IOC", true );
                             put( "FOK", false );
@@ -152,27 +158,27 @@ public class Revolutx extends RevolutxApi
                         put( "iceberg", false );
                     }} );
                     put( "createOrders", null );
-                    put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1900 );
                         put( "daysBack", 30 );
                         put( "untilDays", null );
                         put( "symbolRequired", true );
                     }} );
-                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 300 );
                         put( "trigger", false );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1900 );
                         put( "daysBack", 30 );
@@ -181,7 +187,7 @@ public class Revolutx extends RevolutxApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 1900 );
                         put( "daysBack", 30 );
@@ -191,21 +197,21 @@ public class Revolutx extends RevolutxApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 50000 );
                     }} );
                 }} );
             }} );
-            put( "httpExceptions", new java.util.HashMap<String, Object>() {{
+            put( "httpExceptions", new HashMap<String, Object>() {{
                 put( "400", BadRequest.class );
                 put( "403", PermissionDenied.class );
                 put( "404", OrderNotFound.class );
                 put( "409", ExchangeError.class );
                 put( "429", RateLimitExceeded.class );
             }} );
-            put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "exact", new java.util.HashMap<String, Object>() {{}} );
-                put( "broad", new java.util.HashMap<String, Object>() {{
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{}} );
+                put( "broad", new HashMap<String, Object>() {{
                     put( "insufficient", InsufficientFunds.class );
                     put( "invalid order", InvalidOrder.class );
                     put( "not found", OrderNotFound.class );
@@ -219,7 +225,7 @@ public class Revolutx extends RevolutxApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object implodedPath = this.implodeParams(path, parameters);
@@ -259,7 +265,7 @@ public class Revolutx extends RevolutxApi
             Object message = Helpers.add(Helpers.add(Helpers.add(Helpers.add(timestamp, ((String)method).toUpperCase()), requestPath), queryString), bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
             final Object finalTimestamp = timestamp;
-            headers = new java.util.HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "X-Revx-API-Key", Revolutx.this.apiKey );
                 put( "X-Revx-Timestamp", finalTimestamp );
                 put( "X-Revx-Signature", signature );
@@ -280,7 +286,7 @@ public class Revolutx extends RevolutxApi
             } else
             {
                 body = this.json(query);
-                headers = new java.util.HashMap<String, Object>() {{
+                headers = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                 }};
             }
@@ -289,7 +295,7 @@ public class Revolutx extends RevolutxApi
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "url", finalUrl );
             put( "method", finalMethod );
             put( "body", finalBody );
@@ -321,7 +327,7 @@ public class Revolutx extends RevolutxApi
         Boolean active = (Helpers.isEqual(status, "active"));
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -350,24 +356,24 @@ public class Revolutx extends RevolutxApi
             put( "percentage", true );
             put( "tierBased", false );
             put( "feeSide", "get" );
-            put( "precision", new java.util.HashMap<String, Object>() {{
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Revolutx.this.parseNumber(baseStep) );
                 put( "price", Revolutx.this.parseNumber(quoteStep) );
             }} );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "amount", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", Revolutx.this.parseNumber(minOrderSize) );
                     put( "max", Revolutx.this.parseNumber(maxOrderSize) );
                 }} );
-                put( "price", new java.util.HashMap<String, Object>() {{
+                put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "cost", new java.util.HashMap<String, Object>() {{
+                put( "cost", new HashMap<String, Object>() {{
                     put( "min", Revolutx.this.parseNumber(minOrderSizeQuote) );
                     put( "max", null );
                 }} );
-                put( "leverage", new java.util.HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
@@ -387,13 +393,13 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.region] the region to filter markets by (e.g. EEA, UK)
      * @returns {object[]} an array of [market structures]{@link https://docs.ccxt.com/?id=market-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             String region = this.safeString2(parameters, "region", "region", Helpers.GetValue(this.options, "region"));
             if (Helpers.isTrue(!Helpers.isEqual(region, null)))
             {
@@ -412,18 +418,18 @@ public class Revolutx extends RevolutxApi
             //
             Object markets = this.safeDict(response, "data", response);
             Object keys = Helpers.objectKeys(markets);
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
-                Object market = this.safeDict(markets, key, new java.util.HashMap<String, Object>() {{}});
+                Object market = this.safeDict(markets, key, new HashMap<String, Object>() {{}});
                 String base = this.safeString(market, "base");
                 String quote = this.safeString(market, "quote");
                 Object marketId = Helpers.add(Helpers.add(base, "-"), quote);
-                java.util.Map<String, Object> marketData = this.extend(market, new java.util.HashMap<String, Object>() {{
+                Map<String, Object> marketData = this.extend(market, new HashMap<String, Object>() {{
                     put( "id", marketId );
                 }});
-                ((java.util.List<Object>)result).add(this.parseMarket(marketData));
+                ((List<Object>)result).add(this.parseMarket(marketData));
             }
             return result;
         });
@@ -449,7 +455,7 @@ public class Revolutx extends RevolutxApi
         String assetType = this.safeString(currency, "asset_type");
         String type = ((Helpers.isTrue((Helpers.isEqual(assetType, "crypto"))))) ? "crypto" : "fiat";
         Object precision = ((Helpers.isTrue((!Helpers.isEqual(scale, null))))) ? Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(Helpers.opNeg(scale)))) : null;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", currency );
             put( "id", id );
             put( "code", code );
@@ -460,21 +466,21 @@ public class Revolutx extends RevolutxApi
             put( "withdraw", null );
             put( "precision", Revolutx.this.parseNumber(precision) );
             put( "fee", null );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "amount", new java.util.HashMap<String, Object>() {{
+            put( "limits", new HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
-                put( "deposit", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
             }} );
-            put( "networks", new java.util.HashMap<String, Object>() {{}} );
+            put( "networks", new HashMap<String, Object>() {{}} );
         }};
     }
 
@@ -487,13 +493,13 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.region] the region to filter currencies by
      * @returns {object} a dictionary of [currency structures]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             String region = this.safeString2(parameters, "region", "region", Helpers.GetValue(this.options, "region"));
             if (Helpers.isTrue(!Helpers.isEqual(region, null)))
             {
@@ -508,12 +514,12 @@ public class Revolutx extends RevolutxApi
             //
             Object currencies = this.safeDict(response, "data", response);
             Object keys = Helpers.objectKeys(currencies);
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
-                Object currency = this.safeDict(currencies, key, new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> currencyData = this.extend(currency, new java.util.HashMap<String, Object>() {{
+                Object currency = this.safeDict(currencies, key, new HashMap<String, Object>() {{}});
+                Map<String, Object> currencyData = this.extend(currency, new HashMap<String, Object>() {{
                     put( "id", key );
                 }});
                 Object parsed = this.parseCurrency(currencyData);
@@ -566,7 +572,7 @@ public class Revolutx extends RevolutxApi
         final Object finalLast = last;
         final Object finalPriceChange = priceChange;
         final Object finalPercentage = percentage;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Revolutx.this.iso8601(timestamp) );
@@ -600,28 +606,28 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.region] the region to fetch tickers for (e.g. EEA, UK)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object marketIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                    ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
+                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                    ((List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                 }
-                Helpers.addElementToObject(request, "symbols", String.join(",", (java.util.List<String>)marketIds));
+                Helpers.addElementToObject(request, "symbols", String.join(",", (List<String>)marketIds));
             }
             String region = this.safeString2(parameters, "region", "region", Helpers.GetValue(this.options, "region"));
             if (Helpers.isTrue(!Helpers.isEqual(region, null)))
@@ -639,13 +645,13 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "timestamp": 1785313433816 }
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object metadata = this.safeDict(response, "metadata", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object metadata = this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(metadata, "timestamp");
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Object tickerData = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+                Object tickerData = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(tickerData, "timestamp", timestamp);
                 Object ticker = this.parseTicker(tickerData);
                 String symbol = this.safeString(ticker, "symbol", "");
@@ -657,7 +663,7 @@ public class Revolutx extends RevolutxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                java.util.Map<String, Object> filtered = new java.util.HashMap<String, Object>() {{}};
+                Map<String, Object> filtered = new HashMap<String, Object>() {{}};
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object s = Helpers.GetValue(symbols, i);
@@ -683,17 +689,17 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.region] the region to fetch the ticker for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
+            Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             Object ticker = this.safeDict(tickers, symbol);
             if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
             {
@@ -715,19 +721,19 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.region] the region to fetch the order book for
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -749,8 +755,8 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "region": "UK", "timestamp": 1785313433816 }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object metadata = this.safeDict(response, "metadata", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object metadata = this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(metadata, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         }).thenApply(io.github.ccxt.types.OrderBook::new);
@@ -775,7 +781,7 @@ public class Revolutx extends RevolutxApi
         Double low = this.safeNumber(ohlcv, "low");
         Double close = this.safeNumber(ohlcv, "close");
         Double volume = this.safeNumber(ohlcv, "volume");
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, open, high, low, close, volume));
+        return new ArrayList<Object>(Arrays.asList(timestamp, open, high, low, close, volume));
     }
 
     /**
@@ -792,21 +798,21 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.region] the region to fetch candles for
      * @returns {int[][]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", Revolutx.this.safeInteger(Revolutx.this.timeframes, timeframe, 5) );
             }};
@@ -837,7 +843,7 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.OHLCV::new));
 
@@ -870,7 +876,7 @@ public class Revolutx extends RevolutxApi
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
@@ -884,7 +890,7 @@ public class Revolutx extends RevolutxApi
             put( "timestamp", timestamp );
             put( "datetime", Revolutx.this.iso8601(timestamp) );
             put( "fee", null );
-            put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
+            put( "fees", new ArrayList<Object>(Arrays.asList()) );
         }};
     }
 
@@ -901,14 +907,14 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -918,7 +924,7 @@ public class Revolutx extends RevolutxApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -954,12 +960,12 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Object trade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
-                ((java.util.List<Object>)result).add(this.parseTrade(trade, market));
+                Object trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                ((List<Object>)result).add(this.parseTrade(trade, market));
             }
             return this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
@@ -974,12 +980,12 @@ public class Revolutx extends RevolutxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -991,13 +997,13 @@ public class Revolutx extends RevolutxApi
             //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
             //     ]
             //
-            Object data = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+            Object data = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Object balance = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+                Object balance = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 String currency = this.safeString(balance, "currency");
                 String code = this.safeCurrencyCode(currency);
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
@@ -1032,7 +1038,7 @@ public class Revolutx extends RevolutxApi
      */
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending_new", "open" );
             put( "new", "open" );
             put( "partially_filled", "open" );
@@ -1080,7 +1086,7 @@ public class Revolutx extends RevolutxApi
         if (Helpers.isTrue(!Helpers.isEqual(totalFee, null)))
         {
             final Object finalTotalFee = totalFee;
-            fee = new java.util.HashMap<String, Object>() {{
+            fee = new HashMap<String, Object>() {{
                 put( "cost", Revolutx.this.parseNumber(finalTotalFee) );
                 put( "currency", feeCurrency );
             }};
@@ -1110,7 +1116,7 @@ public class Revolutx extends RevolutxApi
         final Object finalFilledValue = filledValue;
         final Object finalRemainingValue = remainingValue;
         final Object finalFee = fee;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "symbol", symbol );
@@ -1148,26 +1154,26 @@ public class Revolutx extends RevolutxApi
      * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
-            java.util.Map<String, Object> orderConfiguration = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> orderConfiguration = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
-                java.util.Map<String, Object> limitConfig = new java.util.HashMap<String, Object>() {{}};
+                Map<String, Object> limitConfig = new HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                 {
                     Helpers.addElementToObject(limitConfig, "quote_size", this.costToPrecision(symbol, cost));
@@ -1195,7 +1201,7 @@ public class Revolutx extends RevolutxApi
                 {
                     throw new InvalidOrder(Helpers.add(this.id, " createOrder() executionInstructions are only supported for limit orders")) ;
                 }
-                java.util.Map<String, Object> marketConfig = new java.util.HashMap<String, Object>() {{}};
+                Map<String, Object> marketConfig = new HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                 {
                     Helpers.addElementToObject(marketConfig, "quote_size", this.costToPrecision(symbol, cost));
@@ -1208,13 +1214,13 @@ public class Revolutx extends RevolutxApi
             {
                 throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", clientOrderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", side );
                 put( "order_configuration", orderConfiguration );
             }};
-            Object response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
+            Object response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
             //
             //     {
             //         "data": [
@@ -1222,12 +1228,12 @@ public class Revolutx extends RevolutxApi
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orderData = ((Helpers.isTrue(Helpers.isArray(data)))) ? this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object orderData = ((Helpers.isTrue(Helpers.isArray(data)))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String venueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
             final Object finalType = type;
-            Object order = this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
+            Object order = this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
                 put( "id", venueOrderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "status", state );
@@ -1249,22 +1255,22 @@ public class Revolutx extends RevolutxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "venue_order_id", id );
             }};
             Object response = (this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters))).join();
-            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", id );
                 put( "status", "canceled" );
@@ -1282,19 +1288,19 @@ public class Revolutx extends RevolutxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an empty [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             (this.privateDelete10Orders(parameters)).join();
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            return new ArrayList<Object>(Arrays.asList());
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
 
     }
@@ -1309,18 +1315,18 @@ public class Revolutx extends RevolutxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "venue_order_id", id );
             }};
             Object response = (this.privateGet10OrdersVenueOrderId(this.extend(request, parameters))).join();
@@ -1337,7 +1343,7 @@ public class Revolutx extends RevolutxApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1363,23 +1369,23 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.side] filter by side, 'buy' or 'sell'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1394,31 +1400,31 @@ public class Revolutx extends RevolutxApi
             Object orderStates = this.safeList2(parameters, "orderStates", "order_states");
             if (Helpers.isTrue(!Helpers.isEqual(orderStates, null)))
             {
-                Helpers.addElementToObject(request, "order_states", String.join(",", (java.util.List<String>)orderStates));
+                Helpers.addElementToObject(request, "order_states", String.join(",", (List<String>)orderStates));
             }
             Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
             if (Helpers.isTrue(!Helpers.isEqual(orderTypes, null)))
             {
-                Helpers.addElementToObject(request, "order_types", String.join(",", (java.util.List<String>)orderTypes));
+                Helpers.addElementToObject(request, "order_types", String.join(",", (List<String>)orderTypes));
             }
             String side = this.safeString(parameters, "side");
             if (Helpers.isTrue(!Helpers.isEqual(side, null)))
             {
                 Helpers.addElementToObject(request, "side", side);
             }
-            Object response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side")))))).join();
+            Object response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side")))))).join();
             //
             //     {
             //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
             //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Object order = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
-                ((java.util.List<Object>)result).add(this.parseOrder(order));
+                Object order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                ((List<Object>)result).add(this.parseOrder(order));
             }
             return this.filterBySymbolSinceLimit(result, symbol, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
@@ -1440,23 +1446,23 @@ public class Revolutx extends RevolutxApi
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
             }
             Long thirtyDays = 2592000000L;
@@ -1489,20 +1495,20 @@ public class Revolutx extends RevolutxApi
             Object orderStates = this.safeList2(parameters, "orderStates", "order_states");
             if (Helpers.isTrue(!Helpers.isEqual(orderStates, null)))
             {
-                Helpers.addElementToObject(request, "order_states", String.join(",", (java.util.List<String>)orderStates));
+                Helpers.addElementToObject(request, "order_states", String.join(",", (List<String>)orderStates));
             }
             Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
             if (Helpers.isTrue(!Helpers.isEqual(orderTypes, null)))
             {
-                Helpers.addElementToObject(request, "order_types", String.join(",", (java.util.List<String>)orderTypes));
+                Helpers.addElementToObject(request, "order_types", String.join(",", (List<String>)orderTypes));
             }
-            Object response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Object order = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
-                ((java.util.List<Object>)result).add(this.parseOrder(order));
+                Object order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                ((List<Object>)result).add(this.parseOrder(order));
             }
             return this.filterBySymbolSinceLimit(result, symbol, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
@@ -1520,17 +1526,17 @@ public class Revolutx extends RevolutxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object orderStates = this.safeList2(parameters, "orderStates", "order_states", new java.util.ArrayList<Object>(java.util.Arrays.asList("filled", "cancelled", "rejected", "replaced")));
-            java.util.Map<String, Object> requestParams = this.extend(this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderStates", "order_states"))), new java.util.HashMap<String, Object>() {{
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object orderStates = this.safeList2(parameters, "orderStates", "order_states", new ArrayList<Object>(Arrays.asList("filled", "cancelled", "rejected", "replaced")));
+            Map<String, Object> requestParams = this.extend(this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderStates", "order_states"))), new HashMap<String, Object>() {{
                 put( "order_states", orderStates );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(requestParams))).join();
@@ -1567,7 +1573,7 @@ public class Revolutx extends RevolutxApi
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        return new java.util.HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", orderId );
@@ -1581,7 +1587,7 @@ public class Revolutx extends RevolutxApi
             put( "timestamp", timestamp );
             put( "datetime", Revolutx.this.iso8601(timestamp) );
             put( "fee", null );
-            put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
+            put( "fees", new ArrayList<Object>(Arrays.asList()) );
         }};
     }
 
@@ -1598,15 +1604,15 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -1615,8 +1621,8 @@ public class Revolutx extends RevolutxApi
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter")) ;
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Long thirtyDays = 2592000000L;
@@ -1646,7 +1652,7 @@ public class Revolutx extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "cursor", cursor);
             }
-            Object response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")))))).join();
+            Object response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")))))).join();
             //
             //     {
             //         "data": [
@@ -1657,12 +1663,12 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Object trade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
-                ((java.util.List<Object>)result).add(this.parseMyTrade(trade, market));
+                Object trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                ((List<Object>)result).add(this.parseMyTrade(trade, market));
             }
             return result;
         }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
@@ -1687,25 +1693,25 @@ public class Revolutx extends RevolutxApi
      * @param {string[]} [params.executionInstructions] e.g. ['post_only']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
 
             // note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", clientOrderId );
                 put( "venue_order_id", id );
             }};
@@ -1728,7 +1734,7 @@ public class Revolutx extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "execution_instructions", executionInstructions);
             }
-            Object response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
+            Object response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
             //
             //     {
             //         "data": [
@@ -1736,11 +1742,11 @@ public class Revolutx extends RevolutxApi
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orderData = ((Helpers.isTrue(Helpers.isArray(data)))) ? this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+            Object orderData = ((Helpers.isTrue(Helpers.isArray(data)))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String newVenueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
-            Object order = this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
+            Object order = this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
                 put( "id", newVenueOrderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "status", state );
@@ -1762,7 +1768,7 @@ public class Revolutx extends RevolutxApi
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             String errorMessage = null;
-            if (Helpers.isTrue((response instanceof java.util.Map)))
+            if (Helpers.isTrue((response instanceof Map)))
             {
                 errorMessage = this.safeString2(response, "message", "error");
             }

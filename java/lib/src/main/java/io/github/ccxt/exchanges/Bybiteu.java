@@ -6,6 +6,9 @@ import io.github.ccxt.api.BybiteuApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class Bybiteu extends BybiteuApi
 {
@@ -19,17 +22,17 @@ public class Bybiteu extends BybiteuApi
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bybiteu" );
             put( "name", "Bybit EU" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("EU")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("EU")) );
             put( "version", "v5" );
             put( "rateLimit", 20 );
             put( "hostname", "bybit.eu" );
             put( "pro", true );
             put( "certified", false );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "test", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "test", new HashMap<String, Object>() {{
                     put( "spot", "https://api-testnet.{hostname}" );
                     put( "futures", "https://api-testnet.{hostname}" );
                     put( "v2", "https://api-testnet.{hostname}" );
@@ -37,14 +40,14 @@ public class Bybiteu extends BybiteuApi
                     put( "private", "https://api-testnet.{hostname}" );
                 }} );
                 put( "logo", "https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed" );
-                put( "api", new java.util.HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "spot", "https://api.{hostname}" );
                     put( "futures", "https://api.{hostname}" );
                     put( "v2", "https://api.{hostname}" );
                     put( "public", "https://api.{hostname}" );
                     put( "private", "https://api.{hostname}" );
                 }} );
-                put( "demotrading", new java.util.HashMap<String, Object>() {{
+                put( "demotrading", new HashMap<String, Object>() {{
                     put( "spot", "https://api-demo.{hostname}" );
                     put( "futures", "https://api-demo.{hostname}" );
                     put( "v2", "https://api-demo.{hostname}" );
@@ -52,11 +55,11 @@ public class Bybiteu extends BybiteuApi
                     put( "private", "https://api-demo.{hostname}" );
                 }} );
                 put( "www", "https://www.bybit.com" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://bybit-exchange.github.io/docs/inverse/", "https://bybit-exchange.github.io/docs/linear/", "https://github.com/bybit-exchange")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://bybit-exchange.github.io/docs/inverse/", "https://bybit-exchange.github.io/docs/linear/", "https://github.com/bybit-exchange")) );
                 put( "fees", "https://help.bybit.com/hc/en-us/articles/360039261154" );
                 put( "referral", "https://www.bybit.com/invite?ref=XDK12WP" );
             }} );
-            put( "has", new java.util.HashMap<String, Object>() {{
+            put( "has", new HashMap<String, Object>() {{
                 put( "CORS", true );
                 put( "spot", true );
                 put( "margin", true );
@@ -64,7 +67,7 @@ public class Bybiteu extends BybiteuApi
                 put( "future", false );
                 put( "option", null );
             }} );
-            put( "options", new java.util.HashMap<String, Object>() {{
+            put( "options", new HashMap<String, Object>() {{
                 put( "mica", true );
             }} );
         }});

@@ -7,6 +7,10 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Gateeu extends io.github.ccxt.exchanges.Gateeu
 {
@@ -27,14 +31,14 @@ public class Gateeu extends io.github.ccxt.exchanges.Gateeu
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'
         // block wipe the parent's ws capability flags in the deep extend
-        java.util.Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
-        return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
+        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "gateeu" );
             put( "name", "Gate EU" );
-            put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("EU")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("EU")) );
             put( "certified", false );
-            put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "api", new java.util.HashMap<String, Object>() {{
+            put( "urls", new HashMap<String, Object>() {{
+                put( "api", new HashMap<String, Object>() {{
                     put( "ws", "wss://ws.gateeu.com/v4" );
                     put( "spot", "wss://api.gateeu.com/ws/v4/" );
                 }} );
