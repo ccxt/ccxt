@@ -501,6 +501,308 @@
                 ]
             }
         ],
+        "watchMyTrades": [
+            {
+                "description": "spot partial execution uses last fill fields",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "1702245001712369664",
+                            "l": "0.0001",
+                            "z": "0.0003",
+                            "L": "59000",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "101",
+                            "O": 1719999999000,
+                            "Z": "17.9",
+                            "Y": "5.9",
+                            "Q": "0",
+                            "m": false
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "fixture-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "101",
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "1702245001712369664",
+                            "l": "0.0001",
+                            "z": "0.0003",
+                            "L": "59000",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "101",
+                            "O": 1719999999000,
+                            "Z": "17.9",
+                            "Y": "5.9",
+                            "Q": "0",
+                            "m": false
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": "1702245001712369664",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 59000,
+                        "amount": 0.0001,
+                        "cost": 5.9,
+                        "fee": {
+                            "cost": 1e-7,
+                            "currency": "BTC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 1e-7,
+                                "currency": "BTC"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "spot final execution excludes earlier fills",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "1702245001712369664",
+                            "l": "0.0002",
+                            "z": "0.0005",
+                            "L": "58000",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "102",
+                            "O": 1719999999000,
+                            "Z": "29.5",
+                            "Y": "11.6",
+                            "Q": "0",
+                            "m": false
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "fixture-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "102",
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "1702245001712369664",
+                            "l": "0.0002",
+                            "z": "0.0005",
+                            "L": "58000",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "102",
+                            "O": 1719999999000,
+                            "Z": "29.5",
+                            "Y": "11.6",
+                            "Q": "0",
+                            "m": false
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": "1702245001712369664",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 58000,
+                        "amount": 0.0002,
+                        "cost": 11.6,
+                        "fee": {
+                            "cost": 1e-7,
+                            "currency": "BTC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 1e-7,
+                                "currency": "BTC"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "spot market execution with zero original quantity",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": 0,
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "1702245001712369664",
+                            "l": 0.0002,
+                            "z": 0.0002,
+                            "L": 59000,
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "103",
+                            "O": 1719999999000,
+                            "Z": 11.8,
+                            "Y": 11.8,
+                            "Q": "0",
+                            "m": false
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "fixture-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "103",
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": 0,
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "1702245001712369664",
+                            "l": 0.0002,
+                            "z": 0.0002,
+                            "L": 59000,
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "103",
+                            "O": 1719999999000,
+                            "Z": 11.8,
+                            "Y": 11.8,
+                            "Q": "0",
+                            "m": false
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": "1702245001712369664",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 59000,
+                        "amount": 0.0002,
+                        "cost": 11.8,
+                        "fee": {
+                            "cost": 1e-7,
+                            "currency": "BTC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 1e-7,
+                                "currency": "BTC"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "watchTrades": [
             {
                 "description": "linear swap trades",

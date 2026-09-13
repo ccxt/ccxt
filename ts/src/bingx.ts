@@ -1550,7 +1550,9 @@ export default class bingx extends Exchange {
         if (time === 0) {
             time = undefined;
         }
-        const cost = this.safeString (trade, 'quoteQty');
+        // Spot execution reports distinguish the last fill from the original order's p/q.
+        const isSpotExecution = this.safeString (trade, 'e') === 'executionReport';
+        const cost = isSpotExecution ? this.safeString (trade, 'Y') : this.safeString (trade, 'quoteQty');
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         const currencyId = this.safeStringN (trade, [ 'currency', 'N', 'commissionAsset' ]);
         const currencyCode = this.safeCurrencyCode (currencyId);
@@ -1577,7 +1579,7 @@ export default class bingx extends Exchange {
         if (isMaker !== undefined) {
             takeOrMaker = isMaker ? 'maker' : 'taker';
         }
-        let amount = this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
+        let amount = isSpotExecution ? this.safeString (trade, 'l') : this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
         if ((market !== undefined) && (market['swap'] === true) && ('volume' in trade)) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
@@ -1593,7 +1595,7 @@ export default class bingx extends Exchange {
             'type': this.safeStringLower (trade, 'o'),
             'side': this.parseOrderSide (side),
             'takerOrMaker': takeOrMaker,
-            'price': this.safeStringN (trade, [ 'price', 'p', 'tradePrice' ]),
+            'price': isSpotExecution ? this.safeString (trade, 'L') : this.safeStringN (trade, [ 'price', 'p', 'tradePrice' ]),
             'amount': amount,
             'cost': cost,
             'fee': {
