@@ -1454,7 +1454,7 @@ export default class alpaca extends Exchange {
      * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.triggerPrice] the price to trigger a stop order
-     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1593,6 +1593,9 @@ export default class alpaca extends Exchange {
     parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'day': 'Day',
+            'gtc': 'GTC',
+            'ioc': 'IOC',
+            'fok': 'FOK',
         };
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
