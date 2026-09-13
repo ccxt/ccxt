@@ -1019,15 +1019,59 @@ fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String
     if !url.contains("bridges=a!b'c(d)e*f%20g") {
         return Err(format!("encodeURIComponent semantics, got {url}"));
     }
-    // And a colon IS escaped, which is what balances entries depend on.
+    // And a colon IS escaped. NOTE: fetch_route never sends `balances` through
+    // this builder any more — holdings are POSTed, see route_body_carries_the
+    // _holdings_and_the_url_never_does below — but the encoder is shared, and a
+    // value carrying a colon can still reach the query string by another key.
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(1.0));
-    params.insert("balances".to_string(), Value::Str("stub.USDT:1000".to_string()));
+    params.insert("balanceMode".to_string(), Value::Str("cap:strict".to_string()));
     let url = r
         .build_route_url("USDT", "BTC", &Value::Map(params))
         .map_err(|e| e.to_string())?;
-    if !url.contains("balances=stub.USDT%3A1000") {
+    if !url.contains("balanceMode=cap%3Astrict") {
         return Err(format!("a colon is escaped, got {url}"));
+    }
+    Ok(())
+}
+
+fn route_body_carries_the_holdings_and_the_url_never_does(r: &OrderRouter) -> Result<(), String> {
+    // The service scrubs balances from its own logs, but the URL leaves the
+    // process: a reverse proxy, an ALB and a CDN all log the full request line,
+    // as do browser history and client-side tracing. This is the assertion that
+    // keeps the wallet out of them.
+    let mut params = HashMap::new();
+    params.insert("amountIn".to_string(), Value::Float(10.0));
+    params.insert("balances".to_string(), Value::Str("binance.USDT:1000,binance.BTC:1".to_string()));
+    params.insert("certified".to_string(), Value::Bool(true));
+    params.insert("maxVenues".to_string(), Value::Int(2));
+    let body = r
+        .build_route_body("usdt", "btc", &Value::Map(params))
+        .map_err(|e| e.to_string())?;
+    if r.string_at(&body, "from", "") != "USDT" || r.string_at(&body, "to", "") != "BTC" {
+        return Err("the body carries from and to, uppercased".to_string());
+    }
+    if r.string_at(&body, "balances", "") != "binance.USDT:1000,binance.BTC:1" {
+        return Err("the body carries the holdings verbatim, unescaped".to_string());
+    }
+    // numbers and booleans travel as themselves: the body is JSON, and the
+    // service's own schema types amountIn as a number. Asserted on the encoded
+    // JSON rather than the in-memory Value, because the wire form is what the
+    // service actually parses — a number quoted into a string would read the
+    // same in a Value and differently to the router.
+    let encoded = body.to_json().to_string();
+    for expected in ["\"amountIn\":10.0", "\"certified\":true", "\"maxVenues\":2"] {
+        if !encoded.contains(expected) {
+            return Err(format!("{expected} in the encoded body, got {encoded}"));
+        }
+    }
+    if encoded.contains("\"amountIn\":\"") {
+        return Err(format!("amountIn must not be quoted into a string, got {encoded}"));
+    }
+    // and the same exclusivity rule the url builder enforces
+    let empty = Value::Map(HashMap::new());
+    if r.build_route_body("USDT", "BTC", &empty).is_ok() {
+        return Err("neither amountIn nor amountOut is refused".to_string());
     }
     Ok(())
 }
@@ -1397,6 +1441,7 @@ pub fn run() -> Result<usize, String> {
         ("formatNumber never emits exponent notation", Box::new(|| format_number_never_uses_exponents(&router()?))),
         ("fetchRoute builds a deterministic query", Box::new(|| route_url_is_deterministic(&router()?))),
         ("the query escaping is encodeURIComponent's, not form-urlencoded's", Box::new(|| encode_uri_component_matches_javascript(&router()?))),
+        ("a route carrying balances is POSTed, and the holdings never appear in the url", Box::new(|| route_body_carries_the_holdings_and_the_url_never_does(&router()?))),
         ("execute: dry_run is the default and a forgotten live flag places nothing", Box::new(|| dry_run_places_nothing(&router()?))),
         ("execute: an unknown strategy is refused even in dry run", Box::new(|| an_unknown_strategy_is_refused_even_in_dry_run(&router()?))),
         ("execute: sequential places IOC limit orders in plan order", Box::new(|| sequential_places_and_fills(&router()?))),

@@ -396,16 +396,22 @@ class OrderRouterStubVenue {
 class OrderRouterRecorder extends OrderRouter {
 
     public $lastUrl;
+    public $lastMethod;
+    public $lastBody;
     public $body;
 
     public function __construct($config, $body) {
         parent::__construct($config);
         $this->body = $body;
         $this->lastUrl = '';
+        $this->lastMethod = '';
+        $this->lastBody = array();
     }
 
-    public function request($url) {
+    public function request($url, $method = 'GET', $requestBody = array()) {
         $this->lastUrl = $url;
+        $this->lastMethod = $method;
+        $this->lastBody = $requestBody;
         return $this->body;
     }
 }
@@ -1107,6 +1113,37 @@ function order_router_test_fetch_route_query($router) {
     $recorder = new OrderRouterRecorder(array('apiKey' => 'k', 'baseUrl' => 'https://example.test/api/'), array('hops' => array()));
     $recorder->fetchRoute('usdt', 'btc', array('amountIn' => 0.001, 'strategy' => 'split_capped', 'maxVenues' => 3, 'exchanges' => array('binance', 'kraken'), 'certified' => true));
     order_router_assert($recorder->lastUrl === 'https://example.test/api/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true', 'the query is deterministic, got ' . $recorder->lastUrl);
+    order_router_assert($recorder->lastMethod === 'GET', 'a request carrying no holdings stays a cacheable, linkable GET');
+}
+
+function order_router_test_fetch_route_balances_are_posted($router) {
+    //  The service scrubs balances from its own logs, but the URL leaves the process: a
+    //  reverse proxy, an ALB and a CDN all log the full request line, as do browser history
+    //  and client-side tracing. This is the assertion that keeps the wallet out of them.
+    $recorder = new OrderRouterRecorder(array('apiKey' => 'k', 'baseUrl' => 'https://example.test/api'), array('hops' => array()));
+    $recorder->fetchRoute('usdt', 'btc', array('amountIn' => 10, 'balances' => 'binance.USDT:1000,binance.BTC:1', 'certified' => true, 'maxVenues' => 2));
+    order_router_assert($recorder->lastMethod === 'POST', 'a route carrying holdings is POSTed');
+    order_router_assert($recorder->lastUrl === 'https://example.test/api/route', 'no query string at all, got ' . $recorder->lastUrl);
+    order_router_assert(strpos($recorder->lastUrl, 'balances') === false, 'the holdings are not in the url');
+    order_router_assert(strpos($recorder->lastUrl, '1000') === false, 'nor is any amount from them');
+    order_router_assert($recorder->lastBody['from'] === 'USDT', 'the body carries from');
+    order_router_assert($recorder->lastBody['to'] === 'BTC', 'the body carries to');
+    order_router_assert($recorder->lastBody['balances'] === 'binance.USDT:1000,binance.BTC:1', 'the body carries the holdings');
+    //  numbers and booleans travel as themselves: the body is JSON, and the service's own
+    //  schema types amountIn as a number
+    order_router_assert($recorder->lastBody['amountIn'] === 10, 'amountIn stays a number');
+    order_router_assert($recorder->lastBody['certified'] === true, 'certified stays a bool');
+    order_router_assert($recorder->lastBody['maxVenues'] === 2, 'maxVenues stays a number');
+}
+
+function order_router_test_fetch_route_empty_balances_still_posted($router) {
+    //  '' is what a caller gets from a venue with nothing in it. It is not "no balances
+    //  parameter" — the router reads it, and a check that treated it as absent would put
+    //  the NEXT non-empty value on the same code path back into the url.
+    $recorder = new OrderRouterRecorder(array('apiKey' => 'k', 'baseUrl' => 'https://example.test/api'), array('hops' => array()));
+    $recorder->fetchRoute('usdt', 'btc', array('amountIn' => 10, 'balances' => ''));
+    order_router_assert($recorder->lastMethod === 'POST', 'an empty holdings string is still holdings');
+    order_router_assert($recorder->lastBody['balances'] === '', 'and it reaches the body');
 }
 
 function order_router_test_fetch_route_with_balances($router) {
@@ -1114,7 +1151,11 @@ function order_router_test_fetch_route_with_balances($router) {
     $route = $recorder->fetchRouteWithBalances('USDT', 'BTC', array('stub' => new OrderRouterStubVenue('stub')), array('amountIn' => 10));
     order_router_assert($route['balancesUsed'] === 'stub.USDT:1000,stub.BTC:1', 'largest first, and the ZERO holding is gone, got ' . $route['balancesUsed']);
     order_router_assert(count($route['balancesDropped']) === 0, 'nothing was dropped');
-    order_router_assert(strpos($recorder->lastUrl, 'balances=stub.USDT%3A1000%2Cstub.BTC%3A1') !== false, 'the balances reached the query');
+    //  the holdings reach the service in the BODY — never in the url. See the dedicated
+    //  test above for why that distinction is the whole point.
+    order_router_assert($recorder->lastMethod === 'POST', 'the balances request is a POST');
+    order_router_assert($recorder->lastBody['balances'] === 'stub.USDT:1000,stub.BTC:1', 'the balances reached the body');
+    order_router_assert(strpos($recorder->lastUrl, 'balances') === false, 'and never the url');
 }
 
 function order_router_test_fetch_route_with_balances_requires_echo($router) {
@@ -1700,6 +1741,8 @@ function test_order_router() {
         'atomic_ish demands the whole route pre-funded' => 'ccxt\order_router_test_atomic_ish_demands_prefunding',
         'fetchRoute refuses neither-or-both amounts before touching the network' => 'ccxt\order_router_test_fetch_route_refuses_ambiguous_amounts',
         'fetchRoute builds a deterministic query' => 'ccxt\order_router_test_fetch_route_query',
+        'a route carrying balances is POSTed, and the holdings never appear in the url' => 'ccxt\order_router_test_fetch_route_balances_are_posted',
+        'an empty-string balances value is still holdings, and still goes by POST' => 'ccxt\order_router_test_fetch_route_empty_balances_still_posted',
         'fetchRouteWithBalances skips zeros, sorts largest first and reports what it dropped' => 'ccxt\order_router_test_fetch_route_with_balances',
         'fetchRouteWithBalances refuses a route computed against balances the router ignored' => 'ccxt\order_router_test_fetch_route_with_balances_requires_echo',
         'fetchRouteWithBalances trims to the router 64-entry cap, dropping the smallest' => 'ccxt\order_router_test_fetch_route_with_balances_entry_cap',

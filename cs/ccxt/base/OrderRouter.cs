@@ -57,6 +57,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
+using Newtonsoft.Json;
 using System.Numerics;
 using System.Text;
 using System.Threading;
@@ -756,6 +757,40 @@ public class OrderRouter
             //  typo must not become a confidently wrong route
             throw new BadRequest("fetchRoute requires exactly one of amountIn or amountOut");
         }
+        //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
+        //  logs, but a URL does not stay inside that process: the standard deployment
+        //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
+        //  request line by default. So do browser history and client-side tracing, and a
+        //  Referer carries it off-origin. None of that is reachable from the router, and
+        //  no amount of in-process redaction fixes it — the fix is for the wallet not to
+        //  be in the URL, which is why the service exposes POST /route and its own spec
+        //  says to use it whenever balances are sent.
+        //
+        //  A request carrying no holdings still goes as a GET: cacheable, linkable, and
+        //  what every existing caller already uses.
+        dict route = null;
+        if (this.ValueAt(parameters, "balances") != null)
+        {
+            route = await this.Request(this.baseUrl + "/route", "POST", this.RouteBody(fromAsset, toAsset, parameters));
+        }
+        else
+        {
+            route = await this.Request(this.baseUrl + "/route?" + this.RouteQuery(fromAsset, toAsset, parameters), "GET", null);
+        }
+        //  Stamp the client's OWN record of the question onto the answer, so BuildExecutionPlan
+        //  can check that the route it is about to turn into real orders runs from the asset the
+        //  caller offered to the asset the caller wanted — rather than trusting the server's echo.
+        route["clientRequestedFrom"] = fromAsset.ToUpperInvariant();
+        route["clientRequestedTo"] = toAsset.ToUpperInvariant();
+        return route;
+    }
+
+    /// <summary>
+    /// Builds the GET /route query string, in a fixed key order so two ports
+    /// produce a byte-identical url.
+    /// </summary>
+    public string RouteQuery(string fromAsset, string toAsset, dict parameters)
+    {
         var query = "from=" + EncodeUriComponent(fromAsset.ToUpperInvariant()) + "&to=" + EncodeUriComponent(toAsset.ToUpperInvariant());
         for (var i = 0; i < ROUTE_QUERY_KEYS.Count; i++)
         {
@@ -767,36 +802,112 @@ public class OrderRouter
             }
             query = query + "&" + key + "=" + EncodeUriComponent(this.QueryText(value));
         }
-        var url = this.baseUrl + "/route?" + query;
-        var route = await this.Request(url);
-        //  Stamp the client's OWN record of the question onto the answer, so BuildExecutionPlan
-        //  can check that the route it is about to turn into real orders runs from the asset the
-        //  caller offered to the asset the caller wanted — rather than trusting the server's echo.
-        route["clientRequestedFrom"] = fromAsset.ToUpperInvariant();
-        route["clientRequestedTo"] = toAsset.ToUpperInvariant();
-        return route;
+        return query;
     }
 
     /// <summary>
-    /// Performs the authenticated GET and maps router status codes onto CCXT
+    /// Builds the POST /route JSON body — the same fields as the query string,
+    /// by the same names.
+    /// </summary>
+    public dict RouteBody(string fromAsset, string toAsset, dict parameters)
+    {
+        var body = new dict();
+        body["from"] = fromAsset.ToUpperInvariant();
+        body["to"] = toAsset.ToUpperInvariant();
+        for (var i = 0; i < ROUTE_QUERY_KEYS.Count; i++)
+        {
+            var key = ROUTE_QUERY_KEYS[i];
+            var value = this.ValueAt(parameters, key);
+            if (value == null)
+            {
+                continue;
+            }
+            //  numbers and booleans travel as themselves — the body is JSON and the
+            //  service's own schema types amountIn as a number. Everything else uses the
+            //  same text form the query string uses, so one handler reads both verbs.
+            if (value is bool || value is double || value is float || value is decimal || value is int || value is long || value is short || value is uint || value is ulong || value is ushort || value is byte || value is sbyte)
+            {
+                body[key] = value;
+            }
+            else
+            {
+                body[key] = this.QueryText(value);
+            }
+        }
+        return body;
+    }
+
+    /// <summary>
+    /// Renders a retry interval as a message suffix, empty when the service sent
+    /// none.
+    /// </summary>
+    public string RetrySuffix(string retryAfter)
+    {
+        if (retryAfter == "")
+        {
+            return "";
+        }
+        return ", retry after " + retryAfter + "s";
+    }
+
+    /// <summary>
+    /// Renders the book counts a cache_cold refusal carries, so a caller can log
+    /// why it was refused.
+    /// </summary>
+    public string ColdCacheSuffix(dict body)
+    {
+        var total = this.NumberAt(body, "bookCount", 0);
+        if (total <= 0)
+        {
+            return "";
+        }
+        var fresh = this.NumberAt(body, "freshCount", 0);
+        var needed = this.NumberAt(body, "minFreshBooksForReady", 0);
+        return " (" + this.FormatNumber(fresh) + " of " + this.FormatNumber(total) + " books fresh, " + this.FormatNumber(needed) + " needed)";
+    }
+
+    /// <summary>
+    /// Performs the authenticated call and maps router status codes onto CCXT
     /// exceptions. Virtual so a test can drive the parsing without a network.
     /// </summary>
-    /// <param name="url">the fully-formed url including the query string</param>
+    /// <param name="url">the fully-formed url, including the query string on a GET</param>
+    /// <param name="method">GET or POST</param>
+    /// <param name="requestBody">the JSON body, sent on a POST and ignored on a GET</param>
     /// <returns>the decoded JSON body</returns>
-    public virtual async Task<dict> Request(string url)
+    public virtual async Task<dict> Request(string url, string method = "GET", dict requestBody = null)
     {
         var status = 0;
         var text = "";
+        var retryAfter = "";
+        var rateLimitReset = "";
         try
         {
             using (var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(this.timeoutMs)))
             {
-                using (var message = new HttpRequestMessage(HttpMethod.Get, url))
+                var verb = (method == "POST") ? HttpMethod.Post : HttpMethod.Get;
+                using (var message = new HttpRequestMessage(verb, url))
                 {
                     message.Headers.TryAddWithoutValidation("x-api-key", this.apiKey);
                     message.Headers.TryAddWithoutValidation("Accept", "application/json");
+                    if (method == "POST")
+                    {
+                        var payload = JsonConvert.SerializeObject((requestBody == null) ? new dict() : requestBody);
+                        message.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+                    }
                     var response = await this.httpClient.SendAsync(message, cancellation.Token);
                     status = (int)response.StatusCode;
+                    //  READ BEFORE THE BODY. On a 429 or a 503 this is the only number that
+                    //  says how long to wait, and a caller told "unavailable" with no
+                    //  interval retries blind.
+                    //
+                    //  The two headers are NOT interchangeable and are kept apart on
+                    //  purpose. retry-after answers "how long until this particular refusal
+                    //  clears"; x-ratelimit-reset answers "how long until the rate-limit
+                    //  window rolls over", which is the same question ONLY on a 429. Using
+                    //  the window as a fallback for a cold cache would tell a caller to wait
+                    //  a full minute for a cache that repopulates in seconds.
+                    retryAfter = this.HeaderValue(response, "retry-after");
+                    rateLimitReset = this.HeaderValue(response, "x-ratelimit-reset");
                     text = await response.Content.ReadAsStringAsync();
                 }
             }
@@ -847,13 +958,126 @@ public class OrderRouter
         }
         if (status == 429)
         {
-            throw new RateLimitExceeded("OrderRouter: " + message2);
+            //  the window rollover IS the retry interval here, so it stands in when the
+            //  service sent no retry-after
+            var limitInterval = (retryAfter != "") ? retryAfter : rateLimitReset;
+            throw new RateLimitExceeded("OrderRouter: " + message2 + this.RetrySuffix(limitInterval));
         }
         if (status == 408 || status == 504)
         {
             throw new RequestTimeout("OrderRouter: " + message2);
         }
+        if (status == 503)
+        {
+            //  /ready answers 503 WITH ITS ANSWER: a Readiness body saying not_ready and
+            //  why. That is the result of the probe, not a failure of it — throwing would
+            //  hide the very counts the caller asked for. Distinguished by shape, exactly
+            //  as 404 and 501 are above.
+            if (this.StringAt(body, "status", "") != "")
+            {
+                return body;
+            }
+            //  Every other 503 is cache_cold: the router is alive but has too few fresh
+            //  books to rank on, typically for a few seconds after a restart while the
+            //  connectors repopulate. It is a RETRY, and the generic ExchangeError this
+            //  used to raise made it indistinguishable from a permanent server fault.
+            throw new ExchangeNotAvailable("OrderRouter: " + message2 + this.ColdCacheSuffix(body) + this.RetrySuffix(retryAfter));
+        }
         throw new ExchangeError("OrderRouter: " + message2);
+    }
+
+    /// <summary>
+    /// Reads one response header, empty when the service did not send it.
+    /// </summary>
+    public string HeaderValue(HttpResponseMessage response, string name)
+    {
+        IEnumerable<string> values = null;
+        if (response.Headers.TryGetValues(name, out values))
+        {
+            foreach (var value in values)
+            {
+                return value;
+            }
+        }
+        if (response.Content != null && response.Content.Headers.TryGetValues(name, out values))
+        {
+            foreach (var value in values)
+            {
+                return value;
+            }
+        }
+        return "";
+    }
+
+    /// <summary>
+    /// Liveness only — answers 200 from the first millisecond of boot, before a
+    /// single venue has connected. Use FetchReadiness to decide whether the router
+    /// can actually price anything.
+    /// </summary>
+    public async Task<dict> FetchHealth()
+    {
+        return await this.Request(this.baseUrl + "/health", "GET", null);
+    }
+
+    /// <summary>
+    /// Whether the router has enough fresh books to rank on, measured with the
+    /// same staleness cutoff /route uses. NOT_READY IS A NORMAL ANSWER: the
+    /// service replies 503 with the same body it returns on 200, and this method
+    /// returns it rather than throwing, because a caller asking "are you ready"
+    /// needs the counts that say why not.
+    /// </summary>
+    public async Task<dict> FetchReadiness()
+    {
+        return await this.Request(this.baseUrl + "/ready", "GET", null);
+    }
+
+    /// <summary>
+    /// Build provenance of the running process. This is what a deploy pipeline
+    /// asserts against — health answers 200 from the OLD process just as happily
+    /// when a deploy silently no-ops, and commit is the only field that tells the
+    /// two apart.
+    /// </summary>
+    public async Task<dict> FetchVersion()
+    {
+        return await this.Request(this.baseUrl + "/version", "GET", null);
+    }
+
+    /// <summary>
+    /// The unified symbols the router currently holds a cached book for. A pair
+    /// absent from this list cannot be routed no matter how it is spelled.
+    /// </summary>
+    public async Task<list> FetchSymbols()
+    {
+        var response = await this.Request(this.baseUrl + "/symbols", "GET", null);
+        return this.ListAt(response, "symbols");
+    }
+
+    /// <summary>
+    /// Per-venue connection health. A venue can hold an open socket while its
+    /// subscription is silently dead, so read the per-venue update age and not
+    /// only the connected flag.
+    /// </summary>
+    public async Task<list> FetchExchangesStatus()
+    {
+        var response = await this.Request(this.baseUrl + "/exchanges/status", "GET", null);
+        return this.ListAt(response, "exchanges");
+    }
+
+    /// <summary>
+    /// The router's own cached L2 book for one venue and symbol — the exact depth
+    /// a route was ranked on, which is what makes a surprising route auditable.
+    /// </summary>
+    public async Task<dict> FetchCachedOrderBook(string exchangeId, string symbol)
+    {
+        if (exchangeId == null || symbol == null || exchangeId == "" || symbol == "")
+        {
+            throw new ArgumentsRequired("fetchCachedOrderBook requires an exchangeId and a symbol");
+        }
+        //  the symbol carries a slash and travels as ONE path segment, so it is encoded
+        //  rather than interpolated: BTC/USDT unencoded would read as two segments and
+        //  reach a route that does not exist
+        var url = this.baseUrl + "/orderbook/" + EncodeUriComponent(exchangeId) + "/" + EncodeUriComponent(symbol);
+        return await this.Request(url, "GET", null);
     }
 
     /// <summary>

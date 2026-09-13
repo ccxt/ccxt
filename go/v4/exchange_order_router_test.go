@@ -1731,18 +1731,34 @@ func TestOrderRouterAtomicIshDemandsTheWholeRoutePrefunded(t *testing.T) {
 //  stubbed out — no network
 //  ---------------------------------------------------------------------------
 
-func routerRecordingRouter(t *testing.T, config map[string]any, body map[string]any) (*OrderRouter, *string) {
+// routerRecording is what the stubbed transport saw on its last call: a route
+// carrying holdings must reach the service as a POST body and never as a url.
+type routerRecording struct {
+	url    string
+	method string
+	body   map[string]any
+}
+
+func routerRecordingRouterFull(t *testing.T, config map[string]any, body map[string]any) (*OrderRouter, *routerRecording) {
 	t.Helper()
 	router, err := NewOrderRouter(config)
 	if err != nil {
 		t.Fatalf("NewOrderRouter: %v", err)
 	}
-	lastUrl := new(string)
-	router.Transport = func(url string) (map[string]any, error) {
-		*lastUrl = url
+	seen := &routerRecording{}
+	router.Transport = func(url string, method string, requestBody map[string]any) (map[string]any, error) {
+		seen.url = url
+		seen.method = method
+		seen.body = requestBody
 		return body, nil
 	}
-	return router, lastUrl
+	return router, seen
+}
+
+func routerRecordingRouter(t *testing.T, config map[string]any, body map[string]any) (*OrderRouter, *string) {
+	t.Helper()
+	router, seen := routerRecordingRouterFull(t, config, body)
+	return router, &seen.url
 }
 
 func TestOrderRouterFetchRouteRefusesNeitherOrBothAmounts(t *testing.T) {
@@ -1769,6 +1785,89 @@ func TestOrderRouterFetchRouteBuildsADeterministicQuery(t *testing.T) {
 	}
 }
 
+func TestOrderRouterFetchRouteWithBalancesIsPostedAndNeverInTheUrl(t *testing.T) {
+	// The service scrubs balances from its own logs, but the URL leaves the
+	// process: a reverse proxy, an ALB and a CDN all log the full request line,
+	// as do browser history and client-side tracing. This is the assertion that
+	// keeps the wallet out of them.
+	router, seen := routerRecordingRouterFull(t, map[string]any{"apiKey": "k", "baseUrl": "https://example.test/api"}, map[string]any{"hops": []any{}})
+	if _, err := router.FetchRoute("usdt", "btc", map[string]any{"amountIn": 10.0, "balances": "binance.USDT:1000,binance.BTC:1", "certified": true, "maxVenues": 2.0}); err != nil {
+		t.Fatalf("fetchRoute: %v", err)
+	}
+	if seen.method != "POST" {
+		t.Fatalf("a route carrying holdings is POSTed, got %v", seen.method)
+	}
+	if seen.url != "https://example.test/api/route" {
+		t.Fatalf("no query string at all, got %v", seen.url)
+	}
+	if strings.Contains(seen.url, "balances") || strings.Contains(seen.url, "1000") {
+		t.Fatalf("the holdings are not in the url, got %v", seen.url)
+	}
+	if seen.body["from"] != "USDT" || seen.body["to"] != "BTC" {
+		t.Fatalf("the body carries from and to, got %v", seen.body)
+	}
+	if seen.body["balances"] != "binance.USDT:1000,binance.BTC:1" {
+		t.Fatalf("the body carries the holdings, got %v", seen.body["balances"])
+	}
+	// numbers and booleans travel as themselves: the body is JSON, and the
+	// service's own schema types amountIn as a number
+	if seen.body["amountIn"] != 10.0 {
+		t.Fatalf("amountIn stays a number, got %#v", seen.body["amountIn"])
+	}
+	if seen.body["certified"] != true {
+		t.Fatalf("certified stays a bool, got %#v", seen.body["certified"])
+	}
+	if seen.body["maxVenues"] != 2.0 {
+		t.Fatalf("maxVenues stays a number, got %#v", seen.body["maxVenues"])
+	}
+}
+
+func TestOrderRouterFetchRouteEmptyBalancesStillPosted(t *testing.T) {
+	// "" is what a caller gets from a venue with nothing in it. It is not "no
+	// balances parameter" — the router reads it, and a check that treated it as
+	// absent would put the NEXT non-empty value on the same code path back into
+	// the url.
+	router, seen := routerRecordingRouterFull(t, map[string]any{"apiKey": "k", "baseUrl": "https://example.test/api"}, map[string]any{"hops": []any{}})
+	if _, err := router.FetchRoute("usdt", "btc", map[string]any{"amountIn": 10.0, "balances": ""}); err != nil {
+		t.Fatalf("fetchRoute: %v", err)
+	}
+	if seen.method != "POST" {
+		t.Fatalf("an empty holdings string is still holdings, got %v", seen.method)
+	}
+	if seen.body["balances"] != "" {
+		t.Fatalf("and it reaches the body, got %#v", seen.body["balances"])
+	}
+}
+
+func TestOrderRouterReadOnlyEndpointsHitTheirOwnPaths(t *testing.T) {
+	config := map[string]any{"apiKey": "k", "baseUrl": "https://example.test/api"}
+	router, seen := routerRecordingRouterFull(t, config, map[string]any{"status": "ok", "symbols": []any{"BTC/USDT"}, "exchanges": []any{map[string]any{"exchangeId": "binance"}}})
+	if _, err := router.FetchHealth(); err != nil || seen.url != "https://example.test/api/health" {
+		t.Fatalf("FetchHealth: %v %v", err, seen.url)
+	}
+	if _, err := router.FetchReadiness(); err != nil || seen.url != "https://example.test/api/ready" {
+		t.Fatalf("FetchReadiness: %v %v", err, seen.url)
+	}
+	if _, err := router.FetchVersion(); err != nil || seen.url != "https://example.test/api/version" {
+		t.Fatalf("FetchVersion: %v %v", err, seen.url)
+	}
+	symbols, err := router.FetchSymbols()
+	if err != nil || len(symbols) != 1 || symbols[0] != "BTC/USDT" || seen.url != "https://example.test/api/symbols" {
+		t.Fatalf("FetchSymbols: %v %v %v", err, symbols, seen.url)
+	}
+	venues, err := router.FetchExchangesStatus()
+	if err != nil || len(venues) != 1 || seen.url != "https://example.test/api/exchanges/status" {
+		t.Fatalf("FetchExchangesStatus: %v %v %v", err, venues, seen.url)
+	}
+	// BTC/USDT unencoded reads as two segments and reaches a route that does not exist
+	if _, err := router.FetchCachedOrderBook("binance", "BTC/USDT"); err != nil || seen.url != "https://example.test/api/orderbook/binance/BTC%2FUSDT" {
+		t.Fatalf("FetchCachedOrderBook: %v %v", err, seen.url)
+	}
+	if _, err := router.FetchCachedOrderBook("binance", ""); routerErrorCode(err) != "ArgumentsRequired" {
+		t.Fatalf("an empty symbol is refused, got %v", err)
+	}
+}
+
 func TestOrderRouterFetchRouteWithBalancesSkipsZerosAndSortsLargestFirst(t *testing.T) {
 	router, lastUrl := routerRecordingRouter(t, map[string]any{"apiKey": "k"}, map[string]any{"hops": []any{}, "balancesApplied": "stub.BTC:1,stub.USDT:1000"})
 	venues := routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)})
@@ -1782,8 +1881,10 @@ func TestOrderRouterFetchRouteWithBalancesSkipsZerosAndSortsLargestFirst(t *test
 	if len(route["balancesDropped"].([]map[string]any)) != 0 {
 		t.Fatalf("nothing was dropped, got %v", route["balancesDropped"])
 	}
-	if !strings.Contains(*lastUrl, "balances=stub.USDT%3A1000%2Cstub.BTC%3A1") {
-		t.Fatalf("the balances reached the query, got %v", *lastUrl)
+	// the holdings reach the service in the BODY — never in the url. See the
+	// dedicated test above for why that distinction is the whole point.
+	if strings.Contains(*lastUrl, "balances") {
+		t.Fatalf("the balances never reach the url, got %v", *lastUrl)
 	}
 }
 

@@ -37,6 +37,8 @@ sys.path.insert(0, python_root)
 from ccxt.base.errors import ArgumentsRequired  # noqa: E402
 from ccxt.base.errors import BadRequest  # noqa: E402
 from ccxt.base.errors import ExchangeError  # noqa: E402
+from ccxt.base.errors import ExchangeNotAvailable  # noqa: E402
+from ccxt.base.errors import RateLimitExceeded  # noqa: E402
 from ccxt.base.errors import NotSupported  # noqa: E402
 from ccxt.base.errors import RequestTimeout  # noqa: E402
 from ccxt.base.order_router import OrderRouter  # noqa: E402
@@ -1089,9 +1091,13 @@ class RecordingRouter(OrderRouter):
         super(RecordingRouter, self).__init__(config)
         self.body = body
         self.last_url = ''
+        self.last_method = ''
+        self.last_body = {}
 
-    def request(self, url):
+    def request(self, url, method='GET', request_body={}):
         self.last_url = url
+        self.last_method = method
+        self.last_body = request_body
         return self.body
 
 
@@ -1108,6 +1114,189 @@ def test_fetch_route_query():
     recorder = RecordingRouter({'apiKey': 'k', 'baseUrl': 'https://example.test/api/'}, {'hops': []})
     recorder.fetch_route('usdt', 'btc', {'amountIn': 0.001, 'strategy': 'split_capped', 'maxVenues': 3, 'exchanges': ['binance', 'kraken'], 'certified': True})
     assert recorder.last_url == 'https://example.test/api/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true', recorder.last_url
+    assert recorder.last_method == 'GET', 'a request carrying no holdings stays a cacheable, linkable GET'
+
+
+@test('a route carrying balances is POSTed, and the holdings never appear in the url')
+def test_fetch_route_balances_are_posted():
+    # The service scrubs balances from its own logs, but the URL leaves the process: a
+    # reverse proxy, an ALB and a CDN all log the full request line, as do browser history
+    # and client-side tracing. This is the assertion that keeps the wallet out of them.
+    recorder = RecordingRouter({'apiKey': 'k', 'baseUrl': 'https://example.test/api'}, {'hops': []})
+    recorder.fetch_route('usdt', 'btc', {'amountIn': 10, 'balances': 'binance.USDT:1000,binance.BTC:1', 'certified': True, 'maxVenues': 2})
+    assert recorder.last_method == 'POST'
+    assert recorder.last_url == 'https://example.test/api/route', 'no query string at all'
+    assert recorder.last_url.find('balances') == -1, 'the holdings are not in the url'
+    assert recorder.last_url.find('1000') == -1, 'nor is any amount from them'
+    assert recorder.last_body['from'] == 'USDT'
+    assert recorder.last_body['to'] == 'BTC'
+    assert recorder.last_body['balances'] == 'binance.USDT:1000,binance.BTC:1'
+    # numbers and booleans travel as themselves: the body is JSON, and the service's own
+    # schema types amountIn as a number
+    assert recorder.last_body['amountIn'] == 10
+    assert recorder.last_body['certified'] is True
+    assert recorder.last_body['maxVenues'] == 2
+
+
+@test('an empty-string balances value is still holdings, and still goes by POST')
+def test_fetch_route_empty_balances_still_posted():
+    # '' is what a caller gets from a venue with nothing in it. It is not "no balances
+    # parameter" — the router reads it, and a check that treated it as absent would put
+    # the NEXT non-empty value on the same code path back into the url.
+    recorder = RecordingRouter({'apiKey': 'k', 'baseUrl': 'https://example.test/api'}, {'hops': []})
+    recorder.fetch_route('usdt', 'btc', {'amountIn': 10, 'balances': ''})
+    assert recorder.last_method == 'POST'
+    assert recorder.last_body['balances'] == ''
+
+
+# ---------------------------------------------------------------------------
+# The HTTP layer. request() maps the service's status codes onto CCXT
+# exceptions, and until these tests existed not one of those mappings was
+# covered: a 503 from a router still filling its cache was indistinguishable
+# from a permanent server fault. self.session is replaced for the duration of
+# each test, so nothing here touches the network.
+# ---------------------------------------------------------------------------
+
+class StubResponse(object):
+
+    def __init__(self, status, text, headers):
+        self.status_code = status
+        self.text = text
+        self.headers = headers
+
+
+class StubSession(object):
+
+    def __init__(self, status, text, headers):
+        self.status = status
+        self.text = text
+        self.response_headers = headers
+        self.calls = []
+
+    def get(self, url, headers=None, timeout=None):
+        self.calls.append({'method': 'GET', 'url': url, 'headers': headers, 'data': None})
+        return StubResponse(self.status, self.text, self.response_headers)
+
+    def post(self, url, headers=None, data=None, timeout=None):
+        self.calls.append({'method': 'POST', 'url': url, 'headers': headers, 'data': data})
+        return StubResponse(self.status, self.text, self.response_headers)
+
+
+COLD_BODY = json.dumps({
+    'error': 'cache is cold', 'reason': 'cache_cold',
+    'bookCount': 12, 'freshCount': 0, 'staleCount': 12, 'minFreshBooksForReady': 1,
+})
+
+
+def stubbed(status, text, headers, config=None):
+    router = OrderRouter(config if config is not None else {'apiKey': 'k'})
+    session = StubSession(status, text, headers)
+    router.session = session
+    return router, session
+
+
+@test('a cold cache is ExchangeNotAvailable, carrying the counts and the retry interval')
+def test_cold_cache_is_unavailable():
+    router, _session = stubbed(503, COLD_BODY, {'retry-after': '5'})
+    try:
+        router.fetch_route('USDT', 'BTC', {'amountIn': 10})
+        assert False, 'a cold cache must refuse'
+    except ExchangeNotAvailable as e:
+        # NOT a generic ExchangeError: the whole point is that a caller can tell
+        # "come back in five seconds" from "this router is broken"
+        assert str(e).find('0 of 12 books fresh') >= 0, str(e)
+        assert str(e).find('retry after 5s') >= 0, str(e)
+
+
+@test('a cold cache never borrows the rate-limit window as its retry interval')
+def test_cold_cache_ignores_reset_header():
+    # The live deployment sends x-ratelimit-reset on EVERY response, this one included.
+    # It answers a different question — when the rate-limit window rolls over, not when
+    # this refusal clears — so a cold cache that repopulates in seconds must not tell a
+    # caller to wait out a full minute. No retry-after means no interval claimed.
+    router, _session = stubbed(503, COLD_BODY, {'x-ratelimit-reset': '59'})
+    try:
+        router.fetch_route('USDT', 'BTC', {'amountIn': 10})
+        assert False, 'a cold cache must refuse'
+    except ExchangeNotAvailable as e:
+        assert str(e).find('0 of 12 books fresh') >= 0, str(e)
+        assert str(e).find('retry after') == -1, str(e)
+
+
+@test('a 429 names how long to wait, falling back to the window rollover')
+def test_rate_limit_names_interval():
+    router, _session = stubbed(429, json.dumps({'error': 'rate limit exceeded'}), {'retry-after': '30'})
+    try:
+        router.fetch_route('USDT', 'BTC', {'amountIn': 10})
+        assert False, 'a 429 must raise'
+    except RateLimitExceeded as e:
+        assert str(e).find('retry after 30s') >= 0, str(e)
+    # here the two questions DO coincide: the window rolling over is exactly when the
+    # refusal clears, so it stands in when the service sent no retry-after
+    router, _session = stubbed(429, json.dumps({'error': 'rate limit exceeded'}), {'x-ratelimit-reset': '59'})
+    try:
+        router.fetch_route('USDT', 'BTC', {'amountIn': 10})
+        assert False, 'a 429 must raise'
+    except RateLimitExceeded as e:
+        assert str(e).find('retry after 59s') >= 0, str(e)
+
+
+@test('a not_ready readiness probe is an ANSWER, not an exception')
+def test_readiness_not_ready_returns():
+    # /ready replies 503 with the same body it returns on 200. Raising would destroy
+    # the counts the caller asked the question to get.
+    body = json.dumps({'status': 'not_ready', 'bookCount': 12, 'freshCount': 0, 'staleCount': 12, 'minFreshBooksForReady': 1})
+    router, session = stubbed(503, body, {})
+    readiness = router.fetch_readiness()
+    assert readiness['status'] == 'not_ready'
+    assert readiness['freshCount'] == 0
+    assert session.calls[0]['url'] == OrderRouter.DEFAULT_BASE_URL + '/ready'
+
+
+@test('the read-only endpoints each hit their own path and unwrap their own envelope')
+def test_read_only_endpoints():
+    config = {'apiKey': 'k', 'baseUrl': 'https://example.test/api'}
+    router, session = stubbed(200, json.dumps({'status': 'ok', 'uptimeSec': 12.5}), {}, config)
+    assert router.fetch_health()['status'] == 'ok'
+    assert session.calls[0]['url'] == 'https://example.test/api/health'
+    router, session = stubbed(200, json.dumps({'version': '2.0.0', 'commit': 'abc'}), {}, config)
+    assert router.fetch_version()['commit'] == 'abc'
+    assert session.calls[0]['url'] == 'https://example.test/api/version'
+    router, session = stubbed(200, json.dumps({'symbols': ['BTC/USDT', 'ETH/USDT']}), {}, config)
+    assert router.fetch_symbols() == ['BTC/USDT', 'ETH/USDT'], 'the envelope is unwrapped'
+    assert session.calls[0]['url'] == 'https://example.test/api/symbols'
+    router, session = stubbed(200, json.dumps({'exchanges': [{'exchangeId': 'binance', 'connected': True}]}), {}, config)
+    venues = router.fetch_exchanges_status()
+    assert len(venues) == 1 and venues[0]['exchangeId'] == 'binance'
+    assert session.calls[0]['url'] == 'https://example.test/api/exchanges/status'
+
+
+@test('a cached book encodes the symbol as ONE path segment')
+def test_cached_order_book_path():
+    # BTC/USDT unencoded reads as two segments and reaches a route that does not exist
+    config = {'apiKey': 'k', 'baseUrl': 'https://example.test/api'}
+    router, session = stubbed(200, json.dumps({'bids': [], 'asks': []}), {}, config)
+    router.fetch_cached_order_book('binance', 'BTC/USDT')
+    assert session.calls[0]['url'] == 'https://example.test/api/orderbook/binance/BTC%2FUSDT', session.calls[0]['url']
+    assert_raises(ArgumentsRequired, lambda: router.fetch_cached_order_book('binance', ''), 'an empty symbol')
+
+
+@test('a POST carries a JSON body and the key, a GET carries no body at all')
+def test_post_body_and_headers():
+    config = {'apiKey': 'secret-key', 'baseUrl': 'https://example.test/api'}
+    router, session = stubbed(200, json.dumps({'hops': []}), {}, config)
+    router.fetch_route('USDT', 'BTC', {'amountIn': 10, 'balances': 'binance.USDT:1000'})
+    call = session.calls[0]
+    assert call['method'] == 'POST'
+    assert call['headers']['Content-Type'] == 'application/json'
+    assert call['headers']['x-api-key'] == 'secret-key'
+    sent = json.loads(call['data'])
+    assert sent['balances'] == 'binance.USDT:1000'
+    assert call['url'].find('balances') == -1, 'and never in the url'
+    router, session = stubbed(200, json.dumps({'hops': []}), {}, config)
+    router.fetch_route('USDT', 'BTC', {'amountIn': 10})
+    assert session.calls[0]['method'] == 'GET'
+    assert session.calls[0]['data'] is None
 
 
 @test('fetch_route_with_balances skips zeros, sorts largest first and reports what it dropped')
@@ -1116,7 +1305,11 @@ def test_fetch_route_with_balances():
     route = recorder.fetch_route_with_balances('USDT', 'BTC', {'stub': StubVenue('stub')}, {'amountIn': 10})
     assert route['balancesUsed'] == 'stub.USDT:1000,stub.BTC:1', 'largest first, and the ZERO holding is gone'
     assert route['balancesDropped'] == []
-    assert recorder.last_url.find('balances=stub.USDT%3A1000%2Cstub.BTC%3A1') >= 0, recorder.last_url
+    # the holdings reach the service in the BODY — never in the url. See the dedicated
+    # test above for why that distinction is the whole point.
+    assert recorder.last_method == 'POST'
+    assert recorder.last_body['balances'] == 'stub.USDT:1000,stub.BTC:1'
+    assert recorder.last_url.find('balances') == -1, recorder.last_url
 
 
 @test('fetch_route_with_balances refuses a route computed against balances the router ignored')

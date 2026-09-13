@@ -46,6 +46,7 @@ package ccxt
 //  ---------------------------------------------------------------------------
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -173,10 +174,11 @@ type OrderRouter struct {
 
 	executedPlanIdSet map[string]bool
 
-	// Transport performs the authenticated GET behind FetchRoute. It defaults
-	// to (*OrderRouter).Request; Go has no method overriding, so this field is
-	// how the offline test suite keeps itself off the network.
-	Transport func(url string) (map[string]any, error)
+	// Transport performs the authenticated call behind FetchRoute and the
+	// read-only endpoints. It defaults to (*OrderRouter).Request; Go has no
+	// method overriding, so this field is how the offline test suite keeps
+	// itself off the network.
+	Transport func(url string, method string, body map[string]any) (map[string]any, error)
 
 	// NowMs is the only clock this class reads. A field for the same reason
 	// Transport is one — Go has no method overriding — so a test can pin time.
@@ -600,6 +602,48 @@ func (this *OrderRouter) FetchRoute(fromAsset string, toAsset string, params map
 		// must not become a confidently wrong route
 		return nil, BadRequest("fetchRoute requires exactly one of amountIn or amountOut")
 	}
+	// HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
+	// logs, but a URL does not stay inside that process: the standard deployment
+	// puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
+	// request line by default. So do browser history and client-side tracing, and
+	// a Referer carries it off-origin. None of that is reachable from the router,
+	// and no amount of in-process redaction fixes it — the fix is for the wallet
+	// not to be in the URL, which is why the service exposes POST /route and its
+	// own spec says to use it whenever balances are sent.
+	//
+	// A request carrying no holdings still goes as a GET: cacheable, linkable,
+	// and what every existing caller already uses.
+	var route map[string]any
+	balances, hasBalances := params["balances"]
+	if hasBalances && balances != nil {
+		body, err := this.RouteBody(fromAsset, toAsset, params)
+		if err != nil {
+			return nil, err
+		}
+		route, err = this.Transport(this.BaseUrl+"/route", "POST", body)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		query, err := this.RouteQuery(fromAsset, toAsset, params)
+		if err != nil {
+			return nil, err
+		}
+		route, err = this.Transport(this.BaseUrl+"/route?"+query, "GET", nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// Stamp what THIS CLIENT asked for, client-side, so BuildExecutionPlan can check the answer
+	// against the question. Everything else in the response is the server's word for it.
+	route["clientRequestedFrom"] = strings.ToUpper(fromAsset)
+	route["clientRequestedTo"] = strings.ToUpper(toAsset)
+	return route, nil
+}
+
+// RouteQuery builds the GET /route query string, in a fixed key order so two
+// ports produce a byte-identical url.
+func (this *OrderRouter) RouteQuery(fromAsset string, toAsset string, params map[string]any) (string, error) {
 	query := "from=" + routerEncodeURIComponent(strings.ToUpper(fromAsset)) + "&to=" + routerEncodeURIComponent(strings.ToUpper(toAsset))
 	for i := 0; i < len(orderRouterQueryKeys); i++ {
 		key := orderRouterQueryKeys[i]
@@ -609,20 +653,77 @@ func (this *OrderRouter) FetchRoute(fromAsset string, toAsset string, params map
 		}
 		text, err := this.routerQueryValue(value)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		query = query + "&" + key + "=" + routerEncodeURIComponent(text)
 	}
-	url := this.BaseUrl + "/route?" + query
-	route, err := this.Transport(url)
-	if err != nil {
-		return nil, err
+	return query, nil
+}
+
+// RouteBody builds the POST /route JSON body — the same fields as the query
+// string, by the same names.
+func (this *OrderRouter) RouteBody(fromAsset string, toAsset string, params map[string]any) (map[string]any, error) {
+	body := map[string]any{}
+	body["from"] = strings.ToUpper(fromAsset)
+	body["to"] = strings.ToUpper(toAsset)
+	for i := 0; i < len(orderRouterQueryKeys); i++ {
+		key := orderRouterQueryKeys[i]
+		value, present := params[key]
+		if !present || value == nil {
+			continue
+		}
+		// numbers and booleans travel as themselves — the body is JSON and the
+		// service's own schema types amountIn as a number. Everything else uses
+		// the same text form the query string uses, so one handler reads both
+		// verbs.
+		switch value.(type) {
+		case bool:
+			body[key] = value
+			continue
+		case string:
+		default:
+			if number := routerToNumber(value, math.NaN()); !math.IsNaN(number) {
+				body[key] = number
+				continue
+			}
+		}
+		text, err := this.routerQueryValue(value)
+		if err != nil {
+			return nil, err
+		}
+		body[key] = text
 	}
-	// Stamp what THIS CLIENT asked for, client-side, so BuildExecutionPlan can check the answer
-	// against the question. Everything else in the response is the server's word for it.
-	route["clientRequestedFrom"] = strings.ToUpper(fromAsset)
-	route["clientRequestedTo"] = strings.ToUpper(toAsset)
-	return route, nil
+	return body, nil
+}
+
+// routerRetrySuffix renders a retry interval as a message suffix, empty when the
+// service sent none.
+func routerRetrySuffix(retryAfter string) string {
+	if retryAfter == "" {
+		return ""
+	}
+	return ", retry after " + retryAfter + "s"
+}
+
+// routerColdCacheSuffix renders the book counts a cache_cold refusal carries, so
+// a caller can log why it was refused.
+func (this *OrderRouter) routerColdCacheSuffix(body map[string]any) string {
+	total := routerNumberAt(body, "bookCount", 0)
+	if total <= 0 {
+		return ""
+	}
+	fresh := routerNumberAt(body, "freshCount", 0)
+	needed := routerNumberAt(body, "minFreshBooksForReady", 0)
+	freshText, freshErr := this.FormatNumber(fresh)
+	totalText, totalErr := this.FormatNumber(total)
+	neededText, neededErr := this.FormatNumber(needed)
+	if freshErr != nil || totalErr != nil || neededErr != nil {
+		// a count this class cannot render is a count it will not guess at: the
+		// suffix is dropped whole rather than reporting a number that differs
+		// from what the other five ports would print
+		return ""
+	}
+	return " (" + freshText + " of " + totalText + " books fresh, " + neededText + " needed)"
 }
 
 // routerQueryValue renders one query parameter the way the reference does:
@@ -653,18 +754,34 @@ func (this *OrderRouter) routerQueryValue(value any) (string, error) {
 	return ToString(value), nil
 }
 
-// Request performs the authenticated GET and maps router status codes onto CCXT
+// Request performs the authenticated call and maps router status codes onto CCXT
 // errors. FetchRoute reaches it through the Transport field.
-func (this *OrderRouter) Request(url string) (map[string]any, error) {
+func (this *OrderRouter) Request(url string, method string, requestBody map[string]any) (map[string]any, error) {
 	timeout := time.Duration(this.TimeoutMs) * time.Millisecond
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	verb := http.MethodGet
+	var payload io.Reader
+	if method == "POST" {
+		verb = http.MethodPost
+		if requestBody == nil {
+			requestBody = map[string]any{}
+		}
+		encoded, err := json.Marshal(requestBody)
+		if err != nil {
+			return nil, ExchangeError("OrderRouter could not encode the request body")
+		}
+		payload = bytes.NewReader(encoded)
+	}
+	request, err := http.NewRequestWithContext(ctx, verb, url, payload)
 	if err != nil {
 		return nil, ExchangeNotAvailable("OrderRouter request failed: " + err.Error())
 	}
 	request.Header.Set("x-api-key", this.ApiKey)
 	request.Header.Set("Accept", "application/json")
+	if method == "POST" {
+		request.Header.Set("Content-Type", "application/json")
+	}
 	response, err := this.httpClient.Do(request)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -674,6 +791,18 @@ func (this *OrderRouter) Request(url string) (map[string]any, error) {
 	}
 	defer response.Body.Close()
 	status := response.StatusCode
+	// READ BEFORE THE BODY. On a 429 or a 503 this is the only number that says
+	// how long to wait, and a caller told "unavailable" with no interval retries
+	// blind.
+	//
+	// The two headers are NOT interchangeable and are kept apart on purpose.
+	// retry-after answers "how long until this particular refusal clears";
+	// x-ratelimit-reset answers "how long until the rate-limit window rolls over",
+	// which is the same question ONLY on a 429. Using the window as a fallback for
+	// a cold cache would tell a caller to wait a full minute for a cache that
+	// repopulates in seconds.
+	retryAfter := response.Header.Get("retry-after")
+	rateLimitReset := response.Header.Get("x-ratelimit-reset")
 	text, err := io.ReadAll(response.Body)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -707,12 +836,92 @@ func (this *OrderRouter) Request(url string) (map[string]any, error) {
 		return nil, AuthenticationError("OrderRouter: " + message)
 	}
 	if status == 429 {
-		return nil, RateLimitExceeded("OrderRouter: " + message)
+		// the window rollover IS the retry interval here, so it stands in when the
+		// service sent no retry-after
+		limitInterval := retryAfter
+		if limitInterval == "" {
+			limitInterval = rateLimitReset
+		}
+		return nil, RateLimitExceeded("OrderRouter: " + message + routerRetrySuffix(limitInterval))
 	}
 	if status == 408 || status == 504 {
 		return nil, RequestTimeout("OrderRouter: " + message)
 	}
+	if status == 503 {
+		// /ready answers 503 WITH ITS ANSWER: a Readiness body saying not_ready
+		// and why. That is the result of the probe, not a failure of it —
+		// erroring would hide the very counts the caller asked for.
+		// Distinguished by shape, exactly as 404 and 501 are above.
+		if routerStringAt(body, "status", "") != "" {
+			return body, nil
+		}
+		// Every other 503 is cache_cold: the router is alive but has too few
+		// fresh books to rank on, typically for a few seconds after a restart
+		// while the connectors repopulate. It is a RETRY, and the generic
+		// ExchangeError this used to raise made it indistinguishable from a
+		// permanent server fault.
+		return nil, ExchangeNotAvailable("OrderRouter: " + message + this.routerColdCacheSuffix(body) + routerRetrySuffix(retryAfter))
+	}
 	return nil, ExchangeError("OrderRouter: " + message)
+}
+
+// FetchHealth reports liveness only — the service answers 200 from the first
+// millisecond of boot, before a single venue has connected. Use FetchReadiness to
+// decide whether the router can actually price anything.
+func (this *OrderRouter) FetchHealth() (map[string]any, error) {
+	return this.Transport(this.BaseUrl+"/health", "GET", nil)
+}
+
+// FetchReadiness reports whether the router has enough fresh books to rank on,
+// measured with the same staleness cutoff /route uses. NOT_READY IS A NORMAL
+// ANSWER: the service replies 503 with the same body it returns on 200, and this
+// method returns it rather than erroring, because a caller asking "are you ready"
+// needs the counts that say why not.
+func (this *OrderRouter) FetchReadiness() (map[string]any, error) {
+	return this.Transport(this.BaseUrl+"/ready", "GET", nil)
+}
+
+// FetchVersion reports the build provenance of the running process. This is what
+// a deploy pipeline asserts against — /health answers 200 from the OLD process
+// just as happily when a deploy silently no-ops, and commit is the only field
+// that tells the two apart.
+func (this *OrderRouter) FetchVersion() (map[string]any, error) {
+	return this.Transport(this.BaseUrl+"/version", "GET", nil)
+}
+
+// FetchSymbols lists the unified symbols the router currently holds a cached book
+// for. A pair absent from this list cannot be routed no matter how it is spelled.
+func (this *OrderRouter) FetchSymbols() ([]any, error) {
+	response, err := this.Transport(this.BaseUrl+"/symbols", "GET", nil)
+	if err != nil {
+		return nil, err
+	}
+	return routerListAt(response, "symbols"), nil
+}
+
+// FetchExchangesStatus reports per-venue connection health. A venue can hold an
+// open socket while its subscription is silently dead, so read the per-venue
+// update age and not only the connected flag.
+func (this *OrderRouter) FetchExchangesStatus() ([]any, error) {
+	response, err := this.Transport(this.BaseUrl+"/exchanges/status", "GET", nil)
+	if err != nil {
+		return nil, err
+	}
+	return routerListAt(response, "exchanges"), nil
+}
+
+// FetchCachedOrderBook returns the router's own cached L2 book for one venue and
+// symbol — the exact depth a route was ranked on, which is what makes a
+// surprising route auditable.
+func (this *OrderRouter) FetchCachedOrderBook(exchangeId string, symbol string) (map[string]any, error) {
+	if exchangeId == "" || symbol == "" {
+		return nil, ArgumentsRequired("fetchCachedOrderBook requires an exchangeId and a symbol")
+	}
+	// the symbol carries a slash and travels as ONE path segment, so it is
+	// encoded rather than interpolated: BTC/USDT unencoded would read as two
+	// segments and reach a route that does not exist
+	url := this.BaseUrl + "/orderbook/" + routerEncodeURIComponent(exchangeId) + "/" + routerEncodeURIComponent(symbol)
+	return this.Transport(url, "GET", nil)
 }
 
 // FetchRouteWithBalances reads the live balances of the supplied venues, sends

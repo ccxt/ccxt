@@ -545,42 +545,149 @@ class OrderRouter:
             # refused client-side for the same reason the router refuses it: a
             # typo must not become a confidently wrong route
             raise BadRequest('fetch_route requires exactly one of amountIn or amountOut')
-        query = 'from=' + quote(from_asset.upper(), safe=URL_COMPONENT_SAFE) + '&to=' + quote(to_asset.upper(), safe=URL_COMPONENT_SAFE)
-        for key in ROUTE_QUERY_KEYS:
-            value = params.get(key)
-            if value is None:
-                continue
-            if isinstance(value, bool):
-                text = 'true' if value else 'false'
-            elif isinstance(value, (int, float)):
-                text = self.format_number(value)
-            elif isinstance(value, (list, tuple)):
-                text = ','.join([str(item) for item in value])
-            else:
-                text = str(value)
-            query = query + '&' + key + '=' + quote(text, safe=URL_COMPONENT_SAFE)
-        url = self.base_url + '/route?' + query
-        route = self.request(url)
+        # HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
+        # logs, but a URL does not stay inside that process: the standard deployment
+        # puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
+        # request line by default. So do browser history and client-side tracing, and a
+        # Referer carries it off-origin. None of that is reachable from the router, and
+        # no amount of in-process redaction fixes it — the fix is for the wallet not to
+        # be in the URL, which is why the service exposes POST /route and its own spec
+        # says to use it whenever balances are sent.
+        #
+        # A request carrying no holdings still goes as a GET: cacheable, linkable, and
+        # what every existing caller already uses.
+        if params.get('balances') is not None:
+            route = self.request(self.base_url + '/route', 'POST', self.route_body(from_asset, to_asset, params))
+        else:
+            route = self.request(self.base_url + '/route?' + self.route_query(from_asset, to_asset, params), 'GET', {})
         # Stamp what THIS CLIENT asked for, client-side, so build_execution_plan can check the
         # answer against the question. Everything else in the response is the server's word for it.
         route['clientRequestedFrom'] = from_asset.upper()
         route['clientRequestedTo'] = to_asset.upper()
         return route
 
-    def request(self, url):
+    def route_param_text(self, value):
         """
-        performs the authenticated GET and maps router status codes onto CCXT exceptions
+        renders one route parameter as the text the service parses, in the one grammar both verbs share
 
-        :param str url: the fully-formed url including the query string
+        :param value: the raw parameter value
+        :returns str: the rendered text
+        """
+        if isinstance(value, bool):
+            return 'true' if value else 'false'
+        if isinstance(value, (int, float)):
+            return self.format_number(value)
+        if isinstance(value, (list, tuple)):
+            # bridges, exchanges and balances are all comma-separated on the wire, in
+            # both verbs: the body is read by the same handler as the query string
+            return ','.join([str(item) for item in value])
+        return str(value)
+
+    def route_query(self, from_asset, to_asset, params):
+        """
+        builds the GET /route query string, in a fixed key order so two ports produce a byte-identical url
+
+        :param str from_asset: the asset being spent
+        :param str to_asset: the asset being acquired
+        :param dict params: the route parameters
+        :returns str: the query string, without a leading question mark
+        """
+        query = 'from=' + quote(from_asset.upper(), safe=URL_COMPONENT_SAFE) + '&to=' + quote(to_asset.upper(), safe=URL_COMPONENT_SAFE)
+        for key in ROUTE_QUERY_KEYS:
+            value = params.get(key)
+            if value is None:
+                continue
+            query = query + '&' + key + '=' + quote(self.route_param_text(value), safe=URL_COMPONENT_SAFE)
+        return query
+
+    def route_body(self, from_asset, to_asset, params):
+        """
+        builds the POST /route JSON body — the same fields as the query string, by the same names
+
+        :param str from_asset: the asset being spent
+        :param str to_asset: the asset being acquired
+        :param dict params: the route parameters
+        :returns dict: the body to send
+        """
+        body = {}
+        body['from'] = from_asset.upper()
+        body['to'] = to_asset.upper()
+        for key in ROUTE_QUERY_KEYS:
+            value = params.get(key)
+            if value is None:
+                continue
+            # numbers and booleans travel as themselves — the body is JSON and the
+            # service's own schema types amountIn as a number. Everything else uses the
+            # same text form the query string uses, so one handler reads both verbs.
+            if isinstance(value, bool) or isinstance(value, (int, float)):
+                body[key] = value
+            else:
+                body[key] = self.route_param_text(value)
+        return body
+
+    def retry_suffix(self, retry_after):
+        """
+        renders a retry interval as a message suffix, empty when the service sent none
+
+        :param str retry_after: the seconds the service asked for, already normalised to text
+        :returns str: the suffix to append to an exception message
+        """
+        if retry_after == '':
+            return ''
+        return ', retry after ' + retry_after + 's'
+
+    def cold_cache_suffix(self, body):
+        """
+        renders the book counts a cache_cold refusal carries, so a caller can log why it was refused
+
+        :param dict body: the CacheColdError body
+        :returns str: the suffix to append to an exception message
+        """
+        total = self.number_at(body, 'bookCount', 0)
+        if total <= 0:
+            return ''
+        fresh = self.number_at(body, 'freshCount', 0)
+        needed = self.number_at(body, 'minFreshBooksForReady', 0)
+        return ' (' + self.format_number(fresh) + ' of ' + self.format_number(total) + ' books fresh, ' + self.format_number(needed) + ' needed)'
+
+    def request(self, url, method='GET', request_body={}):
+        """
+        performs the authenticated call and maps router status codes onto CCXT exceptions
+
+        :param str url: the fully-formed url, including the query string on a GET
+        :param str method: GET or POST
+        :param dict request_body: the JSON body, sent on a POST and ignored on a GET
         :returns dict: the decoded JSON body
         """
         headers = {
             'x-api-key': self.api_key,
             'Accept': 'application/json',
         }
+        retry_after = ''
+        rate_limit_reset = ''
         try:
-            response = self.session.get(url, headers=headers, timeout=self.timeout_ms / 1000)
+            if method == 'POST':
+                headers['Content-Type'] = 'application/json'
+                response = self.session.post(url, headers=headers, data=json.dumps(request_body), timeout=self.timeout_ms / 1000)
+            else:
+                response = self.session.get(url, headers=headers, timeout=self.timeout_ms / 1000)
             status = response.status_code
+            # READ BEFORE THE BODY. On a 429 or a 503 this is the only number that says
+            # how long to wait, and a caller told "unavailable" with no interval retries
+            # blind.
+            #
+            # The two headers are NOT interchangeable and are kept apart on purpose.
+            # retry-after answers "how long until this particular refusal clears";
+            # x-ratelimit-reset answers "how long until the rate-limit window rolls
+            # over", which is the same question ONLY on a 429. Using the window as a
+            # fallback for a cold cache would tell a caller to wait a full minute for a
+            # cache that repopulates in seconds.
+            retry_header = response.headers.get('retry-after')
+            if retry_header is not None:
+                retry_after = str(retry_header)
+            reset_header = response.headers.get('x-ratelimit-reset')
+            if reset_header is not None:
+                rate_limit_reset = str(reset_header)
             text = response.text
         except Timeout as e:
             raise RequestTimeout('OrderRouter request timed out after ' + str(self.timeout_ms) + 'ms') from e
@@ -604,10 +711,83 @@ class OrderRouter:
         if status == 401 or status == 403:
             raise AuthenticationError('OrderRouter: ' + message)
         if status == 429:
-            raise RateLimitExceeded('OrderRouter: ' + message)
+            # the window rollover IS the retry interval here, so it stands in when the
+            # service sent no retry-after
+            limit_interval = retry_after if retry_after != '' else rate_limit_reset
+            raise RateLimitExceeded('OrderRouter: ' + message + self.retry_suffix(limit_interval))
         if status == 408 or status == 504:
             raise RequestTimeout('OrderRouter: ' + message)
+        if status == 503:
+            # /ready answers 503 WITH ITS ANSWER: a Readiness body saying not_ready and
+            # why. That is the result of the probe, not a failure of it — throwing would
+            # hide the very counts the caller asked for. Distinguished by shape, exactly
+            # as 404 and 501 are above.
+            if self.string_at(body, 'status', '') != '':
+                return body
+            # Every other 503 is cache_cold: the router is alive but has too few fresh
+            # books to rank on, typically for a few seconds after a restart while the
+            # connectors repopulate. It is a RETRY, and the generic ExchangeError this
+            # used to raise made it indistinguishable from a permanent server fault.
+            raise ExchangeNotAvailable('OrderRouter: ' + message + self.cold_cache_suffix(body) + self.retry_suffix(retry_after))
         raise ExchangeError('OrderRouter: ' + message)
+
+    def fetch_health(self):
+        """
+        liveness only — answers 200 from the first millisecond of boot, before a single venue has connected. Use fetch_readiness to decide whether the router can actually price anything
+
+        :returns dict: status and uptimeSec
+        """
+        return self.request(self.base_url + '/health', 'GET', {})
+
+    def fetch_readiness(self):
+        """
+        whether the router has enough fresh books to rank on, measured with the same staleness cutoff /route uses. NOT_READY IS A NORMAL ANSWER: the service replies 503 with the same body it returns on 200, and this method returns it rather than raising, because a caller asking "are you ready" needs the counts that say why not
+
+        :returns dict: status(ready or not_ready), bookCount, freshCount, staleCount, minFreshBooksForReady and staleBookMs
+        """
+        return self.request(self.base_url + '/ready', 'GET', {})
+
+    def fetch_version(self):
+        """
+        build provenance of the running process. This is what a deploy pipeline asserts against — health answers 200 from the OLD process just as happily when a deploy silently no-ops, and commit is the only field that tells the two apart
+
+        :returns dict: version, commit, commitShort, builtAt, builtBy, startedAt and uptimeSec
+        """
+        return self.request(self.base_url + '/version', 'GET', {})
+
+    def fetch_symbols(self):
+        """
+        the unified symbols the router currently holds a cached book for. A pair absent from this list cannot be routed no matter how it is spelled
+
+        :returns str[]: the cached symbols
+        """
+        response = self.request(self.base_url + '/symbols', 'GET', {})
+        return self.list_at(response, 'symbols')
+
+    def fetch_exchanges_status(self):
+        """
+        per-venue connection health. A venue can hold an open socket while its subscription is silently dead, so read the per-venue update age and not only the connected flag
+
+        :returns dict[]: one health record per venue
+        """
+        response = self.request(self.base_url + '/exchanges/status', 'GET', {})
+        return self.list_at(response, 'exchanges')
+
+    def fetch_cached_order_book(self, exchange_id, symbol):
+        """
+        the router's own cached L2 book for one venue and symbol — the exact depth a route was ranked on, which is what makes a surprising route auditable
+
+        :param str exchange_id: the venue, e.g. binance
+        :param str symbol: the unified symbol, e.g. BTC/USDT
+        :returns dict: the cached book
+        """
+        if exchange_id is None or symbol is None or exchange_id == '' or symbol == '':
+            raise ArgumentsRequired('fetch_cached_order_book requires an exchange_id and a symbol')
+        # the symbol carries a slash and travels as ONE path segment, so it is encoded
+        # rather than interpolated: BTC/USDT unencoded would read as two segments and
+        # reach a route that does not exist
+        url = self.base_url + '/orderbook/' + quote(exchange_id, safe=URL_COMPONENT_SAFE) + '/' + quote(symbol, safe=URL_COMPONENT_SAFE)
+        return self.request(url, 'GET', {})
 
     def fetch_route_with_balances(self, from_asset, to_asset, venues, params={}):
         """

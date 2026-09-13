@@ -8565,6 +8565,87 @@ object-safe, so a map of exchanges cannot exist. `RouterVenue` is that map's ele
 to the operations the money path performs, and you implement it for whatever exchange type you
 hold.
 
+## The service
+
+`OrderRouter` talks to `https://docs.ccxt.com/router/api`, whose OpenAPI description lives at
+[docs.ccxt.com/router/openapi.yaml](https://docs.ccxt.com/router/openapi.yaml). Everything except
+`/health` and `/ready` needs an API key, sent as `x-api-key`.
+
+**The service is free to use for now, up to the published rate limit.** That is not a permanent
+commitment: it holds live books for ~60 venues and running it costs real money, so expect a paid
+tier at some point. Nothing about the client changes if that happens — the key you already hold is
+how you will be billed.
+
+Every response carries the limit headers, and they are the number to trust rather than any figure
+written down here:
+
+| Header | Meaning |
+|---|---|
+| `x-ratelimit-limit` | requests allowed in the current window |
+| `x-ratelimit-remaining` | how many of those are left |
+| `x-ratelimit-reset` | seconds until the window resets |
+| `retry-after` | sent on a `429` and on a `503`; how long to wait |
+
+Exceeding it raises `RateLimitExceeded`, and the client folds the retry interval into the message
+so you do not have to read the headers yourself to back off sensibly.
+
+### The read-only endpoints
+
+Besides routing, the service answers a handful of questions about itself. They are cheap, and two
+of them need no key at all:
+
+| Method | Endpoint | Key? | What it answers |
+|---|---|---|---|
+| `fetchHealth ()` | `/health` | no | is the process alive. Answers `200` from the first millisecond of boot |
+| `fetchReadiness ()` | `/ready` | no | can it actually route yet — book counts and how many are fresh |
+| `fetchVersion ()` | `/version` | yes | which commit is deployed |
+| `fetchSymbols ()` | `/symbols` | yes | the unified symbols it currently holds a book for |
+| `fetchExchangesStatus ()` | `/exchanges/status` | yes | per-venue connection health |
+| `fetchCachedOrderBook (exchangeId, symbol)` | `/orderbook/{exchange}/{symbol}` | yes | the exact book a route was ranked on |
+
+`fetchHealth` and `fetchReadiness` answer different questions and the difference matters: `/health`
+is `200` before a single websocket has connected, so a deploy gate pointed at it sends traffic to a
+router whose only possible answer is `all_books_stale`. `fetchReadiness` is the one to gate on.
+
+**`fetchReadiness` does not throw when the answer is "no".** The service replies `503` carrying the
+same body it returns on `200`, and the client returns it, because a caller asking *are you ready*
+needs the counts that say why not:
+
+```javascript
+const readiness = await router.fetchReadiness ();
+if (readiness['status'] !== 'ready') {
+    console.log (readiness['freshCount'], 'of', readiness['bookCount'], 'books are fresh');
+}
+```
+
+The service also exposes `/metrics` (Prometheus) and `/stream/route` (the same route pushed over a
+WebSocket as the books move). Neither has a client method yet — scrape `/metrics` with your own
+tooling, and open the socket yourself if you need the stream.
+
+### When the router is still warming up
+
+A router that has restarted is alive long before it can price anything. Asked to route in that
+window it refuses with `503 cache_cold` rather than ranking across whichever venues happened to
+connect first, and the client raises **`ExchangeNotAvailable`** — a retry, distinct from the
+`ExchangeError` that means something is actually wrong. The message carries the counts and the
+interval the service asked for:
+
+```
+OrderRouter: cache is cold (0 of 12 books fresh, 1 needed), retry after 5s
+```
+
+### Holdings are POSTed, never put in a URL
+
+`fetchRoute` sends a `GET` — cacheable, linkable, and what every caller already uses. The one
+exception is `params.balances`: when you send holdings, the client switches to `POST /route` and
+puts every parameter in the body.
+
+This is not cosmetic. The service scrubs balances out of its own logs, but a URL does not stay
+inside that process — a reverse proxy, an ALB and a CDN all log the full request line by default,
+as do browser history and client-side tracing, and a `Referer` carries it off-origin. No amount of
+in-process redaction reaches any of that. `fetchRouteWithBalances` builds the holdings for you and
+goes down the same path, so you get this without doing anything.
+
 ## The pipeline
 
 Routing and executing are separate steps on purpose. Every step between the route and the orders

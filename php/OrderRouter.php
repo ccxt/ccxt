@@ -609,28 +609,23 @@ class OrderRouter {
             //  typo must not become a confidently wrong route
             throw new BadRequest('fetchRoute requires exactly one of amountIn or amountOut');
         }
-        $query = 'from=' . $this->encodeUriComponent(strtoupper($fromAsset)) . '&to=' . $this->encodeUriComponent(strtoupper($toAsset));
-        $keys = self::ROUTE_QUERY_KEYS;
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $value = $this->fieldAt($params, $key);
-            if ($value === null) {
-                continue;
-            }
-            $text = '';
-            if (is_bool($value)) {
-                $text = $value ? 'true' : 'false';
-            } elseif (is_int($value) || is_float($value)) {
-                $text = $this->formatNumber($value);
-            } elseif (is_array($value)) {
-                $text = implode(',', $value);
-            } else {
-                $text = strval($value);
-            }
-            $query = $query . '&' . $key . '=' . $this->encodeUriComponent($text);
+        //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
+        //  logs, but a URL does not stay inside that process: the standard deployment
+        //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
+        //  request line by default. So do browser history and client-side tracing, and a
+        //  Referer carries it off-origin. None of that is reachable from the router, and
+        //  no amount of in-process redaction fixes it — the fix is for the wallet not to
+        //  be in the URL, which is why the service exposes POST /route and its own spec
+        //  says to use it whenever balances are sent.
+        //
+        //  A request carrying no holdings still goes as a GET: cacheable, linkable, and
+        //  what every existing caller already uses.
+        $route = array();
+        if ($this->fieldAt($params, 'balances') !== null) {
+            $route = $this->request($this->baseUrl . '/route', 'POST', $this->routeBody($fromAsset, $toAsset, $params));
+        } else {
+            $route = $this->request($this->baseUrl . '/route?' . $this->routeQuery($fromAsset, $toAsset, $params), 'GET', array());
         }
-        $url = $this->baseUrl . '/route?' . $query;
-        $route = $this->request($url);
         //  Stamp the client's OWN record of the question onto the answer, so buildExecutionPlan
         //  can check that the route it is about to turn into real orders runs from the asset the
         //  caller offered to the asset the caller wanted — rather than trusting the server's echo.
@@ -641,27 +636,182 @@ class OrderRouter {
 
     /**
      * @ignore
-     * performs the authenticated GET and maps router status codes onto CCXT exceptions
-     * @param string $url the fully-formed url including the query string
+     * renders one route parameter as the text the service parses, in the one grammar both verbs share
+     * @param mixed $value the raw parameter value
+     * @return string the rendered text
+     */
+    public function routeParamText($value) {
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+        if (is_int($value) || is_float($value)) {
+            return $this->formatNumber($value);
+        }
+        if (is_array($value)) {
+            //  bridges, exchanges and balances are all comma-separated on the wire, in
+            //  both verbs: the body is read by the same handler as the query string
+            return implode(',', $value);
+        }
+        return strval($value);
+    }
+
+    /**
+     * @ignore
+     * builds the GET /route query string, in a fixed key order so two ports produce a byte-identical url
+     * @param string $fromAsset the asset being spent
+     * @param string $toAsset the asset being acquired
+     * @param array $params the route parameters
+     * @return string the query string, without a leading question mark
+     */
+    public function routeQuery($fromAsset, $toAsset, $params) {
+        $query = 'from=' . $this->encodeUriComponent(strtoupper($fromAsset)) . '&to=' . $this->encodeUriComponent(strtoupper($toAsset));
+        $keys = self::ROUTE_QUERY_KEYS;
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $value = $this->fieldAt($params, $key);
+            if ($value === null) {
+                continue;
+            }
+            $query = $query . '&' . $key . '=' . $this->encodeUriComponent($this->routeParamText($value));
+        }
+        return $query;
+    }
+
+    /**
+     * @ignore
+     * builds the POST /route JSON body — the same fields as the query string, by the same names
+     * @param string $fromAsset the asset being spent
+     * @param string $toAsset the asset being acquired
+     * @param array $params the route parameters
+     * @return array the body to send
+     */
+    public function routeBody($fromAsset, $toAsset, $params) {
+        $body = array();
+        $body['from'] = strtoupper($fromAsset);
+        $body['to'] = strtoupper($toAsset);
+        $keys = self::ROUTE_QUERY_KEYS;
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $value = $this->fieldAt($params, $key);
+            if ($value === null) {
+                continue;
+            }
+            //  numbers and booleans travel as themselves — the body is JSON and the
+            //  service's own schema types amountIn as a number. Everything else uses the
+            //  same text form the query string uses, so one handler reads both verbs.
+            if (is_bool($value) || is_int($value) || is_float($value)) {
+                $body[$key] = $value;
+            } else {
+                $body[$key] = $this->routeParamText($value);
+            }
+        }
+        return $body;
+    }
+
+    /**
+     * @ignore
+     * renders a retry interval as a message suffix, empty when the service sent none
+     * @param string $retryAfter the seconds the service asked for, already normalised to text
+     * @return string the suffix to append to an exception message
+     */
+    public function retrySuffix($retryAfter) {
+        if ($retryAfter === '') {
+            return '';
+        }
+        return ', retry after ' . $retryAfter . 's';
+    }
+
+    /**
+     * @ignore
+     * renders the book counts a cache_cold refusal carries, so a caller can log why it was refused
+     * @param array $body the CacheColdError body
+     * @return string the suffix to append to an exception message
+     */
+    public function coldCacheSuffix($body) {
+        $total = $this->numberAt($body, 'bookCount', 0);
+        if ($total <= 0) {
+            return '';
+        }
+        $fresh = $this->numberAt($body, 'freshCount', 0);
+        $needed = $this->numberAt($body, 'minFreshBooksForReady', 0);
+        return ' (' . $this->formatNumber($fresh) . ' of ' . $this->formatNumber($total) . ' books fresh, ' . $this->formatNumber($needed) . ' needed)';
+    }
+
+    /**
+     * @ignore
+     * reads one header out of a raw curl header block, last occurrence wins
+     * @param string $headerText the raw header block
+     * @param string $name the lower-cased header name
+     * @return string the value, or '' when the header is absent
+     */
+    public function headerValue($headerText, $name) {
+        $found = '';
+        $lines = preg_split("/\r\n|\n|\r/", $headerText);
+        for ($i = 0; $i < count($lines); $i++) {
+            $line = $lines[$i];
+            $colon = strpos($line, ':');
+            if ($colon === false) {
+                continue;
+            }
+            if (strtolower(trim(substr($line, 0, $colon))) === $name) {
+                //  LAST wins: a proxy CONNECT prepends its own header block, and the
+                //  value that matters is the one from the final response
+                $found = trim(substr($line, $colon + 1));
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * @ignore
+     * performs the authenticated call and maps router status codes onto CCXT exceptions
+     * @param string $url the fully-formed url, including the query string on a GET
+     * @param string $method GET or POST
+     * @param array $requestBody the JSON body, sent on a POST and ignored on a GET
      * @return array the decoded JSON body
      */
-    public function request($url) {
+    public function request($url, $method = 'GET', $requestBody = array()) {
         $headers = array(
             'x-api-key: ' . $this->apiKey,
             'Accept: application/json',
         );
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_HTTPGET, true);
+        if ($method === 'POST') {
+            $headers[] = 'Content-Type: application/json';
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
+        } else {
+            curl_setopt($curl, CURLOPT_HTTPGET, true);
+        }
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        //  the response headers come back in the same buffer and are split off below: on
+        //  a 429 or a 503 they carry the only number that says how long to wait, and a
+        //  caller told "unavailable" with no interval retries blind
+        curl_setopt($curl, CURLOPT_HEADER, true);
         curl_setopt($curl, CURLOPT_TIMEOUT_MS, intval($this->timeoutMs));
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT_MS, intval($this->timeoutMs));
-        $text = curl_exec($curl);
+        $raw = curl_exec($curl);
         $errorNumber = curl_errno($curl);
         $errorMessage = curl_error($curl);
         $status = intval(curl_getinfo($curl, CURLINFO_RESPONSE_CODE));
+        $headerSize = intval(curl_getinfo($curl, CURLINFO_HEADER_SIZE));
         curl_close($curl);
+        $text = '';
+        $retryAfter = '';
+        $rateLimitReset = '';
+        if (is_string($raw)) {
+            $text = substr($raw, $headerSize);
+            //  The two headers are NOT interchangeable and are kept apart on purpose.
+            //  retry-after answers "how long until this particular refusal clears";
+            //  x-ratelimit-reset answers "how long until the rate-limit window rolls
+            //  over", which is the same question ONLY on a 429. Using the window as a
+            //  fallback for a cold cache would tell a caller to wait a full minute for a
+            //  cache that repopulates in seconds.
+            $retryAfter = $this->headerValue(substr($raw, 0, $headerSize), 'retry-after');
+            $rateLimitReset = $this->headerValue(substr($raw, 0, $headerSize), 'x-ratelimit-reset');
+        }
         if ($errorNumber !== 0) {
             if (($errorNumber === CURLE_OPERATION_TIMEOUTED) || ($errorNumber === 28)) {
                 throw new RequestTimeout('OrderRouter request timed out after ' . $this->timeoutMs . 'ms');
@@ -690,12 +840,88 @@ class OrderRouter {
             throw new AuthenticationError('OrderRouter: ' . $message);
         }
         if ($status === 429) {
-            throw new RateLimitExceeded('OrderRouter: ' . $message);
+            //  the window rollover IS the retry interval here, so it stands in when the
+            //  service sent no retry-after
+            $limitInterval = ($retryAfter !== '') ? $retryAfter : $rateLimitReset;
+            throw new RateLimitExceeded('OrderRouter: ' . $message . $this->retrySuffix($limitInterval));
         }
         if (($status === 408) || ($status === 504)) {
             throw new RequestTimeout('OrderRouter: ' . $message);
         }
+        if ($status === 503) {
+            //  /ready answers 503 WITH ITS ANSWER: a Readiness body saying not_ready and
+            //  why. That is the result of the probe, not a failure of it — throwing would
+            //  hide the very counts the caller asked for. Distinguished by shape, exactly
+            //  as 404 and 501 are above.
+            if ($this->stringAt($body, 'status', '') !== '') {
+                return $body;
+            }
+            //  Every other 503 is cache_cold: the router is alive but has too few fresh
+            //  books to rank on, typically for a few seconds after a restart while the
+            //  connectors repopulate. It is a RETRY, and the generic ExchangeError this
+            //  used to raise made it indistinguishable from a permanent server fault.
+            throw new ExchangeNotAvailable('OrderRouter: ' . $message . $this->coldCacheSuffix($body) . $this->retrySuffix($retryAfter));
+        }
         throw new ExchangeError('OrderRouter: ' . $message);
+    }
+
+    /**
+     * liveness only — answers 200 from the first millisecond of boot, before a single venue has connected. Use fetchReadiness to decide whether the router can actually price anything
+     * @return array status and uptimeSec
+     */
+    public function fetchHealth() {
+        return $this->request($this->baseUrl . '/health', 'GET', array());
+    }
+
+    /**
+     * whether the router has enough fresh books to rank on, measured with the same staleness cutoff /route uses. NOT_READY IS A NORMAL ANSWER: the service replies 503 with the same body it returns on 200, and this method returns it rather than throwing, because a caller asking "are you ready" needs the counts that say why not
+     * @return array status (ready or not_ready), bookCount, freshCount, staleCount, minFreshBooksForReady and staleBookMs
+     */
+    public function fetchReadiness() {
+        return $this->request($this->baseUrl . '/ready', 'GET', array());
+    }
+
+    /**
+     * build provenance of the running process. This is what a deploy pipeline asserts against — health answers 200 from the OLD process just as happily when a deploy silently no-ops, and commit is the only field that tells the two apart
+     * @return array version, commit, commitShort, builtAt, builtBy, startedAt and uptimeSec
+     */
+    public function fetchVersion() {
+        return $this->request($this->baseUrl . '/version', 'GET', array());
+    }
+
+    /**
+     * the unified symbols the router currently holds a cached book for. A pair absent from this list cannot be routed no matter how it is spelled
+     * @return array the cached symbols
+     */
+    public function fetchSymbols() {
+        $response = $this->request($this->baseUrl . '/symbols', 'GET', array());
+        return $this->listAt($response, 'symbols');
+    }
+
+    /**
+     * per-venue connection health. A venue can hold an open socket while its subscription is silently dead, so read the per-venue update age and not only the connected flag
+     * @return array one health record per venue
+     */
+    public function fetchExchangesStatus() {
+        $response = $this->request($this->baseUrl . '/exchanges/status', 'GET', array());
+        return $this->listAt($response, 'exchanges');
+    }
+
+    /**
+     * the router's own cached L2 book for one venue and symbol — the exact depth a route was ranked on, which is what makes a surprising route auditable
+     * @param string $exchangeId the venue, e.g. binance
+     * @param string $symbol the unified symbol, e.g. BTC/USDT
+     * @return array the cached book
+     */
+    public function fetchCachedOrderBook($exchangeId, $symbol) {
+        if (($exchangeId === null) || ($symbol === null) || ($exchangeId === '') || ($symbol === '')) {
+            throw new ArgumentsRequired('fetchCachedOrderBook requires an exchangeId and a symbol');
+        }
+        //  the symbol carries a slash and travels as ONE path segment, so it is encoded
+        //  rather than interpolated: BTC/USDT unencoded would read as two segments and
+        //  reach a route that does not exist
+        $url = $this->baseUrl . '/orderbook/' . $this->encodeUriComponent($exchangeId) . '/' . $this->encodeUriComponent($symbol);
+        return $this->request($url, 'GET', array());
     }
 
     /**

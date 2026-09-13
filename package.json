@@ -267,6 +267,8 @@
     "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs && npm run id-tests-go && npm run id-tests-java && npm run id-tests-rust",
     "id-tests//withGO": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs && npm run id-tests-go",
     "test-order-router-ts": "tsx --test ts/src/test/base/test.orderRouter.ts",
+    "test-order-router-live": "tsx --test ts/src/test/base/test.orderRouter.live.ts",
+    "test-order-router-execute-live": "tsx --test ts/src/test/base/test.orderRouter.execute.live.ts",
     "test-order-router-js": "node --test js/src/test/base/test.orderRouter.js",
     "test-order-router-py": "python3 python/ccxt/test/base/test_order_router.py",
     "test-order-router-php": "php php/test/base/test_order_router.php",

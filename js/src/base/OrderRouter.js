@@ -497,30 +497,24 @@ class OrderRouter {
             //  typo must not become a confidently wrong route
             throw new BadRequest('fetchRoute requires exactly one of amountIn or amountOut');
         }
-        let query = 'from=' + encodeURIComponent(fromAsset.toUpperCase()) + '&to=' + encodeURIComponent(toAsset.toUpperCase());
-        for (let i = 0; i < ROUTE_QUERY_KEYS.length; i++) {
-            const key = ROUTE_QUERY_KEYS[i];
-            const value = params[key];
-            if (value === undefined || value === null) {
-                continue;
-            }
-            let text = '';
-            if (typeof value === 'boolean') {
-                text = value ? 'true' : 'false';
-            }
-            else if (typeof value === 'number') {
-                text = this.formatNumber(value);
-            }
-            else if (Array.isArray(value)) {
-                text = value.join(',');
-            }
-            else {
-                text = value.toString();
-            }
-            query = query + '&' + key + '=' + encodeURIComponent(text);
+        //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
+        //  logs, but a URL does not stay inside that process: the standard deployment
+        //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
+        //  request line by default. So do browser history and client-side tracing, and a
+        //  Referer carries it off-origin. None of that is reachable from the router, and
+        //  no amount of in-process redaction fixes it — the fix is for the wallet not to
+        //  be in the URL, which is why the service exposes POST /route and its own spec
+        //  says to use it whenever balances are sent.
+        //
+        //  A request carrying no holdings still goes as a GET: cacheable, linkable, and
+        //  what every existing caller already uses.
+        let route = {};
+        if (params['balances'] !== undefined && params['balances'] !== null) {
+            route = await this.request(this.baseUrl + '/route', 'POST', this.routeBody(fromAsset, toAsset, params));
         }
-        const url = this.baseUrl + '/route?' + query;
-        const route = await this.request(url);
+        else {
+            route = await this.request(this.baseUrl + '/route?' + this.routeQuery(fromAsset, toAsset, params), 'GET', {});
+        }
         //  Stamp what THIS CLIENT asked for, client-side, so buildExecutionPlan can check the
         //  answer against the question. Everything else in the response — from, to, pair, side —
         //  is the server's word for it, and the plan used to trust all of it: a compromised or
@@ -533,23 +527,158 @@ class OrderRouter {
     /**
      * @ignore
      * @method
+     * @name OrderRouter#routeParamText
+     * @description renders one route parameter as the text the service parses, in the one grammar both verbs share
+     * @param {object} value the raw parameter value
+     * @returns {string} the rendered text
+     */
+    routeParamText(value) {
+        if (typeof value === 'boolean') {
+            return value ? 'true' : 'false';
+        }
+        if (typeof value === 'number') {
+            return this.formatNumber(value);
+        }
+        if (Array.isArray(value)) {
+            //  bridges, exchanges and balances are all comma-separated on the wire, in
+            //  both verbs: the body is read by the same handler as the query string
+            return value.join(',');
+        }
+        return value.toString();
+    }
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#routeQuery
+     * @description builds the GET /route query string, in a fixed key order so two ports produce a byte-identical url
+     * @param {string} fromAsset the asset being spent
+     * @param {string} toAsset the asset being acquired
+     * @param {object} params the route parameters
+     * @returns {string} the query string, without a leading question mark
+     */
+    routeQuery(fromAsset, toAsset, params) {
+        let query = 'from=' + encodeURIComponent(fromAsset.toUpperCase()) + '&to=' + encodeURIComponent(toAsset.toUpperCase());
+        for (let i = 0; i < ROUTE_QUERY_KEYS.length; i++) {
+            const key = ROUTE_QUERY_KEYS[i];
+            const value = params[key];
+            if (value === undefined || value === null) {
+                continue;
+            }
+            query = query + '&' + key + '=' + encodeURIComponent(this.routeParamText(value));
+        }
+        return query;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#routeBody
+     * @description builds the POST /route JSON body — the same fields as the query string, by the same names
+     * @param {string} fromAsset the asset being spent
+     * @param {string} toAsset the asset being acquired
+     * @param {object} params the route parameters
+     * @returns {object} the body to send
+     */
+    routeBody(fromAsset, toAsset, params) {
+        const body = {};
+        body['from'] = fromAsset.toUpperCase();
+        body['to'] = toAsset.toUpperCase();
+        for (let i = 0; i < ROUTE_QUERY_KEYS.length; i++) {
+            const key = ROUTE_QUERY_KEYS[i];
+            const value = params[key];
+            if (value === undefined || value === null) {
+                continue;
+            }
+            //  numbers and booleans travel as themselves — the body is JSON and the
+            //  service's own schema types amountIn as a number. Everything else uses the
+            //  same text form the query string uses, so one handler reads both verbs.
+            if (typeof value === 'number' || typeof value === 'boolean') {
+                body[key] = value;
+            }
+            else {
+                body[key] = this.routeParamText(value);
+            }
+        }
+        return body;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#retrySuffix
+     * @description renders a retry interval as a message suffix, empty when the service sent none
+     * @param {string} retryAfter the seconds the service asked for, already normalised to text
+     * @returns {string} the suffix to append to an exception message
+     */
+    retrySuffix(retryAfter) {
+        if (retryAfter === '') {
+            return '';
+        }
+        return ', retry after ' + retryAfter + 's';
+    }
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#coldCacheSuffix
+     * @description renders the book counts a cache_cold refusal carries, so a caller can log why it was refused
+     * @param {object} body the CacheColdError body
+     * @returns {string} the suffix to append to an exception message
+     */
+    coldCacheSuffix(body) {
+        const total = this.numberAt(body, 'bookCount', 0);
+        if (total <= 0) {
+            return '';
+        }
+        const fresh = this.numberAt(body, 'freshCount', 0);
+        const needed = this.numberAt(body, 'minFreshBooksForReady', 0);
+        return ' (' + this.formatNumber(fresh) + ' of ' + this.formatNumber(total) + ' books fresh, ' + this.formatNumber(needed) + ' needed)';
+    }
+    /**
+     * @ignore
+     * @method
      * @name OrderRouter#request
-     * @description performs the authenticated GET and maps router status codes onto CCXT exceptions
-     * @param {string} url the fully-formed url including the query string
+     * @description performs the authenticated call and maps router status codes onto CCXT exceptions
+     * @param {string} url the fully-formed url, including the query string on a GET
+     * @param {string} method GET or POST
+     * @param {object} requestBody the JSON body, sent on a POST and ignored on a GET
      * @returns {object} the decoded JSON body
      */
-    async request(url) {
+    async request(url, method = 'GET', requestBody = {}) {
         const headers = {
             'x-api-key': this.apiKey,
             'Accept': 'application/json',
         };
+        const options = { 'method': method, 'headers': headers };
+        if (method === 'POST') {
+            headers['Content-Type'] = 'application/json';
+            options['body'] = JSON.stringify(requestBody);
+        }
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+        options['signal'] = controller.signal;
         let status = 0;
         let text = '';
+        let retryAfter = '';
+        let rateLimitReset = '';
         try {
-            const response = await fetch(url, { 'method': 'GET', 'headers': headers, 'signal': controller.signal });
+            const response = await fetch(url, options);
             status = response.status;
+            //  READ BEFORE THE BODY. On a 429 or a 503 this is the only number that says
+            //  how long to wait, and a caller told "unavailable" with no interval retries
+            //  blind.
+            //
+            //  The two headers are NOT interchangeable and are kept apart on purpose.
+            //  retry-after answers "how long until this particular refusal clears";
+            //  x-ratelimit-reset answers "how long until the rate-limit window rolls
+            //  over", which is the same question ONLY on a 429. Using the window as a
+            //  fallback for a cold cache would tell a caller to wait a full minute for a
+            //  cache that repopulates in seconds.
+            const retryHeader = response.headers.get('retry-after');
+            if (retryHeader !== null && retryHeader !== undefined) {
+                retryAfter = retryHeader;
+            }
+            const resetHeader = response.headers.get('x-ratelimit-reset');
+            if (resetHeader !== null && resetHeader !== undefined) {
+                rateLimitReset = resetHeader;
+            }
             text = await response.text();
         }
         catch (e) {
@@ -590,12 +719,100 @@ class OrderRouter {
             throw new AuthenticationError('OrderRouter: ' + message);
         }
         if (status === 429) {
-            throw new RateLimitExceeded('OrderRouter: ' + message);
+            //  the window rollover IS the retry interval here, so it stands in when the
+            //  service sent no retry-after
+            const limitInterval = (retryAfter !== '') ? retryAfter : rateLimitReset;
+            throw new RateLimitExceeded('OrderRouter: ' + message + this.retrySuffix(limitInterval));
         }
         if (status === 408 || status === 504) {
             throw new RequestTimeout('OrderRouter: ' + message);
         }
+        if (status === 503) {
+            //  /ready answers 503 WITH ITS ANSWER: a Readiness body saying not_ready and
+            //  why. That is the result of the probe, not a failure of it — throwing would
+            //  hide the very counts the caller asked for. Distinguished by shape, exactly
+            //  as 404 and 501 are above.
+            if (this.stringAt(body, 'status', '') !== '') {
+                return body;
+            }
+            //  Every other 503 is cache_cold: the router is alive but has too few fresh
+            //  books to rank on, typically for a few seconds after a restart while the
+            //  connectors repopulate. It is a RETRY, and the generic ExchangeError this
+            //  used to raise made it indistinguishable from a permanent server fault.
+            throw new ExchangeNotAvailable('OrderRouter: ' + message + this.coldCacheSuffix(body) + this.retrySuffix(retryAfter));
+        }
         throw new ExchangeError('OrderRouter: ' + message);
+    }
+    /**
+     * @method
+     * @name OrderRouter#fetchHealth
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /health
+     * @description liveness only — answers 200 from the first millisecond of boot, before a single venue has connected. Use fetchReadiness to decide whether the router can actually price anything
+     * @returns {object} status and uptimeSec
+     */
+    async fetchHealth() {
+        return await this.request(this.baseUrl + '/health', 'GET', {});
+    }
+    /**
+     * @method
+     * @name OrderRouter#fetchReadiness
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /ready
+     * @description whether the router has enough fresh books to rank on, measured with the same staleness cutoff /route uses. NOT_READY IS A NORMAL ANSWER: the service replies 503 with the same body it returns on 200, and this method returns it rather than throwing, because a caller asking "are you ready" needs the counts that say why not
+     * @returns {object} status (ready or not_ready), bookCount, freshCount, staleCount, minFreshBooksForReady and staleBookMs
+     */
+    async fetchReadiness() {
+        return await this.request(this.baseUrl + '/ready', 'GET', {});
+    }
+    /**
+     * @method
+     * @name OrderRouter#fetchVersion
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /version
+     * @description build provenance of the running process. This is what a deploy pipeline asserts against — health answers 200 from the OLD process just as happily when a deploy silently no-ops, and commit is the only field that tells the two apart
+     * @returns {object} version, commit, commitShort, builtAt, builtBy, startedAt and uptimeSec
+     */
+    async fetchVersion() {
+        return await this.request(this.baseUrl + '/version', 'GET', {});
+    }
+    /**
+     * @method
+     * @name OrderRouter#fetchSymbols
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /symbols
+     * @description the unified symbols the router currently holds a cached book for. A pair absent from this list cannot be routed no matter how it is spelled
+     * @returns {string[]} the cached symbols
+     */
+    async fetchSymbols() {
+        const response = await this.request(this.baseUrl + '/symbols', 'GET', {});
+        return this.listAt(response, 'symbols');
+    }
+    /**
+     * @method
+     * @name OrderRouter#fetchExchangesStatus
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /exchanges/status
+     * @description per-venue connection health. A venue can hold an open socket while its subscription is silently dead, so read the per-venue update age and not only the connected flag
+     * @returns {object[]} one health record per venue
+     */
+    async fetchExchangesStatus() {
+        const response = await this.request(this.baseUrl + '/exchanges/status', 'GET', {});
+        return this.listAt(response, 'exchanges');
+    }
+    /**
+     * @method
+     * @name OrderRouter#fetchCachedOrderBook
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /orderbook/{exchange}/{symbol}
+     * @description the router's own cached L2 book for one venue and symbol — the exact depth a route was ranked on, which is what makes a surprising route auditable
+     * @param {string} exchangeId the venue, e.g. binance
+     * @param {string} symbol the unified symbol, e.g. BTC/USDT
+     * @returns {object} the cached book
+     */
+    async fetchCachedOrderBook(exchangeId, symbol) {
+        if (exchangeId === undefined || symbol === undefined || exchangeId === '' || symbol === '') {
+            throw new ArgumentsRequired('fetchCachedOrderBook requires an exchangeId and a symbol');
+        }
+        //  the symbol carries a slash and travels as ONE path segment, so it is encoded
+        //  rather than interpolated: BTC/USDT unencoded would read as two segments and
+        //  reach a route that does not exist
+        const url = this.baseUrl + '/orderbook/' + encodeURIComponent(exchangeId) + '/' + encodeURIComponent(symbol);
+        return await this.request(url, 'GET', {});
     }
     /**
      * @method

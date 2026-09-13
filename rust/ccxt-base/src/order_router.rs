@@ -1600,6 +1600,53 @@ impl OrderRouter {
         Ok(format!("{}/route?{}", self.base_url, query))
     }
 
+    /// Builds the `POST /route` JSON body — the same fields as the query
+    /// string, by the same names.
+    ///
+    /// HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its
+    /// own logs, but a URL does not stay inside that process: the standard
+    /// deployment puts a reverse proxy in front, and nginx, an ALB and a CDN all
+    /// log the full request line by default. So do browser history and
+    /// client-side tracing, and a `Referer` carries it off-origin. None of that
+    /// is reachable from the router, and no amount of in-process redaction fixes
+    /// it — the fix is for the wallet not to be in the URL.
+    pub fn build_route_body(
+        &self,
+        from_asset: &str,
+        to_asset: &str,
+        params: &Value,
+    ) -> RouterResult<Value> {
+        if from_asset.is_empty() || to_asset.is_empty() {
+            return Err(arguments_required("fetchRoute requires fromAsset and toAsset"));
+        }
+        let has_amount_in = field(params, "amountIn").is_some();
+        let has_amount_out = field(params, "amountOut").is_some();
+        if has_amount_in == has_amount_out {
+            return Err(bad_request("fetchRoute requires exactly one of amountIn or amountOut"));
+        }
+        let mut body = Value::Dict(Arc::new(HashMap::new()));
+        Self::put(&mut body, "from", Value::Str(from_asset.to_uppercase()));
+        Self::put(&mut body, "to", Value::Str(to_asset.to_uppercase()));
+        for key in ROUTE_QUERY_KEYS.iter() {
+            let value = match field(params, key) {
+                Some(found) => found,
+                None => continue,
+            };
+            // numbers and booleans travel as themselves — the body is JSON and
+            // the service's own schema types amountIn as a number. Everything
+            // else uses the same text form the query string uses, so one handler
+            // reads both verbs.
+            let encoded = match value {
+                Value::Bool(flag) => Value::Bool(*flag),
+                Value::Int(n) => Value::Int(*n),
+                Value::Float(n) => Value::Float(*n),
+                other => Value::Str(self.query_text(other)?),
+            };
+            Self::put(&mut body, key, encoded);
+        }
+        Ok(body)
+    }
+
     /// Asks the router how to convert one asset into another, over the venues
     /// and bridges it has live books for.
     ///
@@ -1612,8 +1659,19 @@ impl OrderRouter {
         to_asset: &str,
         params: &Value,
     ) -> RouterResult<Value> {
-        let url = self.build_route_url(from_asset, to_asset, params)?;
-        let mut route = self.request(&url).await?;
+        // A request carrying no holdings still goes as a GET: cacheable,
+        // linkable, and what every existing caller already uses. One that
+        // carries them is POSTed — see build_route_body for why.
+        let mut route = match field(params, "balances") {
+            Some(_) => {
+                let body = self.build_route_body(from_asset, to_asset, params)?;
+                self.request(&format!("{}/route", self.base_url), "POST", &body).await?
+            }
+            None => {
+                let url = self.build_route_url(from_asset, to_asset, params)?;
+                self.request(&url, "GET", &Value::Null).await?
+            }
+        };
         // Stamp what THIS CLIENT asked for, client-side, so build_execution_plan
         // can check the answer against the question. Everything else in the
         // response — from, to, pair, side — is the server's word for it, and the
@@ -1626,19 +1684,58 @@ impl OrderRouter {
         Ok(route)
     }
 
-    /// Performs the authenticated GET and maps router status codes onto ccxt
+    /// Renders a retry interval as a message suffix, empty when the service sent
+    /// none.
+    fn retry_suffix(retry_after: &str) -> String {
+        if retry_after.is_empty() {
+            return String::new();
+        }
+        format!(", retry after {retry_after}s")
+    }
+
+    /// Renders the book counts a `cache_cold` refusal carries, so a caller can
+    /// log why it was refused.
+    fn cold_cache_suffix(&self, body: &Value) -> String {
+        let total = self.number_at(body, "bookCount", 0.0);
+        if total <= 0.0 {
+            return String::new();
+        }
+        let fresh = self.number_at(body, "freshCount", 0.0);
+        let needed = self.number_at(body, "minFreshBooksForReady", 0.0);
+        match (
+            self.format_number(fresh),
+            self.format_number(total),
+            self.format_number(needed),
+        ) {
+            (Ok(fresh_text), Ok(total_text), Ok(needed_text)) => {
+                format!(" ({fresh_text} of {total_text} books fresh, {needed_text} needed)")
+            }
+            // a count this class cannot render is a count it will not guess at:
+            // the suffix is dropped whole rather than reporting a number that
+            // differs from what the other five ports would print
+            _ => String::new(),
+        }
+    }
+
+    /// Performs the authenticated call and maps router status codes onto ccxt
     /// error kinds.
-    pub async fn request(&self, url: &str) -> RouterResult<Value> {
+    pub async fn request(&self, url: &str, method: &str, request_body: &Value) -> RouterResult<Value> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_millis(self.timeout_ms.max(0.0) as u64))
             .build()
             .map_err(|e| ExchangeError::new("ExchangeNotAvailable", format!("OrderRouter could not build an http client: {e}")))?;
-        let response = client
-            .get(url)
+        let mut builder = if method == "POST" {
+            client
+                .post(url)
+                .header("Content-Type", "application/json")
+                .body(request_body.to_json().to_string())
+        } else {
+            client.get(url)
+        };
+        builder = builder
             .header("x-api-key", &self.api_key)
-            .header("Accept", "application/json")
-            .send()
-            .await;
+            .header("Accept", "application/json");
+        let response = builder.send().await;
         let response = match response {
             Ok(found) => found,
             Err(e) => {
@@ -1655,6 +1752,26 @@ impl OrderRouter {
             }
         };
         let status = response.status().as_u16();
+        // READ BEFORE THE BODY. On a 429 or a 503 this is the only number that
+        // says how long to wait, and a caller told "unavailable" with no
+        // interval retries blind.
+        //
+        // The two headers are NOT interchangeable and are kept apart on purpose.
+        // retry-after answers "how long until this particular refusal clears";
+        // x-ratelimit-reset answers "how long until the rate-limit window rolls
+        // over", which is the same question ONLY on a 429. Using the window as a
+        // fallback for a cold cache would tell a caller to wait a full minute for
+        // a cache that repopulates in seconds.
+        let header_text = |name: &str| -> String {
+            response
+                .headers()
+                .get(name)
+                .and_then(|value| value.to_str().ok())
+                .unwrap_or("")
+                .to_string()
+        };
+        let retry_after = header_text("retry-after");
+        let rate_limit_reset = header_text("x-ratelimit-reset");
         let text = response.text().await.map_err(|e| {
             ExchangeError::new("ExchangeNotAvailable", format!("OrderRouter request failed: {e}"))
         })?;
@@ -1672,14 +1789,103 @@ impl OrderRouter {
             return Ok(body);
         }
         let message = self.string_at(&body, "error", &format!("http status {status}"));
+        if status == 503 {
+            // /ready answers 503 WITH ITS ANSWER: a Readiness body saying
+            // not_ready and why. That is the result of the probe, not a failure
+            // of it — erroring would hide the very counts the caller asked for.
+            // Distinguished by shape, exactly as 404 and 501 are above.
+            if !self.string_at(&body, "status", "").is_empty() {
+                return Ok(body);
+            }
+            // Every other 503 is cache_cold: the router is alive but has too few
+            // fresh books to rank on, typically for a few seconds after a restart
+            // while the connectors repopulate. It is a RETRY, and the generic
+            // ExchangeError this used to raise made it indistinguishable from a
+            // permanent server fault.
+            let cold = self.cold_cache_suffix(&body);
+            let retry = Self::retry_suffix(&retry_after);
+            return Err(ExchangeError::new(
+                "ExchangeNotAvailable",
+                format!("OrderRouter: {message}{cold}{retry}"),
+            ));
+        }
+        if status == 429 {
+            // the window rollover IS the retry interval here, so it stands in when
+            // the service sent no retry-after
+            let limit_interval = if retry_after.is_empty() { &rate_limit_reset } else { &retry_after };
+            let retry = Self::retry_suffix(limit_interval);
+            return Err(ExchangeError::new(
+                "RateLimitExceeded",
+                format!("OrderRouter: {message}{retry}"),
+            ));
+        }
         let kind = match status {
             400 => "BadRequest",
             401 | 403 => "AuthenticationError",
-            429 => "RateLimitExceeded",
             408 | 504 => "RequestTimeout",
             _ => "ExchangeError",
         };
         Err(ExchangeError::new(kind, format!("OrderRouter: {message}")))
+    }
+
+    /// Liveness only — the service answers 200 from the first millisecond of
+    /// boot, before a single venue has connected. Use `fetch_readiness` to decide
+    /// whether the router can actually price anything.
+    pub async fn fetch_health(&self) -> RouterResult<Value> {
+        self.request(&format!("{}/health", self.base_url), "GET", &Value::Null).await
+    }
+
+    /// Whether the router has enough fresh books to rank on, measured with the
+    /// same staleness cutoff `/route` uses.
+    ///
+    /// NOT_READY IS A NORMAL ANSWER: the service replies 503 with the same body
+    /// it returns on 200, and this method returns it rather than erroring,
+    /// because a caller asking "are you ready" needs the counts that say why not.
+    pub async fn fetch_readiness(&self) -> RouterResult<Value> {
+        self.request(&format!("{}/ready", self.base_url), "GET", &Value::Null).await
+    }
+
+    /// Build provenance of the running process. This is what a deploy pipeline
+    /// asserts against — `/health` answers 200 from the OLD process just as
+    /// happily when a deploy silently no-ops, and `commit` is the only field that
+    /// tells the two apart.
+    pub async fn fetch_version(&self) -> RouterResult<Value> {
+        self.request(&format!("{}/version", self.base_url), "GET", &Value::Null).await
+    }
+
+    /// The unified symbols the router currently holds a cached book for. A pair
+    /// absent from this list cannot be routed no matter how it is spelled.
+    pub async fn fetch_symbols(&self) -> RouterResult<Vec<Value>> {
+        let response = self.request(&format!("{}/symbols", self.base_url), "GET", &Value::Null).await?;
+        Ok(self.list_at(&response, "symbols"))
+    }
+
+    /// Per-venue connection health. A venue can hold an open socket while its
+    /// subscription is silently dead, so read the per-venue update age and not
+    /// only the connected flag.
+    pub async fn fetch_exchanges_status(&self) -> RouterResult<Vec<Value>> {
+        let response = self
+            .request(&format!("{}/exchanges/status", self.base_url), "GET", &Value::Null)
+            .await?;
+        Ok(self.list_at(&response, "exchanges"))
+    }
+
+    /// The router's own cached L2 book for one venue and symbol — the exact depth
+    /// a route was ranked on, which is what makes a surprising route auditable.
+    pub async fn fetch_cached_order_book(&self, exchange_id: &str, symbol: &str) -> RouterResult<Value> {
+        if exchange_id.is_empty() || symbol.is_empty() {
+            return Err(arguments_required("fetchCachedOrderBook requires an exchangeId and a symbol"));
+        }
+        // the symbol carries a slash and travels as ONE path segment, so it is
+        // encoded rather than interpolated: BTC/USDT unencoded would read as two
+        // segments and reach a route that does not exist
+        let url = format!(
+            "{}/orderbook/{}/{}",
+            self.base_url,
+            Self::encode_uri_component(exchange_id),
+            Self::encode_uri_component(symbol)
+        );
+        self.request(&url, "GET", &Value::Null).await
     }
 }
 

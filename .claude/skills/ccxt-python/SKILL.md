@@ -1078,6 +1078,52 @@ if not violations:
 `execute` defaults to `dry_run`, and **anything other than an explicit live flag forces `dry_run`
 regardless of the strategy requested** — a call that looks live but forgot the flag places nothing.
 
+### The service, and what it costs
+
+`https://docs.ccxt.com/router/api`, described by
+[openapi.yaml](https://docs.ccxt.com/router/openapi.yaml). Everything except `/health` and
+`/ready` needs the key, sent as `x-api-key`.
+
+**Free to use for now, up to the published rate limit** — not a permanent commitment, so expect a
+paid tier eventually. Your existing key is how that would be billed; nothing in the client changes.
+Read the limit off the response headers (`x-ratelimit-limit`, `x-ratelimit-remaining`,
+`x-ratelimit-reset`) rather than hardcoding a number. A `429` raises `RateLimitExceeded` with the
+retry interval folded into the message.
+
+A router that has restarted is alive long before it can price anything. Asked to route in that
+window it refuses with `503 cache_cold`, and the client raises **`ExchangeNotAvailable`** — a
+retry, distinct from the `ExchangeError` that means something is actually wrong.
+
+**Holdings are POSTed, never put in a URL.** `fetch_route` normally sends a `GET`, but when you pass
+`balances` the client switches to `POST /route` and puts every parameter in the body: the service
+scrubs holdings from its own logs, but a reverse proxy, an ALB, a CDN, browser history and a
+`Referer` all see the full request line, and no in-process redaction reaches them.
+`fetch_route_with_balances` does this for you.
+
+### Asking the service about itself
+
+| Method | Endpoint | Key? | Answers |
+|---|---|---|---|
+| `fetch_health()` | `/health` | no | is the process alive — `200` from the first millisecond of boot |
+| `fetch_readiness()` | `/ready` | no | can it route yet: book counts, and how many are fresh |
+| `fetch_version()` | `/version` | yes | which commit is deployed |
+| `fetch_symbols()` | `/symbols` | yes | the symbols it holds a book for |
+| `fetch_exchanges_status()` | `/exchanges/status` | yes | per-venue connection health |
+| `fetch_cached_order_book(exchange_id, symbol)` | `/orderbook/{exchange}/{symbol}` | yes | the exact book a route was ranked on |
+
+Gate deploys on readiness, not health — `/health` is `200` before a single websocket has connected.
+`fetch_readiness()` does **not** raise when the answer is no: the service replies `503` carrying the same
+body it returns on `200`, and you need those counts to know why.
+
+```python
+readiness = router.fetch_readiness()
+if readiness['status'] != 'ready':
+    print(readiness['freshCount'], 'of', readiness['bookCount'], 'books are fresh')
+```
+
+`/metrics` (Prometheus) and `/stream/route` (the route pushed over a WebSocket as books move) have
+no client method yet — scrape and subscribe with your own tooling.
+
 ### Watching a run, and stopping it
 
 `execute` is not opaque. `options.onStep` is called after each step completes AND after its

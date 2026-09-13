@@ -1090,16 +1090,22 @@ test ('atomic_ish demands the whole route pre-funded', async () => {
 
 class RecordingRouter extends OrderRouter {
     lastUrl: string;
+    lastMethod: string;
+    lastBody: any;
     body: any;
 
     constructor (config: any, body: any) {
         super (config);
         this.body = body;
         this.lastUrl = '';
+        this.lastMethod = '';
+        this.lastBody = {};
     }
 
-    override async request (url: string): Promise<any> {
+    override async request (url: string, method: string = 'GET', requestBody: any = {}): Promise<any> {
         this.lastUrl = url;
+        this.lastMethod = method;
+        this.lastBody = requestBody;
         return this.body;
     }
 }
@@ -1119,6 +1125,38 @@ test ('fetchRoute builds a deterministic query', async () => {
     const recorder = new RecordingRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api/' }, { 'hops': [] });
     await recorder.fetchRoute ('usdt', 'btc', { 'amountIn': 0.001, 'strategy': 'split_capped', 'maxVenues': 3, 'exchanges': [ 'binance', 'kraken' ], 'certified': true });
     assert.strictEqual (recorder.lastUrl, 'https://example.test/api/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true');
+    assert.strictEqual (recorder.lastMethod, 'GET', 'a request carrying no holdings stays a cacheable, linkable GET');
+});
+
+test ('a route carrying balances is POSTed, and the holdings never appear in the url', async () => {
+    //  The service scrubs balances from its own logs, but the URL leaves the process: a
+    //  reverse proxy, an ALB and a CDN all log the full request line, as do browser history
+    //  and client-side tracing. This is the assertion that keeps the wallet out of them.
+    const recorder = new RecordingRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' }, { 'hops': [] });
+    await recorder.fetchRoute ('usdt', 'btc', { 'amountIn': 10, 'balances': 'binance.USDT:1000,binance.BTC:1', 'certified': true, 'maxVenues': 2 });
+    assert.strictEqual (recorder.lastMethod, 'POST');
+    assert.strictEqual (recorder.lastUrl, 'https://example.test/api/route', 'no query string at all');
+    assert.strictEqual (recorder.lastUrl.indexOf ('balances'), -1, 'the holdings are not in the url');
+    assert.strictEqual (recorder.lastUrl.indexOf ('1000'), -1, 'nor is any amount from them');
+    //  the body carries every field the query string would have, by the same names
+    assert.strictEqual (recorder.lastBody['from'], 'USDT');
+    assert.strictEqual (recorder.lastBody['to'], 'BTC');
+    assert.strictEqual (recorder.lastBody['balances'], 'binance.USDT:1000,binance.BTC:1');
+    //  numbers and booleans travel as themselves: the body is JSON, and the service's own
+    //  schema types amountIn as a number
+    assert.strictEqual (recorder.lastBody['amountIn'], 10);
+    assert.strictEqual (recorder.lastBody['certified'], true);
+    assert.strictEqual (recorder.lastBody['maxVenues'], 2);
+});
+
+test ('an empty-string balances value is still holdings, and still goes by POST', async () => {
+    //  '' is what a caller gets from a venue with nothing in it. It is not "no balances
+    //  parameter" — the router reads it, and a check that treated it as absent would put
+    //  the NEXT non-empty value on the same code path back into the url.
+    const recorder = new RecordingRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' }, { 'hops': [] });
+    await recorder.fetchRoute ('usdt', 'btc', { 'amountIn': 10, 'balances': '' });
+    assert.strictEqual (recorder.lastMethod, 'POST');
+    assert.strictEqual (recorder.lastBody['balances'], '');
 });
 
 test ('fetchRouteWithBalances skips zeros, sorts largest first and reports what it dropped', async () => {
@@ -1126,7 +1164,11 @@ test ('fetchRouteWithBalances skips zeros, sorts largest first and reports what 
     const route = await recorder.fetchRouteWithBalances ('USDT', 'BTC', { 'stub': new StubVenue ('stub') }, { 'amountIn': 10 });
     assert.strictEqual (route['balancesUsed'], 'stub.USDT:1000,stub.BTC:1', 'largest first, and the ZERO holding is gone');
     assert.deepStrictEqual (route['balancesDropped'], []);
-    assert.ok (recorder.lastUrl.indexOf ('balances=stub.USDT%3A1000%2Cstub.BTC%3A1') >= 0);
+    //  the holdings reach the service in the BODY — never in the url. See the dedicated
+    //  test above for why that distinction is the whole point.
+    assert.strictEqual (recorder.lastMethod, 'POST');
+    assert.strictEqual (recorder.lastBody['balances'], 'stub.USDT:1000,stub.BTC:1');
+    assert.strictEqual (recorder.lastUrl.indexOf ('balances'), -1);
 });
 
 test ('fetchRouteWithBalances refuses a route computed against balances the router ignored', async () => {
@@ -1154,6 +1196,202 @@ test ('fetchRouteWithBalances trims to the router 64-entry cap, dropping the sma
     for (let i = 0; i < route['balancesDropped'].length; i++) {
         assert.strictEqual (route['balancesDropped'][i]['reason'], 'entry_cap');
         assert.ok (route['balancesDropped'][i]['amount'] <= 6, 'the six smallest holdings are the ones that went');
+    }
+});
+
+//  ---------------------------------------------------------------------------
+//  The HTTP layer. request() maps the service's status codes onto CCXT
+//  exceptions, and until these tests existed not one of those mappings was
+//  covered: a 503 from a router still filling its cache was indistinguishable
+//  from a permanent server fault. globalThis.fetch is swapped for the duration
+//  of each test and always restored, so nothing here touches the network.
+//  ---------------------------------------------------------------------------
+
+function stubFetch (status: number, bodyText: string, headers: any = {}) {
+    const realFetch = globalThis.fetch;
+    const calls: any[] = [];
+    (globalThis as any).fetch = async (url: any, options: any) => {
+        calls.push ({ 'url': url, 'options': options });
+        return {
+            'status': status,
+            'headers': { 'get': (name: string) => {
+                const value = headers[name];
+                return (value === undefined) ? null : value;
+            } },
+            'text': async () => bodyText,
+        };
+    };
+    return { calls, 'restore': () => { (globalThis as any).fetch = realFetch; } };
+}
+
+const COLD = JSON.stringify ({
+    'error': 'cache is cold', 'reason': 'cache_cold',
+    'bookCount': 12, 'freshCount': 0, 'staleCount': 12, 'minFreshBooksForReady': 1,
+});
+
+test ('a cold cache is ExchangeNotAvailable, carrying the counts and the retry interval', async () => {
+    const stub = stubFetch (503, COLD, { 'retry-after': '5' });
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            //  NOT a generic ExchangeError: the whole point is that a caller can tell
+            //  "come back in five seconds" from "this router is broken"
+            assert.strictEqual (e.constructor.name, 'ExchangeNotAvailable');
+            assert.ok (e.message.indexOf ('0 of 12 books fresh') >= 0, e.message);
+            assert.ok (e.message.indexOf ('retry after 5s') >= 0, e.message);
+            return true;
+        });
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('a cold cache never borrows the rate-limit window as its retry interval', async () => {
+    //  The live deployment sends x-ratelimit-reset on EVERY response, this one included.
+    //  It answers a different question — when the rate-limit window rolls over, not when
+    //  this refusal clears — so a cold cache that repopulates in seconds must not tell a
+    //  caller to wait out a full minute. No retry-after means no interval claimed.
+    const stub = stubFetch (503, COLD, { 'x-ratelimit-reset': '59' });
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            assert.strictEqual (e.constructor.name, 'ExchangeNotAvailable');
+            assert.ok (e.message.indexOf ('0 of 12 books fresh') >= 0, e.message);
+            assert.strictEqual (e.message.indexOf ('retry after'), -1, e.message);
+            return true;
+        });
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('a 429 names how long to wait, falling back to the window rollover', async () => {
+    const stub = stubFetch (429, JSON.stringify ({ 'error': 'rate limit exceeded' }), { 'retry-after': '30' });
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            assert.strictEqual (e.constructor.name, 'RateLimitExceeded');
+            assert.ok (e.message.indexOf ('retry after 30s') >= 0, e.message);
+            return true;
+        });
+    } finally {
+        stub.restore ();
+    }
+    //  here the two questions DO coincide: the window rolling over is exactly when the
+    //  refusal clears, so it stands in when the service sent no retry-after
+    const fallback = stubFetch (429, JSON.stringify ({ 'error': 'rate limit exceeded' }), { 'x-ratelimit-reset': '59' });
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        await assert.rejects (async () => {
+            await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e: any) => {
+            assert.ok (e.message.indexOf ('retry after 59s') >= 0, e.message);
+            return true;
+        });
+    } finally {
+        fallback.restore ();
+    }
+});
+
+test ('a not_ready readiness probe is an ANSWER, not an exception', async () => {
+    //  /ready replies 503 with the same body it returns on 200. Throwing would destroy
+    //  the counts the caller asked the question to get.
+    const body = JSON.stringify ({ 'status': 'not_ready', 'bookCount': 12, 'freshCount': 0, 'staleCount': 12, 'minFreshBooksForReady': 1 });
+    const stub = stubFetch (503, body, {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k' });
+        const readiness = await router.fetchReadiness ();
+        assert.strictEqual (readiness['status'], 'not_ready');
+        assert.strictEqual (readiness['freshCount'], 0);
+        assert.strictEqual (stub.calls[0]['url'], OrderRouter.DEFAULT_BASE_URL + '/ready');
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('the read-only endpoints each hit their own path and unwrap their own envelope', async () => {
+    const router = new OrderRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' });
+    let stub = stubFetch (200, JSON.stringify ({ 'status': 'ok', 'uptimeSec': 12.5 }), {});
+    try {
+        const health = await router.fetchHealth ();
+        assert.strictEqual (health['status'], 'ok');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/health');
+    } finally {
+        stub.restore ();
+    }
+    stub = stubFetch (200, JSON.stringify ({ 'version': '2.0.0', 'commit': 'abc' }), {});
+    try {
+        const version = await router.fetchVersion ();
+        assert.strictEqual (version['commit'], 'abc');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/version');
+    } finally {
+        stub.restore ();
+    }
+    stub = stubFetch (200, JSON.stringify ({ 'symbols': [ 'BTC/USDT', 'ETH/USDT' ] }), {});
+    try {
+        const symbols = await router.fetchSymbols ();
+        assert.deepStrictEqual (symbols, [ 'BTC/USDT', 'ETH/USDT' ], 'the envelope is unwrapped');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/symbols');
+    } finally {
+        stub.restore ();
+    }
+    stub = stubFetch (200, JSON.stringify ({ 'exchanges': [ { 'exchangeId': 'binance', 'connected': true } ] }), {});
+    try {
+        const venues = await router.fetchExchangesStatus ();
+        assert.strictEqual (venues.length, 1);
+        assert.strictEqual (venues[0]['exchangeId'], 'binance');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/exchanges/status');
+    } finally {
+        stub.restore ();
+    }
+});
+
+test ('a cached book encodes the symbol as ONE path segment', async () => {
+    //  BTC/USDT unencoded reads as two segments and reaches a route that does not exist
+    const stub = stubFetch (200, JSON.stringify ({ 'bids': [], 'asks': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' });
+        await router.fetchCachedOrderBook ('binance', 'BTC/USDT');
+        assert.strictEqual (stub.calls[0]['url'], 'https://example.test/api/orderbook/binance/BTC%2FUSDT');
+    } finally {
+        stub.restore ();
+    }
+    const router = new OrderRouter ({ 'apiKey': 'k' });
+    await assert.rejects (async () => {
+        await router.fetchCachedOrderBook ('binance', '');
+    }, ArgumentsRequired);
+});
+
+test ('a POST carries a JSON body and the key, a GET carries no body at all', async () => {
+    const stub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'secret-key', 'baseUrl': 'https://example.test/api' });
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'balances': 'binance.USDT:1000' });
+        const options = stub.calls[0]['options'];
+        assert.strictEqual (options['method'], 'POST');
+        assert.strictEqual (options['headers']['Content-Type'], 'application/json');
+        assert.strictEqual (options['headers']['x-api-key'], 'secret-key');
+        const sent = JSON.parse (options['body']);
+        assert.strictEqual (sent['balances'], 'binance.USDT:1000');
+        assert.strictEqual (stub.calls[0]['url'].indexOf ('balances'), -1, 'and never in the url');
+    } finally {
+        stub.restore ();
+    }
+    const getStub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'apiKey': 'secret-key', 'baseUrl': 'https://example.test/api' });
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        const options = getStub.calls[0]['options'];
+        assert.strictEqual (options['method'], 'GET');
+        assert.strictEqual (options['body'], undefined);
+    } finally {
+        getStub.restore ();
     }
 });
 

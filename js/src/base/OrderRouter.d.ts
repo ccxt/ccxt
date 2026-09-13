@@ -164,12 +164,113 @@ declare class OrderRouter {
     /**
      * @ignore
      * @method
+     * @name OrderRouter#routeParamText
+     * @description renders one route parameter as the text the service parses, in the one grammar both verbs share
+     * @param {object} value the raw parameter value
+     * @returns {string} the rendered text
+     */
+    routeParamText(value: any): string;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#routeQuery
+     * @description builds the GET /route query string, in a fixed key order so two ports produce a byte-identical url
+     * @param {string} fromAsset the asset being spent
+     * @param {string} toAsset the asset being acquired
+     * @param {object} params the route parameters
+     * @returns {string} the query string, without a leading question mark
+     */
+    routeQuery(fromAsset: string, toAsset: string, params: Dict): string;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#routeBody
+     * @description builds the POST /route JSON body — the same fields as the query string, by the same names
+     * @param {string} fromAsset the asset being spent
+     * @param {string} toAsset the asset being acquired
+     * @param {object} params the route parameters
+     * @returns {object} the body to send
+     */
+    routeBody(fromAsset: string, toAsset: string, params: Dict): Dict;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#retrySuffix
+     * @description renders a retry interval as a message suffix, empty when the service sent none
+     * @param {string} retryAfter the seconds the service asked for, already normalised to text
+     * @returns {string} the suffix to append to an exception message
+     */
+    retrySuffix(retryAfter: string): string;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#coldCacheSuffix
+     * @description renders the book counts a cache_cold refusal carries, so a caller can log why it was refused
+     * @param {object} body the CacheColdError body
+     * @returns {string} the suffix to append to an exception message
+     */
+    coldCacheSuffix(body: Dict): string;
+    /**
+     * @ignore
+     * @method
      * @name OrderRouter#request
-     * @description performs the authenticated GET and maps router status codes onto CCXT exceptions
-     * @param {string} url the fully-formed url including the query string
+     * @description performs the authenticated call and maps router status codes onto CCXT exceptions
+     * @param {string} url the fully-formed url, including the query string on a GET
+     * @param {string} method GET or POST
+     * @param {object} requestBody the JSON body, sent on a POST and ignored on a GET
      * @returns {object} the decoded JSON body
      */
-    request(url: string): Promise<Dict>;
+    request(url: string, method?: string, requestBody?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name OrderRouter#fetchHealth
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /health
+     * @description liveness only — answers 200 from the first millisecond of boot, before a single venue has connected. Use fetchReadiness to decide whether the router can actually price anything
+     * @returns {object} status and uptimeSec
+     */
+    fetchHealth(): Promise<Dict>;
+    /**
+     * @method
+     * @name OrderRouter#fetchReadiness
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /ready
+     * @description whether the router has enough fresh books to rank on, measured with the same staleness cutoff /route uses. NOT_READY IS A NORMAL ANSWER: the service replies 503 with the same body it returns on 200, and this method returns it rather than throwing, because a caller asking "are you ready" needs the counts that say why not
+     * @returns {object} status (ready or not_ready), bookCount, freshCount, staleCount, minFreshBooksForReady and staleBookMs
+     */
+    fetchReadiness(): Promise<Dict>;
+    /**
+     * @method
+     * @name OrderRouter#fetchVersion
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /version
+     * @description build provenance of the running process. This is what a deploy pipeline asserts against — health answers 200 from the OLD process just as happily when a deploy silently no-ops, and commit is the only field that tells the two apart
+     * @returns {object} version, commit, commitShort, builtAt, builtBy, startedAt and uptimeSec
+     */
+    fetchVersion(): Promise<Dict>;
+    /**
+     * @method
+     * @name OrderRouter#fetchSymbols
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /symbols
+     * @description the unified symbols the router currently holds a cached book for. A pair absent from this list cannot be routed no matter how it is spelled
+     * @returns {string[]} the cached symbols
+     */
+    fetchSymbols(): Promise<any[]>;
+    /**
+     * @method
+     * @name OrderRouter#fetchExchangesStatus
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /exchanges/status
+     * @description per-venue connection health. A venue can hold an open socket while its subscription is silently dead, so read the per-venue update age and not only the connected flag
+     * @returns {object[]} one health record per venue
+     */
+    fetchExchangesStatus(): Promise<any[]>;
+    /**
+     * @method
+     * @name OrderRouter#fetchCachedOrderBook
+     * @see https://docs.ccxt.com/router/openapi.yaml  // GET /orderbook/{exchange}/{symbol}
+     * @description the router's own cached L2 book for one venue and symbol — the exact depth a route was ranked on, which is what makes a surprising route auditable
+     * @param {string} exchangeId the venue, e.g. binance
+     * @param {string} symbol the unified symbol, e.g. BTC/USDT
+     * @returns {object} the cached book
+     */
+    fetchCachedOrderBook(exchangeId: string, symbol: string): Promise<Dict>;
     /**
      * @method
      * @name OrderRouter#fetchRouteWithBalances

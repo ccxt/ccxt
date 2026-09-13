@@ -119,6 +119,9 @@ public class OrderRouterTest
         //  4. fetchRoute request shaping, with the HTTP layer stubbed out
         RunAsync("fetchRoute refuses neither-or-both amounts before touching the network", FetchRouteRefusesAmbiguousAmounts);
         RunAsync("fetchRoute builds a deterministic query", FetchRouteQuery);
+        RunAsync("a route carrying balances is POSTed, and the holdings never appear in the url", FetchRouteBalancesArePosted);
+        RunAsync("an empty-string balances value is still holdings, and still goes by POST", FetchRouteEmptyBalancesStillPosted);
+        RunAsync("the read-only endpoints each hit their own path and unwrap their own envelope", ReadOnlyEndpointsHitTheirOwnPaths);
         RunAsync("fetchRouteWithBalances skips zeros, sorts largest first and reports what it dropped", BalancesSkipsAndSorts);
         RunAsync("fetchRouteWithBalances refuses a route computed against balances the router ignored", BalancesMustBeEchoed);
         RunAsync("fetchRouteWithBalances trims to the router 64-entry cap, dropping the smallest", BalancesEntryCap);
@@ -2232,6 +2235,10 @@ public class OrderRouterTest
     {
         public string lastUrl = "";
 
+        public string lastMethod = "";
+
+        public dict lastBody = null;
+
         public dict body = null;
 
         public RecordingRouter(dict config, dict body) : base(config)
@@ -2239,9 +2246,11 @@ public class OrderRouterTest
             this.body = body;
         }
 
-        public override Task<dict> Request(string url)
+        public override Task<dict> Request(string url, string method = "GET", dict requestBody = null)
         {
             this.lastUrl = url;
+            this.lastMethod = method;
+            this.lastBody = requestBody;
             return Task.FromResult(this.body);
         }
     }
@@ -2266,6 +2275,69 @@ public class OrderRouterTest
             { "certified", true },
         });
         EqualString(recorder.lastUrl, "https://example.test/api/route?from=USDT&to=BTC&amountIn=0.001&strategy=split_capped&maxVenues=3&exchanges=binance%2Ckraken&certified=true", "the query is deterministic");
+        EqualString(recorder.lastMethod, "GET", "a request carrying no holdings stays a cacheable, linkable GET");
+    }
+
+    private static async Task FetchRouteBalancesArePosted()
+    {
+        //  The service scrubs balances from its own logs, but the URL leaves the process: a
+        //  reverse proxy, an ALB and a CDN all log the full request line, as do browser
+        //  history and client-side tracing. This is the assertion that keeps the wallet
+        //  out of them.
+        var recorder = new RecordingRouter(new dict() { { "apiKey", "k" }, { "baseUrl", "https://example.test/api" } }, new dict() { { "hops", new list() } });
+        await recorder.FetchRoute("usdt", "btc", new dict()
+        {
+            { "amountIn", 10.0 },
+            { "balances", "binance.USDT:1000,binance.BTC:1" },
+            { "certified", true },
+            { "maxVenues", 2 },
+        });
+        EqualString(recorder.lastMethod, "POST", "a route carrying holdings is POSTed");
+        EqualString(recorder.lastUrl, "https://example.test/api/route", "no query string at all");
+        Ok(recorder.lastUrl.IndexOf("balances", StringComparison.Ordinal) < 0, "the holdings are not in the url");
+        Ok(recorder.lastUrl.IndexOf("1000", StringComparison.Ordinal) < 0, "nor is any amount from them");
+        EqualString((string)recorder.lastBody["from"], "USDT", "the body carries from");
+        EqualString((string)recorder.lastBody["to"], "BTC", "the body carries to");
+        EqualString((string)recorder.lastBody["balances"], "binance.USDT:1000,binance.BTC:1", "the body carries the holdings");
+        //  numbers and booleans travel as themselves: the body is JSON, and the service's
+        //  own schema types amountIn as a number
+        Ok(recorder.lastBody["amountIn"] is double, "amountIn stays a number");
+        Ok(recorder.lastBody["certified"] is bool, "certified stays a bool");
+        Ok(recorder.lastBody["maxVenues"] is int, "maxVenues stays a number");
+    }
+
+    private static async Task FetchRouteEmptyBalancesStillPosted()
+    {
+        //  "" is what a caller gets from a venue with nothing in it. It is not "no balances
+        //  parameter" — the router reads it, and a check that treated it as absent would
+        //  put the NEXT non-empty value on the same code path back into the url.
+        var recorder = new RecordingRouter(new dict() { { "apiKey", "k" }, { "baseUrl", "https://example.test/api" } }, new dict() { { "hops", new list() } });
+        await recorder.FetchRoute("usdt", "btc", new dict() { { "amountIn", 10.0 }, { "balances", "" } });
+        EqualString(recorder.lastMethod, "POST", "an empty holdings string is still holdings");
+        EqualString((string)recorder.lastBody["balances"], "", "and it reaches the body");
+    }
+
+    private static async Task ReadOnlyEndpointsHitTheirOwnPaths()
+    {
+        var config = new dict() { { "apiKey", "k" }, { "baseUrl", "https://example.test/api" } };
+        var canned = new dict() { { "status", "ok" }, { "symbols", new list() { "BTC/USDT" } }, { "exchanges", new list() { new dict() { { "exchangeId", "binance" } } } } };
+        var recorder = new RecordingRouter(config, canned);
+        await recorder.FetchHealth();
+        EqualString(recorder.lastUrl, "https://example.test/api/health", "FetchHealth path");
+        await recorder.FetchReadiness();
+        EqualString(recorder.lastUrl, "https://example.test/api/ready", "FetchReadiness path");
+        await recorder.FetchVersion();
+        EqualString(recorder.lastUrl, "https://example.test/api/version", "FetchVersion path");
+        var symbols = await recorder.FetchSymbols();
+        EqualNumber(symbols.Count, 1, "the symbols envelope is unwrapped");
+        EqualString(recorder.lastUrl, "https://example.test/api/symbols", "FetchSymbols path");
+        var venues = await recorder.FetchExchangesStatus();
+        EqualNumber(venues.Count, 1, "the exchanges envelope is unwrapped");
+        EqualString(recorder.lastUrl, "https://example.test/api/exchanges/status", "FetchExchangesStatus path");
+        //  BTC/USDT unencoded reads as two segments and reaches a route that does not exist
+        await recorder.FetchCachedOrderBook("binance", "BTC/USDT");
+        EqualString(recorder.lastUrl, "https://example.test/api/orderbook/binance/BTC%2FUSDT", "the symbol is ONE path segment");
+        await Rejects<ArgumentsRequired>(async () => await recorder.FetchCachedOrderBook("binance", ""), "an empty symbol is refused");
     }
 
     private static async Task BalancesSkipsAndSorts()
@@ -2274,7 +2346,11 @@ public class OrderRouterTest
         var route = await recorder.FetchRouteWithBalances("USDT", "BTC", Venues(new StubVenue("stub")), new dict() { { "amountIn", 10.0 } });
         EqualString((string)route["balancesUsed"], "stub.USDT:1000,stub.BTC:1", "largest first, and the ZERO holding is gone");
         EqualNumber(ToList(route["balancesDropped"]).Count, 0, "nothing was dropped");
-        Ok(recorder.lastUrl.IndexOf("balances=stub.USDT%3A1000%2Cstub.BTC%3A1", StringComparison.Ordinal) >= 0, "the balances reached the query");
+        //  the holdings reach the service in the BODY — never in the url. See the dedicated
+        //  test above for why that distinction is the whole point.
+        EqualString(recorder.lastMethod, "POST", "the balances request is a POST");
+        EqualString((string)recorder.lastBody["balances"], "stub.USDT:1000,stub.BTC:1", "the balances reached the body");
+        Ok(recorder.lastUrl.IndexOf("balances", StringComparison.Ordinal) < 0, "and never the url");
     }
 
     private static async Task BalancesMustBeEchoed()
