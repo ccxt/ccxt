@@ -3673,7 +3673,7 @@ public class Bingx extends BingxApi
     /**
      * @method
      * @name bingx#createMarketOrderWithCost
-     * @description create a market order by providing the symbol, side and cost
+     * @description create a spot market order by providing the symbol, side and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -3695,7 +3695,7 @@ public class Bingx extends BingxApi
     /**
      * @method
      * @name bingx#createMarketBuyOrderWithCost
-     * @description create a market buy order by providing the symbol and cost
+     * @description create a spot market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3716,7 +3716,7 @@ public class Bingx extends BingxApi
     /**
      * @method
      * @name bingx#createMarketSellOrderWithCost
-     * @description create a market sell order by providing the symbol and cost
+     * @description create a spot market sell order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3760,6 +3760,11 @@ public class Bingx extends BingxApi
          * @returns {object} request to be sent to the exchange
          */
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        String cost = this.safeString2(parameters, "cost", "quoteOrderQty");
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))))
+        {
+            throw new NotSupported(Helpers.add(this.id, " createOrder() with cost or quoteOrderQty is not supported for contract markets")) ;
+        }
         Boolean postOnly = null;
         Object marketType = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
@@ -3808,8 +3813,7 @@ public class Bingx extends BingxApi
         }
         if (Helpers.isTrue(isSpot))
         {
-            String cost = this.safeString2(parameters, "cost", "quoteOrderQty");
-            parameters = this.omit(parameters, "cost");
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quoteOrderQty")));
             if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
             {
                 Helpers.addElementToObject(request, "quoteOrderQty", this.parseToNumeric(this.costToPrecision(symbol, cost)));
@@ -4060,7 +4064,8 @@ public class Bingx extends BingxApi
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
      * @param {float} [params.stopLossPrice] stop loss trigger price
      * @param {float} [params.takeProfitPrice] take profit trigger price
-     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
