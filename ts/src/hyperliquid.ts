@@ -3,7 +3,7 @@
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, InsufficientFunds, RateLimitExceeded, InvalidProxySettings } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, InsufficientFunds, RateLimitExceeded, InvalidProxySettings, InvalidNonce } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -216,6 +216,7 @@ export default class hyperliquid extends Exchange {
                     'TWAP order value too small. Min is $1200, which is $10 per minute.': InvalidOrder,
                     'TWAP was never placed, already canceled, or filled.': OrderNotFound,
                     'Too many cumulative requests sent': RateLimitExceeded, // {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
+                    'Invalid nonce': InvalidNonce, // {"status":"err","response":"Invalid nonce: duplicate nonce 1788895523507"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -366,6 +367,16 @@ export default class hyperliquid extends Exchange {
     override setSandboxMode (enabled: boolean) {
         super.setSandboxMode (enabled);
         this.options['sandboxMode'] = enabled;
+    }
+
+    override nonce () {
+        // the exchange requires a unique strictly-increasing millisecond nonce per signer
+        // two signed actions built within the same millisecond would otherwise reuse a nonce and get rejected
+        const now = this.milliseconds ();
+        const lastNonce = this.safeInteger (this.options, 'lastNonce', 0);
+        const result = (now > lastNonce) ? now : lastNonce + 1;
+        this.options['lastNonce'] = result;
+        return result;
     }
 
     override market (symbol: Str): MarketInterface {
@@ -1843,7 +1854,7 @@ export default class hyperliquid extends Exchange {
             'type': 'setReferrer',
             'code': this.safeString (this.options, 'ref', 'CCXT1'),
         };
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const signature = this.signL1Action (action, nonce);
         const request: Dict = {
             'action': action,
@@ -1861,7 +1872,7 @@ export default class hyperliquid extends Exchange {
     }
 
     async approveBuilderFee (builder: string, maxFeeRate: string) {
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const payload: Dict = {
             'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
@@ -1990,7 +2001,7 @@ export default class hyperliquid extends Exchange {
     async setUserAbstraction (abstraction: string, params = {}) {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('setUserAbstraction', params);
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const type = this.safeString (params, 'type', 'userSetAbstraction');
         params = this.omit (params, 'type');
@@ -2038,7 +2049,7 @@ export default class hyperliquid extends Exchange {
     async enableUserDexAbstraction (enabled: boolean, params = {}) {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('enableUserDexAbstraction', params);
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const type = this.safeString (params, 'type', 'userDexAbstraction');
         params = this.omit (params, 'type');
@@ -2083,7 +2094,7 @@ export default class hyperliquid extends Exchange {
      * @returns dictionary response from the exchange
      */
     async setAgentAbstraction (abstraction: string, params = {}) {
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const request: Dict = {
             'nonce': nonce,
         };
@@ -2149,7 +2160,7 @@ export default class hyperliquid extends Exchange {
         }
         await this.initializeClient ();
         const market = this.market (symbol);
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const isBuy = (side === 'BUY');
         let vaultAddress: Str = undefined;
         const randomize = this.safeBool (params, 'randomize', false);
@@ -2360,7 +2371,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ]);
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const orderReq: List = [];
         let grouping = 'na';
         for (let i = 0; i < orders.length; i++) {
@@ -2559,7 +2570,7 @@ export default class hyperliquid extends Exchange {
             'a': this.parseToInt (market['baseId']),
             't': this.parseToNumeric (id),
         };
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const signature = this.signL1Action (action, nonce, vaultAddress);
         const request: Dict = {
             'action': action,
@@ -2609,7 +2620,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2673,7 +2684,7 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         await this.initializeClient ();
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2752,7 +2763,7 @@ export default class hyperliquid extends Exchange {
         }
         await this.initializeClient ();
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2882,7 +2893,7 @@ export default class hyperliquid extends Exchange {
             };
             modifies.push (modifyReq);
         }
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const modifyAction: Dict = {
             'type': 'batchModify',
             'modifies': modifies,
@@ -3008,7 +3019,7 @@ export default class hyperliquid extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const request: Dict = {
             'nonce': nonce,
         };
@@ -3947,7 +3958,7 @@ export default class hyperliquid extends Exchange {
         }
         const asset = this.parseToInt (market['baseId']);
         const isCross = (marginMode === 'cross');
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         params = this.omit (params, [ 'leverage' ]);
         const updateAction: Dict = {
             'type': 'updateLeverage',
@@ -4005,7 +4016,7 @@ export default class hyperliquid extends Exchange {
         const marginMode = this.safeString (params, 'marginMode', 'cross');
         const isCross = (marginMode === 'cross');
         const asset = this.parseToInt (market['baseId']);
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         params = this.omit (params, 'marginMode');
         const updateAction: Dict = {
             'type': 'updateLeverage',
@@ -4081,7 +4092,7 @@ export default class hyperliquid extends Exchange {
         if (type === 'reduce') {
             sz = -sz;
         }
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const updateAction: Dict = {
             'type': 'updateIsolatedMargin',
             'asset': asset,
@@ -4154,7 +4165,7 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         if (this.inArray (fromAccount, [ 'spot', 'swap', 'perp' ])) {
             // handle swap <> spot account transfer
             if (!this.inArray (toAccount, [ 'spot', 'swap', 'perp' ])) {
@@ -4310,7 +4321,7 @@ export default class hyperliquid extends Exchange {
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'withdraw', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         params = this.omit (params, 'vaultAddress');
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         let action: Dict = {};
         let sig: Dict;
         if (vaultAddress !== undefined) {
@@ -4924,7 +4935,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     async reserveRequestWeight (weight: Num, params = {}): Promise<Dict> {
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const request: Dict = {
             'nonce': nonce,
         };
@@ -4949,7 +4960,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     override async createSubAccount (name: string, params = {}) {
-        const nonce = this.milliseconds ();
+        const nonce = this.nonce ();
         const request: Dict = {
             'nonce': nonce,
         };
