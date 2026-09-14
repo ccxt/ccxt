@@ -6222,18 +6222,11 @@ export class BaseExchange {
         return this.seconds ();
     }
 
-    /**
-     * @method
-     * @ignore
-     * @name Exchange#incrementingNonce
-     * @description returns the current timestamp in milliseconds, bumped past the previously issued value when both land in the same millisecond — for venues that reject duplicate nonces per signer; the counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes
-     * @returns {int} a strictly-increasing millisecond nonce
-     */
     incrementingNonce () {
+        const currentNonce = this.nonce ();
         this.lockLastNonce ();
-        const currentMilliseconds = this.milliseconds ();
         const lastNonce = this.safeInteger (this.options, 'lastNonce', 0);
-        const result = (currentMilliseconds > lastNonce) ? currentMilliseconds : lastNonce + 1;
+        const result = (currentNonce > lastNonce) ? currentNonce : lastNonce + 1;
         this.options['lastNonce'] = result;
         this.unlockLastNonce ();
         return result;
