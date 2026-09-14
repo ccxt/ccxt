@@ -83,6 +83,11 @@ function testPrecisionFromString () {
     assert (exchange.precisionFromString ('-.5E-04') === 4);
     assert (exchange.precisionFromString ('-1e0') === 0);
     assert (exchange.precisionFromString ('-0.00100') === 3);
+
+    // Zero exponents must also return zero in the typed language ports.
+    assert (exchange.precisionFromString ('1e0') === 0);
+    assert (exchange.precisionFromString ('1E+00') === 0);
+    assert (exchange.precisionFromString ('1e-0') === 0);
 }
 
 export default testPrecisionFromString;

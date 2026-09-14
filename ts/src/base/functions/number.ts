@@ -118,7 +118,7 @@ function precisionFromString (str: string | undefined): number {
         exponentIndex = str.indexOf ('E');
     }
     if (exponentIndex >= 0) {
-        return parseInt (str.slice (exponentIndex + 1)) * -1;
+        return 0 - parseInt (str.slice (exponentIndex + 1));
     }
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
     // if (str.indexOf ('.') === -1) {
