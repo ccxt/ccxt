@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class HashkeyApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV1ExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetApiV1ExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV1ExchangeInfo", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetQuoteV1Depth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetQuoteV1Depth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1Depth", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetQuoteV1Trades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetQuoteV1Trades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1Trades", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetQuoteV1Klines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetQuoteV1Klines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1Klines", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetQuoteV1Ticker24hr (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetQuoteV1Ticker24hr (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1Ticker24hr", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetQuoteV1TickerPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetQuoteV1TickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1TickerPrice", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetQuoteV1TickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetQuoteV1TickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1TickerBookTicker", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetQuoteV1DepthMerged (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetQuoteV1DepthMerged (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1DepthMerged", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetQuoteV1MarkPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetQuoteV1MarkPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1MarkPrice", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetQuoteV1Index (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetQuoteV1Index (Object... optionalArgs)
     {
         return this.callAsync ("publicGetQuoteV1Index", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV1FuturesFundingRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetApiV1FuturesFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV1FuturesFundingRate", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV1FuturesHistoryFundingRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetApiV1FuturesHistoryFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV1FuturesHistoryFundingRate", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV1Ping (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetApiV1Ping (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV1Ping", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV1Time (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetApiV1Time (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV1Time", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1SpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1SpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SpotOrder", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SpotOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SpotOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SpotOpenOrders", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SpotTradeOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SpotTradeOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SpotTradeOrders", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesLeverage (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesLeverage", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1FuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1FuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesOrder", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesOpenOrders", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesUserTrades", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesPositions", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesHistoryOrders", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesBalance", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesLiquidationAssignStatus (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesLiquidationAssignStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesLiquidationAssignStatus", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesRiskLimit (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesRiskLimit", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1FuturesCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1FuturesCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesCommissionRate", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1FuturesGetBestOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1FuturesGetBestOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesGetBestOrder", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1CoinInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1CoinInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1CoinInfo", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AccountVipInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AccountVipInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountVipInfo", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1Account (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1Account (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1Account", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountTrades", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountType (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountType (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountType", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountChainType (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountChainType (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountChainType", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AccountCheckApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AccountCheckApiKey (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountCheckApiKey", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountBalanceFlow (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountBalanceFlow (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountBalanceFlow", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SpotSubAccountOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SpotSubAccountOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SpotSubAccountOpenOrders", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SpotSubAccountTradeOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SpotSubAccountTradeOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SpotSubAccountTradeOrders", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SubAccountTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SubAccountTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SubAccountTrades", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesSubAccountOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesSubAccountOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesSubAccountOpenOrders", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesSubAccountHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesSubAccountHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesSubAccountHistoryOrders", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesSubAccountUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesSubAccountUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesSubAccountUserTrades", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AccountDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AccountDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountDepositAddress", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountDepositOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountDepositOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountDepositOrders", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountWithdrawOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountWithdrawOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountWithdrawOrders", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AffiliateInviteeInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AffiliateInviteeInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AffiliateInviteeInfo", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1UserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1UserDataStream", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1SpotOrderTest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1SpotOrderTest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1SpotOrderTest", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1SpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1SpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1SpotOrder", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV11SpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV11SpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV11SpotOrder", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1SpotBatchOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1SpotBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1SpotBatchOrders", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesLeverage", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesOrder", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesMarginType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesMarginType (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesMarginType", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesPositionMargin", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesPositionTradingStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesPositionTradingStop (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesPositionTradingStop", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesBatchOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesBatchOrders", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1AccountAssetTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1AccountAssetTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1AccountAssetTransfer", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1AccountAuthAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1AccountAuthAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1AccountAuthAddress", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1AccountWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1AccountWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1AccountWithdraw", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutApiV1UserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutApiV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privatePutApiV1UserDataStream", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1SpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1SpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1SpotOrder", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteApiV1SpotOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteApiV1SpotOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1SpotOpenOrders", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1SpotCancelOrderByIds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1SpotCancelOrderByIds (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1SpotCancelOrderByIds", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1SpotCancelAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1SpotCancelAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1SpotCancelAllOpenOrders", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1FuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1FuturesOrder", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesBatchOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1FuturesBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1FuturesBatchOrders", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesCancelOrderByIds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1FuturesCancelOrderByIds (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1FuturesCancelOrderByIds", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesCancelAllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1FuturesCancelAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1FuturesCancelAllOpenOrders", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class HashkeyApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1UserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1UserDataStream", optionalArgs);
     }

@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class GateApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicWalletGetCurrencyChains (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicWalletGetCurrencyChains (Object... optionalArgs)
     {
         return this.callAsync ("publicWalletGetCurrencyChains", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicUnifiedGetCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicUnifiedGetCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicUnifiedGetCurrencies", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicUnifiedGetHistoryLoanRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicUnifiedGetHistoryLoanRate (Object... optionalArgs)
     {
         return this.callAsync ("publicUnifiedGetHistoryLoanRate", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicSpotGetCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicSpotGetCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetCurrencies", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetCurrenciesCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetCurrenciesCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetCurrenciesCurrency", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicSpotGetCurrencyPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicSpotGetCurrencyPairs (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetCurrencyPairs", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetCurrencyPairsCurrencyPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetCurrencyPairsCurrencyPair (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetCurrencyPairsCurrencyPair", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicSpotGetTickers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicSpotGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetTickers", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetOrderBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetOrderBook", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicSpotGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicSpotGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetTrades", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicSpotGetCandlesticks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicSpotGetCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetCandlesticks", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicSpotGetTime (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetTime", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicSpotGetInsuranceHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicSpotGetInsuranceHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicSpotGetInsuranceHistory", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicMarginGetUniCurrencyPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicMarginGetUniCurrencyPairs (Object... optionalArgs)
     {
         return this.callAsync ("publicMarginGetUniCurrencyPairs", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarginGetUniCurrencyPairsCurrencyPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarginGetUniCurrencyPairsCurrencyPair (Object... optionalArgs)
     {
         return this.callAsync ("publicMarginGetUniCurrencyPairsCurrencyPair", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicMarginGetLoanMarginTiers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicMarginGetLoanMarginTiers (Object... optionalArgs)
     {
         return this.callAsync ("publicMarginGetLoanMarginTiers", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicMarginGetCurrencyPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicMarginGetCurrencyPairs (Object... optionalArgs)
     {
         return this.callAsync ("publicMarginGetCurrencyPairs", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarginGetCurrencyPairsCurrencyPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarginGetCurrencyPairsCurrencyPair (Object... optionalArgs)
     {
         return this.callAsync ("publicMarginGetCurrencyPairsCurrencyPair", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicMarginGetFundingBook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicMarginGetFundingBook (Object... optionalArgs)
     {
         return this.callAsync ("publicMarginGetFundingBook", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicMarginGetCrossCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicMarginGetCrossCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicMarginGetCrossCurrencies", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarginGetCrossCurrenciesCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicMarginGetCrossCurrenciesCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicMarginGetCrossCurrenciesCurrency", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFlash_swapGetCurrencyPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFlash_swapGetCurrencyPairs (Object... optionalArgs)
     {
         return this.callAsync ("publicFlash_swapGetCurrencyPairs", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFlash_swapGetCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFlash_swapGetCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicFlash_swapGetCurrencies", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleContracts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleContracts (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleContracts", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicFuturesGetSettleContractsContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicFuturesGetSettleContractsContract (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleContractsContract", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicFuturesGetSettleOrderBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicFuturesGetSettleOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleOrderBook", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleTrades", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleCandlesticks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleCandlesticks", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettlePremiumIndex (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettlePremiumIndex (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettlePremiumIndex", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleTickers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleTickers", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleFundingRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleFundingRate", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleInsurance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleInsurance (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleInsurance", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleContractStats (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleContractStats (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleContractStats", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicFuturesGetSettleIndexConstituentsIndex (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicFuturesGetSettleIndexConstituentsIndex (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleIndexConstituentsIndex", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleLiqOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleLiqOrders (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleLiqOrders", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleRiskLimitTiers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleRiskLimitTiers (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleRiskLimitTiers", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesGetSettleAdlRiskStates (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesGetSettleAdlRiskStates (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesGetSettleAdlRiskStates", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicFuturesPostSettleFundingRates (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicFuturesPostSettleFundingRates (Object... optionalArgs)
     {
         return this.callAsync ("publicFuturesPostSettleFundingRates", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicDeliveryGetSettleContracts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicDeliveryGetSettleContracts (Object... optionalArgs)
     {
         return this.callAsync ("publicDeliveryGetSettleContracts", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicDeliveryGetSettleContractsContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicDeliveryGetSettleContractsContract (Object... optionalArgs)
     {
         return this.callAsync ("publicDeliveryGetSettleContractsContract", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicDeliveryGetSettleOrderBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicDeliveryGetSettleOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("publicDeliveryGetSettleOrderBook", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicDeliveryGetSettleTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicDeliveryGetSettleTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicDeliveryGetSettleTrades", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicDeliveryGetSettleCandlesticks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicDeliveryGetSettleCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("publicDeliveryGetSettleCandlesticks", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicDeliveryGetSettleTickers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicDeliveryGetSettleTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicDeliveryGetSettleTickers", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicDeliveryGetSettleInsurance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicDeliveryGetSettleInsurance (Object... optionalArgs)
     {
         return this.callAsync ("publicDeliveryGetSettleInsurance", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicDeliveryGetSettleRiskLimitTiers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicDeliveryGetSettleRiskLimitTiers (Object... optionalArgs)
     {
         return this.callAsync ("publicDeliveryGetSettleRiskLimitTiers", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicOptionsGetUnderlyings (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicOptionsGetUnderlyings (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetUnderlyings", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicOptionsGetExpirations (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicOptionsGetExpirations (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetExpirations", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicOptionsGetContracts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicOptionsGetContracts (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetContracts", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicOptionsGetContractsContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicOptionsGetContractsContract (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetContractsContract", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicOptionsGetSettlements (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicOptionsGetSettlements (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetSettlements", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicOptionsGetSettlementsContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicOptionsGetSettlementsContract (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetSettlementsContract", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicOptionsGetOrderBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicOptionsGetOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetOrderBook", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicOptionsGetTickers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicOptionsGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetTickers", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicOptionsGetUnderlyingTickersUnderlying (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicOptionsGetUnderlyingTickersUnderlying (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetUnderlyingTickersUnderlying", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicOptionsGetCandlesticks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicOptionsGetCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetCandlesticks", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicOptionsGetUnderlyingCandlesticks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicOptionsGetUnderlyingCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetUnderlyingCandlesticks", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicOptionsGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicOptionsGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicOptionsGetTrades", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicEarnGetUniCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicEarnGetUniCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicEarnGetUniCurrencies", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicEarnGetUniCurrenciesCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicEarnGetUniCurrenciesCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicEarnGetUniCurrenciesCurrency", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicEarnGetDualInvestmentPlan (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicEarnGetDualInvestmentPlan (Object... optionalArgs)
     {
         return this.callAsync ("publicEarnGetDualInvestmentPlan", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicEarnGetStructuredProducts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicEarnGetStructuredProducts (Object... optionalArgs)
     {
         return this.callAsync ("publicEarnGetStructuredProducts", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicEarnGetDualProjectRecommend (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicEarnGetDualProjectRecommend (Object... optionalArgs)
     {
         return this.callAsync ("publicEarnGetDualProjectRecommend", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicEarnGetFixedTermProduct (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicEarnGetFixedTermProduct (Object... optionalArgs)
     {
         return this.callAsync ("publicEarnGetFixedTermProduct", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicEarnGetFixedTermProductAssetList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicEarnGetFixedTermProductAssetList (Object... optionalArgs)
     {
         return this.callAsync ("publicEarnGetFixedTermProductAssetList", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicLoanGetCollateralCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicLoanGetCollateralCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicLoanGetCollateralCurrencies", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicLoanGetMultiCollateralCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicLoanGetMultiCollateralCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicLoanGetMultiCollateralCurrencies", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicLoanGetMultiCollateralLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicLoanGetMultiCollateralLtv (Object... optionalArgs)
     {
         return this.callAsync ("publicLoanGetMultiCollateralLtv", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicLoanGetMultiCollateralFixedRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicLoanGetMultiCollateralFixedRate (Object... optionalArgs)
     {
         return this.callAsync ("publicLoanGetMultiCollateralFixedRate", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicLoanGetMultiCollateralCurrentRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicLoanGetMultiCollateralCurrentRate (Object... optionalArgs)
     {
         return this.callAsync ("publicLoanGetMultiCollateralCurrentRate", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWithdrawalsPostWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWithdrawalsPostWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privateWithdrawalsPostWithdrawals", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWithdrawalsPostPush (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWithdrawalsPostPush (Object... optionalArgs)
     {
         return this.callAsync ("privateWithdrawalsPostPush", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWithdrawalsDeleteWithdrawalsWithdrawalId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWithdrawalsDeleteWithdrawalsWithdrawalId (Object... optionalArgs)
     {
         return this.callAsync ("privateWithdrawalsDeleteWithdrawalsWithdrawalId", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletGetDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletGetDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetDepositAddress", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetWithdrawals (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetWithdrawals", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetDeposits (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetDeposits", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetSubAccountTransfers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetSubAccountTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetSubAccountTransfers", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletGetOrderStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletGetOrderStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetOrderStatus", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetWithdrawStatus (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetWithdrawStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetWithdrawStatus", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetSubAccountBalances (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetSubAccountBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetSubAccountBalances", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetSubAccountMarginBalances (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetSubAccountMarginBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetSubAccountMarginBalances", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetSubAccountFuturesBalances (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetSubAccountFuturesBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetSubAccountFuturesBalances", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetSubAccountCrossMarginBalances (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetSubAccountCrossMarginBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetSubAccountCrossMarginBalances", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetSavedAddress (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetSavedAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetSavedAddress", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletGetFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletGetFee (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetFee", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletGetTotalBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletGetTotalBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetTotalBalance", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetSmallBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetSmallBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetSmallBalance", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetSmallBalanceHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetSmallBalanceHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetSmallBalanceHistory", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetPush (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetPush (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetPush", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateWalletGetGetLowCapExchangeList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateWalletGetGetLowCapExchangeList (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetGetLowCapExchangeList", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletGetTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletGetTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletGetTransfers", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletPostTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletPostTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletPostTransfers", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletPostSubAccountTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletPostSubAccountTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletPostSubAccountTransfers", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletPostSubAccountToSubAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletPostSubAccountToSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletPostSubAccountToSubAccount", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateWalletPostSmallBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateWalletPostSmallBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateWalletPostSmallBalance", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSubAccountsGetSubAccounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSubAccountsGetSubAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsGetSubAccounts", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSubAccountsGetSubAccountsUserId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSubAccountsGetSubAccountsUserId (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsGetSubAccountsUserId", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSubAccountsGetSubAccountsUserIdKeys (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSubAccountsGetSubAccountsUserIdKeys (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsGetSubAccountsUserIdKeys", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSubAccountsGetSubAccountsUserIdKeysKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSubAccountsGetSubAccountsUserIdKeysKey (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsGetSubAccountsUserIdKeysKey", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSubAccountsPostSubAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSubAccountsPostSubAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsPostSubAccounts", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSubAccountsPostSubAccountsUserIdKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSubAccountsPostSubAccountsUserIdKeys (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsPostSubAccountsUserIdKeys", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSubAccountsPostSubAccountsUserIdLock (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSubAccountsPostSubAccountsUserIdLock (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsPostSubAccountsUserIdLock", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSubAccountsPostSubAccountsUserIdUnlock (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSubAccountsPostSubAccountsUserIdUnlock (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsPostSubAccountsUserIdUnlock", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSubAccountsPutSubAccountsUserIdKeysKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSubAccountsPutSubAccountsUserIdKeysKey (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsPutSubAccountsUserIdKeysKey", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSubAccountsDeleteSubAccountsUserIdKeysKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSubAccountsDeleteSubAccountsUserIdKeysKey (Object... optionalArgs)
     {
         return this.callAsync ("privateSubAccountsDeleteSubAccountsUserIdKeysKey", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetAccounts", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetBorrowable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetBorrowable", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetTransferable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetTransferable (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetTransferable", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedGetTransferables (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedGetTransferables (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetTransferables", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedGetBatchBorrowable (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedGetBatchBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetBatchBorrowable", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedGetLoans (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedGetLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetLoans", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedGetLoanRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedGetLoanRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetLoanRecords", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedGetInterestRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedGetInterestRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetInterestRecords", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetRiskUnits (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetRiskUnits (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetRiskUnits", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetUnifiedMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetUnifiedMode (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetUnifiedMode", optionalArgs);
     }
@@ -1290,7 +1293,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetEstimateRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetEstimateRate (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetEstimateRate", optionalArgs);
     }
@@ -1301,7 +1304,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedGetCurrencyDiscountTiers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedGetCurrencyDiscountTiers (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetCurrencyDiscountTiers", optionalArgs);
     }
@@ -1312,7 +1315,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedGetLoanMarginTiers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedGetLoanMarginTiers (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetLoanMarginTiers", optionalArgs);
     }
@@ -1323,7 +1326,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetLeverageUserCurrencyConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetLeverageUserCurrencyConfig (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetLeverageUserCurrencyConfig", optionalArgs);
     }
@@ -1334,7 +1337,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedGetLeverageUserCurrencySetting (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedGetLeverageUserCurrencySetting (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetLeverageUserCurrencySetting", optionalArgs);
     }
@@ -1345,7 +1348,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetDeltaNeutral (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetDeltaNeutral (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetDeltaNeutral", optionalArgs);
     }
@@ -1356,7 +1359,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetEstimatedQuickRepayment (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetEstimatedQuickRepayment (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetEstimatedQuickRepayment", optionalArgs);
     }
@@ -1367,7 +1370,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedGetAccountMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedGetAccountMode (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedGetAccountMode", optionalArgs);
     }
@@ -1378,7 +1381,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedPostLoans (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedPostLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPostLoans", optionalArgs);
     }
@@ -1389,7 +1392,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedPostPortfolioCalculator (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedPostPortfolioCalculator (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPostPortfolioCalculator", optionalArgs);
     }
@@ -1400,7 +1403,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateUnifiedPostLeverageUserCurrencySetting (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateUnifiedPostLeverageUserCurrencySetting (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPostLeverageUserCurrencySetting", optionalArgs);
     }
@@ -1411,7 +1414,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedPostCollateralCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedPostCollateralCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPostCollateralCurrencies", optionalArgs);
     }
@@ -1422,7 +1425,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedPostDeltaNeutral (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedPostDeltaNeutral (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPostDeltaNeutral", optionalArgs);
     }
@@ -1433,7 +1436,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedPostLeverageUserSetting (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedPostLeverageUserSetting (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPostLeverageUserSetting", optionalArgs);
     }
@@ -1444,7 +1447,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedPostQuickRepayment (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedPostQuickRepayment (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPostQuickRepayment", optionalArgs);
     }
@@ -1455,7 +1458,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedPostAccountMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedPostAccountMode (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPostAccountMode", optionalArgs);
     }
@@ -1466,7 +1469,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateUnifiedPutUnifiedMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateUnifiedPutUnifiedMode (Object... optionalArgs)
     {
         return this.callAsync ("privateUnifiedPutUnifiedMode", optionalArgs);
     }
@@ -1477,7 +1480,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetFee (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetFee", optionalArgs);
     }
@@ -1488,7 +1491,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetBatchFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetBatchFee (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetBatchFee", optionalArgs);
     }
@@ -1499,7 +1502,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotGetAccounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetAccounts", optionalArgs);
     }
@@ -1510,7 +1513,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotGetAccountBook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotGetAccountBook (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetAccountBook", optionalArgs);
     }
@@ -1521,7 +1524,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetOpenOrders", optionalArgs);
     }
@@ -1532,7 +1535,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotGetOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetOrders", optionalArgs);
     }
@@ -1543,7 +1546,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetOrdersOrderId", optionalArgs);
     }
@@ -1554,7 +1557,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotGetMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotGetMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetMyTrades", optionalArgs);
     }
@@ -1565,7 +1568,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotGetPriceOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotGetPriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetPriceOrders", optionalArgs);
     }
@@ -1576,7 +1579,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetPriceOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetPriceOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetPriceOrdersOrderId", optionalArgs);
     }
@@ -1587,7 +1590,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotGetPovOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotGetPovOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetPovOrders", optionalArgs);
     }
@@ -1598,7 +1601,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetPovOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotGetPovOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetPovOrdersOrderId", optionalArgs);
     }
@@ -1609,7 +1612,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotPostBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotPostBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostBatchOrders", optionalArgs);
     }
@@ -1620,7 +1623,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostCrossLiquidateOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostCrossLiquidateOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostCrossLiquidateOrders", optionalArgs);
     }
@@ -1631,7 +1634,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostOrders", optionalArgs);
     }
@@ -1642,7 +1645,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotPostCancelBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotPostCancelBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostCancelBatchOrders", optionalArgs);
     }
@@ -1653,7 +1656,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostCountdownCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostCountdownCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostCountdownCancelAll", optionalArgs);
     }
@@ -1664,7 +1667,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotPostAmendBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotPostAmendBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostAmendBatchOrders", optionalArgs);
     }
@@ -1675,7 +1678,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostPriceOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostPriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostPriceOrders", optionalArgs);
     }
@@ -1686,7 +1689,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPostPovOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPostPovOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPostPovOrders", optionalArgs);
     }
@@ -1697,7 +1700,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotDeleteOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotDeleteOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotDeleteOrders", optionalArgs);
     }
@@ -1708,7 +1711,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotDeleteOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotDeleteOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotDeleteOrdersOrderId", optionalArgs);
     }
@@ -1719,7 +1722,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotDeletePriceOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotDeletePriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotDeletePriceOrders", optionalArgs);
     }
@@ -1730,7 +1733,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotDeletePriceOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotDeletePriceOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotDeletePriceOrdersOrderId", optionalArgs);
     }
@@ -1741,7 +1744,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateSpotDeletePovOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateSpotDeletePovOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotDeletePovOrders", optionalArgs);
     }
@@ -1752,7 +1755,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotDeletePovOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotDeletePovOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotDeletePovOrdersOrderId", optionalArgs);
     }
@@ -1763,7 +1766,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotPatchOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateSpotPatchOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotPatchOrdersOrderId", optionalArgs);
     }
@@ -1774,7 +1777,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetAccounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetAccounts", optionalArgs);
     }
@@ -1785,7 +1788,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetAccountBook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetAccountBook (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetAccountBook", optionalArgs);
     }
@@ -1796,7 +1799,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetFundingAccounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetFundingAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetFundingAccounts", optionalArgs);
     }
@@ -1807,7 +1810,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetAutoRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetAutoRepay (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetAutoRepay", optionalArgs);
     }
@@ -1818,7 +1821,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetTransferable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetTransferable (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetTransferable", optionalArgs);
     }
@@ -1829,7 +1832,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetUniEstimateRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetUniEstimateRate (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetUniEstimateRate", optionalArgs);
     }
@@ -1840,7 +1843,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetUniLoans (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetUniLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetUniLoans", optionalArgs);
     }
@@ -1851,7 +1854,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetUniLoanRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetUniLoanRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetUniLoanRecords", optionalArgs);
     }
@@ -1862,7 +1865,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetUniInterestRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetUniInterestRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetUniInterestRecords", optionalArgs);
     }
@@ -1873,7 +1876,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetUniBorrowable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetUniBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetUniBorrowable", optionalArgs);
     }
@@ -1884,7 +1887,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetUserLoanMarginTiers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetUserLoanMarginTiers (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetUserLoanMarginTiers", optionalArgs);
     }
@@ -1895,7 +1898,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetUserAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetUserAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetUserAccount", optionalArgs);
     }
@@ -1906,7 +1909,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetLoans (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetLoans", optionalArgs);
     }
@@ -1917,7 +1920,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetLoansLoanId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetLoansLoanId (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetLoansLoanId", optionalArgs);
     }
@@ -1928,7 +1931,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetLoansLoanIdRepayment (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetLoansLoanIdRepayment (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetLoansLoanIdRepayment", optionalArgs);
     }
@@ -1939,7 +1942,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetLoanRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetLoanRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetLoanRecords", optionalArgs);
     }
@@ -1950,7 +1953,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetLoanRecordsLoanRecordId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetLoanRecordsLoanRecordId (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetLoanRecordsLoanRecordId", optionalArgs);
     }
@@ -1961,7 +1964,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetBorrowable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetBorrowable", optionalArgs);
     }
@@ -1972,7 +1975,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetCrossAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetCrossAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossAccounts", optionalArgs);
     }
@@ -1983,7 +1986,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetCrossAccountBook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetCrossAccountBook (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossAccountBook", optionalArgs);
     }
@@ -1994,7 +1997,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetCrossLoans (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetCrossLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossLoans", optionalArgs);
     }
@@ -2005,7 +2008,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetCrossLoansLoanId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetCrossLoansLoanId (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossLoansLoanId", optionalArgs);
     }
@@ -2016,7 +2019,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetCrossRepayments (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetCrossRepayments (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossRepayments", optionalArgs);
     }
@@ -2027,7 +2030,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginGetCrossInterestRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginGetCrossInterestRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossInterestRecords", optionalArgs);
     }
@@ -2038,7 +2041,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetCrossTransferable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetCrossTransferable (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossTransferable", optionalArgs);
     }
@@ -2049,7 +2052,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetCrossEstimateRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetCrossEstimateRate (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossEstimateRate", optionalArgs);
     }
@@ -2060,7 +2063,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginGetCrossBorrowable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginGetCrossBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginGetCrossBorrowable", optionalArgs);
     }
@@ -2071,7 +2074,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginPostAutoRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginPostAutoRepay (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPostAutoRepay", optionalArgs);
     }
@@ -2082,7 +2085,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginPostUniLoans (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginPostUniLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPostUniLoans", optionalArgs);
     }
@@ -2093,7 +2096,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginPostLeverageUserMarketSetting (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginPostLeverageUserMarketSetting (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPostLeverageUserMarketSetting", optionalArgs);
     }
@@ -2104,7 +2107,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginPostLoans (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginPostLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPostLoans", optionalArgs);
     }
@@ -2115,7 +2118,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginPostMergedLoans (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginPostMergedLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPostMergedLoans", optionalArgs);
     }
@@ -2126,7 +2129,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginPostLoansLoanIdRepayment (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginPostLoansLoanIdRepayment (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPostLoansLoanIdRepayment", optionalArgs);
     }
@@ -2137,7 +2140,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginPostCrossLoans (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginPostCrossLoans (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPostCrossLoans", optionalArgs);
     }
@@ -2148,7 +2151,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateMarginPostCrossRepayments (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateMarginPostCrossRepayments (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPostCrossRepayments", optionalArgs);
     }
@@ -2159,7 +2162,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginPatchLoansLoanId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginPatchLoansLoanId (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPatchLoansLoanId", optionalArgs);
     }
@@ -2170,7 +2173,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginPatchLoanRecordsLoanRecordId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginPatchLoanRecordsLoanRecordId (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginPatchLoanRecordsLoanRecordId", optionalArgs);
     }
@@ -2181,7 +2184,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateMarginDeleteLoansLoanId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateMarginDeleteLoansLoanId (Object... optionalArgs)
     {
         return this.callAsync ("privateMarginDeleteLoansLoanId", optionalArgs);
     }
@@ -2192,7 +2195,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFlash_swapGetOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFlash_swapGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFlash_swapGetOrders", optionalArgs);
     }
@@ -2203,7 +2206,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFlash_swapGetOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFlash_swapGetOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateFlash_swapGetOrdersOrderId", optionalArgs);
     }
@@ -2214,7 +2217,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFlash_swapPostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFlash_swapPostOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFlash_swapPostOrders", optionalArgs);
     }
@@ -2225,7 +2228,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFlash_swapPostOrdersPreview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFlash_swapPostOrdersPreview (Object... optionalArgs)
     {
         return this.callAsync ("privateFlash_swapPostOrdersPreview", optionalArgs);
     }
@@ -2236,7 +2239,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesGetSettleAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesGetSettleAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleAccounts", optionalArgs);
     }
@@ -2247,7 +2250,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleAccountBook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleAccountBook (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleAccountBook", optionalArgs);
     }
@@ -2258,7 +2261,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettlePositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettlePositions (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettlePositions", optionalArgs);
     }
@@ -2269,7 +2272,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesGetSettlePositionsContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesGetSettlePositionsContract (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettlePositionsContract", optionalArgs);
     }
@@ -2280,7 +2283,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesGetSettleGetLeverageContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesGetSettleGetLeverageContract (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleGetLeverageContract", optionalArgs);
     }
@@ -2291,7 +2294,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleDualCompPositionsContract (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleDualCompPositionsContract (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleDualCompPositionsContract", optionalArgs);
     }
@@ -2302,7 +2305,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleOrders", optionalArgs);
     }
@@ -2313,7 +2316,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleOrdersTimerange (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleOrdersTimerange (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleOrdersTimerange", optionalArgs);
     }
@@ -2324,7 +2327,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesGetSettleOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesGetSettleOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleOrdersOrderId", optionalArgs);
     }
@@ -2335,7 +2338,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleMyTrades", optionalArgs);
     }
@@ -2346,7 +2349,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleMyTradesTimerange (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleMyTradesTimerange (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleMyTradesTimerange", optionalArgs);
     }
@@ -2357,7 +2360,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettlePositionClose (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettlePositionClose (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettlePositionClose", optionalArgs);
     }
@@ -2368,7 +2371,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleLiquidates (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleLiquidates (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleLiquidates", optionalArgs);
     }
@@ -2379,7 +2382,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleAutoDeleverages (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleAutoDeleverages (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleAutoDeleverages", optionalArgs);
     }
@@ -2390,7 +2393,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesGetSettleFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesGetSettleFee (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleFee", optionalArgs);
     }
@@ -2401,7 +2404,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleRiskLimitTable (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleRiskLimitTable (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleRiskLimitTable", optionalArgs);
     }
@@ -2412,7 +2415,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettlePriceOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettlePriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettlePriceOrders", optionalArgs);
     }
@@ -2423,7 +2426,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesGetSettlePriceOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesGetSettlePriceOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettlePriceOrdersOrderId", optionalArgs);
     }
@@ -2434,7 +2437,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleAutoorderV1TrailList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleAutoorderV1TrailList (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleAutoorderV1TrailList", optionalArgs);
     }
@@ -2445,7 +2448,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesGetSettleAutoorderV1TrailDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesGetSettleAutoorderV1TrailDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleAutoorderV1TrailDetail", optionalArgs);
     }
@@ -2456,7 +2459,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleAutoorderV1TrailChangeLog (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleAutoorderV1TrailChangeLog (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleAutoorderV1TrailChangeLog", optionalArgs);
     }
@@ -2467,7 +2470,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesGetSettleAutoorderV1ChaseList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesGetSettleAutoorderV1ChaseList (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleAutoorderV1ChaseList", optionalArgs);
     }
@@ -2478,7 +2481,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesGetSettleAutoorderV1ChaseDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesGetSettleAutoorderV1ChaseDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesGetSettleAutoorderV1ChaseDetail", optionalArgs);
     }
@@ -2489,7 +2492,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettlePositionsContractMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettlePositionsContractMargin (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettlePositionsContractMargin", optionalArgs);
     }
@@ -2500,7 +2503,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettlePositionsContractLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettlePositionsContractLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettlePositionsContractLeverage", optionalArgs);
     }
@@ -2511,7 +2514,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettlePositionsContractSetLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettlePositionsContractSetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettlePositionsContractSetLeverage", optionalArgs);
     }
@@ -2522,7 +2525,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettlePositionsContractRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettlePositionsContractRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettlePositionsContractRiskLimit", optionalArgs);
     }
@@ -2533,7 +2536,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettlePositionsCrossMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettlePositionsCrossMode (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettlePositionsCrossMode", optionalArgs);
     }
@@ -2544,7 +2547,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleDualCompPositionsCrossMode (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleDualCompPositionsCrossMode (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleDualCompPositionsCrossMode", optionalArgs);
     }
@@ -2555,7 +2558,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleDualMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleDualMode (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleDualMode", optionalArgs);
     }
@@ -2566,7 +2569,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleSetPositionMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleSetPositionMode (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleSetPositionMode", optionalArgs);
     }
@@ -2577,7 +2580,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleDualCompPositionsContractMargin (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleDualCompPositionsContractMargin (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleDualCompPositionsContractMargin", optionalArgs);
     }
@@ -2588,7 +2591,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleDualCompPositionsContractLeverage (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleDualCompPositionsContractLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleDualCompPositionsContractLeverage", optionalArgs);
     }
@@ -2599,7 +2602,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleDualCompPositionsContractRiskLimit (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleDualCompPositionsContractRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleDualCompPositionsContractRiskLimit", optionalArgs);
     }
@@ -2610,7 +2613,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleOrders", optionalArgs);
     }
@@ -2621,7 +2624,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleBatchOrders", optionalArgs);
     }
@@ -2632,7 +2635,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleCountdownCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleCountdownCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleCountdownCancelAll", optionalArgs);
     }
@@ -2643,7 +2646,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleBatchCancelOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleBatchCancelOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleBatchCancelOrders", optionalArgs);
     }
@@ -2654,7 +2657,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleBatchAmendOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleBatchAmendOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleBatchAmendOrders", optionalArgs);
     }
@@ -2665,7 +2668,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleBboOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleBboOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleBboOrders", optionalArgs);
     }
@@ -2676,7 +2679,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettlePriceOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettlePriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettlePriceOrders", optionalArgs);
     }
@@ -2687,7 +2690,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleAutoorderV1TrailCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleAutoorderV1TrailCreate (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleAutoorderV1TrailCreate", optionalArgs);
     }
@@ -2698,7 +2701,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleAutoorderV1TrailStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleAutoorderV1TrailStop (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleAutoorderV1TrailStop", optionalArgs);
     }
@@ -2709,7 +2712,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleAutoorderV1TrailStopAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleAutoorderV1TrailStopAll (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleAutoorderV1TrailStopAll", optionalArgs);
     }
@@ -2720,7 +2723,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleAutoorderV1TrailUpdate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleAutoorderV1TrailUpdate (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleAutoorderV1TrailUpdate", optionalArgs);
     }
@@ -2731,7 +2734,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleAutoorderV1ChaseCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleAutoorderV1ChaseCreate (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleAutoorderV1ChaseCreate", optionalArgs);
     }
@@ -2742,7 +2745,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPostSettleAutoorderV1ChaseStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPostSettleAutoorderV1ChaseStop (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleAutoorderV1ChaseStop", optionalArgs);
     }
@@ -2753,7 +2756,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesPostSettleAutoorderV1ChaseStopAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesPostSettleAutoorderV1ChaseStopAll (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPostSettleAutoorderV1ChaseStopAll", optionalArgs);
     }
@@ -2764,7 +2767,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPutSettleOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPutSettleOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPutSettleOrdersOrderId", optionalArgs);
     }
@@ -2775,7 +2778,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesPutSettlePriceOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesPutSettlePriceOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesPutSettlePriceOrdersOrderId", optionalArgs);
     }
@@ -2786,7 +2789,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesDeleteSettleOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesDeleteSettleOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesDeleteSettleOrders", optionalArgs);
     }
@@ -2797,7 +2800,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesDeleteSettleOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesDeleteSettleOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesDeleteSettleOrdersOrderId", optionalArgs);
     }
@@ -2808,7 +2811,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateFuturesDeleteSettlePriceOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateFuturesDeleteSettlePriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesDeleteSettlePriceOrders", optionalArgs);
     }
@@ -2819,7 +2822,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateFuturesDeleteSettlePriceOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateFuturesDeleteSettlePriceOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateFuturesDeleteSettlePriceOrdersOrderId", optionalArgs);
     }
@@ -2830,7 +2833,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryGetSettleAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryGetSettleAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettleAccounts", optionalArgs);
     }
@@ -2841,7 +2844,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryGetSettleAccountBook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryGetSettleAccountBook (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettleAccountBook", optionalArgs);
     }
@@ -2852,7 +2855,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryGetSettlePositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryGetSettlePositions (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettlePositions", optionalArgs);
     }
@@ -2863,7 +2866,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryGetSettlePositionsContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryGetSettlePositionsContract (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettlePositionsContract", optionalArgs);
     }
@@ -2874,7 +2877,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryGetSettleOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryGetSettleOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettleOrders", optionalArgs);
     }
@@ -2885,7 +2888,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryGetSettleOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryGetSettleOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettleOrdersOrderId", optionalArgs);
     }
@@ -2896,7 +2899,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryGetSettleMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryGetSettleMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettleMyTrades", optionalArgs);
     }
@@ -2907,7 +2910,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryGetSettlePositionClose (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryGetSettlePositionClose (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettlePositionClose", optionalArgs);
     }
@@ -2918,7 +2921,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryGetSettleLiquidates (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryGetSettleLiquidates (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettleLiquidates", optionalArgs);
     }
@@ -2929,7 +2932,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryGetSettleSettlements (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryGetSettleSettlements (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettleSettlements", optionalArgs);
     }
@@ -2940,7 +2943,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryGetSettlePriceOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryGetSettlePriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettlePriceOrders", optionalArgs);
     }
@@ -2951,7 +2954,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryGetSettlePriceOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryGetSettlePriceOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryGetSettlePriceOrdersOrderId", optionalArgs);
     }
@@ -2962,7 +2965,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryPostSettlePositionsContractMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryPostSettlePositionsContractMargin (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryPostSettlePositionsContractMargin", optionalArgs);
     }
@@ -2973,7 +2976,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryPostSettlePositionsContractLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryPostSettlePositionsContractLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryPostSettlePositionsContractLeverage", optionalArgs);
     }
@@ -2984,7 +2987,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryPostSettlePositionsContractRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryPostSettlePositionsContractRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryPostSettlePositionsContractRiskLimit", optionalArgs);
     }
@@ -2995,7 +2998,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryPostSettleOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryPostSettleOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryPostSettleOrders", optionalArgs);
     }
@@ -3006,7 +3009,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryPostSettlePriceOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryPostSettlePriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryPostSettlePriceOrders", optionalArgs);
     }
@@ -3017,7 +3020,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryDeleteSettleOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryDeleteSettleOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryDeleteSettleOrders", optionalArgs);
     }
@@ -3028,7 +3031,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryDeleteSettleOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryDeleteSettleOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryDeleteSettleOrdersOrderId", optionalArgs);
     }
@@ -3039,7 +3042,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeliveryDeleteSettlePriceOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeliveryDeleteSettlePriceOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryDeleteSettlePriceOrders", optionalArgs);
     }
@@ -3050,7 +3053,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeliveryDeleteSettlePriceOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeliveryDeleteSettlePriceOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeliveryDeleteSettlePriceOrdersOrderId", optionalArgs);
     }
@@ -3061,7 +3064,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsGetMySettlements (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsGetMySettlements (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetMySettlements", optionalArgs);
     }
@@ -3072,7 +3075,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsGetAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetAccounts", optionalArgs);
     }
@@ -3083,7 +3086,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateOptionsGetAccountBook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateOptionsGetAccountBook (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetAccountBook", optionalArgs);
     }
@@ -3094,7 +3097,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateOptionsGetPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateOptionsGetPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetPositions", optionalArgs);
     }
@@ -3105,7 +3108,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsGetPositionsContract (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsGetPositionsContract (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetPositionsContract", optionalArgs);
     }
@@ -3116,7 +3119,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateOptionsGetPositionClose (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateOptionsGetPositionClose (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetPositionClose", optionalArgs);
     }
@@ -3127,7 +3130,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateOptionsGetOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateOptionsGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetOrders", optionalArgs);
     }
@@ -3138,7 +3141,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsGetOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsGetOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetOrdersOrderId", optionalArgs);
     }
@@ -3149,7 +3152,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateOptionsGetMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateOptionsGetMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetMyTrades", optionalArgs);
     }
@@ -3160,7 +3163,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateOptionsGetMmp (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateOptionsGetMmp (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsGetMmp", optionalArgs);
     }
@@ -3171,7 +3174,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsPostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsPostOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsPostOrders", optionalArgs);
     }
@@ -3182,7 +3185,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsPostCountdownCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsPostCountdownCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsPostCountdownCancelAll", optionalArgs);
     }
@@ -3193,7 +3196,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsPostMmp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsPostMmp (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsPostMmp", optionalArgs);
     }
@@ -3204,7 +3207,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsPostMmpReset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsPostMmpReset (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsPostMmpReset", optionalArgs);
     }
@@ -3215,7 +3218,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsPutOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsPutOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsPutOrdersOrderId", optionalArgs);
     }
@@ -3226,7 +3229,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateOptionsDeleteOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateOptionsDeleteOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsDeleteOrders", optionalArgs);
     }
@@ -3237,7 +3240,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOptionsDeleteOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOptionsDeleteOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateOptionsDeleteOrdersOrderId", optionalArgs);
     }
@@ -3248,7 +3251,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetUniLends (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetUniLends (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniLends", optionalArgs);
     }
@@ -3259,7 +3262,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetUniLendRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetUniLendRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniLendRecords", optionalArgs);
     }
@@ -3270,7 +3273,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnGetUniInterestsCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnGetUniInterestsCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniInterestsCurrency", optionalArgs);
     }
@@ -3281,7 +3284,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetUniInterestRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetUniInterestRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniInterestRecords", optionalArgs);
     }
@@ -3292,7 +3295,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnGetUniInterestStatusCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnGetUniInterestStatusCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniInterestStatusCurrency", optionalArgs);
     }
@@ -3303,7 +3306,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetUniChart (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetUniChart (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniChart", optionalArgs);
     }
@@ -3314,7 +3317,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetUniRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetUniRate (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniRate", optionalArgs);
     }
@@ -3325,7 +3328,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetStakingEth2RateRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetStakingEth2RateRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetStakingEth2RateRecords", optionalArgs);
     }
@@ -3336,7 +3339,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetDualOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetDualOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetDualOrders", optionalArgs);
     }
@@ -3347,7 +3350,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnGetDualBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnGetDualBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetDualBalance", optionalArgs);
     }
@@ -3358,7 +3361,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetStructuredOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetStructuredOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetStructuredOrders", optionalArgs);
     }
@@ -3369,7 +3372,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetStakingCoins (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetStakingCoins (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetStakingCoins", optionalArgs);
     }
@@ -3380,7 +3383,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnGetStakingOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnGetStakingOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetStakingOrderList", optionalArgs);
     }
@@ -3391,7 +3394,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnGetStakingAwardList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnGetStakingAwardList (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetStakingAwardList", optionalArgs);
     }
@@ -3402,7 +3405,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetStakingAssets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetStakingAssets (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetStakingAssets", optionalArgs);
     }
@@ -3413,7 +3416,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnGetDualOrderRefundPreview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnGetDualOrderRefundPreview (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetDualOrderRefundPreview", optionalArgs);
     }
@@ -3424,7 +3427,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetFixedTermUserLend (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetFixedTermUserLend (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetFixedTermUserLend", optionalArgs);
     }
@@ -3435,7 +3438,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetFixedTermUserHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetFixedTermUserHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetFixedTermUserHistory", optionalArgs);
     }
@@ -3446,7 +3449,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetAutoinvestCoins (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetAutoinvestCoins (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetAutoinvestCoins", optionalArgs);
     }
@@ -3457,7 +3460,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetAutoinvestConfig (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetAutoinvestConfig (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetAutoinvestConfig", optionalArgs);
     }
@@ -3468,7 +3471,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetAutoinvestOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetAutoinvestOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetAutoinvestOrders", optionalArgs);
     }
@@ -3479,7 +3482,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnGetAutoinvestPlansDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnGetAutoinvestPlansDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetAutoinvestPlansDetail", optionalArgs);
     }
@@ -3490,7 +3493,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetAutoinvestPlansListInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetAutoinvestPlansListInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetAutoinvestPlansListInfo", optionalArgs);
     }
@@ -3501,7 +3504,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetAutoinvestPlansRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetAutoinvestPlansRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetAutoinvestPlansRecords", optionalArgs);
     }
@@ -3512,7 +3515,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnGetUniCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnGetUniCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniCurrencies", optionalArgs);
     }
@@ -3523,7 +3526,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnGetUniCurrenciesCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnGetUniCurrenciesCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnGetUniCurrenciesCurrency", optionalArgs);
     }
@@ -3534,7 +3537,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnPostUniLends (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnPostUniLends (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostUniLends", optionalArgs);
     }
@@ -3545,7 +3548,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostStakingEth2Swap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostStakingEth2Swap (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostStakingEth2Swap", optionalArgs);
     }
@@ -3556,7 +3559,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostDualOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostDualOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostDualOrders", optionalArgs);
     }
@@ -3567,7 +3570,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnPostStructuredOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnPostStructuredOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostStructuredOrders", optionalArgs);
     }
@@ -3578,7 +3581,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostStakingSwap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostStakingSwap (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostStakingSwap", optionalArgs);
     }
@@ -3589,7 +3592,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostDualOrderRefund (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostDualOrderRefund (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostDualOrderRefund", optionalArgs);
     }
@@ -3600,7 +3603,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostDualModifyOrderReinvest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostDualModifyOrderReinvest (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostDualModifyOrderReinvest", optionalArgs);
     }
@@ -3611,7 +3614,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostFixedTermUserLend (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostFixedTermUserLend (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostFixedTermUserLend", optionalArgs);
     }
@@ -3622,7 +3625,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostFixedTermUserPreRedeem (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostFixedTermUserPreRedeem (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostFixedTermUserPreRedeem", optionalArgs);
     }
@@ -3633,7 +3636,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostAutoinvestMinInvestAmount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostAutoinvestMinInvestAmount (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostAutoinvestMinInvestAmount", optionalArgs);
     }
@@ -3644,7 +3647,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostAutoinvestPlansAddPosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostAutoinvestPlansAddPosition (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostAutoinvestPlansAddPosition", optionalArgs);
     }
@@ -3655,7 +3658,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostAutoinvestPlansCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostAutoinvestPlansCreate (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostAutoinvestPlansCreate", optionalArgs);
     }
@@ -3666,7 +3669,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostAutoinvestPlansStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostAutoinvestPlansStop (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostAutoinvestPlansStop", optionalArgs);
     }
@@ -3677,7 +3680,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPostAutoinvestPlansUpdate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPostAutoinvestPlansUpdate (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPostAutoinvestPlansUpdate", optionalArgs);
     }
@@ -3688,7 +3691,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEarnPutUniInterestReinvest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateEarnPutUniInterestReinvest (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPutUniInterestReinvest", optionalArgs);
     }
@@ -3699,7 +3702,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateEarnPatchUniLends (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateEarnPatchUniLends (Object... optionalArgs)
     {
         return this.callAsync ("privateEarnPatchUniLends", optionalArgs);
     }
@@ -3710,7 +3713,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetCollateralOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetCollateralOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetCollateralOrders", optionalArgs);
     }
@@ -3721,7 +3724,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanGetCollateralOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanGetCollateralOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetCollateralOrdersOrderId", optionalArgs);
     }
@@ -3732,7 +3735,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetCollateralRepayRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetCollateralRepayRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetCollateralRepayRecords", optionalArgs);
     }
@@ -3743,7 +3746,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetCollateralCollaterals (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetCollateralCollaterals (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetCollateralCollaterals", optionalArgs);
     }
@@ -3754,7 +3757,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanGetCollateralTotalAmount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanGetCollateralTotalAmount (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetCollateralTotalAmount", optionalArgs);
     }
@@ -3765,7 +3768,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanGetCollateralLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanGetCollateralLtv (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetCollateralLtv", optionalArgs);
     }
@@ -3776,7 +3779,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetMultiCollateralOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetMultiCollateralOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralOrders", optionalArgs);
     }
@@ -3787,7 +3790,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanGetMultiCollateralOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanGetMultiCollateralOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralOrdersOrderId", optionalArgs);
     }
@@ -3798,7 +3801,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetMultiCollateralRepay (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetMultiCollateralRepay (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralRepay", optionalArgs);
     }
@@ -3809,7 +3812,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetMultiCollateralMortgage (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetMultiCollateralMortgage (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralMortgage", optionalArgs);
     }
@@ -3820,7 +3823,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetMultiCollateralCurrencyQuota (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetMultiCollateralCurrencyQuota (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralCurrencyQuota", optionalArgs);
     }
@@ -3831,7 +3834,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetCollateralCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetCollateralCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetCollateralCurrencies", optionalArgs);
     }
@@ -3842,7 +3845,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanGetMultiCollateralCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanGetMultiCollateralCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralCurrencies", optionalArgs);
     }
@@ -3853,7 +3856,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanGetMultiCollateralLtv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanGetMultiCollateralLtv (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralLtv", optionalArgs);
     }
@@ -3864,7 +3867,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetMultiCollateralFixedRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetMultiCollateralFixedRate (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralFixedRate", optionalArgs);
     }
@@ -3875,7 +3878,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanGetMultiCollateralCurrentRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanGetMultiCollateralCurrentRate (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanGetMultiCollateralCurrentRate", optionalArgs);
     }
@@ -3886,7 +3889,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanPostCollateralOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanPostCollateralOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanPostCollateralOrders", optionalArgs);
     }
@@ -3897,7 +3900,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanPostCollateralRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanPostCollateralRepay (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanPostCollateralRepay", optionalArgs);
     }
@@ -3908,7 +3911,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateLoanPostCollateralCollaterals (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateLoanPostCollateralCollaterals (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanPostCollateralCollaterals", optionalArgs);
     }
@@ -3919,7 +3922,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanPostMultiCollateralOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanPostMultiCollateralOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanPostMultiCollateralOrders", optionalArgs);
     }
@@ -3930,7 +3933,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanPostMultiCollateralRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanPostMultiCollateralRepay (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanPostMultiCollateralRepay", optionalArgs);
     }
@@ -3941,7 +3944,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLoanPostMultiCollateralMortgage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateLoanPostMultiCollateralMortgage (Object... optionalArgs)
     {
         return this.callAsync ("privateLoanPostMultiCollateralMortgage", optionalArgs);
     }
@@ -3952,7 +3955,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateAccountGetDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateAccountGetDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountGetDetail", optionalArgs);
     }
@@ -3963,7 +3966,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateAccountGetMainKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateAccountGetMainKeys (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountGetMainKeys", optionalArgs);
     }
@@ -3974,7 +3977,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateAccountGetRateLimit (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateAccountGetRateLimit (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountGetRateLimit", optionalArgs);
     }
@@ -3985,7 +3988,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateAccountGetStpGroups (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateAccountGetStpGroups (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountGetStpGroups", optionalArgs);
     }
@@ -3996,7 +3999,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateAccountGetStpGroupsStpIdUsers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateAccountGetStpGroupsStpIdUsers (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountGetStpGroupsStpIdUsers", optionalArgs);
     }
@@ -4007,7 +4010,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateAccountGetStpGroupsDebitFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateAccountGetStpGroupsDebitFee (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountGetStpGroupsDebitFee", optionalArgs);
     }
@@ -4018,7 +4021,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateAccountGetDebitFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateAccountGetDebitFee (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountGetDebitFee", optionalArgs);
     }
@@ -4029,7 +4032,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateAccountPostStpGroups (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateAccountPostStpGroups (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountPostStpGroups", optionalArgs);
     }
@@ -4040,7 +4043,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateAccountPostStpGroupsStpIdUsers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateAccountPostStpGroupsStpIdUsers (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountPostStpGroupsStpIdUsers", optionalArgs);
     }
@@ -4051,7 +4054,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateAccountPostDebitFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateAccountPostDebitFee (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountPostDebitFee", optionalArgs);
     }
@@ -4062,7 +4065,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateAccountDeleteStpGroupsStpIdUsers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateAccountDeleteStpGroupsStpIdUsers (Object... optionalArgs)
     {
         return this.callAsync ("privateAccountDeleteStpGroupsStpIdUsers", optionalArgs);
     }
@@ -4073,7 +4076,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateRebateGetAgencyTransactionHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateRebateGetAgencyTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetAgencyTransactionHistory", optionalArgs);
     }
@@ -4084,7 +4087,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateRebateGetAgencyCommissionHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateRebateGetAgencyCommissionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetAgencyCommissionHistory", optionalArgs);
     }
@@ -4095,7 +4098,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateRebateGetPartnerTransactionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateRebateGetPartnerTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetPartnerTransactionHistory", optionalArgs);
     }
@@ -4106,7 +4109,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateRebateGetPartnerCommissionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateRebateGetPartnerCommissionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetPartnerCommissionHistory", optionalArgs);
     }
@@ -4117,7 +4120,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateRebateGetPartnerSubList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateRebateGetPartnerSubList (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetPartnerSubList", optionalArgs);
     }
@@ -4128,7 +4131,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateRebateGetBrokerCommissionHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateRebateGetBrokerCommissionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetBrokerCommissionHistory", optionalArgs);
     }
@@ -4139,7 +4142,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateRebateGetBrokerTransactionHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateRebateGetBrokerTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetBrokerTransactionHistory", optionalArgs);
     }
@@ -4150,7 +4153,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateRebateGetUserInfo (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateRebateGetUserInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetUserInfo", optionalArgs);
     }
@@ -4161,7 +4164,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateRebateGetUserSubRelation (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateRebateGetUserSubRelation (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetUserSubRelation", optionalArgs);
     }
@@ -4172,7 +4175,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateRebateGetPartnerDataAggregated (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateRebateGetPartnerDataAggregated (Object... optionalArgs)
     {
         return this.callAsync ("privateRebateGetPartnerDataAggregated", optionalArgs);
     }
@@ -4183,7 +4186,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcGetGetUserDefBank (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcGetGetUserDefBank (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcGetGetUserDefBank", optionalArgs);
     }
@@ -4194,7 +4197,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcGetOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcGetOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcGetOrderList", optionalArgs);
     }
@@ -4205,7 +4208,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcGetStableCoinOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcGetStableCoinOrderList (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcGetStableCoinOrderList", optionalArgs);
     }
@@ -4216,7 +4219,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcGetOrderDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcGetOrderDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcGetOrderDetail", optionalArgs);
     }
@@ -4227,7 +4230,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateOtcGetBankList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateOtcGetBankList (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcGetBankList", optionalArgs);
     }
@@ -4238,7 +4241,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcGetBankBankSupplementChecklist (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcGetBankBankSupplementChecklist (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcGetBankBankSupplementChecklist", optionalArgs);
     }
@@ -4249,7 +4252,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostQuote (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostQuote (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostQuote", optionalArgs);
     }
@@ -4260,7 +4263,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostOrderCreate", optionalArgs);
     }
@@ -4271,7 +4274,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostStableCoinOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostStableCoinOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostStableCoinOrderCreate", optionalArgs);
     }
@@ -4282,7 +4285,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostOrderPaid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostOrderPaid (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostOrderPaid", optionalArgs);
     }
@@ -4293,7 +4296,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostOrderCancel", optionalArgs);
     }
@@ -4304,7 +4307,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostBankCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostBankCreate (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostBankCreate", optionalArgs);
     }
@@ -4315,7 +4318,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostBankDelete (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostBankDelete (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostBankDelete", optionalArgs);
     }
@@ -4326,7 +4329,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostBankSetDefault (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostBankSetDefault (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostBankSetDefault", optionalArgs);
     }
@@ -4337,7 +4340,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostBankPersonalBankSupplement (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostBankPersonalBankSupplement (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostBankPersonalBankSupplement", optionalArgs);
     }
@@ -4348,7 +4351,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostBankEnterpriseBankSupplement (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostBankEnterpriseBankSupplement (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostBankEnterpriseBankSupplement", optionalArgs);
     }
@@ -4359,7 +4362,7 @@ public class GateApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateOtcPostUploadPreUpload (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateOtcPostUploadPreUpload (Object... optionalArgs)
     {
         return this.callAsync ("privateOtcPostUploadPreUpload", optionalArgs);
     }

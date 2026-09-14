@@ -2248,6 +2248,7 @@ fetches information on multiple closed orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchclosedorders)
@@ -3168,6 +3169,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [pacifica](/exchanges/pacifica.md#fetchfundinghistory)
 * [paradex](/exchanges/paradex.md#fetchfundinghistory)
 * [phemex](/exchanges/phemex.md#fetchfundinghistory)
+* [weex](/exchanges/weex.md#fetchfundinghistory)
 * [whitebit](/exchanges/whitebit.md#fetchfundinghistory)
 * [woo](/exchanges/woo.md#fetchfundinghistory)
 * [woofipro](/exchanges/woofipro.md#fetchfundinghistory)
@@ -4646,6 +4648,7 @@ fetch all unfilled currently open orders
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
@@ -5194,6 +5197,7 @@ fetches information on multiple orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchorders)

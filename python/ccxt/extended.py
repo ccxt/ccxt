@@ -36,7 +36,7 @@ class extended(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': True,
+                'spot': False,  # venue retired spot trading; SPOT rows are still parsed, see parseMarket
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -563,6 +563,9 @@ class extended(Exchange, ImplicitAPI):
         contractSize = None
         linear = None
         inverse = None
+        # SPOT rows are still parsed on purpose even though has['spot'] is False - that flag
+        # only advertises the capability and gates the unified spot tests, it does not filter
+        # markets, so accounts still holding spot balances keep resolving their symbols
         if type == 'spot':
             isSpot = True
         else:

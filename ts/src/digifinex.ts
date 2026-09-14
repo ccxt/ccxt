@@ -1245,6 +1245,11 @@ export default class digifinex extends Exchange {
             timestamp = this.safeInteger (ticker, 'timestamp');
         }
         const last = this.safeString (ticker, 'last');
+        let percentage = this.safeString2 (ticker, 'change', 'price_change_percent');
+        if (market['swap'] === true) {
+            // swap endpoints return a raw ratio, spot already returns a percent
+            percentage = Precise.stringMul (percentage, '100');
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1261,7 +1266,7 @@ export default class digifinex extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString2 (ticker, 'change', 'price_change_percent'),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'vol', 'volume_24h'),
             'quoteVolume': this.safeString (ticker, 'base_vol'),

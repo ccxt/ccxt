@@ -1239,6 +1239,11 @@ class digifinex extends Exchange {
             $timestamp = $this->safe_integer($ticker, 'timestamp');
         }
         $last = $this->safe_string($ticker, 'last');
+        $percentage = $this->safe_string_2($ticker, 'change', 'price_change_percent');
+        if ($market['swap'] === true) {
+            // swap endpoints return a raw ratio, spot already returns a percent
+            $percentage = Precise::string_mul($percentage, '100');
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1255,7 +1260,7 @@ class digifinex extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_string_2($ticker, 'change', 'price_change_percent'),
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'base_vol'),

@@ -2515,6 +2515,43 @@
         ],
         "fetchTradingFee": [
             {
+                "description": "uta margin fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v3/account/fee-rate?category=MARGIN&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta swap fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v3/account/fee-rate?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v3/account/fee-rate?category=SPOT&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "swap trading fee",
                 "method": "fetchTradingFee",
                 "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=mix&symbol=BTCUSDT",
@@ -2533,6 +2570,81 @@
             }
         ],
         "fetchTradingFees": [
+            {
+                "description": "uta inverse fetchTradingFees skips rows whose id is missing from the loaded markets",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=COIN-FUTURES&symbol=BTCUSD_CM",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "subType": "inverse",
+                        "symbol": "BTCUSD_CM"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta linear fetchTradingFees single symbol",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "symbol": "BTCUSDT"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta linear fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=USDT-FUTURES",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta margin fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=MARGIN",
+                "input": [
+                    {
+                        "uta": true,
+                        "margin": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=SPOT",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta inverse fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=COIN-FUTURES",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "subType": "inverse"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "spot trading fees",
                 "method": "fetchTradingFees",

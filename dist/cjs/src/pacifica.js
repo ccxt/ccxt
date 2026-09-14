@@ -3273,7 +3273,7 @@ class pacifica extends pacifica$1["default"] {
     async createSubAccount(name, params = {}) {
         const finalHeaders = {};
         let agentAddress = undefined;
-        [agentAddress, params] = this.handleOption('createSubAccount', 'agentAddress');
+        [agentAddress, params] = this.handleOptionAndParams(params, 'createSubAccount', 'agentAddress');
         let originAddress = undefined;
         [originAddress, params] = this.handleOriginAndSingleAddress('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3292,7 +3292,8 @@ class pacifica extends pacifica$1["default"] {
         if (subAccountPrivateKey === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        const timestamp = this.milliseconds();
+        let timestamp = undefined;
+        [timestamp, params] = this.handleParamInteger(params, 'timestamp', this.milliseconds());
         let expiryWindow = undefined;
         [expiryWindow, params] = this.handleOptionAndParams2(params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader = {
@@ -3320,7 +3321,7 @@ class pacifica extends pacifica$1["default"] {
         finalHeaders['timestamp'] = timestamp;
         finalHeaders['expiry_window'] = expiryWindow;
         const request = finalHeaders;
-        const response = await this.privatePostAccountSubaccountCreate(request);
+        const response = await this.privatePostAccountSubaccountCreate(this.extend(request, params));
         //
         // {
         //   "success": true,

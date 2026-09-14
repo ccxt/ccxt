@@ -2127,7 +2127,7 @@ create a trade order
 | params.isLeverage | <code>boolean</code> | No | *unified spot only* false then spot trading true then margin trading |
 | params.tpslMode | <code>string</code> | No | *contract only* 'full' or 'partial' |
 | params.mmp | <code>string</code> | No | *option only* market maker protection |
-| params.triggerDirection | <code>string</code> | No | *contract only* the direction for trigger orders, 'above' or 'below' |
+| params.triggerDirection | <code>string</code> | No | *contract only* the direction for trigger orders, 'ascending' or 'descending' |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | The price at which a stop loss order is triggered at |
 | params.takeProfitPrice | <code>float</code> | No | The price at which a take profit order is triggered at |

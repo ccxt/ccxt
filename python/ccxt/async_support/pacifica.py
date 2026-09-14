@@ -3132,7 +3132,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         finalHeaders = {}
         agentAddress = None
-        agentAddress, params = self.handle_option('createSubAccount', 'agentAddress')
+        agentAddress, params = self.handle_option_and_params(params, 'createSubAccount', 'agentAddress')
         originAddress = None
         originAddress, params = self.handle_origin_and_single_address('createSubAccount', params)
         if originAddress is None:
@@ -3147,7 +3147,8 @@ class pacifica(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountAddress"!')
         if subAccountPrivateKey is None:
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountPrivateKey"!')
-        timestamp = self.milliseconds()
+        timestamp = None
+        timestamp, params = self.handle_param_integer(params, 'timestamp', self.milliseconds())
         expiryWindow = None
         expiryWindow, params = self.handle_option_and_params_2(params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000)
         subaccountSignatureHeader = {
@@ -3175,7 +3176,7 @@ class pacifica(Exchange, ImplicitAPI):
         finalHeaders['timestamp'] = timestamp
         finalHeaders['expiry_window'] = expiryWindow
         request = finalHeaders
-        response = await self.privatePostAccountSubaccountCreate(request)
+        response = await self.privatePostAccountSubaccountCreate(self.extend(request, params))
         #
         # {
         #   "success": True,

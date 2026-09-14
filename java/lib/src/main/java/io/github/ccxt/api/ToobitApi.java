@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class ToobitApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  commonGetApiV1Time (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetApiV1Time (Object... optionalArgs)
     {
         return this.callAsync ("commonGetApiV1Time", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  commonGetApiV1Ping (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetApiV1Ping (Object... optionalArgs)
     {
         return this.callAsync ("commonGetApiV1Ping", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  commonGetApiV1ExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetApiV1ExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("commonGetApiV1ExchangeInfo", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  commonGetQuoteV1Depth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetQuoteV1Depth (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1Depth", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  commonGetQuoteV1DepthMerged (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetQuoteV1DepthMerged (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1DepthMerged", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1Trades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1Trades (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1Trades", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1Klines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1Klines (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1Klines", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1IndexKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1IndexKlines (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1IndexKlines", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  commonGetQuoteV1IndexPriceComponents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetQuoteV1IndexPriceComponents (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1IndexPriceComponents", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1MarkPriceKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1MarkPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1MarkPriceKlines", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  commonGetQuoteV1MarkPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetQuoteV1MarkPrice (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1MarkPrice", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  commonGetQuoteV1Index (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetQuoteV1Index (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1Index", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1Ticker24hr (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1Ticker24hr (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1Ticker24hr", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1ContractTicker24hr (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1ContractTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1ContractTicker24hr", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1TickerPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1TickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1TickerPrice", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1ContractTickerPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1ContractTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1ContractTickerPrice", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1TickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1TickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1TickerBookTicker", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetQuoteV1ContractTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetQuoteV1ContractTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1ContractTickerBookTicker", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetApiV1FuturesFundingRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetApiV1FuturesFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("commonGetApiV1FuturesFundingRate", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetApiV1FuturesHistoryFundingRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetApiV1FuturesHistoryFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("commonGetApiV1FuturesHistoryFundingRate", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  commonGetApiV1FuturesRiskLimits (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  commonGetApiV1FuturesRiskLimits (Object... optionalArgs)
     {
         return this.callAsync ("commonGetApiV1FuturesRiskLimits", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1Account (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1Account (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1Account", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AccountCheckApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AccountCheckApiKey (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountCheckApiKey", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1SpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1SpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SpotOrder", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SpotOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SpotOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SpotOpenOrders", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesOpenOrders", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SpotTradeOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SpotTradeOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SpotTradeOrders", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesHistoryOrders", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountTrades", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountBalanceFlow (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountBalanceFlow (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountBalanceFlow", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountDepositOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountDepositOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountDepositOrders", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountWithdrawOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountWithdrawOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountWithdrawOrders", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AccountDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AccountDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountDepositAddress", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SubAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SubAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SubAccount", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AccountSubAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1AccountSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountSubAccount", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1SubAccountList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1SubAccountList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1SubAccountList", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesAccountLeverage (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesAccountLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesAccountLeverage", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1FuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1FuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesOrder", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesPositions", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesHistoryPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesHistoryPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesHistoryPositions", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesBalance", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesUserTrades", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesBalanceFlow (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV1FuturesBalanceFlow (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesBalanceFlow", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1FuturesCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1FuturesCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesCommissionRate", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1FuturesTodayPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1FuturesTodayPnl (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesTodayPnl", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AccountDownloadDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AccountDownloadDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountDownloadDetail", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentInviteUserList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentInviteUserList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentInviteUserList", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentCommissionDataList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentCommissionDataList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentCommissionDataList", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentCommissionDataInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentCommissionDataInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentCommissionDataInfo", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentInviteRelationCheck (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentInviteRelationCheck (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentInviteRelationCheck", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentDepositDetailList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentDepositDetailList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentDepositDetailList", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentQuerySubAgentData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentQuerySubAgentData (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentQuerySubAgentData", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentSpotOrdersList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentSpotOrdersList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentSpotOrdersList", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentFuturesOrdersList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentFuturesOrdersList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentFuturesOrdersList", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentFuturesPositionsList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentFuturesPositionsList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentFuturesPositionsList", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentInviteCommissionDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentInviteCommissionDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentInviteCommissionDetail", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentUserExport (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentUserExport (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentUserExport", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentExportList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentExportList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentExportList", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1AgentExportUrl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV1AgentExportUrl (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AgentExportUrl", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2AccountBalanceFlow (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV2AccountBalanceFlow (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2AccountBalanceFlow", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV2FuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV2FuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2FuturesOrder", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV2FuturesOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2FuturesOpenOrders", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV2FuturesHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2FuturesHistoryOrders", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesUserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV2FuturesUserTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2FuturesUserTrades", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV2FuturesAlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV2FuturesAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2FuturesAlgoOrder", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesOpenAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV2FuturesOpenAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2FuturesOpenAlgoOrders", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesHistoryAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV2FuturesHistoryAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2FuturesHistoryAlgoOrders", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV2FuturesVoucherList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV2FuturesVoucherList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV2FuturesVoucherList", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1SpotOrderTest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1SpotOrderTest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1SpotOrderTest", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1SpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1SpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1SpotOrder", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesOrder", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1SpotBatchOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1SpotBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1SpotBatchOrders", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1SubAccountTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1SubAccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1SubAccountTransfer", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1AccountWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1AccountWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1AccountWithdraw", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesMarginType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesMarginType (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesMarginType", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesLeverage", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesBatchOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesBatchOrders", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesPositionTradingStop (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesPositionTradingStop (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesPositionTradingStop", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesPositionMargin", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesOrderUpdate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesOrderUpdate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesOrderUpdate", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesAutoAddMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesAutoAddMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesAutoAddMargin", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesFlashClose (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesFlashClose (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesFlashClose", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1FuturesReversePosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1FuturesReversePosition (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesReversePosition", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1AccountDownloadApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1AccountDownloadApply (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1AccountDownloadApply", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1UserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1UserDataStream", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1ListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV1ListenKey (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1ListenKey", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1SpotOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1SpotOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1SpotOrder", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1FuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1FuturesOrder", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1SpotOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1SpotOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1SpotOpenOrders", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesBatchOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1FuturesBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1FuturesBatchOrders", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1SpotCancelOrderByIds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1SpotCancelOrderByIds (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1SpotCancelOrderByIds", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesCancelOrderByIds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1FuturesCancelOrderByIds (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1FuturesCancelOrderByIds", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1UserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1UserDataStream", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1ListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1ListenKey (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1ListenKey", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutApiV1UserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutApiV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privatePutApiV1UserDataStream", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class ToobitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutApiV1ListenKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutApiV1ListenKey (Object... optionalArgs)
     {
         return this.callAsync ("privatePutApiV1ListenKey", optionalArgs);
     }

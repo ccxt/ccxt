@@ -12657,11 +12657,9 @@ func (this *Bybit) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if IsTrue(IsEqual(method, "POST")) {
-		var brokerId any = this.SafeString(this.Options, "brokerId")
-		if IsTrue(!IsEqual(brokerId, nil)) {
-			headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
-			AddElementToObject(headers, "Referer", brokerId)
-		}
+		var brokerId any = this.SafeString(this.Options, "brokerId", "CCXT")
+		headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
+		AddElementToObject(headers, "Referer", brokerId)
 	}
 	return map[string]any{
 		"url":     url,
