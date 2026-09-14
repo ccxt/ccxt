@@ -372,6 +372,10 @@ export default class hyperliquid extends Exchange {
     override nonce () {
         // the exchange requires a unique strictly-increasing millisecond nonce per signer
         // two signed actions built within the same millisecond would otherwise reuse a nonce and get rejected
+        // the counter is per exchange instance: it narrows the race but does not remove it — two instances or
+        // processes signing with the same key can still emit a duplicate nonce, surfaced as InvalidNonce
+        // the ws path also calls this method to build subscription ids (see unWatchOrderBook in pro),
+        // deliberately sharing the counter: ids stay unique within a millisecond and the nonce only moves forward
         const now = this.milliseconds ();
         const lastNonce = this.safeInteger (this.options, 'lastNonce', 0);
         const result = (now > lastNonce) ? now : lastNonce + 1;
