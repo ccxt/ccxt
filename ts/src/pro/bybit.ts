@@ -6,7 +6,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -207,7 +207,7 @@ export default class bybit extends bybitRest {
             const unified = await this.isUnifiedEnabled ();
             const isUnifiedMargin = this.safeBool (unified, 0, false);
             const isUnifiedAccount = this.safeBool (unified, 1, false);
-            if (isUsdcSettled && !isUnifiedMargin && !isUnifiedAccount) {
+            if (isUsdcSettled && (isUnifiedMargin !== true) && (isUnifiedAccount !== true)) {
                 url = url[accessibility]['usdc'];
             } else {
                 url = url[accessibility]['contract'];
@@ -252,7 +252,7 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
-     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -395,7 +395,7 @@ export default class bybit extends bybitRest {
         params = this.cleanParams (params);
         const options = this.safeValue (this.options, 'watchTicker', {});
         let topic = this.safeString (options, 'name', 'tickers');
-        if (!market['spot'] && topic !== 'tickers') {
+        if ((market['spot'] !== true) && topic !== 'tickers') {
             throw new BadRequest (this.id + ' watchTicker() only supports name tickers for contract markets');
         }
         topic += '.' + market['id'];
@@ -865,7 +865,8 @@ export default class bybit extends bybitRest {
         //         "timestamp": 1670363219614
         //     }
         //
-        const volumeIndex = this.safeBool (market, 'inverse') ? 'turnover' : 'volume';
+        const isInverse = (this.safeBool (market, 'inverse') === true);
+        const volumeIndex = isInverse ? 'turnover' : 'volume';
         return [
             this.safeInteger (ohlcv, 'start'),
             this.safeNumber (ohlcv, 'open'),
@@ -914,7 +915,7 @@ export default class bybit extends bybitRest {
         const market = this.market (symbols[0]);
         if (limit === undefined) {
             limit = 50;
-            if (market['option']) {
+            if (market['option'] === true) {
                 limit = 100;
             }
         } else {
@@ -963,7 +964,7 @@ export default class bybit extends bybitRest {
             params = this.omit (params, 'limit');
         } else {
             const firstMarket = this.market (symbols[0]);
-            limit = firstMarket['spot'] ? 50 : 500;
+            limit = (firstMarket['spot'] === true) ? 50 : 500;
         }
         channel += limit.toString ();
         const subMessageHashes: string[] = [];
@@ -1268,7 +1269,7 @@ export default class bybit extends bybitRest {
         let takerOrMaker: Str = undefined;
         const m = this.safeValue (trade, 'm');
         if (side === undefined) {
-            side = m ? 'buy' : 'sell';
+            side = (m === true) ? 'buy' : 'sell';
         } else {
             // spot private
             takerOrMaker = m;
@@ -1475,7 +1476,7 @@ export default class bybit extends bybitRest {
         const executionFast = topic === 'execution.fast';
         let data = this.safeValue (message, 'data', []);
         if (!Array.isArray (data)) {
-            data = this.safeValue (data, 'result', []);
+            data = this.safeList (data, 'result', []);
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1562,7 +1563,7 @@ export default class bybit extends bybitRest {
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
@@ -1579,7 +1580,7 @@ export default class bybit extends bybitRest {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1659,7 +1660,7 @@ export default class bybit extends bybitRest {
         }
         const cache = this.positions;
         const newPositions: Position[] = [];
-        const rawPositions = this.safeValue (message, 'data', []);
+        const rawPositions = this.safeList (message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1841,7 +1842,7 @@ export default class bybit extends bybitRest {
             'contracts': this.safeNumber2 (liquidation, 'size', 'v'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber2 (liquidation, 'price', 'p'),
-            'side': this.safeStringLower (liquidation, 'side', 'S'),
+            'side': this.safeStringLower2 (liquidation, 'side', 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -2032,7 +2033,7 @@ export default class bybit extends bybitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        let rawOrders = this.safeValue (message, 'data', []);
+        let rawOrders = this.safeList (message, 'data', []);
         const first = this.safeValue (rawOrders, 0, {});
         const category = this.safeString (first, 'category');
         const isSpot = category === 'spot';
@@ -2090,7 +2091,7 @@ export default class bybit extends bybitRest {
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         };
-        if (isUnifiedAccount) {
+        if (isUnifiedAccount === true) {
             // unified account
             if (subType === 'inverse') {
                 messageHash += ':contract';
@@ -2098,7 +2099,7 @@ export default class bybit extends bybitRest {
                 messageHash += ':unified';
             }
         }
-        if (!isUnifiedMargin && !isUnifiedAccount) {
+        if ((isUnifiedMargin !== true) && (isUnifiedAccount !== true)) {
             // normal account using v5
             if (type === 'spot') {
                 messageHash += ':spot';
@@ -2106,7 +2107,7 @@ export default class bybit extends bybitRest {
                 messageHash += ':contract';
             }
         }
-        if (isUnifiedMargin) {
+        if (isUnifiedMargin === true) {
             // unified margin account using v5
             if (type === 'spot') {
                 messageHash += ':spot';
@@ -2275,7 +2276,7 @@ export default class bybit extends bybitRest {
         let account: Str = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
-            const data = this.safeValue (message, 'data', []);
+            const data = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const B = this.safeValue (data[i], 'B', []);
                 rawBalances = this.arrayConcat (rawBalances, B);
@@ -2376,13 +2377,48 @@ export default class bybit extends bybitRest {
     }
 
     async watchTopics (url: any, messageHashes: any, topics: any, params = {}) {
-        const request: Dict = {
-            'op': 'subscribe',
-            'req_id': this.requestId (),
-            'args': topics,
-        };
-        const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        const client = this.client (url);
+        const newTopics: string[] = [];
+        const topicsLength = topics.length;
+        const messageHashesLength = messageHashes.length;
+        if (topicsLength === messageHashesLength) {
+            for (let i = 0; i < topicsLength; i++) {
+                const messageHash = messageHashes[i];
+                if (!(messageHash in client.subscriptions)) {
+                    newTopics.push (topics[i]);
+                }
+            }
+        } else {
+            let allSubscribed = true;
+            for (let i = 0; i < messageHashesLength; i++) {
+                const messageHash = messageHashes[i];
+                if (!(messageHash in client.subscriptions)) {
+                    allSubscribed = false;
+                    break;
+                }
+            }
+            if (!allSubscribed) {
+                for (let i = 0; i < topicsLength; i++) {
+                    newTopics.push (topics[i]);
+                }
+            }
+        }
+        let message: NullableDict = undefined;
+        let subscription: NullableDict = undefined;
+        const newTopicsLength = newTopics.length;
+        if (newTopicsLength > 0) {
+            const reqId = this.requestId ();
+            const request: Dict = {
+                'op': 'subscribe',
+                'req_id': reqId,
+                'args': newTopics,
+            };
+            message = this.extend (request, params);
+            subscription = {
+                'id': reqId,
+            };
+        }
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
     }
 
     async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params = {}, subExtension = {}) {
@@ -2481,7 +2517,7 @@ export default class bybit extends bybitRest {
                 throw new ExchangeError (feedback);
             }
             const success = this.safeValue (message, 'success');
-            if (success !== undefined && !success) {
+            if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString (message, 'ret_msg');
                 const request = this.safeValue (message, 'request', {});
                 const op = this.safeString (request, 'op');
@@ -2493,28 +2529,47 @@ export default class bybit extends bybitRest {
             }
             return false;
         } catch (error) {
-            const messageHash = this.safeString2 (message, 'req_id', 'reqId');
-            if (messageHash !== undefined) {
-                client.reject (error, messageHash);
-            } else if (error instanceof AuthenticationError) {
-                const authenticatedHash = 'authenticated';
-                client.reject (error, authenticatedHash);
-                if (authenticatedHash in client.subscriptions) {
-                    delete client.subscriptions[authenticatedHash];
+            const reqId = this.safeString2 (message, 'req_id', 'reqId');
+            let foundSubscription = false;
+            if (reqId !== undefined) {
+                const keys = Object.keys (client.subscriptions);
+                for (let i = 0; i < keys.length; i++) {
+                    const messageHash = keys[i];
+                    if (!(messageHash in client.subscriptions)) {
+                        continue;
+                    }
+                    const subscription = this.safeDict (client.subscriptions, messageHash);
+                    const subId = this.safeString (subscription, 'id');
+                    if (reqId === subId) {
+                        foundSubscription = true;
+                        delete client.subscriptions[messageHash];
+                        client.reject (error, messageHash);
+                    }
                 }
-                const op = this.safeString (message, 'op');
-                if ((op !== undefined) && (op !== 'auth')) {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    client.reject (error);
+            }
+            if (!foundSubscription) {
+                if (reqId !== undefined) {
+                    client.reject (error, reqId);
+                } else if (error instanceof AuthenticationError) {
+                    const authenticatedHash = 'authenticated';
+                    client.reject (error, authenticatedHash);
+                    if (authenticatedHash in client.subscriptions) {
+                        delete client.subscriptions[authenticatedHash];
+                    }
+                    const op = this.safeString (message, 'op');
+                    if ((op !== undefined) && (op !== 'auth')) {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        client.reject (error);
+                    }
+                } else {
+                    client.reject (error, reqId);
                 }
-            } else {
-                client.reject (error, messageHash);
             }
             return true;
         }
@@ -2522,7 +2577,7 @@ export default class bybit extends bybitRest {
 
     override handleMessage (client: Client, message: any) {
         const topic = this.safeString2 (message, 'topic', 'op', '');
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         // contract pong
@@ -2653,7 +2708,7 @@ export default class bybit extends bybitRest {
         const success = this.safeValue (message, 'success');
         const code = this.safeInteger (message, 'retCode');
         const messageHash = 'authenticated';
-        if (success || code === 0) {
+        if ((success === true) || (code === 0)) {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
