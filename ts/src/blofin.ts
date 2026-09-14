@@ -411,8 +411,8 @@ export default class blofin extends Exchange {
                     '405': BadRequest,  // Method Not Allowed
                     '406': BadRequest,  // Not Acceptable
                     '429': RateLimitExceeded,  // Too Many Requests
-                    '152001': BadRequest,  // Parameter {} cannot be empty
-                    '152002': BadRequest,  // Parameter {} error
+                    '152001': BadRequest,  // Parameter {} cannot be empty - verified live 2026-09-14 (withdrawal-apply without addrType)
+                    '152002': BadRequest,  // Parameter {} error - verified live 2026-09-14 (short-form chain id in withdrawal-apply; NOTE the live message omits the field name)
                     '152003': BadRequest,  // Either parameter {} or {} is required
                     '152004': BadRequest,  // JSON syntax error
                     '152005': BadRequest,  // Parameter error: wrong or empty
@@ -468,11 +468,11 @@ export default class blofin extends Exchange {
                     '152028': InsufficientFunds,  // Insufficient balance.
                     '152029': PermissionDenied,  // The maximum daily withdrawal amount has been reached.
                     '152030': DuplicateOrderId,  // Duplicated clientId.
-                    '152031': InvalidAddress,  // This address is not marked as verification-free.
+                    '152031': InvalidAddress,  // This address is not marked as verification-free. - verified live 2026-09-14 (account-policy rejection, address must carry the verification-free flag for api withdrawals)
                     '152032': PermissionDenied,  // Quick withdrawal daily limit exceeded. Please complete 2FA verification.
                     '152401': AuthenticationError,  // Access key does not exist
                     '152402': AuthenticationError,  // Access key has expired
-                    '152404': PermissionDenied,  // This operation is not supported, Please check the requestPath or API key permissions.
+                    '152404': PermissionDenied,  // This operation is not supported, Please check the requestPath or API key permissions. - verified live 2026-09-14 (api key without the withdrawal permission)
                     '152405': InvalidNonce,  // Timestamp in header or signature has expired, need to be within 60s
                     '152406': PermissionDenied,  // Your IP is not included in your API key's IP whitelist
                     '152407': InvalidNonce,  // Repeated nonce, Reusing within 60 seconds is not allowed.
