@@ -211,7 +211,7 @@ int main (int argc, char** argv) {
                             const ccxt::any fut = ::getValue (ccxt::any (client), std::string ("futures"));
                             if (ccxt::isDict (fut)) {
                                 for (const auto& kv : ccxt::any_cast<ccxt::dict> (fut).entries ()) {
-                                    injectorLog += kv.first + " ";
+                                    injectorLog += kv.first.str () + " ";
                                 }
                             }
                         }
