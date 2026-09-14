@@ -116,7 +116,7 @@ export default class whitebit extends whitebitRest {
         //     "id": null
         // }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         for (let i = 0; i < params.length; i++) {
             const data = params[i];
             const marketId = this.safeString (data, 7);
@@ -227,7 +227,7 @@ export default class whitebit extends whitebitRest {
         const orderbook = this.orderbooks[symbol];
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
-        if (isSnapshot) {
+        if (isSnapshot === true) {
             const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
         } else {
@@ -780,7 +780,7 @@ export default class whitebit extends whitebitRest {
             return;
         }
         const fetchBalanceSnapshot = this.handleOption ('watchBalance', 'fetchBalanceSnapshot', true);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -921,12 +921,12 @@ export default class whitebit extends whitebitRest {
             const message = this.extend (request, params);
             return await this.watch (url, messageHash, message, method, subscription);
         } else {
-            const subscription = this.safeValue (client.subscriptions, method, {});
+            const subscription = this.safeDict (client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market (symbol);
             const marketId = market['id'];
             const isSubscribed = this.safeBool (subscription, marketId, false);
-            if (!isSubscribed) {
+            if (isSubscribed !== true) {
                 if (marketId !== undefined) {
                     subscription[marketId] = true;
                 }
@@ -972,11 +972,38 @@ export default class whitebit extends whitebitRest {
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.reusableFuture ('authenticated');
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        const subscribeHash = 'authenticated';
+        // handleAuthenticate () resolves the handshake future with 1, so 1 is
+        // the authorized sentinel authenticate () has always returned - every
+        // path below hands back that same value
+        const authorized = 1;
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        // token fetch, so concurrent cold callers would each burn a private REST call and push
+        // their own authorize frame. the flight lives in client.futures of the handshake client
+        // under a non-messageHash key and settles only via client.resolve () / client.reject ()
+        const messageHash = 'authenticateFlight';
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader settles
+            // it, the socket is authorized by then. the flight gate is
+            // checked before the subscriptions one because watch () registers
+            // subscriptions['authenticated'] immediately, long before the
+            // venue acks the authorize frame
+            await client.future (messageHash);
+            return authorized;
+        }
+        const authenticated = this.safeValue (client.subscriptions, subscribeHash);
+        if (authenticated !== undefined) {
+            // a previous flight already completed the handshake on the client
+            return authorized;
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch or the authorize round-trip finds it and waits
+        // instead of re-leading, and so client.reject () below always has a
+        // waiter and can never park the error in client.rejections
+        const future = client.reusableFuture (messageHash);
+        try {
             const authToken = await this.v4PrivatePostProfileWebsocketToken ();
             //
             //   {
@@ -984,6 +1011,11 @@ export default class whitebit extends whitebitRest {
             //   }
             //
             const token = this.safeString (authToken, 'websocket_token');
+            if (token === undefined) {
+                // reject instead of authorizing with an empty credential, the
+                // venue answers that with an opaque socket drop
+                throw new AuthenticationError (this.id + ' authenticate() received an empty websocket_token');
+            }
             const id = this.nonce ();
             const request: Dict = {
                 'id': id,
@@ -997,14 +1029,32 @@ export default class whitebit extends whitebitRest {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
-            try {
-                await this.watch (url, messageHash, request, messageHash, subscription);
-            } catch (e) {
-                delete client.subscriptions[messageHash];
-                future.reject (e);
+            await this.watch (url, subscribeHash, request, subscribeHash, subscription);
+            // settle the flight and wake every waiter - resolve () also drops
+            // the registry entry, so a later cold call can re-lead
+            client.resolve (authorized, messageHash);
+        } catch (e) {
+            // drop the handshake state so the next caller can retry: watch ()
+            // registers subscriptions['authenticated'] before it connects and
+            // parks a rejected future under the same key when the dial fails,
+            // and either one left behind would make every later authenticate ()
+            // replay that failure. the stale future is settled through
+            // client.reject () - guarded, so it always has a waiter and the
+            // error is never parked in client.rejections
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
             }
+            if (subscribeHash in client.futures) {
+                client.reject (e, subscribeHash);
+            }
+            // reject the flight - the leader and every waiter throw and the
+            // next caller re-leads instead of deadlocking on a dead flight
+            client.reject (e, messageHash);
         }
-        return await future;
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        await future;
+        return authorized;
     }
 
     handleAuthenticate (client: Client, message: any) {
@@ -1051,7 +1101,7 @@ export default class whitebit extends whitebitRest {
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         const result = this.safeString (message, 'result');

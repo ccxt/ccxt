@@ -2,6 +2,7 @@
 
 import independentreserveRest from '../independentreserve.js';
 import { NotSupported, ChecksumError } from '../base/errors.js';
+import { ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from '../base/functions/number.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Dict , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -205,7 +206,11 @@ export default class independentreserve extends independentreserveRest {
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             orderbook.reset (snapshot);
-            subscription['receivedSnapshot'] = true;
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            client.subscriptions[messageHash] = this.extend (subscription, {
+                'receivedSnapshot': true,
+            });
         } else {
             const asks = this.safeList (orderBook, 'Offers', []);
             const bids = this.safeList (orderBook, 'Bids', []);
@@ -215,7 +220,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
         const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
-        if (checksum && receivedSnapshot) {
+        if ((checksum === true) && (receivedSnapshot === true)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
@@ -231,7 +236,7 @@ export default class independentreserve extends independentreserveRest {
                     payload = payload + this.valueToChecksum (storedAsks[i][0]) + this.valueToChecksum (storedAsks[i][1]);
                 }
             }
-            const calculatedChecksum = this.crc32 (payload, true);
+            const calculatedChecksum = this.crc32 (payload, false);
             const responseChecksum = this.safeInteger (orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
@@ -241,13 +246,16 @@ export default class independentreserve extends independentreserveRest {
                 return;
             }
         }
-        if (receivedSnapshot) {
+        if (receivedSnapshot === true) {
             client.resolve (orderbook, messageHash);
         }
     }
 
     valueToChecksum (value: any) {
-        let result = value.toFixed (8);
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        let result: any = this.decimalToPrecision (value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         result = result.replace ('.', '');
         // remove leading zeros
         result = this.parseNumber (result);

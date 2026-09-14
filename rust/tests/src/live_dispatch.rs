@@ -1,0 +1,664 @@
+// Live-test dispatcher — one persistent real exchange Core per id, keyed
+// in a global cache so `exchange.<method>(...)` in the transpiled tests
+// runs the *same* code a user gets when consuming `ccxt`. Mirrors how Go's
+// `initExchange(name)` returns a `*Exchange` whose method calls dispatch
+// to the real exchange implementation.
+
+use crate::generated_cores::*;
+use ccxt::Value;
+// Static dispatch (review #1): `call_dynamic` is an `ExchangeBase` trait method
+// now, and the old type-erased `DynCallFn`/`__call_dynamic_dispatch` are gone.
+// The harness keeps its own type-erased fn-pointer to store heterogeneous Cores
+// in one map (a legitimate test-registry pattern, unrelated to the removed
+// self-referential dispatch): a per-Core trampoline casts the raw pointer back
+// and calls the Core's `call_dynamic`.
+use ccxt::exchange_generated::ExchangeBase;
+type DynCallFn = for<'a> fn(*mut (), &'a str, Vec<Value>) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + 'a>>;
+
+
+// Pro (WebSocket) Cores — built for --ws live tests (they carry the watch*
+// methods in `has` and their `call_dynamic` routes the watch handlers). The
+// transpiled venues now live in the sibling `ccxt-pro` crate.
+
+// Prediction-market venue Cores (Deref through PredictionExchange → Exchange).
+
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// When set (by `--prediction`), `build_core` resolves the `hyperliquid` and
+/// `binance` ids to their prediction-market Cores instead of the regular
+/// exchanges of the same id.
+static PREDICTION_MODE: AtomicBool = AtomicBool::new(false);
+
+/// Enable prediction-mode id resolution. Call once from `main` when the
+/// `--prediction` flag is present.
+pub fn set_prediction_mode(on: bool) {
+    PREDICTION_MODE.store(on, Ordering::Relaxed);
+}
+
+/// Whether `--prediction` mode is active. Read by `registry::exchange_snapshot`
+/// so the describe()-snapshot for a collision id (`binance` / `hyperliquid`)
+/// comes from the prediction Core, not the regular exchange of the same id.
+pub fn is_prediction_mode() -> bool {
+    PREDICTION_MODE.load(Ordering::Relaxed)
+}
+
+/// Set once when a static-WS test registers its mock transport
+/// (`setupWsMockTransport`). Static-WS tests use a FRESH offline Core per case,
+/// so pushing the snapshot's (per-case-merged) `options` to the Core is both
+/// needed — e.g. okx `watchOrderBook` reads `options.watchOrderBook.depth` to
+/// pick the `books-rpi` channel — and safe (no persistent subscription state to
+/// clobber, unlike the live `--ws` path where the write-through is skipped).
+static STATIC_WS_MODE: AtomicBool = AtomicBool::new(false);
+/// Armed by `setupWsMockTransport` at the start of each static-WS case; consumed
+/// by the FIRST `watch*` dispatch of that case. The options write-through must
+/// happen once — before the watch subscribes — NOT on every re-watch call in the
+/// parsedResponse drain loop (repeated writes clobber the Core's per-case book /
+/// subscription state, giving non-deterministic results and hangs).
+static WS_OPTIONS_PENDING: AtomicBool = AtomicBool::new(false);
+
+pub fn set_static_ws_mode(on: bool) {
+    STATIC_WS_MODE.store(on, Ordering::Relaxed);
+    WS_OPTIONS_PENDING.store(on, Ordering::Relaxed);
+}
+
+pub fn is_static_ws_mode() -> bool {
+    STATIC_WS_MODE.load(Ordering::Relaxed)
+}
+
+/// True at most once per case — the first WS dispatch after `setupWsMockTransport`.
+fn take_ws_options_pending() -> bool {
+    WS_OPTIONS_PENDING.swap(false, Ordering::Relaxed)
+}
+
+thread_local! {
+    /// The per-case options DELTA — the `extendExchangeOptions(...)` args the
+    /// static-WS harness applies (global + per-case fixture `options`). Only the
+    /// delta (not the whole describe-seeded snapshot) is pushed to the Core, so a
+    /// per-case key like `watchOrderBook.depth = books-rpi` overrides the Core's
+    /// describe default while everything else the Core set stays intact.
+    static WS_TEST_OPTIONS: std::cell::RefCell<Value> = const { std::cell::RefCell::new(Value::Null) };
+}
+
+/// Merge one `extendExchangeOptions` payload into the pending per-case delta.
+pub fn ws_test_options_accumulate(new_options: Value) {
+    WS_TEST_OPTIONS.with(|c| {
+        let cur = c.borrow().clone();
+        *c.borrow_mut() = ccxt::value::deep_extend(cur, new_options);
+    });
+}
+
+/// Take (and clear) the accumulated per-case options delta.
+fn ws_test_options_take() -> Value {
+    WS_TEST_OPTIONS.with(|c| std::mem::replace(&mut *c.borrow_mut(), Value::Null))
+}
+use crate::registry::for_each_core;
+use crate::registry::for_each_ws_core;
+use indexmap::IndexMap as HashMap;
+use std::sync::{Mutex, OnceLock};
+
+/// Reads the cached Core's `last_request_url` / `_body` / `_headers`
+/// out of the type-erased pointer. One per Core type so we can keep
+/// the registry value-typed (no trait objects).
+type ReadStateFn = fn(*mut ()) -> Value;
+
+/// Shallow-merges `new_options` into the cached Core's `options` Map.
+/// Lets `exchange.options['uta'] = false` (snapshot mutation) flow
+/// through to the live Core before its next call — otherwise broker-id
+/// tests that toggle option flags on the snapshot would have no effect
+/// on the actual `createOrder` code path that runs on the Core.
+type WriteOptionsFn = fn(*mut (), Value);
+
+/// Writes a canned HTTP response into the cached Core's `mock_response`.
+/// Used by static *response* tests: `setFetchResponse` stashes the JSON
+/// payload on the snapshot, and the next dispatch pushes it to the Core
+/// so `fetch_typed` returns it without hitting the network. Single-use —
+/// `fetch_typed` clears `mock_response` once consumed.
+type WriteMockFn = fn(*mut (), Value);
+
+/// Per-Core typed drop. Necessary because `*mut ()` erases the type, so
+/// `Box::from_raw` on a raw `*mut ()` would deallocate the bytes but
+/// never run the Core's `Drop` chain (deep `Value::Map`s + a reqwest
+/// client). Each `ensure_live_core` replacement reclaims the old Box
+/// through this trampoline.
+type DropCoreFn = fn(*mut ());
+
+/// Resolves a snapshot heavy-field (`markets`, `markets_by_id`, …) by
+/// reading it straight off the Core. Used by `LIVE_LOOKUP` so the test
+/// runner's snapshot can stay tiny — only `__live_id` + a few light
+/// scalars — and avoid deep-cloning ~4k markets per helper invocation.
+type ReadFieldFn = fn(*mut (), &str) -> Option<Value>;
+
+/// Writes a credential / single-field value onto the Core. Static
+/// request tests for chain-signature exchanges read `walletAddress` /
+/// `privateKey` from the fixture and stash them on the snapshot; the
+/// Core was built with the offline-default placeholders and wouldn't
+/// otherwise see those.
+type WriteFieldFn = fn(*mut (), &str, Value);
+
+/// Resolves a SINGLE market by unified symbol off the Core, reusing the
+/// Core's real `market()` logic (markets → markets_by_id → expired
+/// option). Returns just that one market — crucial for perf: the
+/// validators call `exchange.market(symbol)` once per item, and routing
+/// that through `read_field("markets")` would deep-clone the whole
+/// ~4k-entry map on every call (≈25ms × thousands of tickers/markets).
+type ReadMarketFn = fn(*mut (), &str) -> Value;
+
+/// Cheap "is this a known market symbol" check off the Core — a key
+/// containment test on `markets` / `markets_by_id` with no clone. The
+/// `symbol in exchange.markets` guard in `test.ticker.rs` runs once per
+/// ticker; routing it through `read_field("markets")` would clone the
+/// whole map each time.
+type HasMarketFn = fn(*mut (), &str) -> bool;
+
+/// Runs the Core's own `set_markets(markets)` — for a prediction venue this is
+/// the `PredictionExchange` override (outcome→symbol aliasing + populateOutcomes),
+/// so the outcome caches land on the live instance. Used by
+/// `ccxt::value::set_live_set_markets` to back `exchange.setMarkets(...)` on a
+/// `__live_id` snapshot in the prediction test setup.
+type SetMarketsFn = fn(*mut (), Value) -> Value;
+
+/// The leaked raw pointer to a boxed `<Exchange>Core`. `*mut ()` isn't
+/// `Send` by default; the unsafe impls assert that the Box lives forever
+/// on the heap (we leak it) and is touched serially from the test runner.
+#[derive(Copy, Clone)]
+struct CorePtr(*mut ());
+unsafe impl Send for CorePtr {}
+unsafe impl Sync for CorePtr {}
+
+#[derive(Copy, Clone)]
+struct CoreEntry {
+    call:          DynCallFn,
+    ptr:           CorePtr,
+    read_state:    ReadStateFn,
+    write_options: WriteOptionsFn,
+    write_mock:    WriteMockFn,
+    drop_core:     DropCoreFn,
+    read_field:    ReadFieldFn,
+    write_field:   WriteFieldFn,
+    read_market:   ReadMarketFn,
+    has_market:    HasMarketFn,
+    set_markets:   SetMarketsFn,
+}
+
+static CORES: OnceLock<Mutex<HashMap<String, CoreEntry>>> = OnceLock::new();
+
+fn cores() -> &'static Mutex<HashMap<String, CoreEntry>> {
+    CORES.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+/// True iff a real Core has been instantiated for this id.
+pub fn has_live(id: &str) -> bool {
+    cores().lock().map(|m| m.contains_key(id)).unwrap_or(false)
+}
+
+/// Build (and cache) the real exchange Core for `id`. Always rebuilds —
+/// each call to `initExchange` is a fresh test case and must not see
+/// state (option flags, last_request_*) left over from a previous case.
+/// Mirrors Go's `InitOfflineExchange` returning a brand-new exchange.
+/// Hand-written helper used by `test_helpers::initExchange` to push
+/// proxy fields (and any other Value-typed Core field) straight onto
+/// the registered Core. Needed because the transpiled `expand_settings`
+/// runs on a clone of the snapshot and its `set_value` mutations never
+/// reach the live Core; the proxy lookup is therefore done in Rust
+/// against `skip-tests.json` directly and written through here.
+pub fn write_field_for_id(id: &str, key: &str, value: Value) {
+    let entry = {
+        let m = cores().lock().unwrap();
+        m.get(id).copied()
+    };
+    if let Some(entry) = entry {
+        (entry.write_field)(entry.ptr.0, key, value);
+    }
+}
+
+pub fn ensure_live_core(id: &str, cfg: Value, ws: bool) {
+    if let Some(entry) = build_core(id, cfg, ws) {
+        // Drop the old entry's leaked Box before replacing — otherwise
+        // static-fixture tests (one initExchange per case, ~thousands of
+        // cases) would leak a Box<Core> per test.
+        let mut m = cores().lock().unwrap();
+        if let Some(old) = m.insert(id.to_string(), entry) {
+            (old.drop_core)(old.ptr.0);
+        }
+    }
+}
+
+/// Dispatch `method(args)` against the cached real Core. Returns
+/// `Value::Null` if no Core is registered for `id`. Hits the network if
+/// the method does — this is the same code path `npm run cli.rs` uses.
+pub async fn live_call(id: &str, method: &str, args: Vec<Value>) -> Value {
+    let entry = {
+        let m = cores().lock().unwrap();
+        m.get(id).copied()
+    };
+    let entry = match entry { Some(e) => e, None => return Value::Null };
+    let snake = camel_to_snake(method);
+    (entry.call)(entry.ptr.0, &snake, args).await
+}
+
+/// Unified dispatch — what the transpiled test code calls in place of
+/// `exchange.<method>(args).await`. Extracts the exchange id from the
+/// Value snapshot, looks up the cached real Core, forwards the call,
+/// and finally syncs the `last_request_url` / `_body` / `_headers`
+/// fields from the live Core back onto the snapshot Map. Without that
+/// sync the transpiled `get_value(&exchange, "last_request_body")` reads
+/// (used by broker-id and static request tests) would see the stale
+/// initial snapshot — never the request the dispatched call just made.
+///
+/// Panics inside the call are caught, the state sync runs, and then the
+/// panic is resumed so the test's outer `catch_unwind` still observes
+/// the error. Mirrors Go's typed-interface dispatch through
+/// `ccxt.ICoreExchange`.
+pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
+    let id = match ccxt::get_value(ex, &Value::Str("id".to_string())) {
+        Value::Str(s) => s,
+        _ => return Value::Null,
+    };
+    let entry = {
+        let m = cores().lock().unwrap();
+        m.get(&id).copied()
+    };
+    let entry = match entry { Some(e) => e, None => return Value::Null };
+    // The pre-flight snapshot→Core write-throughs below exist for the REST
+    // static request/response tests (broker-id options, fixture credentials,
+    // canned mock responses). WS live tests need none of them — worse, the
+    // per-call `write_options` overwrites the Core's *live* options (where the
+    // pro venues keep WS subscription / requestId state) with the stale init
+    // snapshot, so a repeated `watchTicker` loop loses its subscription and the
+    // 2nd call blocks forever. Skip the write-throughs for watch*/unWatch*.
+    let is_ws_method = method.starts_with("watch") || method.starts_with("un_watch")
+        || method.starts_with("unWatch");
+    // Skip the options write-through for the LIVE ws path (persistent Core). For
+    // static-WS, write it exactly ONCE per case (the first watch dispatch), so
+    // the per-case options reach the fresh Core (e.g. okx watchOrderBook depth →
+    // books-rpi) without clobbering accumulated state on re-watch calls.
+    let write_opts = if is_ws_method { is_static_ws_mode() && take_ws_options_pending() } else { true };
+    if write_opts {
+        // Pre-flight: propagate snapshot writes (e.g. `options.uta = false`
+        // in the kucoin broker test) to the live Core before the call so the
+        // dispatched code path observes them.
+        if is_ws_method {
+            // Merge ONLY the per-case options delta onto the Core's live options
+            // (delta wins), so a per-case key like watchOrderBook.depth = books-rpi
+            // overrides the Core's describe default without the stale init snapshot
+            // clobbering options the Core set dynamically at construct.
+            let delta = ws_test_options_take();
+            if matches!(delta, Value::Dict(_)) {
+                let core_opts = (entry.read_field)(entry.ptr.0, "options").unwrap_or(Value::Null);
+                (entry.write_options)(entry.ptr.0, ccxt::value::deep_extend(core_opts, delta));
+            }
+        } else {
+            // REST replaces outright (the snapshot mirrors describe().options and
+            // is reset per case).
+            let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
+            if matches!(opts, Value::Dict(_)) {
+                (entry.write_options)(entry.ptr.0, opts);
+            }
+        }
+    }
+    {
+    // Propagate per-case credential overrides too. Static request tests
+    // for chain-signature exchanges (pacifica/hyperliquid/paradex) set
+    // `walletAddress` / `privateKey` on the snapshot from the fixture;
+    // the Core was built with the offline-default credentials and
+    // wouldn't otherwise see those.
+    //
+    // The same write-through applies to proxy fields: the transpiled
+    // `tests.rs::initExchangeBeforeTests` reads `httpProxy` / `httpsProxy`
+    // / `wsProxy` / `wssProxy` from `skip-tests.json` when `--useProxy`
+    // is passed and `set_value`s them on the snapshot. The Core builds
+    // its `reqwest::Client` from its OWN `httpProxy`/`httpsProxy`/
+    // `socksProxy` fields, so without this propagation the proxies stay
+    // snapshot-only and live requests go direct (e.g. binance 451 from
+    // a restricted region). Push the snapshot values to the Core too.
+    for key in ["walletAddress", "privateKey", "apiKey", "secret", "uid",
+                "password", "token", "login", "accountId",
+                "httpProxy", "httpsProxy", "socksProxy", "proxy",
+                "wsProxy", "wssProxy", "wsSocksProxy"] {
+        let v = ccxt::get_value(ex, &Value::Str(key.to_string()));
+        if matches!(v, Value::Str(ref s) if !s.is_empty()) {
+            (entry.write_field)(entry.ptr.0, key, v);
+        }
+    }
+    // Static fixtures replace `exchange.currencies` on the snapshot with
+    // the contents of `static/currencies/<id>.json` (mirroring TS's
+    // `exchange.currencies = currencies` reassignment in
+    // `initOfflineExchange`). The Core's after-construct path
+    // synthesizes currencies from markets and would otherwise compute
+    // a wrong `currency.id` (e.g. bitmex `XBT` instead of `XBt`),
+    // breaking URL builders. Push the snapshot value back here.
+    if let Value::Dict(m) = &*ex {
+        if let Some(curr) = m.get("currencies") {
+            if matches!(curr, Value::Dict(c) if !c.is_empty()) {
+                (entry.write_field)(entry.ptr.0, "currencies", curr.clone());
+            }
+        }
+    }
+    // Now that the currencies live on the Core, drop the (often 100s-of-KB)
+    // copy from the snapshot. The static-output assertions recurse with
+    // `exchange.clone()` per node, so a heavy `currencies` map there turned
+    // `--responseTests` into an O(nodes × map-size) crawl (minutes).
+    // Reads of `exchange.currencies` fall through to `live_lookup` → the
+    // Core, which now holds them.
+    if let Value::Dict(m) = &mut *ex { std::sync::Arc::make_mut(m).shift_remove("currencies"); }
+    // Static *response* tests stash a canned JSON payload via
+    // `setFetchResponse(exchange, response)` — push it to the Core so
+    // `fetch_typed` returns it instead of hitting the (fake) network.
+    // `Null` clears any leftover mock.
+    let mock = ccxt::get_value(ex, &Value::Str("__fetchResponse".to_string()));
+    (entry.write_mock)(entry.ptr.0, mock);
+    // Clear the snapshot's mock so it doesn't leak into a subsequent
+    // dispatch on the same exchange.
+    if let Value::Dict(m) = &mut *ex { std::sync::Arc::make_mut(m).shift_remove("__fetchResponse"); }
+    } // end `if !is_ws_method` pre-flight write-throughs
+    let snake = camel_to_snake(method);
+    let fut = (entry.call)(entry.ptr.0, &snake, args);
+    let result = futures::FutureExt::catch_unwind(
+        std::panic::AssertUnwindSafe(fut)
+    ).await;
+    // Sync first — broker-id tests rely on reading `last_request_*`
+    // after a panic'd `createOrder` (offline proxy makes the send fail).
+    let state = (entry.read_state)(entry.ptr.0);
+    if let (Value::Dict(snapshot), Value::Dict(fresh)) = (&mut *ex, state) {
+        let snapshot = std::sync::Arc::make_mut(snapshot);
+        let fresh = std::sync::Arc::try_unwrap(fresh).unwrap_or_else(|a| (*a).clone());
+        for (k, v) in fresh { snapshot.insert(k, v); }
+    }
+    match result {
+        Ok(v) => v,
+        Err(panic) => std::panic::resume_unwind(panic),
+    }
+}
+
+fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
+    // Field access on `core.last_request_*` auto-derefs through each
+    // Core's `Deref` chain (root: `BinanceCore → Exchange`; subclass:
+    // `BinanceusCore → BinanceCore → Exchange`) — so this one expression
+    // works for every Core type without per-subclass plumbing.
+    macro_rules! arm { ($name:ident, $core:ident) => {
+        if id == stringify!($name) {
+            let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
+            ex.bind();
+            let raw = Box::into_raw(ex) as *mut ();
+            fn read_state(ptr: *mut ()) -> Value {
+                let core: &$core = unsafe { &*(ptr as *const $core) };
+                let mut m = HashMap::new();
+                m.insert("last_request_url".to_string(),     core.last_request_url.clone());
+                m.insert("last_request_body".to_string(),    core.last_request_body.clone());
+                m.insert("last_request_headers".to_string(), core.last_request_headers.clone());
+                // Heavy fields (`markets`, `markets_by_id`, `symbols`,
+                // `currencies`, etc.) are NOT eagerly copied — that
+                // would deep-clone ~4k market entries on every dispatch
+                // and again on every helper call (e.g. binance's
+                // testMarket loops 4k times × 20 `exchange.clone()`).
+                // Instead, the snapshot carries `__live_id` and the
+                // `ccxt::value::LIVE_LOOKUP` thread-local resolves
+                // those reads against the Core directly. Lightweight
+                // fields (`has`, `options`, `codes`, `ids`) still mirror
+                // here so helpers that scan them work synchronously.
+                m.insert("has".to_string(),                  core.has.clone());
+                m.insert("options".to_string(),              core.options.clone());
+                // `symbols`, `codes`, `ids` resolve through LIVE_LOOKUP
+                // — even the string lists are heavy (~4k strings for
+                // binance) and get re-cloned per helper invocation.
+                Value::Map(m)
+            }
+            // Live-lookup accessor for the `LIVE_LOOKUP` callback —
+            // resolves heavy fields straight off the Core without
+            // cloning them into the snapshot.
+            fn read_field(ptr: *mut (), key: &str) -> Option<Value> {
+                let core: &$core = unsafe { &*(ptr as *const $core) };
+                Some(match key {
+                    "markets"          => core.markets.clone(),
+                    "markets_by_id"    => core.markets_by_id.clone(),
+                    "currencies"       => core.currencies.clone(),
+                    "currencies_by_id" => core.currencies_by_id.clone(),
+                    // Lightweight ones still served here so a `__live_id`
+                    // snapshot stays fully introspectable through the
+                    // same code path.
+                    "symbols"          => core.symbols.clone(),
+                    "codes"            => core.codes.clone(),
+                    "ids"              => core.ids.clone(),
+                    "has"              => core.has.clone(),
+                    "options"          => core.options.clone(),
+                    "last_request_url"     => core.last_request_url.clone(),
+                    "last_request_body"    => core.last_request_body.clone(),
+                    "last_request_headers" => core.last_request_headers.clone(),
+                    "id"               => core.id.clone(),
+                    "precisionMode"    => core.precisionMode.clone(),
+                    "fees"             => core.fees.clone(),
+                    "urls"             => core.urls.clone(),
+                    // Describe-derived config blocks. These are large
+                    // (binance's `api` alone is hundreds of nested
+                    // endpoints) and immutable during a test run, so we
+                    // strip them from the cloned snapshot in
+                    // `initExchange` and resolve them straight off the
+                    // Core here. Keeps `exchange.clone()` — which the
+                    // transpiled validators do dozens of times per
+                    // market — from deep-copying the whole describe()
+                    // output on every iteration.
+                    "api"              => core.api.clone(),
+                    "timeframes"       => core.timeframes.clone(),
+                    "exceptions"       => core.exceptions.clone(),
+                    "features"         => core.features.clone(),
+                    "precision"        => core.precision.clone(),
+                    "limits"           => core.limits.clone(),
+                    _ => return None,
+                })
+            }
+            fn write_options(ptr: *mut (), new_opts: Value) {
+                // Snapshot wins. The test harness's static-fixture loop
+                // resets `snapshot.options` to its pre-case state after
+                // every test case (binance.json has cases that set
+                // `portfolioMargin: true` and the next case must NOT see
+                // it). A merge would let stale per-case keys leak across
+                // cases, so we replace outright — the snapshot already
+                // mirrors `describe().options` since `to_value()` seeded it.
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                if let Value::Dict(_) = &new_opts {
+                    core.options = new_opts;
+                }
+            }
+            fn write_mock(ptr: *mut (), response: Value) {
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                core.mock_response = response;
+            }
+            fn drop_core(ptr: *mut ()) {
+                // SAFETY: `ptr` came from `Box::into_raw` of a
+                // `Box<$core>` in the same macro invocation. The
+                // registry just removed its only reference; we own it.
+                unsafe { drop(Box::from_raw(ptr as *mut $core)); }
+            }
+            fn write_field(ptr: *mut (), key: &str, value: Value) {
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                match key {
+                    "walletAddress" => core.walletAddress = value,
+                    "privateKey"    => core.privateKey    = value,
+                    "apiKey"        => core.apiKey        = value,
+                    "secret"        => core.secret        = value,
+                    "uid"           => core.uid           = value,
+                    "password"      => core.password      = value,
+                    "token"         => core.token         = value,
+                    "login"         => core.login         = value,
+                    "accountId"     => core.accountId     = value,
+                    // Proxy fields — `--useProxy` reads these from
+                    // `skip-tests.json` per-exchange in
+                    // `tests.rs::initExchangeBeforeTests`. The Core's
+                    // `http_client()` (which builds the cached
+                    // `reqwest::Client`) reads these fields directly, so
+                    // they MUST be propagated to the Core not just the
+                    // snapshot — otherwise live test runs ignore the
+                    // proxy and hit binance/etc. direct (→ 451 from
+                    // restricted regions). The HTTP client is built
+                    // lazily on the first request, so writing here
+                    // (before the test calls `loadMarkets`) is in time.
+                    "httpProxy"     => core.httpProxy     = value,
+                    "httpsProxy"    => core.httpsProxy    = value,
+                    "socksProxy"    => core.socksProxy    = value,
+                    "proxy"         => core.proxy         = value,
+                    "wsProxy"       => core.wsProxy       = value,
+                    "wssProxy"      => core.wssProxy      = value,
+                    "wsSocksProxy"  => core.wsSocksProxy  = value,
+                    // Heavy fields. Static fixtures load these from
+                    // `static/{markets,currencies}/<id>.json` and the
+                    // test runner reassigns them on the snapshot after
+                    // construction (mirroring TS's
+                    // `exchange.currencies = currencies` line in
+                    // `initOfflineExchange`). Without this branch, the
+                    // Core keeps the synthesized-from-markets versions
+                    // and downstream URL builders compute the wrong
+                    // `currency.id` (e.g. bitmex `XBt` vs `XBT`).
+                    "markets"       => core.markets    = value,
+                    "currencies"    => core.currencies = value,
+                    _ => {},
+                }
+            }
+            fn read_market(ptr: *mut (), symbol: &str) -> Value {
+                // Reuse the Core's real `market()` (markets →
+                // markets_by_id → expired option) but clone only the one
+                // market it returns — not the whole markets map.
+                let core: &$core = unsafe { &*(ptr as *const $core) };
+                core.market(Value::Str(symbol.to_string()))
+            }
+            fn has_market(ptr: *mut (), symbol: &str) -> bool {
+                let core: &$core = unsafe { &*(ptr as *const $core) };
+                let key = Value::Str(symbol.to_string());
+                ccxt::runtime::in_op(&core.markets, &key)
+                    || ccxt::runtime::in_op(&core.markets_by_id, &key)
+            }
+            fn set_markets(ptr: *mut (), markets: Value) -> Value {
+                // Route through the core's dynamic dispatch so the MOST-DERIVED
+                // override runs — the same virtual path the base `loadMarkets`
+                // uses (`dispatch_to_derived("set_markets", …)`). Under static
+                // dispatch (review #1) a plain `core.set_markets(..)` would bind
+                // to `ExchangeBase::set_markets` (the only trait in scope) and
+                // skip a prediction venue's `PredictionExchange::set_markets`
+                // (aliasing + populateOutcomes), leaving the outcome caches
+                // empty. `set_markets` is pure-sync (no IO/await), so
+                // `block_on` resolves it in a single poll without the reactor.
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                futures::executor::block_on(
+                    ExchangeBase::call_dynamic(core, "set_markets", vec![markets])
+                )
+            }
+            // Type-erased trampoline: cast the raw Core pointer back and call
+            // its `call_dynamic` (static ExchangeBase trait method, review #1).
+            fn call_tramp(ptr: *mut (), method: &str, args: Vec<Value>)
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + '_>>
+            {
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                Box::pin(ExchangeBase::call_dynamic(core, method, args))
+            }
+            return Some(CoreEntry {
+                call:          call_tramp as DynCallFn,
+                ptr:           CorePtr(raw),
+                read_state:    read_state    as ReadStateFn,
+                write_options: write_options as WriteOptionsFn,
+                write_mock:    write_mock    as WriteMockFn,
+                drop_core:     drop_core     as DropCoreFn,
+                read_field:    read_field    as ReadFieldFn,
+                write_field:   write_field   as WriteFieldFn,
+                read_market:   read_market   as ReadMarketFn,
+                has_market:    has_market    as HasMarketFn,
+                set_markets:   set_markets   as SetMarketsFn,
+            });
+        }
+    }; }
+    // In prediction mode, `hyperliquid` and `binance` resolve to their
+    // prediction Cores; these arms run before for_each_core! so they win over
+    // the regular exchanges of the same id.
+    if PREDICTION_MODE.load(Ordering::Relaxed) {
+        arm!(hyperliquid, PredHyperliquidCore);
+        arm!(binance, PredBinanceCore);
+    }
+    // Under --ws, prefer the pro Core (carries watch* in `has`, routes the WS
+    // handlers). Falls through to the REST Core for ids without a pro variant.
+    if ws {
+        for_each_ws_core!(arm);
+    }
+    for_each_core!(arm);
+    None
+}
+
+/// Resolves `<id>.<key>` against the cached Core (`live_lookup_thunk`
+/// is installed by `init_live_lookup` and read from `ccxt::value::get_value`).
+fn live_lookup(id: &str, key: &str) -> Option<Value> {
+    let entry = {
+        let m = cores().lock().ok()?;
+        m.get(id).copied()
+    };
+    let entry = entry?;
+    (entry.read_field)(entry.ptr.0, key)
+}
+
+/// Resolves a single market by symbol off the cached Core for `id`,
+/// without cloning the whole markets map. Returns `Value::Null` if the
+/// id isn't a live Core. Used by `ExchangeOps::market` for `__live_id`
+/// snapshots.
+pub fn market_for(id: &str, symbol: &str) -> Value {
+    let entry = {
+        let m = match cores().lock() { Ok(g) => g, Err(_) => return Value::Null };
+        m.get(id).copied()
+    };
+    match entry {
+        Some(e) => (e.read_market)(e.ptr.0, symbol),
+        None    => Value::Null,
+    }
+}
+
+/// Cheap membership: is `symbol` a known market on the cached Core for
+/// `id`? No markets-map clone. Returns `false` for non-live ids.
+pub fn has_market(id: &str, symbol: &str) -> bool {
+    let entry = {
+        let m = match cores().lock() { Ok(g) => g, Err(_) => return false };
+        m.get(id).copied()
+    };
+    match entry {
+        Some(e) => (e.has_market)(e.ptr.0, symbol),
+        None    => false,
+    }
+}
+
+/// Runs `set_markets(markets)` on the cached live Core for `id` (backs
+/// `exchange.setMarkets(...)` on a `__live_id` snapshot). Returns `Value::Null`
+/// for a non-live id. Used by the prediction test setup to seed event-derived
+/// outcome markets onto the real Core.
+pub fn live_set_markets(id: &str, markets: Value) -> Value {
+    let entry = {
+        let m = match cores().lock() { Ok(g) => g, Err(_) => return Value::Null };
+        m.get(id).copied()
+    };
+    match entry {
+        Some(e) => (e.set_markets)(e.ptr.0, markets),
+        None    => Value::Null,
+    }
+}
+
+/// Wire the heavy-field resolver into the ccxt crate. Call once from
+/// `main` before any live dispatch.
+pub fn init_live_lookup() {
+    ccxt::value::set_live_lookup(live_lookup);
+    ccxt::value::set_live_set_markets(live_set_markets);
+}
+
+/// camelCase → snake_case, matching the transpiler's `toSnakeCase`.
+/// Mirrors registry.rs (kept here so the live path doesn't depend on
+/// the offline-dispatch module).
+fn camel_to_snake(s: &str) -> String {
+    let bytes: Vec<char> = s.chars().collect();
+    let mut out = String::with_capacity(s.len() + 4);
+    for i in 0..bytes.len() {
+        let c = bytes[i];
+        let prev = if i > 0 { Some(bytes[i - 1]) } else { None };
+        let next = if i + 1 < bytes.len() { Some(bytes[i + 1]) } else { None };
+        if c.is_ascii_uppercase() {
+            let prev_lower_or_digit = prev.map(|p| p.is_ascii_lowercase() || p.is_ascii_digit()).unwrap_or(false);
+            let prev_upper = prev.map(|p| p.is_ascii_uppercase()).unwrap_or(false);
+            let next_lower = next.map(|n| n.is_ascii_lowercase()).unwrap_or(false);
+            if prev_lower_or_digit { out.push('_'); }
+            else if prev_upper && next_lower { out.push('_'); }
+        }
+        out.push(c.to_ascii_lowercase());
+    }
+    out
+}

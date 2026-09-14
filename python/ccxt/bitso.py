@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, DepositWithdrawFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bitso(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitso, self).describe(), {
             'id': 'bitso',
             'name': 'Bitso',
@@ -222,6 +221,10 @@ class bitso(Exchange, ImplicitAPI):
                         'orders/{oid}': {'cost': 1},
                         'orders/all': {'cost': 1},
                     },
+                    'patch': {
+                        'orders': {'cost': 1},
+                        'orders/{oid}': {'cost': 1},
+                    },
                 },
             },
             'features': {
@@ -293,7 +296,7 @@ class bitso(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :param str [code]: unified currency code, default is None
@@ -333,7 +336,7 @@ class bitso(Exchange, ImplicitAPI):
         currency = self.safe_currency(code)
         return self.parse_ledger(payload, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'funding': 'transaction',
             'withdrawal': 'transaction',
@@ -443,7 +446,7 @@ class bitso(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bitso
 
@@ -485,7 +488,7 @@ class bitso(Exchange, ImplicitAPI):
         #             },
         #         ]
         #     }
-        markets = self.safe_value(response, 'payload', [])
+        markets = self.safe_list(response, 'payload', [])
         currencies = self.safe_dict(self.options, 'cachedCurrencies')
         result = []
         for i in range(0, len(markets)):
@@ -502,7 +505,7 @@ class bitso(Exchange, ImplicitAPI):
             makerString = self.safe_string(flatRate, 'maker')
             taker = self.parse_number(Precise.string_div(takerString, '100'))
             maker = self.parse_number(Precise.string_div(makerString, '100'))
-            feeTiers = self.safe_value(fees, 'structure', [])
+            feeTiers = self.safe_list(fees, 'structure', [])
             fee = {
                 'taker': taker,
                 'maker': maker,
@@ -649,9 +652,9 @@ class bitso(Exchange, ImplicitAPI):
             'type': self.safe_string(rawCurrency, 'type'),
         })
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         payload = self.safe_value(response, 'payload', {})
-        balances = self.safe_value(payload, 'balances', [])
+        balances = self.safe_list(payload, 'balances', [])
         result = {
             'info': response,
             'timestamp': None,
@@ -811,7 +814,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -819,7 +822,7 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -860,7 +863,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         return self.parse_ohlcvs(payload, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "bucket_start_time":1648219140000,
@@ -983,7 +986,7 @@ class bitso(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1061,7 +1064,7 @@ class bitso(Exchange, ImplicitAPI):
         #    }
         #
         payload = self.safe_value(response, 'payload', {})
-        fees = self.safe_value(payload, 'fees', [])
+        fees = self.safe_list(payload, 'fees', [])
         result = {}
         for i in range(0, len(fees)):
             fee = fees[i]
@@ -1179,7 +1182,7 @@ class bitso(Exchange, ImplicitAPI):
             'id': orderId,
         })
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -1206,14 +1209,14 @@ class bitso(Exchange, ImplicitAPI):
         #         "payload": ["yWTQGxDMZ0VimZgZ"]
         #     }
         #
-        payload = self.safe_value(response, 'payload', [])
+        payload = self.safe_list(response, 'payload', [])
         orders = []
         for i in range(0, len(payload)):
             id = payload[i]
             orders.append(self.parse_order(id, market))
         return orders
 
-    def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         cancel all open orders
 
@@ -1232,7 +1235,7 @@ class bitso(Exchange, ImplicitAPI):
         #         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         #     }
         #
-        payload = self.safe_value(response, 'payload', [])
+        payload = self.safe_list(response, 'payload', [])
         canceledOrders = []
         for i in range(0, len(payload)):
             order = self.parse_order(payload[i])
@@ -1293,7 +1296,7 @@ class bitso(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 25, params: dict = {}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 25, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1379,7 +1382,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         return self.parse_trades(payload, market)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -1423,7 +1426,7 @@ class bitso(Exchange, ImplicitAPI):
         first = self.safe_dict(transactions, 0, {})
         return self.parse_transaction(first)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1556,7 +1559,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         result = {}
         payload = self.safe_value(response, 'payload', {})
-        depositFees = self.safe_value(payload, 'deposit_fees', [])
+        depositFees = self.safe_list(payload, 'deposit_fees', [])
         for i in range(0, len(depositFees)):
             depositFee = depositFees[i]
             currencyId = self.safe_string(depositFee, 'currency')
@@ -1649,7 +1652,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         return self.parse_deposit_withdraw_fees(payload, codes)
 
-    def parse_deposit_withdraw_fees(self, response: Any, codes: Strings = None, currencyIdKey: Str = None):
+    def parse_deposit_withdraw_fees(self, response: object, codes: Strings = None, currencyIdKey: Str = None):
         #
         #    {
         #        "fees": [
@@ -1691,7 +1694,7 @@ class bitso(Exchange, ImplicitAPI):
         #    }
         #
         result = {}
-        depositResponse = self.safe_value(response, 'deposit_fees', [])
+        depositResponse = self.safe_list(response, 'deposit_fees', [])
         withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
         for i in range(0, len(depositResponse)):
             entry = depositResponse[i]
@@ -1702,7 +1705,7 @@ class bitso(Exchange, ImplicitAPI):
                     result[code] = {
                         'deposit': {
                             'fee': self.safe_number(entry, 'fee'),
-                            'percentage': not self.safe_value(entry, 'is_fixed'),
+                            'percentage': (self.safe_value(entry, 'is_fixed') is not True),
                         },
                         'withdraw': {
                             'fee': None,
@@ -1862,11 +1865,11 @@ class bitso(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' or method == 'DELETE':
-            if query:
+            if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + endpoint
         if api == 'private':
@@ -1876,7 +1879,7 @@ class bitso(Exchange, ImplicitAPI):
             content = [nonce, method, endpoint]
             request = ''.join(content)
             if method != 'GET' and method != 'DELETE':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     request += body
             signature = self.hmac(self.encode(request), self.encode(self.secret), hashlib.sha256)
@@ -1887,7 +1890,7 @@ class bitso(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         if 'success' in response:
@@ -1900,7 +1903,7 @@ class bitso(Exchange, ImplicitAPI):
                     success = True
                 else:
                     success = False
-            if not success:
+            if success is not True:
                 feedback = self.id + ' ' + self.json(response)
                 error = self.safe_value(response, 'error')
                 if error is None:

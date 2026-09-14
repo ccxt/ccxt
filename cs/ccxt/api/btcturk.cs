@@ -25,6 +25,13 @@ public partial class btcturk : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetTicker",parameters);
     }
 
+    /// <summary>Calls the publicGetTickerCurrency endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTickerCurrency (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTickerCurrency",parameters);
+    }
+
     /// <summary>Calls the publicGetTrades endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetTrades (object parameters = null)
@@ -67,11 +74,39 @@ public partial class btcturk : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetAllOrders",parameters);
     }
 
+    /// <summary>Calls the privateGetOrderOrderId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetOrderOrderId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetOrderOrderId",parameters);
+    }
+
     /// <summary>Calls the privateGetUsersTransactionsTrade endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetUsersTransactionsTrade (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetUsersTransactionsTrade",parameters);
+    }
+
+    /// <summary>Calls the privateGetUsersTransactionsCrypto endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUsersTransactionsCrypto (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUsersTransactionsCrypto",parameters);
+    }
+
+    /// <summary>Calls the privateGetUsersTransactionsFiat endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUsersTransactionsFiat (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUsersTransactionsFiat",parameters);
+    }
+
+    /// <summary>Calls the privateGetCryptoDepositDeclarations endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetCryptoDepositDeclarations (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetCryptoDepositDeclarations",parameters);
     }
 
     /// <summary>Calls the privatePostUsersTransactionsCrypto endpoint.</summary>
@@ -100,6 +135,13 @@ public partial class btcturk : Exchange
     public async Task<Dictionary<string, object>> privatePostCancelOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostCryptoDepositDeclarationsConfirm endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCryptoDepositDeclarationsConfirm (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCryptoDepositDeclarationsConfirm",parameters);
     }
 
     /// <summary>Calls the privateDeleteOrder endpoint.</summary>

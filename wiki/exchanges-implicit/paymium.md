@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official paymium API documentation:** [github.com](https://github.com/Paymium/api-documentation) · [paymium.com](https://www.paymium.com/page/developers) · [paymium.github.io](https://paymium.github.io/api-documentation/)
 
-> 24 implicit endpoints across 2 access groups.
+> 25 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -79,6 +79,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetUserOrders` | GET | `user/orders` | 1 |
 | `privateGetUserOrdersUuid` | GET | `user/orders/{uuid}` | 1 |
 | `privateGetUserPriceAlerts` | GET | `user/price_alerts` | 1 |
+| `privateGetUserWithdrawals` | GET | `user/withdrawals` | 1 |
 | `privateGetMerchantGetPaymentUuid` | GET | `merchant/get_payment/{uuid}` | 1 |
 | `privatePostUserAddresses` | POST | `user/addresses` | 1 |
 | `privatePostUserOrders` | POST | `user/orders` | 1 |

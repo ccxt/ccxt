@@ -188,34 +188,48 @@ export default class bitmex extends Exchange {
                         'trade': { 'cost': 5 } as Endpoint<List>,
                         'trade/bucketed': { 'cost': 5 } as Endpoint<List>,
                         'wallet/assets': { 'cost': 5 } as Endpoint<List>,
+                        'wallet/currencies': { 'cost': 5 } as Endpoint<Dict>,
+                        'wallet/haircuts': { 'cost': 5 } as Endpoint<List>,
                         'wallet/networks': { 'cost': 5 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
                         'address': { 'cost': 5 } as Endpoint<List>,
+                        'addressConfig': { 'cost': 5 } as Endpoint<Dict>,
                         'apiKey': { 'cost': 5 } as Endpoint<List>,
+                        'apiKey/self': { 'cost': 5 } as Endpoint<Dict>,
                         'execution': { 'cost': 5 } as Endpoint<List>,
                         'execution/tradeHistory': { 'cost': 5 } as Endpoint<List>,
                         'globalNotification': { 'cost': 5 } as Endpoint<List>,
                         'leaderboard/name': { 'cost': 5 } as Endpoint<Dict>,
+                        'leagueoftrader/myRankings': { 'cost': 5 } as Endpoint<List>,
+                        'managedSubAccountBinding/investor': { 'cost': 5 } as Endpoint<List>,
+                        'managedSubAccountBinding/tradingTeam': { 'cost': 5 } as Endpoint<List>,
                         'order': { 'cost': 5 } as Endpoint<List>,
                         'porl/snapshots': { 'cost': 5 } as Endpoint<List>,
                         'position': { 'cost': 5 } as Endpoint<List>,
+                        'referralCode': { 'cost': 5 } as Endpoint<List>,
+                        'referralCode/check/{code}': { 'cost': 5 } as Endpoint<Dict>,
+                        'referralCode/code/{code}': { 'cost': 5 } as Endpoint<Dict>,
+                        'referralCode/{id}': { 'cost': 5 } as Endpoint<Dict>,
                         'user': { 'cost': 5 } as Endpoint<Dict>,
                         'user/affiliateStatus': { 'cost': 5 } as Endpoint<Dict>,
                         'user/checkReferralCode': { 'cost': 5 } as Endpoint<Dict>,
                         'user/commission': { 'cost': 5 } as Endpoint<Dict>,
                         'user/csa': { 'cost': 5 } as Endpoint<Dict>,
                         'user/depositAddress': { 'cost': 5 } as Endpoint<string>,
+                        'user/depositAddressInformation': { 'cost': 5 } as Endpoint<Dict>,
                         'user/executionHistory': { 'cost': 5 } as Endpoint<List>,
                         'user/getWalletTransferAccounts': { 'cost': 5 } as Endpoint<List>,
                         'user/margin': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/marginingMode': { 'cost': 5 } as Endpoint<Dict>,
                         'user/quoteFillRatio': { 'cost': 5 } as Endpoint<Dict>,
                         'user/quoteValueRatio': { 'cost': 5 } as Endpoint<Dict>,
                         'user/staking': { 'cost': 5 } as Endpoint<List>,
                         'user/staking/instruments': { 'cost': 5 } as Endpoint<List>,
                         'user/staking/tiers': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/tradingSettings': { 'cost': 5 } as Endpoint<Dict>,
                         'user/tradingVolume': { 'cost': 5 } as Endpoint<List>,
                         'user/unstakingRequests': { 'cost': 5 } as Endpoint<List>,
                         'user/wallet': { 'cost': 5 } as Endpoint<Dict>,
@@ -223,6 +237,8 @@ export default class bitmex extends Exchange {
                         'user/walletSummary': { 'cost': 5 } as Endpoint<List>,
                         'userAffiliates': { 'cost': 5 } as Endpoint<List>,
                         'userEvent': { 'cost': 5 } as Endpoint<List>,
+                        'userPriceAlert': { 'cost': 5 } as Endpoint<List>,
+                        'userStats/volumeRank': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
                         'address': { 'cost': 5 } as Endpoint<Dict>,
@@ -233,33 +249,52 @@ export default class bitmex extends Exchange {
                         'guild/kick': { 'cost': 5 } as Endpoint<Dict>,
                         'guild/leave': { 'cost': 5 } as Endpoint<Dict>,
                         'guild/sharesTrades': { 'cost': 5 } as Endpoint<Dict>,
+                        'managedSubAccountBinding/approve': { 'cost': 5 } as Endpoint<Dict>,
+                        'managedSubAccountBinding/cancel': { 'cost': 5 } as Endpoint<Dict>,
+                        'managedSubAccountBinding/createMSA': { 'cost': 5 } as Endpoint<Dict>,
+                        'managedSubAccountBinding/reject': { 'cost': 5 } as Endpoint<Dict>,
+                        'managedSubAccountBinding/toggleTradeHistory': { 'cost': 5 } as Endpoint<Dict>,
+                        'managedSubAccountBinding/unbind': { 'cost': 5 } as Endpoint<Dict>,
                         'order': { 'cost': 1 } as Endpoint<Dict>,
                         'order/cancelAllAfter': { 'cost': 5 } as Endpoint<Dict>,
                         'order/closePosition': { 'cost': 5 } as Endpoint<Dict>,
+                        'position/crossLeverage': { 'cost': 5 } as Endpoint<Dict>,
                         'position/isolate': { 'cost': 1 } as Endpoint<Dict>,
                         'position/leverage': { 'cost': 1 } as Endpoint<Dict>,
                         'position/riskLimit': { 'cost': 5 } as Endpoint<Dict>,
                         'position/transferMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'referralCode': { 'cost': 5 } as Endpoint<Dict>,
                         'user/addSubaccount': { 'cost': 5 } as Endpoint<Dict>,
                         'user/cancelWithdrawal': { 'cost': 5 } as Endpoint<Dict>,
                         'user/communicationToken': { 'cost': 5 } as Endpoint<string>,
                         'user/confirmEmail': { 'cost': 5 } as Endpoint<Dict>,
                         'user/confirmWithdrawal': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/createIndependentSubaccount': { 'cost': 5 } as Endpoint<Dict>,
                         'user/logout': { 'cost': 5 } as Endpoint<string>,
+                        'user/marginingMode': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/positionMode': { 'cost': 5 } as Endpoint<Dict>,
                         'user/preferences': { 'cost': 5 } as Endpoint<Dict>,
                         'user/requestWithdrawal': { 'cost': 5 } as Endpoint<Dict>,
                         'user/unstakingRequests': { 'cost': 5 } as Endpoint<Dict>,
                         'user/updateSubaccount': { 'cost': 5 } as Endpoint<Dict>,
                         'user/walletTransfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'userPriceAlert': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'put': {
+                        'address': { 'cost': 5 } as Endpoint<Dict>,
                         'guild': { 'cost': 5 } as Endpoint<Dict>,
                         'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'referralCode/{id}': { 'cost': 5 } as Endpoint<Dict>,
+                        'userPriceAlert/{id}': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'order': { 'cost': 1 } as Endpoint<List>,
                         'order/all': { 'cost': 1 } as Endpoint<List>,
+                        'referralCode/{id}': { 'cost': 5 } as Endpoint<Dict>,
                         'user/unstakingRequests': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/withdrawal': { 'cost': 5 } as Endpoint<Dict>,
+                        'userPriceAlert': { 'cost': 5 } as Endpoint<Dict>,
+                        'userPriceAlert/{id}': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -476,7 +511,7 @@ export default class bitmex extends Exchange {
         const code = this.safeCurrencyCode (asset);
         const id = this.safeString (currency, 'currency');
         const name = this.safeString (currency, 'name');
-        const chains = this.safeValue (currency, 'networks', []);
+        const chains = this.safeList (currency, 'networks', []);
         let depositEnabled = false;
         let withdrawEnabled = false;
         const networks: Dict = {};
@@ -491,11 +526,11 @@ export default class bitmex extends Exchange {
             const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
             const isDepositEnabled = this.safeBool (chain, 'depositEnabled', false);
             const isWithdrawEnabled = this.safeBool (chain, 'withdrawalEnabled', false);
-            const active = (isDepositEnabled && isWithdrawEnabled);
-            if (isDepositEnabled) {
+            const active = ((isDepositEnabled === true) && (isWithdrawEnabled === true));
+            if (isDepositEnabled === true) {
                 depositEnabled = true;
             }
-            if (isWithdrawEnabled) {
+            if (isWithdrawEnabled === true) {
                 withdrawEnabled = true;
             }
             if (network !== undefined) {
@@ -522,7 +557,7 @@ export default class bitmex extends Exchange {
             }
         }
         const currencyEnabled = this.safeValue (currency, 'enabled');
-        const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
+        const currencyActive = (currencyEnabled === true) || (depositEnabled || withdrawEnabled);
         const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
         const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
         const maxWithdrawalString = this.safeString (currency, 'maxWithdrawalAmount');
@@ -582,14 +617,14 @@ export default class bitmex extends Exchange {
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         const oldPrecision = this.safeValue (this.options, 'oldPrecision');
-        if (market['spot'] && !oldPrecision) {
+        if ((market['spot'] === true) && (oldPrecision !== true)) {
             amount = this.convertFromRealAmount (market['base'], amount);
         }
         return super.amountToPrecision (symbol, amount);
     }
 
     convertFromRawQuantity (symbol: any, rawQuantity: any, currencySide = 'base') {
-        if (this.safeValue (this.options, 'oldPrecision')) {
+        if (this.safeValue (this.options, 'oldPrecision') === true) {
             return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
@@ -598,7 +633,7 @@ export default class bitmex extends Exchange {
             return this.parseNumber (rawQuantity);
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return this.parseNumber (this.convertToRealAmount (this.safeString (market, currencySide), rawQuantity));
         }
         return this.parseNumber (rawQuantity);
@@ -838,7 +873,7 @@ export default class bitmex extends Exchange {
         let contractSize: Str = undefined;
         let isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         let isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        let linear = contract ? (!isInverse && !isQuanto) : undefined;
+        let linear = contract ? ((isInverse !== true) && (isQuanto !== true)) : undefined;
         const status = this.safeString (market, 'state');
         const active = status === 'Open'; // Open, Settled, Unlisted
         let expiry: Int = undefined;
@@ -848,7 +883,7 @@ export default class bitmex extends Exchange {
             symbol = base + '/' + quote;
         } else if (contract) {
             symbol = base + '/' + quote + ':' + settle;
-            if (linear) {
+            if (linear === true) {
                 const multiplierString = this.safeString2 (market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
                 contractSize = Precise.stringAbs (Precise.stringDiv ('1', multiplierString));
             } else {
@@ -2003,7 +2038,7 @@ export default class bitmex extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
-            isInverse = this.safeBool (market, 'inverse', false) === true;
+            isInverse = this.safeBool (market, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);
@@ -2150,7 +2185,7 @@ export default class bitmex extends Exchange {
         const capitalizeOrderType = orderType;
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if ((!market['swap']) && (!market['future'])) {
+            if ((market['swap'] !== true) && (market['future'] !== true)) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
@@ -2808,7 +2843,7 @@ export default class bitmex extends Exchange {
             const marketId = this.safeString (item, 'symbol');
             const market = this.safeMarket (marketId);
             const swap = this.safeBool (market, 'swap', false);
-            if (swap) {
+            if (swap === true) {
                 filteredResponse.push (item);
             }
         }
@@ -3065,7 +3100,7 @@ export default class bitmex extends Exchange {
         //        ]
         //    }
         //
-        const networks = this.safeValue (fee, 'networks', []);
+        const networks = this.safeList (fee, 'networks', []);
         const networksLength = networks.length;
         const result: Dict = {
             'info': fee,
@@ -3737,7 +3772,7 @@ export default class bitmex extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 query += '?' + this.urlencode (params);
             }
         } else {
@@ -3766,7 +3801,7 @@ export default class bitmex extends Exchange {
             auth += stringExpires;
             headers['api-expires'] = stringExpires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     body = this.json (params);
                     auth += body;
                 }

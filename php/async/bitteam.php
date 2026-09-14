@@ -193,6 +193,7 @@ class bitteam extends Exchange {
                         'trade/api/pairs' => array( 'cost' => 1 ), // not unified
                         'trade/api/pairs/precisions' => array( 'cost' => 1 ), // not unified
                         'trade/api/rates' => array( 'cost' => 1 ), // not unified
+                        'trade/api/stats' => array( 'cost' => 1 ), // not unified
                         'trade/api/trade/{id}' => array( 'cost' => 1 ), // not unified
                         'trade/api/trades' => array( 'cost' => 1 ), // not unified
                         'trade/api/ccxt/pairs' => array( 'cost' => 1 ),
@@ -479,7 +480,7 @@ class bitteam extends Exchange {
         $minCost = null;
         $currenciesValuedInUsd = $this->handle_option('fetchMarkets', 'currenciesValuedInUsd', array());
         $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
-        if ($quoteInUsd) {
+        if ($quoteInUsd === true) {
             $settings = $this->safe_value($market, 'settings', array());
             $minCost = $this->safe_number($settings, 'limit_usd');
         }
@@ -772,7 +773,7 @@ class bitteam extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

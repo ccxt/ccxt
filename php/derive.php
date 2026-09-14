@@ -152,26 +152,37 @@ class derive extends Exchange {
                         'build_register_session_key_tx' => array( 'cost' => 1 ),
                         'register_session_key' => array( 'cost' => 1 ),
                         'deregister_session_key' => array( 'cost' => 1 ),
+                        'get_wallets_from_session_key' => array( 'cost' => 1 ),
                         'login' => array( 'cost' => 1 ),
                         'statistics' => array( 'cost' => 1 ),
+                        'all_statistics' => array( 'cost' => 1 ),
+                        'user_statistics' => array( 'cost' => 1 ),
+                        'all_user_statistics' => array( 'cost' => 1 ),
                         'get_all_currencies' => array( 'cost' => 1 ),
                         'get_currency' => array( 'cost' => 1 ),
+                        'get_asset' => array( 'cost' => 1 ),
+                        'get_assets' => array( 'cost' => 1 ),
                         'get_instrument' => array( 'cost' => 1 ),
                         'get_all_instruments' => array( 'cost' => 1 ),
                         'get_instruments' => array( 'cost' => 1 ),
                         'get_ticker' => array( 'cost' => 1 ),
+                        'get_tickers' => array( 'cost' => 1 ),
                         'get_latest_signed_feeds' => array( 'cost' => 1 ),
                         'get_option_settlement_prices' => array( 'cost' => 1 ),
                         'get_spot_feed_history' => array( 'cost' => 1 ),
                         'get_spot_feed_history_candles' => array( 'cost' => 1 ),
+                        'get_index_chart_data' => array( 'cost' => 1 ),
+                        'get_tradingview_chart_data' => array( 'cost' => 1 ),
                         'get_funding_rate_history' => array( 'cost' => 1 ),
                         'get_trade_history' => array( 'cost' => 1 ),
                         'get_option_settlement_history' => array( 'cost' => 1 ),
                         'get_liquidation_history' => array( 'cost' => 1 ),
                         'get_interest_rate_history' => array( 'cost' => 1 ),
+                        'get_perp_impact_twap' => array( 'cost' => 1 ),
                         'get_transaction' => array( 'cost' => 1 ),
                         'get_margin' => array( 'cost' => 1 ),
                         'margin_watch' => array( 'cost' => 1 ),
+                        'order_quote' => array( 'cost' => 1 ),
                         'validate_invite_code' => array( 'cost' => 1 ),
                         'get_points' => array( 'cost' => 1 ),
                         'get_all_points' => array( 'cost' => 1 ),
@@ -179,6 +190,7 @@ class derive extends Exchange {
                         'get_descendant_tree' => array( 'cost' => 1 ),
                         'get_tree_roots' => array( 'cost' => 1 ),
                         'get_swell_percent_points' => array( 'cost' => 1 ),
+                        'get_stdrv_snapshots' => array( 'cost' => 1 ),
                         'get_vault_assets' => array( 'cost' => 1 ),
                         'get_etherfi_effective_balances' => array( 'cost' => 1 ),
                         'get_kelp_effective_balances' => array( 'cost' => 1 ),
@@ -187,18 +199,25 @@ class derive extends Exchange {
                         'get_vault_share' => array( 'cost' => 1 ),
                         'get_vault_statistics' => array( 'cost' => 1 ),
                         'get_vault_balances' => array( 'cost' => 1 ),
+                        'get_vault_pools' => array( 'cost' => 1 ),
+                        'get_vault_rates' => array( 'cost' => 1 ),
                         'estimate_integrator_points' => array( 'cost' => 1 ),
                         'create_subaccount_debug' => array( 'cost' => 1 ),
+                        'create_account_with_secret' => array( 'cost' => 1 ),
                         'deposit_debug' => array( 'cost' => 1 ),
                         'withdraw_debug' => array( 'cost' => 1 ),
                         'send_quote_debug' => array( 'cost' => 1 ),
                         'execute_quote_debug' => array( 'cost' => 1 ),
                         'get_invite_code' => array( 'cost' => 1 ),
                         'register_invite' => array( 'cost' => 1 ),
+                        'get_all_referral_codes' => array( 'cost' => 1 ),
+                        'get_referral_performance' => array( 'cost' => 1 ),
                         'get_time' => array( 'cost' => 1 ),
                         'get_live_incidents' => array( 'cost' => 1 ),
                         'get_maker_programs' => array( 'cost' => 1 ),
                         'get_maker_program_scores' => array( 'cost' => 1 ),
+                        'get_detailed_maker_snapshot_history' => array( 'cost' => 1 ),
+                        'getRateLimits' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -210,6 +229,7 @@ class derive extends Exchange {
                         'get_all_portfolios' => array( 'cost' => 1 ),
                         'change_subaccount_label' => array( 'cost' => 1 ),
                         'get_notificationsv' => array( 'cost' => 1 ),
+                        'get_notifications' => array( 'cost' => 1 ),
                         'update_notifications' => array( 'cost' => 1 ),
                         'deposit' => array( 'cost' => 1 ),
                         'withdraw' => array( 'cost' => 1 ),
@@ -222,12 +242,17 @@ class derive extends Exchange {
                         'get_order' => array( 'cost' => 1 ),
                         'get_orders' => array( 'cost' => 1 ),
                         'get_open_orders' => array( 'cost' => 1 ),
+                        'get_trigger_orders' => array( 'cost' => 1 ),
+                        'get_algo_orders' => array( 'cost' => 1 ),
                         'cancel' => array( 'cost' => 1 ),
                         'cancel_by_label' => array( 'cost' => 1 ),
                         'cancel_by_nonce' => array( 'cost' => 1 ),
                         'cancel_by_instrument' => array( 'cost' => 1 ),
                         'cancel_all' => array( 'cost' => 1 ),
                         'cancel_trigger_order' => array( 'cost' => 1 ),
+                        'cancel_algo_order' => array( 'cost' => 1 ),
+                        'cancel_all_algo_orders' => array( 'cost' => 1 ),
+                        'cancel_all_trigger_orders' => array( 'cost' => 1 ),
                         'get_order_history' => array( 'cost' => 1 ),
                         'get_trade_history' => array( 'cost' => 1 ),
                         'get_deposit_history' => array( 'cost' => 1 ),
@@ -243,6 +268,8 @@ class derive extends Exchange {
                         'get_quotes' => array( 'cost' => 1 ),
                         'poll_quotes' => array( 'cost' => 1 ),
                         'execute_quote' => array( 'cost' => 1 ),
+                        'order_quote' => array( 'cost' => 1 ),
+                        'replace_quote' => array( 'cost' => 1 ),
                         'rfq_get_best_quote' => array( 'cost' => 1 ),
                         'get_margin' => array( 'cost' => 1 ),
                         'get_collaterals' => array( 'cost' => 1 ),
@@ -258,6 +285,7 @@ class derive extends Exchange {
                         'get_liquidator_history' => array( 'cost' => 1 ),
                         'session_keys' => array( 'cost' => 1 ),
                         'edit_session_key' => array( 'cost' => 1 ),
+                        'change_session_key_label' => array( 'cost' => 1 ),
                         'register_scoped_session_key' => array( 'cost' => 1 ),
                         'get_mmp_config' => array( 'cost' => 1 ),
                         'set_mmp_config' => array( 'cost' => 1 ),
@@ -265,6 +293,10 @@ class derive extends Exchange {
                         'set_cancel_on_disconnect' => array( 'cost' => 1 ),
                         'get_invite_code' => array( 'cost' => 1 ),
                         'register_invite' => array( 'cost' => 1 ),
+                        'get_contact_info' => array( 'cost' => 1 ),
+                        'create_contact_info' => array( 'cost' => 1 ),
+                        'update_contact_info' => array( 'cost' => 1 ),
+                        'delete_contact_info' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1166,7 +1198,7 @@ class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $DOMAIN_SEPARATOR = ($sandboxMode) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        $DOMAIN_SEPARATOR = ($sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         $binaryDomainSeparator = $this->base16_to_binary($DOMAIN_SEPARATOR);
         $prefix = $this->base16_to_binary('1901');
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
@@ -1239,12 +1271,13 @@ class derive extends Exchange {
         $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
+        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local => the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->milliseconds();
         // Order $signature expiry must be between 2592000 and 7776000 sec from now
         $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         $priceString = $this->number_to_string($price);
         $maxFee = null;
         list($maxFee, $params) = $this->handle_option_and_params($params, 'createOrder', 'max_fee');
@@ -1262,7 +1295,7 @@ class derive extends Exchange {
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
-            $orderSide === 'buy',
+            $orderSideIsBuy,
         )), 'keccak', 'binary');
         $deriveWalletAddress = null;
         list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('createOrder', $params);
@@ -1291,7 +1324,7 @@ class derive extends Exchange {
         );
         if ($reduceOnly !== null) {
             $request['reduce_only'] = $reduceOnly;
-            if ($reduceOnly && $postOnly) {
+            if ($reduceOnly && ($postOnly === true)) {
                 throw new InvalidOrder($this->id . ' cannot use reduce only with post only time in force');
             }
         }
@@ -1320,7 +1353,7 @@ class derive extends Exchange {
         }
         $request['signature'] = $signature;
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
-        if ($test) {
+        if ($test === true) {
             $response = $this->privatePostOrderDebug($this->extend($request, $params));
         } else {
             $response = $this->privatePostOrder($this->extend($request, $params));
@@ -1429,12 +1462,13 @@ class derive extends Exchange {
         $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
+        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local => the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->milliseconds();
         $signatureExpiry = $this->safe_number($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         // TODO => subaccount $id / trade module address
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         $priceString = $this->number_to_string($price);
         $maxFeeString = $this->safe_string($params, 'max_fee', '0');
         $amountString = $this->number_to_string($amount);
@@ -1447,7 +1481,7 @@ class derive extends Exchange {
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
-            $orderSide === 'buy',
+            $orderSideIsBuy,
         )), 'keccak', 'binary');
         $deriveWalletAddress = null;
         list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('editOrder', $params);
@@ -1476,7 +1510,7 @@ class derive extends Exchange {
         );
         if ($reduceOnly !== null) {
             $request['reduce_only'] = $reduceOnly;
-            if ($reduceOnly && $postOnly) {
+            if ($reduceOnly && ($postOnly === true)) {
                 throw new InvalidOrder($this->id . ' cannot use reduce only with post only time in force');
             }
         }
@@ -1609,7 +1643,7 @@ class derive extends Exchange {
             $response = $this->privatePostCancelByLabel($this->extend($request, $params));
         } else {
             $request['order_id'] = $id;
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privatePostCancelTriggerOrder($this->extend($request, $params));
             } else {
                 $response = $this->privatePostCancel($this->extend($request, $params));
@@ -1752,7 +1786,7 @@ class derive extends Exchange {
         } else {
             $request['page_size'] = 500;
         }
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $request['status'] = 'untriggered';
         }
         $response = $this->privatePostGetOrders($this->extend($request, $params));
@@ -1895,7 +1929,7 @@ class derive extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order(array $rawOrder, ?array $market = null): array {
@@ -1970,7 +2004,7 @@ class derive extends Exchange {
         $isBid = $this->safe_bool($order, 'is_bid');
         $side = $this->safe_string($order, 'direction');
         if ($side === null) {
-            if ($isBid) {
+            if ($isBid === true) {
                 $side = 'buy';
             } else {
                 $side = 'sell';
@@ -2304,9 +2338,9 @@ class derive extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
-            'initialMargin' => $this->safe_string($position, 'initial_margin'),
+            'initialMargin' => $this->safe_number($position, 'initial_margin'),
             'initialMarginPercentage' => null,
-            'maintenanceMargin' => $this->safe_string($position, 'maintenance_margin'),
+            'maintenanceMargin' => $this->safe_number($position, 'maintenance_margin'),
             'maintenanceMarginPercentage' => null,
             'entryPrice' => null,
             'notional' => $this->parse_number($notional),
@@ -2709,7 +2743,7 @@ class derive extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default $error handler
         }
         $error = $this->safe_dict($response, 'error');

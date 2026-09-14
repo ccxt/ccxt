@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -28,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class hitbtc(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
@@ -202,6 +201,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'margin/history/trade': {'cost': 15},
                         'margin/history/positions': {'cost': 15},
                         'margin/history/clearing': {'cost': 15},
+                        'margin-settings': {'cost': 15},
                         'futures/balance': {'cost': 15},
                         'futures/balance/{currency}': {'cost': 15},
                         'futures/account': {'cost': 1},
@@ -215,8 +215,10 @@ class hitbtc(Exchange, ImplicitAPI):
                         'futures/history/trade': {'cost': 15},
                         'futures/history/positions': {'cost': 15},
                         'futures/history/clearing': {'cost': 15},
+                        'user/api-keys': {'cost': 15},
                         'wallet/balance': {'cost': 30},
                         'wallet/balance/{currency}': {'cost': 30},
+                        'wallet/crypto/address/white-list': {'cost': 30},
                         'wallet/crypto/address': {'cost': 30},
                         'wallet/crypto/address/recent-deposit': {'cost': 30},
                         'wallet/crypto/address/recent-withdraw': {'cost': 30},
@@ -224,6 +226,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'wallet/transactions': {'cost': 30},
                         'wallet/transactions/{tx_id}': {'cost': 30},
                         'wallet/crypto/fee/estimate': {'cost': 30},
+                        'wallet/crypto/fee/withdraw/hash': {'cost': 30},
                         'wallet/airdrops': {'cost': 30},
                         'wallet/amount-locks': {'cost': 30},
                         'sub-account': {'cost': 15},
@@ -245,10 +248,13 @@ class hitbtc(Exchange, ImplicitAPI):
                         'wallet/internal/withdraw': {'cost': 30},
                         'wallet/crypto/check-offchain-available': {'cost': 30},
                         'wallet/crypto/fees/estimate': {'cost': 30},
+                        'wallet/crypto/fee/estimate/bulk': {'cost': 30},
                         'wallet/airdrops/{id}/claim': {'cost': 30},
                         'sub-account/freeze': {'cost': 15},
                         'sub-account/activate': {'cost': 15},
                         'sub-account/transfer': {'cost': 15},
+                        'sub-account/transfer/sub-to-super': {'cost': 15},
+                        'sub-account/transfer/sub-to-sub': {'cost': 15},
                         'sub-account/acl': {'cost': 15},
                     },
                     'patch': {
@@ -271,7 +277,10 @@ class hitbtc(Exchange, ImplicitAPI):
                     },
                     'put': {
                         'margin/account/isolated/{symbol}': {'cost': 1},
+                        'margin-settings/amm': {'cost': 15},
+                        'margin/margin-settings/amr': {'cost': 15},
                         'futures/account/isolated/{symbol}': {'cost': 1},
+                        'futures/margin-settings/amr': {'cost': 15},
                         'wallet/crypto/withdraw/{id}': {'cost': 30},
                     },
                 },
@@ -780,7 +789,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for hitbtc
 
@@ -984,7 +993,7 @@ class hitbtc(Exchange, ImplicitAPI):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
             networkCode = self.network_id_to_code(networkId, code)
-            networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
+            networkCode = networkCode.upper() if (networkCode is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1008,7 +1017,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'id': currencyId,
             'precision': self.safe_number(entry, 'precision_transfer'),
             'name': self.safe_string(entry, 'full_name'),
-            'active': not self.safe_bool(entry, 'delisted'),
+            'active': self.safe_bool(entry, 'delisted') is not True,
             'deposit': self.safe_bool(entry, 'payin_enabled'),
             'withdraw': self.safe_bool(entry, 'payout_enabled'),
             'networks': networks,
@@ -1098,7 +1107,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             entry = response[i]
@@ -1124,7 +1133,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         account = None if (type is None) else self.safe_string(accountsByType, type, type)
         response: dict
         if account == 'wallet':
@@ -1268,7 +1277,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1416,7 +1425,7 @@ class hitbtc(Exchange, ImplicitAPI):
         taker = self.safe_value(trade, 'taker')
         takerOrMaker: str
         if taker is not None:
-            takerOrMaker = 'taker' if taker else 'maker'
+            takerOrMaker = 'taker' if (taker is True) else 'maker'
         else:
             takerOrMaker = 'taker'  # the only case when `taker` field is missing, is public fetchTrades and it must be taker
         if feeCostString is not None:
@@ -1427,7 +1436,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        # we use clientOrderId order id with self exchange intentionally
+        # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string_2(trade, 'clientOrderId', 'client_order_id')
@@ -1451,7 +1460,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_transactions_helper(self, types: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
+    def fetch_transactions_helper(self, types: object, code: object, since: object, limit: object, params: object) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         request = {
@@ -1504,7 +1513,7 @@ class hitbtc(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type: Any):
+    def parse_transaction_type(self, type: object):
         types = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -1595,7 +1604,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -1609,7 +1618,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1623,7 +1632,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1780,7 +1789,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 result[symbol] = fee
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1796,7 +1805,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1855,7 +1864,7 @@ class hitbtc(Exchange, ImplicitAPI):
         ohlcvs = self.to_array(response)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # Spot and Swap
         #
@@ -1888,7 +1897,7 @@ class hitbtc(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2020,7 +2029,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         request = {
-            'order_id': id,  # exchange assigned order id to the client order id
+            'order_id': id,  # exchange assigned order id as oppose to the client order id
         }
         marketType = None
         marginMode = None
@@ -2079,7 +2088,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2472,7 +2481,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string(order, 'client_order_id')
-        # we use clientOrderId order id with self exchange intentionally
+        # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         side = self.safe_string(order, 'side')
@@ -2652,18 +2661,18 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def convert_currency_network(self, code: str, amount: Any, fromNetwork: Any, toNetwork: Any, params: Any):
+    def convert_currency_network(self, code: str, amount: object, fromNetwork: object, toNetwork: object, params: object):
         if self.markets is None:
             self.load_markets()
         if code != 'USDT':
             raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         fromNetwork = fromNetwork.upper()
         toNetwork = toNetwork.upper()
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same')
+            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
             raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
@@ -2712,7 +2721,7 @@ class hitbtc(Exchange, ImplicitAPI):
             params = self.omit(params, 'network')
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
-        if includeFee:
+        if includeFee is True:
             request['include_fee'] = True
         response = self.privatePostWalletCryptoWithdraw(self.extend(request, params))
         #
@@ -2852,7 +2861,7 @@ class hitbtc(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3026,7 +3035,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marginMode = self.safe_string(position, 'type')
         leverage = self.safe_number(position, 'leverage')
         datetime = self.safe_string(position, 'updated_at')
-        positions = self.safe_value(position, 'positions', [])
+        positions = self.safe_list(position, 'positions', [])
         liquidationPrice = None
         entryPrice = None
         contracts = None
@@ -3035,7 +3044,7 @@ class hitbtc(Exchange, ImplicitAPI):
             liquidationPrice = self.safe_number(entry, 'price_liquidation')
             entryPrice = self.safe_number(entry, 'price_entry')
             contracts = self.safe_number(entry, 'quantity')
-        currencies = self.safe_value(position, 'currencies', [])
+        currencies = self.safe_list(position, 'currencies', [])
         collateral = None
         for i in range(0, len(currencies)):
             entry = currencies[i]
@@ -3074,7 +3083,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #         "contract_type": "perpetual",
@@ -3159,7 +3168,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchOpenInterest() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -3195,7 +3204,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -3218,7 +3227,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "contract_type": "perpetual",
@@ -3257,12 +3266,12 @@ class hitbtc(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: object, type: object, params={}) -> MarginModification:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
-        if market['swap']:
+        if market['swap'] is True:
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
         stringAmount = self.number_to_string(amount)
@@ -3533,7 +3542,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes)
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #    {
         #         "full_name": "ConnectWealth",
@@ -3557,7 +3566,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #         ]
         #    }
         #
-        networks = self.safe_value(fee, 'networks', [])
+        networks = self.safe_list(fee, 'networks', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networks)):
             networkEntry = networks[j]
@@ -3623,7 +3632,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: Any = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: object = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -3639,7 +3648,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 marginMode = 'isolated'
         return [marginMode, params]
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #
         #     {
         #       "error": {
@@ -3666,7 +3675,7 @@ class hitbtc(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + implodedPath
@@ -3677,7 +3686,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'Content-Type': 'application/json',
         }
         if method == 'GET':
-            if queryLength:
+            if (queryLength is not None) and (queryLength != 0):
                 getRequest = '?' + self.urlencode(query)
                 url = url + getRequest
         else:

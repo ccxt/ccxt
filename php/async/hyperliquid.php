@@ -629,7 +629,13 @@ class hyperliquid extends Exchange {
             }
         } else {
             $fetchDexesLength = count($fetchDexes);
-            for ($i = 1; $i < $maxLimit; $i++) {
+            // index 0 is the null main $dex, so the loop runs 1..maxLimit to load
+            // exactly $maxLimit dexes. do NOT rewrite this as `$i <= $maxLimit` => the
+            // python transpiler collapses every for-loop bound to an exclusive
+            // range(), so `<=` silently emits range(1, $maxLimit) and loads one $dex
+            // too few (build/transpile.ts treats <, <=, > and >= identically)
+            $maxIteration = $this->sum($maxLimit, 1);
+            for ($i = 1; $i < $maxIteration; $i++) {
                 if ($i >= $fetchDexesLength) {
                     break;
                 }
@@ -1165,9 +1171,9 @@ class hyperliquid extends Exchange {
         $isUnifiedEnabled = null;
         list($isUnifiedEnabled, $params) = Async\await($this->is_unified_enabled('fetchBalance', $userAddress, $shouldRefresh, $params));
         $dex = $this->safe_string($params, 'dex');
-        $isSpot = (($type === 'spot') || $isUnifiedEnabled) && ($dex === null);
+        $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
         $request = array(
-            'type' => ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
+            'type' => ($isSpot === true) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user' => $userAddress,
         );
         $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
@@ -1212,7 +1218,7 @@ class hyperliquid extends Exchange {
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
                 $unifiedCode = $this->safe_currency_code($this->safe_string($balance, 'coin'));
-                $code = $isSpot ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
+                $code = ($isSpot === true) ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
                 $account = $this->account();
                 $total = $this->safe_string($balance, 'total');
                 $used = $this->safe_string($balance, 'hold');
@@ -1264,7 +1270,7 @@ class hyperliquid extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'type' => 'l2Book',
-            'coin' => $market['swap'] ? $this->safe_string($market, 'baseName') : $market['id'],
+            'coin' => ($market['swap'] === true) ? $this->safe_string($market, 'baseName') : $market['id'],
         );
         $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
         //
@@ -1330,7 +1336,7 @@ class hyperliquid extends Exchange {
             $firstSymbol = $this->safe_string($symbols, 0);
             if ($firstSymbol !== null) {
                 $market = $this->market($firstSymbol);
-                if ($this->safe_bool($this->safe_dict($market, 'info'), 'hip3')) {
+                if ($this->safe_bool($this->safe_dict($market, 'info'), 'hip3') === true) {
                     $hip3 = true;
                 }
             }
@@ -1345,7 +1351,7 @@ class hyperliquid extends Exchange {
         } else {
             $response = Async\await($this->fetch_markets($params));
         }
-        // same $response "fetchMarkets"
+        // same $response as under "fetchMarkets"
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -1544,7 +1550,7 @@ class hyperliquid extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1570,7 +1576,7 @@ class hyperliquid extends Exchange {
         $request = array(
             'type' => 'candleSnapshot',
             'req' => array(
-                'coin' => $market['swap'] ? $this->safe_string($market, 'baseName') : $market['id'],
+                'coin' => ($market['swap'] === true) ? $this->safe_string($market, 'baseName') : $market['id'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'startTime' => $since,
                 'endTime' => $until,
@@ -1708,7 +1714,7 @@ class hyperliquid extends Exchange {
         $integerPart = explode('.', $priceStr)[0];
         $significantDigits = max(5, strlen($integerPart));
         $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
-        $maxDecimals = $market['spot'] ? 8 : 6;
+        $maxDecimals = ($market['spot'] === true) ? 8 : 6;
         $subtractedValue = $maxDecimals - $this->precision_from_string($this->safe_string($market['precision'], 'amount'));
         return $this->decimal_to_precision($result, ROUND, $subtractedValue, DECIMAL_PLACES, $this->paddingMode);
     }
@@ -1925,7 +1931,7 @@ class hyperliquid extends Exchange {
         $nonce = $this->milliseconds();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $payload = array(
-            'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'maxFeeRate' => $maxFeeRate,
             'builder' => $builder,
             'nonce' => $nonce,
@@ -1962,7 +1968,7 @@ class hyperliquid extends Exchange {
 
     private function do_initialize_client() {
         try {
-            Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', null, false, array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods
+            Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', null, false, array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch (Exception $e) {
             return false;
         }
@@ -1976,7 +1982,7 @@ class hyperliquid extends Exchange {
     private function do_handle_builder_fee_approval() {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee) {
+        if ($approvedBuilderFee === true) {
             return true; // skip if $builder fee is already approved
         }
         try {
@@ -1984,7 +1990,7 @@ class hyperliquid extends Exchange {
             // when the user disables the $builder fee (builderFee = false) we still approve and attach the $builder,
             // but with a 0% fee rate, so orders remain attributed to the $builder for statistics purposes only and the user is not charged
             $maxFeeRate = $this->safe_string($this->options, 'feeRate', '0.01%');
-            if (!$buildFee) {
+            if ($buildFee !== true) {
                 $maxFeeRate = '0%';
             }
             Async\await($this->approve_builder_fee($builder, $maxFeeRate));
@@ -2072,7 +2078,7 @@ class hyperliquid extends Exchange {
         $type = $this->safe_string($params, 'type', 'userSetAbstraction');
         $params = $this->omit($params, 'type');
         $payload = array(
-            'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'user' => $userAddress,
             'abstraction' => $abstraction,
             'nonce' => $nonce,
@@ -2122,7 +2128,7 @@ class hyperliquid extends Exchange {
         $type = $this->safe_string($params, 'type', 'userDexAbstraction');
         $params = $this->omit($params, 'type');
         $payload = array(
-            'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'user' => $userAddress,
             'enabled' => $enabled,
             'nonce' => $nonce,
@@ -2219,7 +2225,7 @@ class hyperliquid extends Exchange {
 
     private function do_create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()) {
         /**
-         * create a trade order that is executed TWAP order over a specified $duration->
+         * create a trade order that is executed as a TWAP order over a specified $duration->
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
@@ -2362,7 +2368,7 @@ class hyperliquid extends Exchange {
         $slippage = $this->safe_string($params, 'slippage');
         $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $defaultTimeInForce = 'alo';
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
@@ -2370,7 +2376,7 @@ class hyperliquid extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $isTrigger = ($stopLossPrice || $takeProfitPrice);
+        $isTrigger = (($stopLossPrice !== null) || ($takeProfitPrice !== null));
         $px = null;
         if ($isMarket) {
             if ($price === null) {
@@ -2628,7 +2634,7 @@ class hyperliquid extends Exchange {
         return $orders;
     }
 
-    public function cancel_twap_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_twap_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_twap_order(...))($id, $symbol, $params);
     }
 
@@ -2926,7 +2932,7 @@ class hyperliquid extends Exchange {
             $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
             $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
             $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $defaultTimeInForce = 'alo';
             }
             $timeInForce = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
@@ -2935,7 +2941,7 @@ class hyperliquid extends Exchange {
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLossPrice = $this->safe_string($orderParams, 'stopLossPrice', $triggerPrice);
             $takeProfitPrice = $this->safe_string($orderParams, 'takeProfitPrice');
-            $isTrigger = ($stopLossPrice || $takeProfitPrice);
+            $isTrigger = (($stopLossPrice !== null) || ($takeProfitPrice !== null));
             $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
             $orderParams = $this->omit($orderParams, array( 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ));
             $px = $this->number_to_string($price);
@@ -3656,9 +3662,10 @@ class hyperliquid extends Exchange {
         if ($tif !== null) {
             $postOnly = ($tif === 'ALO');
         }
-        $triggerPx = $this->safe_bool($entry, 'isTrigger') ? $this->safe_number($entry, 'triggerPx') : null;
+        $isTrigger = ($this->safe_bool($entry, 'isTrigger') === true);
+        $triggerPx = $isTrigger ? $this->safe_number($entry, 'triggerPx') : null;
         // standalone stop / take-profit orders carry their trigger in $triggerPx - surface it
-        // through the unified $stopLossPrice / $takeProfitPrice fields, see #24318
+        // through the unified $stopLossPrice / $takeProfitPrice fields as well, see #24318
         $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
         $stopLossPrice = null;
         $takeProfitPrice = null;
@@ -4335,7 +4342,7 @@ class hyperliquid extends Exchange {
             $strAmountFinal = $strAmount; // java req
             $toPerp = ($toAccount === 'perp') || ($toAccount === 'swap');
             $transferPayload = array(
-                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
                 'amount' => $strAmountFinal,
                 'toPerp' => $toPerp,
                 'nonce' => $nonce,
@@ -4354,7 +4361,13 @@ class hyperliquid extends Exchange {
                 'signature' => $transferSig,
             );
             $transferResponse = Async\await($this->privatePostExchange($transferRequest));
-            return $transferResponse;
+            //
+            // array('response' => array('type' => 'default'), 'status' => 'ok')
+            //
+            // the sub-account branches below already hand back the unified structure; the
+            // spot <> swap branch returned the raw acknowledgement, breaking the shape
+            $currency = $this->safe_currency($code);
+            return $this->parse_transfer($transferResponse, $currency);
         }
         // transfer between main account and subaccount
         $isDeposit = false;
@@ -4432,11 +4445,11 @@ class hyperliquid extends Exchange {
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'currency' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'ok',
+            'status' => $this->safe_string($transfer, 'status', 'ok'),
         );
     }
 
@@ -4487,7 +4500,7 @@ class hyperliquid extends Exchange {
         } else {
             $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $payload = array(
-                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
                 'destination' => $address,
                 'amount' => (string) $amount,
                 'time' => $nonce,
@@ -5190,7 +5203,7 @@ class hyperliquid extends Exchange {
             return null;
         }
         $hi3TokensByname = $this->safe_dict($this->options, 'hip3TokensByName', array());
-        if ($this->safe_dict($hi3TokensByname, $coin)) {
+        if ($this->safe_dict($hi3TokensByname, $coin) !== null) {
             $hip3Dict = $this->safe_dict($hi3TokensByname, $coin);
             $quote = $this->safe_string($hip3Dict, 'quote', 'USDC');
             $code = $this->safe_string($hip3Dict, 'code', $coin);
@@ -5206,7 +5219,7 @@ class hyperliquid extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default $error handler
         }
         // array("status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist.")

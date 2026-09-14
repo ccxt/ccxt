@@ -42,7 +42,7 @@ class WebSocketServer {
         // terminate any incoming connection
         // immediately after it has been successfully established
         if (Number.isInteger (this.terminateTimeout)) {
-            if (this.terminateTimeout) {
+            if (this.terminateTimeout !== 0) {
                 setTimeout (() => { ws.terminate () }, this.terminateTimeout)
             } else {
                 ws.terminate ()
@@ -51,7 +51,7 @@ class WebSocketServer {
 
         // close the connection after a certain amount of time
         if (Number.isInteger (this.closeTimeout)) {
-            if (this.closeTimeout) {
+            if (this.closeTimeout !== 0) {
                 setTimeout (() => {
                     console.log (new Date (), 'Closing with code', this.closeCode, typeof this)
                     // ws.terminate ()

@@ -9,7 +9,7 @@ import testSharedMethods from './base/test.sharedMethods.js';
 import testLiquidation from './base/test.liquidation.js';
 async function testFetchLiquidations(exchange, skippedProperties, code) {
     const method = 'fetchLiquidations';
-    if (!exchange.has['fetchLiquidations']) {
+    if (exchange.has['fetchLiquidations'] === undefined || exchange.has['fetchLiquidations'] === false) {
         return true;
     }
     const items = await exchange.fetchLiquidations(code);

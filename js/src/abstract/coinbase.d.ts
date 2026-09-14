@@ -28,6 +28,7 @@ interface Exchange {
     v2PrivateGetPaymentMethodsPaymentMethodId(params?: {}): Promise<Dict>;
     v2PrivateGetUser(params?: {}): Promise<Dict>;
     v2PrivateGetUserAuth(params?: {}): Promise<Dict>;
+    v2PrivateGetSubscriptionsCoinbaseOne(params?: {}): Promise<Dict>;
     v2PrivatePostAccounts(params?: {}): Promise<Dict>;
     v2PrivatePostAccountsAccountIdPrimary(params?: {}): Promise<Dict>;
     v2PrivatePostAccountsAccountIdAddresses(params?: {}): Promise<Dict>;
@@ -71,6 +72,9 @@ interface Exchange {
     v3PrivateGetBrokerageCfmPositions(params?: {}): Promise<Dict>;
     v3PrivateGetBrokerageCfmPositionsProductId(params?: {}): Promise<Dict>;
     v3PrivateGetBrokerageCfmSweeps(params?: {}): Promise<Dict>;
+    v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow(params?: {}): Promise<Dict>;
+    v3PrivateGetBrokerageCfmIntradayMarginSetting(params?: {}): Promise<Dict>;
+    v3PrivateGetBrokerageIntxBalancesPortfolioUuid(params?: {}): Promise<Dict>;
     v3PrivateGetBrokerageIntxPortfolioPortfolioUuid(params?: {}): Promise<Dict>;
     v3PrivateGetBrokerageIntxPositionsPortfolioUuid(params?: {}): Promise<Dict>;
     v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(params?: {}): Promise<Dict>;
@@ -87,7 +91,9 @@ interface Exchange {
     v3PrivatePostBrokerageConvertQuote(params?: {}): Promise<Dict>;
     v3PrivatePostBrokerageConvertTradeTradeId(params?: {}): Promise<Dict>;
     v3PrivatePostBrokerageCfmSweepsSchedule(params?: {}): Promise<Dict>;
+    v3PrivatePostBrokerageCfmIntradayMarginSetting(params?: {}): Promise<Dict>;
     v3PrivatePostBrokerageIntxAllocate(params?: {}): Promise<Dict>;
+    v3PrivatePostBrokerageIntxMultiAssetCollateral(params?: {}): Promise<Dict>;
     v3PrivatePostBrokerageOrdersClosePosition(params?: {}): Promise<Dict>;
     v3PrivatePutBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<Dict>;
     v3PrivateDeleteBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<Dict>;

@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
@@ -138,7 +139,7 @@ class kraken extends \ccxt\async\kraken {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['params']['post_only'] = true;
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -177,7 +178,7 @@ class kraken extends \ccxt\async\kraken {
         $priceType = ($isTrailingPercentOrder || $isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if ($method === 'createOrderWs') {
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-            if ($reduceOnly) {
+            if ($reduceOnly === true) {
                 $request['params']['reduce_only'] = true;
             }
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
@@ -654,16 +655,16 @@ class kraken extends \ccxt\async\kraken {
         }
         $ohlcvsLength = count($data);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
-            $candle = $data[$ohlcvsLength - $i - 1];
+            $candle = $data[$i];
             $datetime = $this->safe_string($candle, 'interval_begin');
             $timestamp = $this->parse8601($datetime);
             $parsed = array(
                 $timestamp,
-                $this->safe_string($candle, 'open'),
-                $this->safe_string($candle, 'high'),
-                $this->safe_string($candle, 'low'),
-                $this->safe_string($candle, 'close'),
-                $this->safe_string($candle, 'volume'),
+                $this->safe_number($candle, 'open'),
+                $this->safe_number($candle, 'high'),
+                $this->safe_number($candle, 'low'),
+                $this->safe_number($candle, 'close'),
+                $this->safe_number($candle, 'volume'),
             );
             $stored->append($parsed);
         }
@@ -846,7 +847,7 @@ class kraken extends \ccxt\async\kraken {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_markets());
         $name = 'ohlc';
@@ -993,7 +994,7 @@ class kraken extends \ccxt\async\kraken {
         $data = $this->safe_list($message, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         $symbol = $this->safe_string($first, 'symbol');
-        $a = $this->safe_value($first, 'asks', array());
+        $a = $this->safe_list($first, 'asks', array());
         $b = $this->safe_value($first, 'bids', array());
         $c = $this->safe_integer($first, 'checksum');
         $messageHash = $this->get_message_hash('orderbook', null, $symbol);
@@ -1021,8 +1022,9 @@ class kraken extends \ccxt\async\kraken {
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
                 $bookside = $orderbook[$key];
-                $deltas = $this->safe_value($first, $key, array());
-                if (strlen($deltas) > 0) {
+                $deltas = $this->safe_list($first, $key, array());
+                $deltasLength = count($deltas);
+                if ($deltasLength > 0) {
                     $this->custom_handle_deltas($bookside, $deltas);
                 }
             }
@@ -1031,7 +1033,7 @@ class kraken extends \ccxt\async\kraken {
         $orderbook->limit();
         // $checksum temporarily disabled because the exchange $checksum was not reliable
         $checksum = $this->handle_option('watchOrderBook', 'checksum', false);
-        if ($checksum) {
+        if ($checksum === true) {
             $payloadArray = array();
             if ($c !== null) {
                 $checkAsks = $orderbook['asks'];
@@ -1098,7 +1100,7 @@ class kraken extends \ccxt\async\kraken {
     public function handle_system_status(Client $client, mixed $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified for any usage pattern that
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -1138,20 +1140,58 @@ class kraken extends \ccxt\async\kraken {
         $start = $this->safe_integer($subscription, 'start');
         $expires = $this->safe_integer($subscription, 'expires');
         if (($subscription === null) || (($subscription !== null) && ($start . $expires) <= $now)) {
-            // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-            $response = Async\await($this->privatePostGetWebSocketsToken($params));
-            //
-            //     {
-            //         "error":array(),
-            //         "result":{
-            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-            //             "expires":900
-            //         }
-            //     }
-            //
-            $subscription = $this->safe_dict($response, 'result');
-            $subscription['start'] = $now;
-            $client->subscriptions[$authenticated] = $subscription;
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393 => the staleness gate
+            // above is followed by an awaited privatePostGetWebSocketsToken (),
+            // so N concurrent watchPrivate () calls on a cold instance each
+            // pass the gate and each burn a rate-limited private REST call to
+            // mint a separate $token-> $client->futures is the flight registry
+            // itself, namespaced away from the real $subscription keys on the
+            // same $client that already caches the $token, and settlement goes
+            // through $client->resolve() / $client->reject() so every write to
+            // that map stays behind the client's own lock
+            $messageHash = 'authenticateFlight';
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $token is then in the subscriptions bucket
+                Async\await($client->future($messageHash));
+                $subscription = $this->safe_dict($client->subscriptions, $authenticated);
+                return $this->safe_string($subscription, 'token');
+            }
+            $future = $client->reusableFuture($messageHash);
+            try {
+                // https://docs.kraken.com/api/docs/rest-api/get-websockets-$token
+                $response = Async\await($this->privatePostGetWebSocketsToken($params));
+                //
+                //     {
+                //         "error":array(),
+                //         "result":{
+                //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                //             "expires":900
+                //         }
+                //     }
+                //
+                $subscription = $this->safe_dict($response, 'result');
+                $token = $this->safe_string($subscription, 'token');
+                if ($token === null) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty token');
+                }
+                $subscription['start'] = $now;
+                $client->subscriptions[$authenticated] = $subscription;
+                // settle the flight and wake every waiter - resolve () also
+                // clears the registry entry, so the next refresh re-leads
+                $client->resolve($token, $messageHash);
+            } catch (Exception $e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                $client->reject($e, $messageHash);
+            }
+            // rethrows the leader's own failure and attaches the handler that
+            // keeps an alone leader's rejection from killing the process
+            Async\await($future);
+            $subscription = $this->safe_dict($client->subscriptions, $authenticated);
         }
         return $this->safe_string($subscription, 'token');
     }
@@ -1392,7 +1432,7 @@ class kraken extends \ccxt\async\kraken {
                 $length = count($stored);
                 if ($length === $limit && ($previousOrder === null)) {
                     $first = $stored[0];
-                    $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
+                    $symbolsByOrderId = $this->safe_dict($this->options, 'symbolsByOrderId', array());
                     if (is_array($symbolsByOrderId) && array_key_exists($first['id'] ?? '', $symbolsByOrderId)) {
                         unset($symbolsByOrderId[$first['id']]);
                     }
@@ -1701,7 +1741,7 @@ class kraken extends \ccxt\async\kraken {
                 $method($client, $message);
             }
         }
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             $event = $this->safe_string_2($message, 'event', 'method');
             $methods = array(
                 'heartbeat' => array($this, 'handle_heartbeat'),

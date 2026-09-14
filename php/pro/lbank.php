@@ -73,7 +73,7 @@ class lbank extends \ccxt\async\lbank {
     public function check_contract_market(array $market, string $methodName) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if (($market !== null) && $market['contract']) {
+        if (($market !== null) && ($market['contract'] === true)) {
             throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $market['type'] . ' markets yet');
         }
     }
@@ -93,7 +93,7 @@ class lbank extends \ccxt\async\lbank {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -137,7 +137,7 @@ class lbank extends \ccxt\async\lbank {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -984,6 +984,9 @@ class lbank extends \ccxt\async\lbank {
         //
         //  array( ping => 'a13a939c-5f25-4e06-9981-93cb3b890707', action => 'ping' )
         //
+        // lbank closes the socket if this app-level ping is unanswered within a minute, but does not
+        // reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
+        $client->lastPong = $this->milliseconds();
         $pingId = $this->safe_string($message, 'ping');
         try {
             Async\await($client->send(array(
@@ -1025,44 +1028,66 @@ class lbank extends \ccxt\async\lbank {
     }
 
     private function do_authenticate($params = array()) {
-        // when we implement more private streams, we need to refactor the authentication
-        // to be concurrent-safe and respect the same authentication token
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
+        // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
+        // overwritten. the flight lives in $client->futures of this exchange's own ws $client under
+        // a key that is not a $messageHash, and settles via $client->resolve / $client->reject only
+        $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $now = $this->milliseconds();
-        $messageHash = 'authenticated';
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $this->check_required_credentials();
-            $response = Async\await($this->spotPrivatePostSubscribeGetKey($params));
-            //
-            // array("result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198)
-            //
-            $result = $this->safe_value($response, 'result');
-            if ($result !== true) {
-                throw new ExchangeError($this->id . ' failed to get subscribe key');
-            }
-            $client->subscriptions['authenticated'] = array(
-                'key' => $this->safe_string($response, 'data'),
-                'expires' => $this->sum($now, 3300000), // SubscribeKey lasts one hour, refresh it every 55 minutes
-            );
-        } else {
-            $expires = $this->safe_integer($authenticated, 'expires', 0);
-            if ($expires < $now) {
-                $request = array(
-                    'subscribeKey' => $authenticated['key'],
-                );
-                $response = Async\await($this->spotPrivatePostSubscribeRefreshKey($this->extend($request, $params)));
-                //
-                //    array("result" => "true")
-                //
-                $result = $this->safe_string($response, 'result');
-                if ($result !== 'true') {
-                    throw new ExchangeError($this->id . ' failed to refresh the SubscribeKey');
-                }
-                $client['subscriptions']['authenticated']['expires'] = $this->sum($now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it $expires
-            }
+        $messageHash = 'authenticateFlight';
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            // a flight is already in progress - wake when the leader settles
+            // it => the subscribeKey is then in the bucket
+            Async\await($client->future($messageHash));
+            return $client->subscriptions['authenticated']['key'];
         }
+        $future = $client->reusableFuture($messageHash);
+        try {
+            $authenticated = $this->safe_value($client->subscriptions, 'authenticated');
+            if ($authenticated === null) {
+                $response = Async\await($this->spotPrivatePostSubscribeGetKey($params));
+                //
+                // array("result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198)
+                //
+                $result = $this->safe_value($response, 'result');
+                if ($result !== true) {
+                    throw new ExchangeError($this->id . ' failed to get subscribe key');
+                }
+                $client->subscriptions['authenticated'] = array(
+                    'key' => $this->safe_string($response, 'data'),
+                    'expires' => $this->sum($now, 3300000), // SubscribeKey lasts one hour, refresh it every 55 minutes
+                );
+            } else {
+                $expires = $this->safe_integer($authenticated, 'expires', 0);
+                if ($expires < $now) {
+                    $request = array(
+                        'subscribeKey' => $authenticated['key'],
+                    );
+                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey($this->extend($request, $params)));
+                    //
+                    //    array("result" => "true")
+                    //
+                    $result = $this->safe_string($response, 'result');
+                    if ($result !== 'true') {
+                        throw new ExchangeError($this->id . ' failed to refresh the SubscribeKey');
+                    }
+                    $client['subscriptions']['authenticated']['expires'] = $this->sum($now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it $expires
+                }
+            }
+            // settle the flight through the $client so that every write to the
+            // futures map happens inside the base class
+            $client->resolve($client->subscriptions['authenticated']['key'], $messageHash);
+        } catch (Exception $e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            $client->reject($e, $messageHash);
+        }
+        // rethrows a rejected flight to the leader and attaches the handler
+        // that keeps an alone leader from crashing on an unhandled rejection
+        Async\await($future);
         return $client->subscriptions['authenticated']['key'];
     }
 }

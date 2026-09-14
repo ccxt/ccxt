@@ -57,6 +57,8 @@ public partial class BaseExchange
     }
 
 
+    // list params (e.g. batch-order bodies) flow through fetch2 into omit and must
+    // pass through untouched, so these overloads stay object-returning
     public object omit(object a, params object[] parameters)
     {
         var keys = new List<object>();
@@ -97,21 +99,6 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public dict omitN(object aa, List<object> keys)
-    {
-        var a = (dict)aa;
-        var outDict = new dict();
-        var aKeys = new List<string>(a.Keys);
-        foreach (string key in aKeys)
-        {
-            if (!keys.Contains(key))
-            {
-                outDict.Add(key, a[key]);
-            }
-        }
-        return outDict;
-    }
-
     public object omit(dict a, string key)
     {
         var keys = new List<object>();
@@ -124,10 +111,23 @@ public partial class BaseExchange
         if (a == null)
             return null;
 
-        // if (a.GetType() == typeof(List<object>))
-        // {
-        //     return (List<object>)a;
-        // }
+        // a typed core (fetchMarkets -> List<MarketInterface>) hands its result to
+        // generated dict logic; detype each element so setMarkets/deepExtend still
+        // see the plain dictionaries they merge fees and defaults into.
+        if (a is System.Collections.IEnumerable typedRows && !(a is IList<object>) && !(a is IDictionary<string, object>) && !(a is string))
+        {
+            var elem = a.GetType().IsGenericType ? a.GetType().GetGenericArguments()[0] : null;
+            if (elem != null && elem.IsValueType && !elem.IsPrimitive && elem.Namespace == "ccxt")
+            {
+                var detyped = new List<object>();
+                foreach (var row in typedRows)
+                {
+                    detyped.Add(FromTyped(row));
+                }
+                return detyped;
+            }
+        }
+
         if (a is List<object>)
         {
             return (List<object>)a;
@@ -135,8 +135,27 @@ public partial class BaseExchange
 
         if (a is IList<object>)
         {
-            // return ((IList<object>)a).ToList();
+            // a live WS cache is mutated by the receive thread while callers index the
+            // result; SlimConcurrentList.ToArray snapshots under a single read lock,
+            // whereas Count + CopyTo (what Enumerable.ToList uses) locks them separately
+            if (a is ccxt.pro.SlimConcurrentList<object> concurrentList)
+            {
+                return concurrentList.ToArray();
+            }
             return ((IList<object>)a);
+        }
+
+        // a typed core hands back List<Dictionary<string, object>> / List<T>; List<T> is
+        // invariant so none of those IS an IList<object> - re-box through the non-generic
+        // IList before the dictionary branch, which would otherwise cast-throw on a list
+        if (a is System.Collections.IList && !(a is IDictionary<string, object>))
+        {
+            var boxedRows = new List<object>();
+            foreach (var row in (System.Collections.IList)a)
+            {
+                boxedRows.Add(row);
+            }
+            return boxedRows;
         }
         // if (a.GetType() == typeof(List<string>))
         // {
@@ -166,7 +185,13 @@ public partial class BaseExchange
         return outList;
     }
 
-    public object arrayConcat(object aa, object bb)
+    // List<object> (not `object`): every path hands back the fresh List<object> built below or
+    // null, so the declaration can carry the real box — build/csharp-local-types.js names
+    // `object x = this.arrayConcat(...)` locals from this signature. The Task branch keeps its
+    // exact-type probe but re-boxes its elements into a List<object> so the declared type stays
+    // truthful; nothing else builds or consumes a List<Task<object>> concat (the only other
+    // List<Task<object>> site is PromiseAll's own local), so no runtime box changes in practice.
+    public List<object> arrayConcat(object aa, object bb)
     {
         // if (aa.GetType() == typeof(List<object>))
         if (aa is List<object>)
@@ -185,7 +210,7 @@ public partial class BaseExchange
         {
             var a = (List<Task<object>>)aa;
             var b = (List<Task<object>>)bb;
-            var outList = new List<Task<object>>();
+            var outList = new List<object>();
             foreach (var elem in a)
                 outList.Add(elem);
             foreach (var elem in b)

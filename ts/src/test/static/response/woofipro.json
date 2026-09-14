@@ -530,6 +530,138 @@
                 }
             }
         ],
+        "fetchMarginModes": [
+            {
+                "description": "fetch margin modes of all markets",
+                "method": "fetchMarginModes",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786648219651,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "default_margin_mode": "CROSS"
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "default_margin_mode": "ISOLATED"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "info": {
+                            "symbol": "PERP_BTC_USDC",
+                            "default_margin_mode": "CROSS"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "marginMode": "cross"
+                    },
+                    "LTC/USDC:USDC": {
+                        "info": {
+                            "symbol": "PERP_LTC_USDC",
+                            "default_margin_mode": "ISOLATED"
+                        },
+                        "symbol": "LTC/USDC:USDC",
+                        "marginMode": "isolated"
+                    }
+                }
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode of one market",
+                "method": "fetchMarginMode",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786648219651,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "default_margin_mode": "CROSS"
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "default_margin_mode": "ISOLATED"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "PERP_BTC_USDC",
+                        "default_margin_mode": "CROSS"
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin to isolated position",
+                "method": "addMargin",
+                "input": [
+                    "LTC/USDC:USDC",
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786648219651
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "timestamp": 1786648219651
+                    },
+                    "symbol": "LTC/USDC:USDC",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "total": null,
+                    "code": "USDC",
+                    "status": "ok",
+                    "timestamp": 1786648219651,
+                    "datetime": "2026-08-13T19:10:19.651Z"
+                }
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin of isolated position",
+                "method": "reduceMargin",
+                "input": [
+                    "LTC/USDC:USDC",
+                    0.5
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786648219651
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "timestamp": 1786648219651
+                    },
+                    "symbol": "LTC/USDC:USDC",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 0.5,
+                    "total": null,
+                    "code": "USDC",
+                    "status": "ok",
+                    "timestamp": 1786648219651,
+                    "datetime": "2026-08-13T19:10:19.651Z"
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Swap trades",

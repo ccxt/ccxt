@@ -24,6 +24,7 @@ interface Exchange {
     publicGetJwksJson (params?: {}): Promise<Dict>;
     publicGetOnboarding (params?: {}): Promise<Dict>;
     publicGetReferralsConfig (params?: {}): Promise<Dict>;
+    publicGetStakingBalanceHistoryGlobal (params?: {}): Promise<Dict>;
     publicGetStakingConfig (params?: {}): Promise<Dict>;
     publicGetSystemAnnouncements (params?: {}): Promise<Dict>;
     publicGetSystemConfig (params?: {}): Promise<Dict>;
@@ -33,6 +34,7 @@ interface Exchange {
     publicGetSystemVolumeTiers (params?: {}): Promise<Dict>;
     publicGetTrades (params?: {}): Promise<Dict>;
     publicGetVaults (params?: {}): Promise<Dict>;
+    publicGetVaultsAnalytics (params?: {}): Promise<Dict>;
     publicGetVaultsBalance (params?: {}): Promise<Dict>;
     publicGetVaultsConfig (params?: {}): Promise<Dict>;
     publicGetVaultsHistory (params?: {}): Promise<Dict>;
@@ -74,6 +76,11 @@ interface Exchange {
     privateGetOrdersOrderId (params?: {}): Promise<Dict>;
     privateGetReferralsQrCode (params?: {}): Promise<Dict>;
     privateGetReferralsSummary (params?: {}): Promise<Dict>;
+    privateGetRfqs (params?: {}): Promise<Dict>;
+    privateGetRfqsDrafts (params?: {}): Promise<Dict>;
+    privateGetRfqsMarkets (params?: {}): Promise<Dict>;
+    privateGetRfqsRfqIdBbo (params?: {}): Promise<Dict>;
+    privateGetStakingBalanceHistory (params?: {}): Promise<Dict>;
     privateGetStakingHistory (params?: {}): Promise<Dict>;
     privateGetStakingSummary (params?: {}): Promise<Dict>;
     privateGetTransfers (params?: {}): Promise<Dict>;
@@ -92,6 +99,8 @@ interface Exchange {
     privatePostAccountProfileUsername (params?: {}): Promise<Dict>;
     privatePostAccountReferrer (params?: {}): Promise<Dict>;
     privatePostAccountSettingsTradingValueDisplay (params?: {}): Promise<Dict>;
+    privatePostAccountParadigmEnable (params?: {}): Promise<Dict>;
+    privatePostAccountTerminalToken (params?: {}): Promise<Dict>;
     privatePostAccountKeysSubkeysActivate (params?: {}): Promise<Dict>;
     privatePostAccountKeysSubkeys (params?: {}): Promise<Dict>;
     privatePostAccountTokens (params?: {}): Promise<Dict>;
@@ -104,12 +113,17 @@ interface Exchange {
     privatePostOnboarding (params?: {}): Promise<Dict>;
     privatePostOrders (params?: {}): Promise<Dict>;
     privatePostOrdersBatch (params?: {}): Promise<Dict>;
+    privatePostRfqs (params?: {}): Promise<Dict>;
+    privatePostRfqsDrafts (params?: {}): Promise<Dict>;
+    privatePostRfqsRfqIdExecute (params?: {}): Promise<Dict>;
     privatePostV2Auth (params?: {}): Promise<Dict>;
     privatePostV2Onboarding (params?: {}): Promise<Dict>;
     privatePostVaults (params?: {}): Promise<Dict>;
     privatePostXpTransfer (params?: {}): Promise<Dict>;
     privatePutAccountProfile (params?: {}): Promise<Dict>;
     privatePutAccountKeysSubkeysPublicKey (params?: {}): Promise<Dict>;
+    privatePutAccountKeysSubkeysPublicKeyAllowedCidrs (params?: {}): Promise<Dict>;
+    privatePutAccountTokensLookupIdAllowedCidrs (params?: {}): Promise<Dict>;
     privatePutOrdersOrderId (params?: {}): Promise<Dict>;
     privateDeleteAccountKeysSubkeysPublicKey (params?: {}): Promise<Dict>;
     privateDeleteAccountTokensLookupId (params?: {}): Promise<Dict>;
@@ -120,6 +134,8 @@ interface Exchange {
     privateDeleteOrdersBatch (params?: {}): Promise<Dict>;
     privateDeleteOrdersByClientIdClientId (params?: {}): Promise<Dict>;
     privateDeleteOrdersOrderId (params?: {}): Promise<Dict>;
+    privateDeleteRfqsDraftsDraftId (params?: {}): Promise<Dict>;
+    privateDeleteRfqsRfqId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

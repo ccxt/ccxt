@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_market_book = publicGetMarketBook = Entry[_Dict]('{market}/book', 'public', 'GET', {'cost': 1})
@@ -12,7 +11,7 @@ class ImplicitAPI:
     public_get_ticker_price = publicGetTickerPrice = Entry[_List]('ticker/price', 'public', 'GET', {'cost': 1})
     public_get_ticker_book = publicGetTickerBook = Entry[_List]('ticker/book', 'public', 'GET', {'cost': 1})
     public_get_market_candles = publicGetMarketCandles = Entry[_List]('{market}/candles', 'public', 'GET', {'cost': 1})
-    public_get_ticker_24h = publicGetTicker24h = Entry[Union[_Dict, _List]]('ticker/24h', 'public', 'GET', {'cost': 1, 'noMarket': 25})
+    public_get_ticker_24h = publicGetTicker24h = Entry[_Dict | _List]('ticker/24h', 'public', 'GET', {'cost': 1, 'noMarket': 25})
     public_get_time = publicGetTime = Entry[_Dict]('time', 'public', 'GET', {'cost': 1})
     public_get_markets = publicGetMarkets = Entry[_List]('markets', 'public', 'GET', {'cost': 1})
     public_get_assets = publicGetAssets = Entry[_List]('assets', 'public', 'GET', {'cost': 1})

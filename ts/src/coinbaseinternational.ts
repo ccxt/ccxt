@@ -83,8 +83,8 @@ export default class coinbaseinternational extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyBuys': true,
-                'fetchMySells': true,
+                'fetchMyBuys': false,
+                'fetchMySells': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
@@ -150,12 +150,20 @@ export default class coinbaseinternational extends Exchange {
                             'instruments/{instrument}/quote': { 'cost': 1 } as Endpoint<Dict>,
                             'instruments/{instrument}/funding': { 'cost': 1 } as Endpoint<Dict>,
                             'instruments/{instrument}/candles': { 'cost': 1 } as Endpoint<Dict>,
+                            'instruments/volumes/daily': { 'cost': 1 } as Endpoint<Dict>,
+                            'position-offsets': { 'cost': 1 } as Endpoint<Dict>,
+                            'fee-rate-tiers': { 'cost': 1 } as Endpoint<List>,
                         },
                     },
                     'private': {
                         'get': {
+                            'address-book': { 'cost': 1 } as Endpoint<List>,
                             'orders': { 'cost': 1 } as Endpoint<Dict>,
                             'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/{index}/composition': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/{index}/composition-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/{index}/price': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/{index}/candles': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios': { 'cost': 1 } as Endpoint<List>,
                             'portfolios/{portfolio}': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/{portfolio}/detail': { 'cost': 1 } as Endpoint<Dict>,
@@ -164,16 +172,30 @@ export default class coinbaseinternational extends Exchange {
                             'portfolios/{portfolio}/balances/{asset}': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/{portfolio}/positions': { 'cost': 1 } as Endpoint<List>,
                             'portfolios/{portfolio}/positions/{instrument}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/position-limits': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/position-limits/positions': { 'cost': 1 } as Endpoint<List>,
+                            'portfolios/{portfolio}/position-limits/positions/{instrument}': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/fills': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/{portfolio}/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/fee-rates': { 'cost': 1 } as Endpoint<List>,
+                            'portfolios/{portfolio}/loans': { 'cost': 1 } as Endpoint<List>,
+                            'portfolios/{portfolio}/loans/{asset}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/loans/{asset}/availability': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/margin-call-status': { 'cost': 1 } as Endpoint<Dict>,
                             'transfers': { 'cost': 1 } as Endpoint<Dict>,
                             'transfers/{transfer_uuid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'orders': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/cross-collateral-enabled': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/auto-margin-enabled': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/loans/{asset}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/{portfolio}/loans/{asset}/preview': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolios/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolios/transfer-position': { 'cost': 1 } as Endpoint<Dict>,
                             'transfers/withdraw': { 'cost': 1 } as Endpoint<Dict>,
                             'transfers/address': { 'cost': 1 } as Endpoint<Dict>,
                             'transfers/create-counterparty-id': { 'cost': 1 } as Endpoint<Dict>,
@@ -187,6 +209,9 @@ export default class coinbaseinternational extends Exchange {
                         'delete': {
                             'orders': { 'cost': 1 } as Endpoint<List>,
                             'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'patch': {
+                            'portfolios/{portfolio}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -346,7 +371,7 @@ export default class coinbaseinternational extends Exchange {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeDict (account, 'info', {});
-            if (this.safeBool (info, 'is_default')) {
+            if (this.safeBool (info, 'is_default') === true) {
                 const portfolioId = this.safeString (info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
                 return [ portfolioId, params ];
@@ -810,10 +835,12 @@ export default class coinbaseinternational extends Exchange {
             [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
         }
-        if (method === undefined) {
-            throw new ArgumentsRequired (this.id + ' method is required');
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            response = await this.v1PrivatePostTransfersCreateCounterpartyId (this.extend (request, params));
+        } else {
+            response = await this.v1PrivatePostTransfersAddress (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -983,7 +1010,7 @@ export default class coinbaseinternational extends Exchange {
         let maxEntriesPerRequest = 100;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
-        if (paginate) {
+        if (paginate === true) {
             return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
@@ -1761,7 +1788,7 @@ export default class coinbaseinternational extends Exchange {
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': success ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
         };
     }
 
@@ -1927,6 +1954,9 @@ export default class coinbaseinternational extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING': 'open',
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',
@@ -2023,7 +2053,7 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
         };
         let market: Market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
             request['instrument'] = market['id'];
         }
@@ -2166,7 +2196,7 @@ export default class coinbaseinternational extends Exchange {
             'result_offset': offSet,
         };
         let market: Market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
             request['instrument'] = symbol;
         }
@@ -2350,10 +2380,12 @@ export default class coinbaseinternational extends Exchange {
             'network_arn_id': networkId,
             'nonce': this.nonce (),
         };
-        if (method === undefined) {
-            throw new ArgumentsRequired (this.id + ' method is required');
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            response = await this.v1PrivatePostTransfersWithdrawCounterparty (this.extend (request, params));
+        } else {
+            response = await this.v1PrivatePostTransfersWithdraw (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2369,7 +2401,7 @@ export default class coinbaseinternational extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const savedPath = '/api' + fullPath;
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
@@ -2379,7 +2411,7 @@ export default class coinbaseinternational extends Exchange {
             const nonce = this.nonce ().toString ();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     payload = body;
                 }

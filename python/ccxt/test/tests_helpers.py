@@ -32,7 +32,7 @@ import ccxt.prediction as ccxt_prediction  # noqa: E402
 from ccxt.base.errors import NotSupported  # noqa: F401
 from ccxt.base.errors import InvalidProxySettings  # noqa: F401
 from ccxt.base.errors import OperationFailed  # noqa: F401
-# from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable  # noqa: F401
 from ccxt.base.errors import OnMaintenance  # noqa: F401
 from ccxt.base.errors import AuthenticationError  # noqa: F401
@@ -74,6 +74,7 @@ parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
+parser.add_argument('--wsTests', action='store_true', help='run static ws tests')
 parser.add_argument('--response', action='store_true', help='run response tests')
 parser.add_argument('--requestTests', action='store_true', help='run request tests')
 parser.add_argument('--request', action='store_true', help='run request tests')
@@ -279,6 +280,81 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
         return data
     exchange.fetch = fetch
     return exchange
+
+class FakeWsConnection:
+    # transport stub used by the static ws tests: everything above the socket
+    # (subscriptions, futures, caches, message routing) runs unmodified
+    closed = False
+
+    def __init__(self):
+        self.sent_messages = []
+
+    async def send_str(self, message):
+        # record the outgoing frame so the test can assert it
+        self.sent_messages.append(json.loads(message))
+        return None
+
+    async def close(self, code=1000):
+        return None
+
+
+def setup_ws_mock_transport(exchange, url):
+    # put the ws client for the given url into an "already connected" state
+    # with a transport stub, so watch* methods never open a real socket
+    client = exchange.client(url)
+    client.connecting = True
+    client.connection = FakeWsConnection()
+    client.isConnected = True
+    if not client.connected.done():
+        client.connected.resolve(url)
+    return exchange
+
+
+def inject_ws_message(exchange, url, message):
+    # feed one already-json-parsed frame into the exchange's ws message
+    # handler - the same entry point the real transport invokes
+    client = exchange.client(url)
+    exchange.handle_message(client, message)
+
+
+def get_ws_sent_messages(exchange, url):
+    # the frames the exchange sent over the mocked transport, already parsed
+    client = exchange.client(url)
+    return client.connection.sent_messages
+
+
+def ws_client_has_pending_futures(exchange, url):
+    # whether the watch flow is currently awaiting a message - the frame
+    # injector polls this instead of relying on a fixed head-start sleep
+    client = exchange.client(url)
+    for future in client.futures.values():
+        if not future.done():
+            return True
+    return False
+
+
+def mark_ws_test_completed(exchange, url):
+    # the watch side of a static ws test flags completion here so the frame
+    # injector's rejection loop knows it can stop
+    client = exchange.client(url)
+    client.ws_test_completed = True
+
+
+def is_ws_test_completed(exchange, url):
+    client = exchange.client(url)
+    return getattr(client, 'ws_test_completed', False) is True
+
+
+def reject_pending_ws_futures(exchange, url):
+    # reject any futures the injected frames did not resolve, so a broken
+    # fixture fails the test instead of hanging it
+    client = exchange.client(url)
+    hashes = list(client.futures.keys())
+    for message_hash in hashes:
+        future = client.futures[message_hash]
+        if not future.done():
+            client.reject(ExchangeError('static ws test: the injected messages did not resolve the watch future'), message_hash)
+
 
 def get_lang():
     return LANG

@@ -311,7 +311,7 @@ export default class bitopro extends bitoproRest {
         const isMaker = this.safeValue (trade, 'isMaker');
         let takerOrMaker: Str = undefined;
         if (isMaker !== undefined) {
-            if (isMaker) {
+            if (isMaker === true) {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';

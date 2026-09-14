@@ -462,7 +462,6 @@ export default class woo extends Exchange {
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    parseTransferStatus(status: Str): Str;
     /**
      * @method
      * @name woo#withdraw

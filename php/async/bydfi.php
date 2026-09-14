@@ -229,6 +229,12 @@ class bydfi extends Exchange {
                         'v1/fapi/trade/history_trade' => array( 'cost' => 1 ),
                         'v1/fapi/trade/position_history' => array( 'cost' => 1 ),
                         'v1/fapi/trade/positions' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/open_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/plan_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/history_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/history_trade' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/position_history' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/positions' => array( 'cost' => 1 ),
                         'v1/fapi/account/balance' => array( 'cost' => 1 ),
                         'v1/fapi/user_data/assets_margin' => array( 'cost' => 1 ),
                         'v1/fapi/user_data/position_side/dual' => array( 'cost' => 1 ),
@@ -251,6 +257,13 @@ class bydfi extends Exchange {
                         'v1/fapi/trade/cancel_all_order' => array( 'cost' => 1 ),
                         'v1/fapi/trade/leverage' => array( 'cost' => 1 ),
                         'v1/fapi/trade/batch_leverage_margin' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v2/fapi/trade/place_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/batch_place_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/edit_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/batch_edit_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/cancel_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/batch_cancel_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/cancel_all_order' => array( 'cost' => 1 ),
                         'v1/fapi/user_data/margin_type' => array( 'cost' => 1 ),
                         'v1/fapi/user_data/position_side/dual' => array( 'cost' => 1 ),
                         'v1/agent/internal_withdrawal' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -528,7 +541,7 @@ class bydfi extends Exchange {
             'option' => false,
             'active' => $status === 'NORMAL',
             'contract' => true,
-            'linear' => !$inverse,
+            'linear' => $inverse !== true,
             'inverse' => $inverse,
             'taker' => $taker,
             'maker' => $maker,
@@ -713,7 +726,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 500;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -856,7 +869,7 @@ class bydfi extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -874,7 +887,7 @@ class bydfi extends Exchange {
             'interval' => $interval,
         );
         $startTime = $since;
-        $numberOfCandles = $limit ? $limit : $maxLimit;
+        $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
         $until = null;
         list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
@@ -1358,13 +1371,13 @@ class bydfi extends Exchange {
         if ($hedged) {
             $params = $this->omit($params, 'reduceOnly');
             if ($side === 'buy') {
-                $request['positionSide'] = $reduceOnly ? 'SHORT' : 'LONG';
+                $request['positionSide'] = ($reduceOnly === true) ? 'SHORT' : 'LONG';
             } elseif ($side === 'sell') {
-                $request['positionSide'] = $reduceOnly ? 'LONG' : 'SHORT';
+                $request['positionSide'] = ($reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
         $closePosition = $this->safe_bool($params, 'closePosition', false);
-        if (!$closePosition) {
+        if ($closePosition !== true) {
             $params = $this->omit($params, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif (($type !== 'STOP_MARKET') && ($type !== 'TAKE_PROFIT_MARKET')) {
@@ -1758,7 +1771,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 500;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -2767,7 +2780,7 @@ class bydfi extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $timestamp = $this->milliseconds();
             $transfer['timestamp'] = $timestamp;
             $transfer['datetime'] = $this->iso8601($timestamp);
@@ -2804,7 +2817,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 50;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -2954,7 +2967,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 50;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));

@@ -16,26 +16,31 @@ function test_watch_trades($exchange, $skipped_properties, $symbol) {
         $method = 'watchTrades';
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
-        while ($now < $ends) {
+        $max_idle_time = 5000;
+        $idle = false;
+        while (($now < $ends) && !$idle) {
             $response = [];
             $success = true;
+            $start_time = $exchange->milliseconds();
             try {
                 $response = \React\Async\await($exchange->watch_trades($symbol));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
                 }
-                $now = $exchange->milliseconds();
-                // continue;
                 $success = false;
             }
+            $now = $exchange->milliseconds();
             if ($success === true) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response);
-                $now = $exchange->milliseconds();
                 for ($i = 0; $i < count($response); $i++) {
                     test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
                 }
+                if (($now - $start_time) > $max_idle_time) {
+                    $idle = true;
+                }
             }
         }
+        return true;
     }) ();
 }

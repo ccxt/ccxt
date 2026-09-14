@@ -386,7 +386,7 @@ class htx extends \ccxt\async\htx {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -419,7 +419,7 @@ class htx extends \ccxt\async\htx {
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -509,14 +509,14 @@ class htx extends \ccxt\async\htx {
             throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 5, 20, 150 or 400 only');
         }
         $messageHash = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $messageHash = 'market.' . $market['id'] . '.mbp.' . $this->number_to_string($limit);
         } else {
             $messageHash = 'market.' . $market['id'] . '.depth.size_' . $this->number_to_string($limit) . '.high_freq';
         }
         $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
         $method = array($this, 'handle_order_book_subscription');
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             $params = $this->extend($params);
             $params['data_type'] = 'incremental';
             $method = null;
@@ -550,12 +550,12 @@ class htx extends \ccxt\async\htx {
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $depth = $this->safe_integer($options, 'depth', 150);
         $subMessageHash = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $subMessageHash = 'market.' . $market['id'] . '.mbp.' . $this->number_to_string($depth);
         } else {
             $subMessageHash = 'market.' . $market['id'] . '.depth.size_' . $this->number_to_string($depth) . '.high_freq';
         }
-        if (!($market['spot'])) {
+        if ($market['spot'] !== true) {
             $params['data_type'] = 'incremental';
         }
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
@@ -791,18 +791,18 @@ class htx extends \ccxt\async\htx {
         }
         if (($prevSeqNum !== null) && $prevSeqNum > $this->safe_integer($orderbook, 'nonce', 0)) {
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-            if ($checksum) {
+            if ($checksum === true) {
                 throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
             }
         }
-        $spotConditon = $market['spot'] && ($prevSeqNum === $orderbook['nonce']);
-        $nonSpotCondition = $market['contract'] && ($version !== null) && ($version - 1 === $orderbook['nonce']);
-        if ($spotConditon || $nonSpotCondition) {
+        $spotConditon = ($market['spot'] === true) && ($prevSeqNum === $orderbook['nonce']);
+        $nonSpotCondition = ($market['contract'] === true) && ($version !== null) && ($version - 1 === $orderbook['nonce']);
+        if (($spotConditon === true) || ($nonSpotCondition === true)) {
             $asks = $this->safe_value($tick, 'asks', array());
             $bids = $this->safe_value($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
-            $orderbook['nonce'] = $spotConditon ? $seqNum : $version;
+            $orderbook['nonce'] = ($spotConditon === true) ? $seqNum : $version;
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
@@ -889,7 +889,7 @@ class htx extends \ccxt\async\htx {
         if ($symbol !== null) {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
         }
     }
@@ -926,7 +926,7 @@ class htx extends \ccxt\async\htx {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $type = $market['type'];
-            $subType = $market['linear'] ? 'linear' : 'inverse';
+            $subType = ($market['linear'] === true) ? 'linear' : 'inverse';
             $marketId = $market['lowercaseId'];
         } else {
             $type = $this->safe_string($this->options, 'defaultType', 'spot');
@@ -1061,7 +1061,7 @@ class htx extends \ccxt\async\htx {
             $symbol = $market['symbol'];
             $type = $market['type'];
             $suffix = $market['lowercaseId'];
-            $subType = $market['linear'] ? 'linear' : 'inverse';
+            $subType = ($market['linear'] === true) ? 'linear' : 'inverse';
         } else {
             $type = $this->safe_string($this->options, 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $type);
@@ -1308,7 +1308,7 @@ class htx extends \ccxt\async\htx {
         } else {
             // contract branch
             $parsedOrder = $this->parse_ws_order($message, $market);
-            $rawTrades = $this->safe_value($message, 'trade', array());
+            $rawTrades = $this->safe_list($message, 'trade', array());
             $tradesLength = count($rawTrades);
             if ($tradesLength > 0) {
                 $tradesObject = array(
@@ -1615,7 +1615,7 @@ class htx extends \ccxt\async\htx {
         $aggressor = $this->safe_value($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
-            $takerOrMaker = $aggressor ? 'taker' : 'maker';
+            $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1665,7 +1665,7 @@ class htx extends \ccxt\async\htx {
         $subType = null;
         if ($market !== null) {
             $type = $market['type'];
-            $subType = $market['linear'] ? 'linear' : 'inverse';
+            $subType = ($market['linear'] === true) ? 'linear' : 'inverse';
         } else {
             list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
             if ($type === 'spot') {
@@ -1794,7 +1794,7 @@ class htx extends \ccxt\async\htx {
         if ($clientPositions === null) {
             $this->positions[$url] = array();
         }
-        $rawPositions = $this->safe_value($message, 'data', array());
+        $rawPositions = $this->safe_list($message, 'data', array());
         if ($this->is_empty($rawPositions)) {
             $prefixes = array( 'cross:positions', 'isolated:positions' );
             for ($i = 0; $i < count($prefixes); $i++) {
@@ -1897,7 +1897,7 @@ class htx extends \ccxt\async\htx {
             $prefix = 'accounts';
             $messageHash = $prefix;
             if ($subType === 'linear') {
-                if ($isUnifiedAccount) {
+                if ($isUnifiedAccount === true) {
                     // usdt contracts account
                     $prefix = 'accounts_unify';
                     $messageHash = $prefix;
@@ -2075,7 +2075,7 @@ class htx extends \ccxt\async\htx {
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $timestamp = $this->safe_integer($data, 'changeTime', $this->safe_integer($message, 'ts'));
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
@@ -2139,7 +2139,6 @@ class htx extends \ccxt\async\htx {
                 $messageHash .= '.' . strtolower($currencyId);
                 $subscription = $this->safe_value($client->subscriptions, $messageHash);
             }
-            $type = $this->safe_string($subscription, 'type');
             $subType = $this->safe_string($subscription, 'subType');
             if ($topic === 'accounts_unify') {
                 // {
@@ -2169,30 +2168,16 @@ class htx extends \ccxt\async\htx {
             } elseif ($subType === 'linear') {
                 $margin = $this->safe_string($subscription, 'margin');
                 if ($margin === 'cross') {
-                    $fieldName = ($type === 'future') ? 'futures_contract_detail' : 'contract_detail';
-                    $balances = $this->safe_value($first, $fieldName, array());
-                    $balancesLength = count($balances);
-                    if ($balancesLength > 0) {
-                        for ($i = 0; $i < count($balances); $i++) {
-                            $balance = $balances[$i];
-                            $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
-                            $market = $this->safe_market($marketId);
-                            $currencyId = $this->safe_string($balance, 'margin_asset');
-                            $currency = $this->safe_currency($currencyId);
-                            $code = $this->safe_string($market, 'settle', $currency['code']);
-                            // the exchange outputs positions for delisted markets
-                            // https://www.huobi.com/support/en-us/detail/74882968522337
-                            // we skip it if the $market was delisted
-                            if ($code !== null) {
-                                $account = $this->account();
-                                $account['free'] = $this->safe_string_2($balance, 'margin_balance', 'margin_available');
-                                $account['used'] = $this->safe_string($balance, 'margin_frozen');
-                                $accountsByCode = array();
-                                $accountsByCode[$code] = $account;
-                                $symbol = $market['symbol'];
-                                $this->balance[$symbol] = $this->safe_balance($accountsByCode);
-                            }
-                        }
+                    // the cross $account is one shared $margin $balance, keyed by the settle currency
+                    $currencyId = $this->safe_string_2($first, 'margin_asset', 'margin_account');
+                    $code = $this->safe_currency_code($currencyId);
+                    if ($code !== null) {
+                        $account = $this->account();
+                        $account['free'] = $this->safe_string_2($first, 'withdraw_available', 'margin_available');
+                        $account['used'] = $this->safe_string($first, 'margin_frozen');
+                        $account['total'] = $this->safe_string($first, 'margin_balance');
+                        $this->balance[$code] = $account;
+                        $this->balance = $this->safe_balance($this->balance);
                     }
                 } else {
                     // isolated $margin
@@ -2283,7 +2268,7 @@ class htx extends \ccxt\async\htx {
     public function handle_system_status(Client $client, mixed $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified for any usage pattern that
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -2578,7 +2563,7 @@ class htx extends \ccxt\async\htx {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
             //
@@ -2787,7 +2772,7 @@ class htx extends \ccxt\async\htx {
             } else {
                 // this trades object is artificially created
                 // in handleOrder
-                $rawTrades = $this->safe_value($message, 'trades', array());
+                $rawTrades = $this->safe_list($message, 'trades', array());
                 $marketId = $this->safe_value($message, 'symbol');
                 $market = $this->market($marketId);
                 for ($i = 0; $i < count($rawTrades); $i++) {
@@ -2872,7 +2857,7 @@ class htx extends \ccxt\async\htx {
         $aggressor = $this->safe_value($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
-            $takerOrMaker = $aggressor ? 'taker' : 'maker';
+            $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
         } else {
             $takerOrMaker = $this->safe_string_lower($trade, 'role');
         }

@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbaseexchange import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -24,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class coinbaseexchange(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinbaseexchange, self).describe(), {
             'id': 'coinbaseexchange',
             'name': 'Coinbase Exchange',
@@ -183,11 +182,15 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'time': {'cost': 1},
                         'products/spark-lines': {'cost': 1},
                         'products/volume-summary': {'cost': 1},
+                        'wrapped-assets': {'cost': 1},
+                        'wrapped-assets/{wrapped_asset_id}': {'cost': 1},
+                        'wrapped-assets/{wrapped_asset_id}/conversion-rate': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         'address-book': {'cost': 1},
+                        'address-book/counterparty': {'cost': 1},
                         'accounts': {'cost': 1},
                         'accounts/{id}': {'cost': 1},
                         'accounts/{id}/holds': {'cost': 1},
@@ -217,9 +220,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'reports/{report_id}': {'cost': 1},
                         'transfers': {'cost': 1},
                         'transfers/{transfer_id}': {'cost': 1},
+                        'travel-rules': {'cost': 1},
                         'users/self/exchange-limits': {'cost': 1},
                         'users/self/hold-balances': {'cost': 1},
                         'users/self/trailing-volume': {'cost': 1},
+                        'users/{user_id}/trading-volumes': {'cost': 1},
                         'withdrawals/fee-estimate': {'cost': 1},
                         'conversions/{conversion_id}': {'cost': 1},
                         'conversions': {'cost': 1},
@@ -235,12 +240,18 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'loans/interest': {'cost': 1},
                         'loans/assets': {'cost': 1},
                         'loans': {'cost': 1},
+                        'loans/options': {'cost': 1},
+                        'wrapped-assets/redeem': {'cost': 1},
+                        'wrapped-assets/redeem/{redeem_id}': {'cost': 1},
+                        'wrapped-assets/stake-wrap': {'cost': 1},
+                        'wrapped-assets/stake-wrap/{stake_wrap_id}': {'cost': 1},
                     },
                     'post': {
                         'conversions': {'cost': 1},
                         'deposits/coinbase-account': {'cost': 1},
                         'deposits/payment-method': {'cost': 1},
                         'coinbase-accounts/{id}/addresses': {'cost': 1},
+                        'address-book': {'cost': 1},
                         'funding/repay': {'cost': 1},
                         'orders': {'cost': 1},
                         'position/close': {'cost': 1},
@@ -250,8 +261,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'reports': {'cost': 1},
                         'withdrawals/coinbase': {'cost': 1},
                         'withdrawals/coinbase-account': {'cost': 1},
+                        'withdrawals/counterparty': {'cost': 1},
                         'withdrawals/crypto': {'cost': 1},
                         'withdrawals/payment-method': {'cost': 1},
+                        'transfers/{transfer_id}/travel-rules': {'cost': 1},
+                        'travel-rules': {'cost': 1},
+                        'users/{user_id}/settlement-preferences': {'cost': 1},
+                        'wrapped-assets/redeem': {'cost': 1},
+                        'wrapped-assets/stake-wrap': {'cost': 1},
                         'loans/open': {'cost': 1},
                         'loans/repay-interest': {'cost': 1},
                         'loans/repay-principal': {'cost': 1},
@@ -260,10 +277,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'orders': {'cost': 1},
                         'orders/client:{client_oid}': {'cost': 1},
                         'orders/{id}': {'cost': 1},
+                        'address-book/{id}': {'cost': 1},
+                        'travel-rules/{id}': {'cost': 1},
                     },
                     'put': {
                         'profiles/{id}/deactivate': {'cost': 1},
                         'profiles/{id}': {'cost': 1},
+                        'address-book/{id}': {'cost': 1},
                     },
                 },
             },
@@ -529,7 +549,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: Any) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: object) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'id')
         name = self.safe_string(rawCurrency, 'name')
         code = self.safe_currency_code(id)
@@ -583,7 +603,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for coinbaseexchange
 
@@ -704,7 +724,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -739,7 +759,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         accounts = self.to_array(response)
         return self.parse_accounts(accounts, params)
 
-    def parse_account(self, account: Any):
+    def parse_account(self, account: object):
         #
         #     {
         #         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
@@ -758,7 +778,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -970,7 +990,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         }
         # publicGetProductsIdTicker or publicGetProductsIdStats
         method = self.safe_string(self.options, 'fetchTickerMethod', 'publicGetProductsIdTicker')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'publicGetProductsIdStats':
+            response = await self.publicGetProductsIdStats(self.extend(request, params))
+        else:
+            response = await self.publicGetProductsIdTicker(self.extend(request, params))
         #
         # publicGetProductsIdTicker
         #
@@ -1065,7 +1089,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'cost': cost,
         }, market)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
@@ -1102,7 +1126,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         response = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
@@ -1170,7 +1194,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         1591514160,
@@ -1190,7 +1214,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
@@ -1203,7 +1227,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1360,15 +1384,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             await self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
-        method = None
+        response = None
         if clientOrderId is None:
-            method = 'privateGetOrdersId'
             request['id'] = id
+            response = await self.privateGetOrdersId(self.extend(request, params))
         else:
-            method = 'privateGetOrdersClientClientOid'
             request['client_oid'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_oid'])
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetOrdersClientClientOid(self.extend(request, params))
         return self.parse_order(response)
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1392,7 +1415,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         response = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1410,7 +1433,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         }
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1446,7 +1469,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1511,7 +1534,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
         postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
-        if postOnly:
+        if postOnly is True:
             request['post_only'] = True
         params = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice'])
         if type == 'limit':
@@ -1567,19 +1590,20 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             # 'product_id': market['id'],  # the request will be more performant if you include it
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
-        method = None
         if clientOrderId is None:
-            method = 'privateDeleteOrdersId'
             request['id'] = id
         else:
-            method = 'privateDeleteOrdersClientClientOid'
             request['client_oid'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_oid'])
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if clientOrderId is None:
+            response = await self.privateDeleteOrdersId(self.extend(request, params))
+        else:
+            response = await self.privateDeleteOrdersClientClientOid(self.extend(request, params))
         return self.safe_order({'info': response})
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -1628,26 +1652,25 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'amount': amount,
         }
-        method = 'privatePostWithdrawals'
+        response = None
         if 'payment_method_id' in params:
-            method += 'PaymentMethod'
+            response = await self.privatePostWithdrawalsPaymentMethod(self.extend(request, params))
         elif 'coinbase_account_id' in params:
-            method += 'CoinbaseAccount'
+            response = await self.privatePostWithdrawalsCoinbaseAccount(self.extend(request, params))
         else:
-            method += 'Crypto'
             request['crypto_address'] = address
             if tag is not None:
                 request['destination_tag'] = tag
-        response = await getattr(self, method)(self.extend(request, params))
-        if not response:
+            response = await self.privatePostWithdrawalsCrypto(self.extend(request, params))
+        if response is None:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
         return self.parse_transaction(response, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'transfer': 'transfer',  # Funds moved between portfolios
-            'match': 'trade',       # Funds moved result of a trade
-            'fee': 'fee',           # Fee result of a trade
+            'match': 'trade',       # Funds moved as a result of a trade
+            'fee': 'fee',           # Fee as a result of a trade
             'rebate': 'rebate',     # Fee rebate
             'conversion': 'trade',  # Funds converted between fiat currency and a stablecoin
         }
@@ -1723,7 +1746,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1770,7 +1793,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             entries[i]['currency'] = code
         return self.parse_ledger(entries, currency, since, limit)
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -1872,7 +1895,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1887,7 +1910,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'deposit'}, params))
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1902,15 +1925,15 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
-    def parse_transaction_status(self, transaction: Any):
+    def parse_transaction_status(self, transaction: object):
         canceled = self.safe_value(transaction, 'canceled_at')
-        if canceled:
+        if (canceled is not None) and (canceled is not None):
             return 'canceled'
         processed = self.safe_value(transaction, 'processed_at')
         completed = self.safe_value(transaction, 'completed_at')
-        if completed:
+        if (completed is not None) and (completed is not None):
             return 'ok'
-        elif processed and not completed:
+        elif (processed is not None) and (processed is not None):
             return 'failed'
         else:
             return 'pending'
@@ -2029,11 +2052,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 request += '?' + self.urlencode(query)
         url = self.implode_hostname(self.urls['api'][api]) + request
         if api == 'private':
@@ -2041,7 +2064,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             nonce = str(self.nonce())
             payload = ''
             if method != 'GET':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     payload = body
             what = nonce + method + request + payload
@@ -2060,7 +2083,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 400) or (code == 404):
             if body[0] == '{':
                 message = self.safe_string(response, 'message')
@@ -2071,7 +2094,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    async def request(self, path: Any, api='public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
+    async def request(self, path: object, api='public', method='GET', params={}, headers: object = None, body: object = None, config={}):
         response = await self.fetch2(path, api, method, params, headers, body, config)
         if not isinstance(response, str):
             if 'message' in response:

@@ -24,11 +24,10 @@ public interface IOrderBook : IDictionary<string, object>
 
 public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 {
-    // protected readonly object _syncRoot = new object();
+    // One store: this dictionary. asks / bids / symbol / nonce / timestamp
+    // are typed views of the same slots, so book.asks and book["asks"] cannot
+    // drift. Extra keys (datetime, outcome, …) live only in the indexer.
 
-    public String symbol { get; set; }
-    public long? nonce { get; set; }
-    public long? timestamp { get; set; }
     private IList<object> _cache = new SlimConcurrentList<object>();
 
     public IList<object> cache
@@ -49,26 +48,28 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         }
     }
 
-    private Asks _asks;
-
     public IAsks asks
     {
         get
         {
             lock (_syncRoot)
             {
-                return _asks;
+                object value;
+                if (!this.TryGetValue("asks", out value))
+                {
+                    return null;
+                }
+                return value as IAsks;
             }
         }
         set
         {
             lock (_syncRoot)
             {
-                _asks = value as Asks;
+                this["asks"] = value;
             }
         }
     }
-    private Bids _bids;
 
     public IBids bids
     {
@@ -76,76 +77,113 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         {
             lock (_syncRoot)
             {
-                return _bids;
+                object value;
+                if (!this.TryGetValue("bids", out value))
+                {
+                    return null;
+                }
+                return value as IBids;
             }
         }
         set
         {
             lock (_syncRoot)
             {
-                _bids = value as Bids;
+                this["bids"] = value;
+            }
+        }
+    }
+
+    public String symbol
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                object value;
+                if (!this.TryGetValue("symbol", out value) || value == null)
+                {
+                    return null;
+                }
+                return value.ToString();
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                this["symbol"] = value;
+            }
+        }
+    }
+
+    public long? nonce
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                object value;
+                if (!this.TryGetValue("nonce", out value) || value == null)
+                {
+                    return null;
+                }
+                return Convert.ToInt64(value);
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                this["nonce"] = value;
+            }
+        }
+    }
+
+    public long? timestamp
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                object value;
+                if (!this.TryGetValue("timestamp", out value) || value == null)
+                {
+                    return null;
+                }
+                return Convert.ToInt64(value);
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                this["timestamp"] = value;
             }
         }
     }
 
     public OrderBook(object snapshot = null, object depth2 = null)
     {
-        // this.snapshot = snapshot;
-        // this.depth = depth;
         var depth = (depth2 == null) ? Int32.MaxValue : Convert.ToInt32(depth2);
 
-        var defaults = new CustomConcurrentDictionary<string, object>
-        {
-            { "bids", new SlimConcurrentList<object>() },
-            { "asks", new SlimConcurrentList<object>() },
-            { "timestamp", null },
-            { "datetime", null },
-            { "nonce", null },
-            { "symbol", null },
-        };
         var snapshotCopy = new CustomConcurrentDictionary<string, object> { };
         if (snapshot != null)
         {
             snapshotCopy = new CustomConcurrentDictionary<string, object>(snapshot as dict);
         }
-        defaults["bids"] = Exchange.SafeValue(snapshotCopy, "bids", defaults["bids"]);
-        defaults["asks"] = Exchange.SafeValue(snapshotCopy, "asks", defaults["asks"]);
-        defaults["timestamp"] = Exchange.SafeValue(snapshotCopy, "timestamp", defaults["timestamp"]);
-        defaults["datetime"] = Exchange.Iso8601(defaults["timestamp"]);
-        defaults["nonce"] = Exchange.SafeValue(snapshotCopy, "nonce", defaults["nonce"]);
-        defaults["symbol"] = Exchange.SafeValue(snapshotCopy, "symbol", defaults["symbol"]);
+        var rawAsks = Exchange.SafeValue(snapshotCopy, "asks", new SlimConcurrentList<object>());
+        var rawBids = Exchange.SafeValue(snapshotCopy, "bids", new SlimConcurrentList<object>());
+        var rawTimestamp = Exchange.SafeValue(snapshotCopy, "timestamp");
+        var rawNonce = Exchange.SafeValue(snapshotCopy, "nonce");
+        var rawSymbol = Exchange.SafeValue(snapshotCopy, "symbol");
 
-        if (defaults["symbol"] != null)
-        {
-            this.symbol = defaults["symbol"].ToString();
-        }
-        if (defaults["nonce"] != null)
-        {
-            this.nonce = Convert.ToInt64(defaults["nonce"]);
-        }
-
-        if (defaults["timestamp"] != null)
-        {
-            this.timestamp = Convert.ToInt64(defaults["timestamp"]);
-        }
-
-        // this.Merge(defaults);
-        for (var i = 0; i < defaults.Count; i++)
-        {
-            this.Add(defaults.Keys.ElementAt(i), defaults.Values.ElementAt(i));
-        }
-
-        if (!(this["asks"] is OrderBookSide)) // check this out should it be OrderBookSide?
-        {
-            this["asks"] = new Asks(this["asks"], depth);
-            this.asks = this["asks"] as Asks;
-        }
-
-        if (!(this["bids"] is OrderBookSide)) // same here
-        {
-            this["bids"] = new Bids(this["bids"], depth);
-            this.bids = this["bids"] as Bids;
-        }
+        this.asks = (rawAsks is IAsks existingAsks) ? existingAsks : new Asks(rawAsks, depth);
+        this.bids = (rawBids is IBids existingBids) ? existingBids : new Bids(rawBids, depth);
+        this.timestamp = (rawTimestamp == null) ? null : Convert.ToInt64(rawTimestamp);
+        this["datetime"] = Exchange.Iso8601(rawTimestamp);
+        this.nonce = (rawNonce == null) ? null : Convert.ToInt64(rawNonce);
+        this.symbol = (rawSymbol == null) ? null : rawSymbol.ToString();
     }
 
     public IOrderBook limit()
@@ -164,7 +202,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         lock (_syncRoot)
         {
             var snapshotNonce = Exchange.SafeValue(snapshot as dict, "nonce");
-            if (snapshotNonce != null && this["nonce"] != null && (long)snapshotNonce <= (long)this["nonce"])
+            if (snapshotNonce != null && this.nonce != null && (long)snapshotNonce <= this.nonce)
             {
                 return this;
             }
@@ -172,7 +210,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             this["nonce"] = snapshotNonce;
             this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
             this["datetime"] = Exchange.SafeValue(snapshot as dict, "datetime", this["datetime"]);
-            this["symbol"] = Exchange.SafeString(snapshot as dict, "symbol", this["symbol"]);
+            this["symbol"] = Exchange.SafeString(snapshot as dict, "symbol", this.symbol);
             this.reset(snapshot);
             return null;
         }
@@ -182,8 +220,9 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         lock (_syncRoot)
         {
-            this._asks._index.Clear();
-            this._asks.Clear();
+            var askSide = this.asks as OrderBookSide;
+            askSide._index.Clear();
+            askSide.Clear();
 
             var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
             if (snapshotAsks != null)
@@ -194,8 +233,9 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
                 }
             }
 
-            this._bids._index.Clear();
-            this._bids.Clear();
+            var bidSide = this.bids as OrderBookSide;
+            bidSide._index.Clear();
+            bidSide.Clear();
             var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
             if (snapshotBids != null)
             {
@@ -222,60 +262,40 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         lock (_syncRoot)
         {
-            // var copy = new OrderBook(new Dictionary<string, object>(){
-            //     {"asks", (this.asks.GetCopy() as IList<object>)},
-            //     {"bids", (this.bids.GetCopy() as IList<object>)},
-            //     {"nonce", this["nonce"]},
-            //     {"timestamp", this["timestamp"]},
-            //     {"datetime", this["datetime"]},
-            //     {"symbol", this["symbol"]},
-            // });
-            var copy = new OrderBook(new Dictionary<string, object>());
-            var copiedAsks = this.asks.Copy();
-            copy["asks"] = copiedAsks;
-            copy.asks = copiedAsks;
-            var copiedBids = this.bids.Copy();
-            copy["bids"] = copiedBids;
-            copy.bids = copiedBids;
-            copy["nonce"] = this["nonce"];
-            copy["timestamp"] = this["timestamp"];
-            copy["datetime"] = this["datetime"];
-            copy["symbol"] = this["symbol"];
-            copy.symbol = (String)this["symbol"];
-            copy.nonce = (long?)this["nonce"];
-            copy.timestamp = (long?)this["timestamp"];
-            // prediction-market identity (only present on prediction books)
-            if (this.ContainsKey("outcome"))
+            // Both sides must be observed as of the SAME instant: each side is
+            // guarded by its own monitor and storeArray takes only that one, so
+            // a ws delta arriving on a threadpool thread between the two side
+            // copies would yield a snapshot whose halves come from different
+            // book states (symptom: bids[0][0] >= asks[0][0], with the stale ask
+            // level still listed). Hold asks then bids across the whole
+            // snapshot; the order is fixed and every writer takes at most one
+            // side monitor, so the pair cannot cycle. Inside these locks the
+            // sides are copied through CopyUnlocked, so neither monitor is
+            // entered twice. storeArray is untouched — only Copy() pays.
+            var askSide = this.asks;
+            var bidSide = this.bids;
+            lock (askSide)
             {
-                copy["outcome"] = this["outcome"];
-                copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
-                copy["market"] = Exchange.SafeValue(this as dict, "market");
+                lock (bidSide)
+                {
+                    var copy = new OrderBook(new Dictionary<string, object>());
+                    copy.asks = (askSide as Asks).CopyUnlocked();
+                    copy.bids = (bidSide as Bids).CopyUnlocked();
+                    copy.nonce = this.nonce;
+                    copy.timestamp = this.timestamp;
+                    copy["datetime"] = this["datetime"];
+                    copy.symbol = this.symbol;
+                    if (this.ContainsKey("outcome"))
+                    {
+                        copy["outcome"] = this["outcome"];
+                        copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
+                        copy["market"] = Exchange.SafeValue(this as dict, "market");
+                    }
+                    return copy;
+                }
             }
-            // copy["nonce"] = this["nonce"];
-            // copy["timestamp"] = this["timestamp"];
-            // copy["datetime"] = this["datetime"];
-            // copy["symbol"] = this["symbol"];
-            // copy["asks"] = new Asks(this._asks.ToList());
-            // copy["bids"] = new Bids(this._bids.ToList());
-            return copy;
         }
     }
-
-    // public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
-    // {
-    //     lock (_syncRoot)
-    //     {
-    //         return new CustomConcurrentDictionary<string, object>(this).GetEnumerator();
-    //     }
-    // }
-
-    // public IEnumerator<object> GetEnumerator()
-    // {
-    //     lock (_syncRoot)
-    //     {
-    //         return new List<object>(_cache).GetEnumerator();
-    //     }
-    // }
 
     // Serialize the object safely
     public string Serialize()
@@ -292,17 +312,22 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
 public class CountedOrderBook : OrderBook, IOrderBook
 {
-    public CountedAsks asks;
-    public CountedBids bids;
+    public new CountedAsks asks
+    {
+        get { return base.asks as CountedAsks; }
+        set { base.asks = value; }
+    }
+    public new CountedBids bids
+    {
+        get { return base.bids as CountedBids; }
+        set { base.bids = value; }
+    }
 
     public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string, object>(), new CustomConcurrentDictionary<string, object> {
        {"asks", new CountedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
        {"bids", new CountedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)
     {
-
-        this.asks = this["asks"] as CountedAsks;
-        this.bids = this["bids"] as CountedBids;
     }
 
     public IOrderBook limit()
@@ -312,63 +337,28 @@ public class CountedOrderBook : OrderBook, IOrderBook
         return this;
     }
 
-
-
-
-    public void reset(object snapshot = null)
-    {
-        lock (_syncRoot)
-        {
-            this.asks._index.Clear();
-            this.asks.Clear();
-
-            var snapshotAsksRaw = Exchange.SafeValue(snapshot as dict, "asks");
-            if (snapshotAsksRaw != null)
-            {
-                var snapshotAsks = snapshotAsksRaw as List<object>;
-                for (var i = 0; i < snapshotAsks.Count; i++)
-                {
-                    this.asks.storeArray(snapshotAsks[i] as List<object>);
-                }
-            }
-
-            this.bids._index.Clear();
-            this.bids.Clear();
-            var snapshotBidsRaw = Exchange.SafeValue(snapshot as dict, "bids");
-            if (snapshotBidsRaw != null)
-            {
-                var snapshotBids = snapshotBidsRaw as List<object>;
-                for (var i = 0; i < snapshotBids.Count; i++)
-                {
-                    this.bids.storeArray(snapshotBids[i] as List<object>);
-                }
-            }
-            this["nonce"] = Exchange.SafeValue(snapshot as dict, "nonce", this["nonce"]);
-            this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
-            this["datetime"] = Exchange.Iso8601(this["timestamp"]);
-            this["symbol"] = Exchange.SafeValue(snapshot as dict, "symbol", this["symbol"]);
-            // prediction-market identity — only attach when present, so crypto books are unchanged
-            if ((snapshot as dict) != null && (snapshot as dict).ContainsKey("outcome"))
-            {
-                this["outcome"] = Exchange.SafeValue(snapshot as dict, "outcome");
-                this["outcomeId"] = Exchange.SafeValue(snapshot as dict, "outcomeId");
-                this["market"] = Exchange.SafeValue(snapshot as dict, "market");
-            }
-        }
-    }
-
     public IOrderBook Copy()
     {
         lock (_syncRoot)
         {
-            var copy = new CountedOrderBook(new Dictionary<string, object>());
-            copy["asks"] = this.asks.Copy();
-            copy["bids"] = this.bids.Copy();
-            copy["nonce"] = this["nonce"];
-            copy["timestamp"] = this["timestamp"];
-            copy["datetime"] = this["datetime"];
-            copy["symbol"] = this["symbol"];
-            return copy;
+            // same atomicity requirement and same asks-then-bids order as
+            // OrderBook.Copy
+            var askSide = this.asks;
+            var bidSide = this.bids;
+            lock (askSide)
+            {
+                lock (bidSide)
+                {
+                    var copy = new CountedOrderBook(new Dictionary<string, object>());
+                    copy.asks = askSide.CopyUnlocked() as CountedAsks;
+                    copy.bids = bidSide.CopyUnlocked() as CountedBids;
+                    copy.nonce = this.nonce;
+                    copy.timestamp = this.timestamp;
+                    copy["datetime"] = this["datetime"];
+                    copy.symbol = this.symbol;
+                    return copy;
+                }
+            }
         }
     }
 }
@@ -376,16 +366,21 @@ public class CountedOrderBook : OrderBook, IOrderBook
 
 public class IndexedOrderBook : OrderBook, IOrderBook
 {
-    public IndexedAsks asks;
-    public IndexedBids bids;
+    public new IndexedAsks asks
+    {
+        get { return base.asks as IndexedAsks; }
+        set { base.asks = value; }
+    }
+    public new IndexedBids bids
+    {
+        get { return base.bids as IndexedBids; }
+        set { base.bids = value; }
+    }
     public IndexedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string, object>(), new CustomConcurrentDictionary<string, object> {
        {"asks", new IndexedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
        {"bids", new IndexedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)
     {
-
-        this.asks = this["asks"] as IndexedAsks;
-        this.bids = this["bids"] as IndexedBids;
     }
 
     public IOrderBook limit()
@@ -399,14 +394,24 @@ public class IndexedOrderBook : OrderBook, IOrderBook
     {
         lock (_syncRoot)
         {
-            var copy = new IndexedOrderBook(new Dictionary<string, object>());
-            copy["asks"] = this.asks.Copy();
-            copy["bids"] = this.bids.Copy();
-            copy["nonce"] = this["nonce"];
-            copy["timestamp"] = this["timestamp"];
-            copy["datetime"] = this["datetime"];
-            copy["symbol"] = this["symbol"];
-            return copy;
+            // same atomicity requirement and same asks-then-bids order as
+            // OrderBook.Copy
+            var askSide = this.asks;
+            var bidSide = this.bids;
+            lock (askSide)
+            {
+                lock (bidSide)
+                {
+                    var copy = new IndexedOrderBook(new Dictionary<string, object>());
+                    copy.asks = askSide.CopyUnlocked() as IndexedAsks;
+                    copy.bids = bidSide.CopyUnlocked() as IndexedBids;
+                    copy.nonce = this.nonce;
+                    copy.timestamp = this.timestamp;
+                    copy["datetime"] = this["datetime"];
+                    copy.symbol = this.symbol;
+                    return copy;
+                }
+            }
         }
     }
 }

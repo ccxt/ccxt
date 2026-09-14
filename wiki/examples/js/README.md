@@ -137,6 +137,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Exchanges](./examples/js/exchanges.md)
 
+- [Extended Builder](./examples/js/extended-builder.md)
+
 - [Fetch All Balances](./examples/js/fetch-all-balances.md)
 
 - [Fetch All Tickers To Files 2](./examples/js/fetch-all-tickers-to-files-2.md)
@@ -190,6 +192,8 @@ node path/to/example.js # substitute for actual filename here
 - [Gate Watch Order Book](./examples/js/gate-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/js/graceful-shutdown.md)
+
+- [Grvt Builder](./examples/js/grvt-builder.md)
 
 - [Hibachi Example](./examples/js/hibachi-example.md)
 

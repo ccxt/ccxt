@@ -19,19 +19,22 @@ async def test_watch_ticker(exchange, skipped_properties, symbol):
     method = 'watchTicker'
     now = exchange.milliseconds()
     ends = now + 15000
-    while now < ends:
+    max_idle_time = 5000
+    idle = False
+    while (now < ends) and not idle:
         response = None
         success = True
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_ticker(symbol)
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
             success = False
-        if success:
+        now = exchange.milliseconds()
+        if (success) and (response is not None):
             assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + symbol + ' must return a dictionary. ' + exchange.json(response)
-            now = exchange.milliseconds()
             test_ticker(exchange, skipped_properties, method, response, symbol)
+            if (now - start_time) > max_idle_time:
+                idle = True
     return True

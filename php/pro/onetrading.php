@@ -234,7 +234,7 @@ class onetrading extends \ccxt\async\onetrading {
         //         "time" => "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        $tickers = $this->safe_value($message, 'ticker_updates', array());
+        $tickers = $this->safe_list($message, 'ticker_updates', array());
         $datetime = $this->safe_string($message, 'time');
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
@@ -758,7 +758,7 @@ class onetrading extends \ccxt\async\onetrading {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
-        $rawOrders = $this->safe_value($message, 'orders', array());
+        $rawOrders = $this->safe_list($message, 'orders', array());
         $rawOrdersLength = count($rawOrders);
         if ($rawOrdersLength === 0) {
             return;
@@ -769,7 +769,7 @@ class onetrading extends \ccxt\async\onetrading {
             $symbol = $this->safe_string($order, 'symbol', '');
             $orders->append($order);
             $client->resolve($this->orders, 'orders:' . $symbol);
-            $rawTrades = $this->safe_value($rawOrders[$i], 'trades', array());
+            $rawTrades = $this->safe_list($rawOrders[$i], 'trades', array());
             for ($ii = 0; $ii < count($rawTrades); $ii++) {
                 $trade = $this->parse_trade($rawTrades[$ii]);
                 $symbol = $this->safe_string($trade, 'symbol', $symbol);
@@ -1019,7 +1019,7 @@ class onetrading extends \ccxt\async\onetrading {
             $orderId = $this->safe_string($update, 'order_id');
             $datetime = $this->safe_string_2($update, 'time', 'timestamp');
             $previousOrderArray = $this->filter_by_array($this->orders, 'id', $orderId, false);
-            $previousOrder = $this->safe_value($previousOrderArray, 0, array());
+            $previousOrder = $this->safe_dict($previousOrderArray, 0, array());
             $symbol = $previousOrder['symbol'];
             $filled = $this->safe_string($update, 'filled_amount');
             $status = $this->parse_ws_order_status($updateType);
@@ -1105,7 +1105,7 @@ class onetrading extends \ccxt\async\onetrading {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1129,7 +1129,7 @@ class onetrading extends \ccxt\async\onetrading {
             if ($subscription !== null) {
                 $ohlcvMarket = $this->safe_value($subscription, $marketId, array());
                 $marketSubscribed = $this->safe_bool($ohlcvMarket, $timeframe, false);
-                if (!$marketSubscribed) {
+                if ($marketSubscribed !== true) {
                     $type = 'UPDATE_SUBSCRIPTION';
                     $client->subscriptions[$subscriptionHash] = null;
                 }
@@ -1239,7 +1239,9 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     public function find_timeframe(mixed $timeframe, mixed $timeframes = null) {
-        $timeframes = $timeframes || $this->timeframes;
+        if ($timeframes === null) {
+            $timeframes = $this->timeframes;
+        }
         if ($timeframes === null) {
             throw new ArgumentsRequired($this->id . ' findTimeframe() $timeframes is required');
         }
@@ -1394,7 +1396,7 @@ class onetrading extends \ccxt\async\onetrading {
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
                     $marketSubscribed = $this->safe_bool($subscription, $marketId, false);
-                    if (!$marketSubscribed) {
+                    if ($marketSubscribed !== true) {
                         $type = 'UPDATE_SUBSCRIPTION';
                         $client->subscriptions[$subscriptionHash] = null;
                     }

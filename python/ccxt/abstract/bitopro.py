@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_get_order_book_pair = publicGetOrderBookPair = Entry[_Dict]('order-book/{pair}', 'public', 'GET', {'cost': 1})

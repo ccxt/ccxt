@@ -178,6 +178,7 @@ export default class lbank extends Exchange {
                             'supplement/deposit_history': { 'cost': 2.5 },
                             'supplement/withdraws': { 'cost': 2.5 },
                             'supplement/get_deposit_address': { 'cost': 2.5 },
+                            'supplement/add_deposit_address': { 'cost': 2.5 },
                             'supplement/asset_detail': { 'cost': 2.5 },
                             'supplement/customer_trade_fee': { 'cost': 2.5 },
                             'supplement/api_Restrictions': { 'cost': 2.5 },
@@ -193,6 +194,12 @@ export default class lbank extends Exchange {
                             'supplement/orders_info_history': { 'cost': 2.5 },
                             'supplement/user_info_account': { 'cost': 2.5 },
                             'supplement/transaction_history': { 'cost': 2.5 },
+                            // new spot/wallet, spot/trade endpoints
+                            'spot/wallet/withdraw': { 'cost': 2.5 },
+                            'spot/wallet/deposit_history': { 'cost': 2.5 },
+                            'spot/wallet/withdraws': { 'cost': 2.5 },
+                            'spot/trade/orders_info': { 'cost': 2.5 },
+                            'spot/trade/orders_info_history': { 'cost': 2.5 },
                         },
                     },
                 },
@@ -553,7 +560,7 @@ export default class lbank extends Exchange {
         //         "ts": 1691560288484
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -649,7 +656,7 @@ export default class lbank extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -699,8 +706,12 @@ export default class lbank extends Exchange {
                         'max': this.safeNumber(market, 'maxOrderVolume'),
                     },
                     'price': {
-                        'min': this.safeNumber(market, 'priceLimitLowerValue'),
-                        'max': this.safeNumber(market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minOrderCost'),
@@ -753,7 +764,7 @@ export default class lbank extends Exchange {
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeValue(ticker, 'ticker', {});
         market = this.safeMarket(marketId, market);
-        const data = (market['contract']) ? ticker : tickerData;
+        const data = (market['contract'] === true) ? ticker : tickerData;
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -791,7 +802,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap']) {
+        if (market['swap'] === true) {
             const responseForSwap = await this.fetchTickers([market['symbol']], params);
             return this.safeValue(responseForSwap, market['symbol']);
         }
@@ -989,7 +1000,7 @@ export default class lbank extends Exchange {
         //
         const orderbook = this.safeValue(response, 'data', {});
         const timestamp = this.milliseconds();
-        if (market['swap']) {
+        if (market['swap'] === true) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
@@ -1327,7 +1338,7 @@ export default class lbank extends Exchange {
         const toBtc = this.safeValue(data, 'toBtc');
         if (toBtc !== undefined) {
             const used = this.safeValue(data, 'freeze', {});
-            const free = this.safeValue(data, 'free', {});
+            const free = this.safeDict(data, 'free', {});
             const currencies = Object.keys(free);
             for (let i = 0; i < currencies.length; i++) {
                 const currencyId = currencies[i];
@@ -1594,7 +1605,7 @@ export default class lbank extends Exchange {
         }
         const request = {};
         const response = await this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, params));
-        const fees = this.safeValue(response, 'data', []);
+        const fees = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
@@ -1619,7 +1630,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1653,7 +1664,7 @@ export default class lbank extends Exchange {
         };
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const maker = (postOnly || (timeInForce === 'PO'));
+        const maker = ((postOnly === true) || (timeInForce === 'PO'));
         if ((type === 'market') && (ioc || fok || maker)) {
             throw new InvalidOrder(this.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -1987,7 +1998,7 @@ export default class lbank extends Exchange {
         //          "ts":1647455270776
         //      }
         //
-        const result = this.safeValue(response, 'data', []);
+        const result = this.safeList(response, 'data', []);
         const numOrders = result.length;
         if (numOrders === 1) {
             return this.parseOrder(result[0]);
@@ -2731,13 +2742,13 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        const result = this.safeValue(response, 'data', []);
+        const result = this.safeList(response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const currencyId = this.safeString(entry, 'coin');
             const code = this.safeCurrencyCode(currencyId);
-            const networkList = this.safeValue(entry, 'networkList', []);
+            const networkList = this.safeList(entry, 'networkList', []);
             if (code !== undefined) {
                 withdrawFees[code] = {};
             }
@@ -2795,7 +2806,7 @@ export default class lbank extends Exchange {
         //        "ts": "1663364435973"
         //    }
         //
-        const result = this.safeValue(response, 'data', []);
+        const result = this.safeList(response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
@@ -3018,14 +3029,14 @@ export default class lbank extends Exchange {
         //
         const result = this.depositWithdrawFee(fee);
         const code = this.safeString(currency, 'code');
-        const networkList = this.safeValue(fee, 'networkList', []);
+        const networkList = this.safeList(fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'), code);
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
             const isDefault = this.safeValue(networkEntry, 'isDefault');
             if (withdrawFee !== undefined) {
-                if (isDefault) {
+                if (isDefault === true) {
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -3058,7 +3069,7 @@ export default class lbank extends Exchange {
             url = this.urls['api']['contract'] + '/' + this.implodeParams(path, params);
         }
         if (api[1] === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(this.keysort(query));
             }
         }
@@ -3089,7 +3100,7 @@ export default class lbank extends Exchange {
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
-                if (cacheSecretAsPem) {
+                if (cacheSecretAsPem === true) {
                     pem = this.safeValue(this.options, 'pem');
                     if (pem === undefined) {
                         pem = this.convertSecretToPem(this.encode(this.secret));
@@ -3133,7 +3144,7 @@ export default class lbank extends Exchange {
             throw new NullResponse(this.id + ' parseBalance() returned empty response');
         }
         const success = this.safeValue(response, 'result');
-        if (success === 'false' || !success) {
+        if ((success === 'false') || (success === undefined) || (success === null) || (success === false)) {
             const errorCode = this.safeString(response, 'error_code');
             const message = this.safeString({
                 '10000': 'Internal error',

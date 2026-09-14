@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class IndependentreserveApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetValidPrimaryCurrencyCodes (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetValidPrimaryCurrencyCodes (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetValidPrimaryCurrencyCodes", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetValidSecondaryCurrencyCodes (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetValidSecondaryCurrencyCodes (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetValidSecondaryCurrencyCodes", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetValidLimitOrderTypes (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetValidLimitOrderTypes (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetValidLimitOrderTypes", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetValidMarketOrderTypes (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetValidMarketOrderTypes (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetValidMarketOrderTypes", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetValidOrderTypes (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetValidOrderTypes (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetValidOrderTypes", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetValidTransactionTypes (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetValidTransactionTypes (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetValidTransactionTypes", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetMarketSummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetGetMarketSummary (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetMarketSummary", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetOrderBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetGetOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetOrderBook", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetAllOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetGetAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetAllOrders", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetTradeHistorySummary (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetGetTradeHistorySummary (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetTradeHistorySummary", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetRecentTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetGetRecentTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetRecentTrades", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetFxRates (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetFxRates (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetFxRates", optionalArgs);
     }
@@ -157,9 +160,31 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetOrderMinimumVolumes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetGetOrderMinimumVolumes (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetOrderMinimumVolumes", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetGetDepositFees endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public CompletableFuture<List<Object>>  publicGetGetDepositFees (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetDepositFees", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetGetFiatWithdrawalFees endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public CompletableFuture<List<Object>>  publicGetGetFiatWithdrawalFees (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetFiatWithdrawalFees", optionalArgs);
     }
 
     /**
@@ -168,7 +193,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetGetCryptoWithdrawalFees (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetGetCryptoWithdrawalFees (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetCryptoWithdrawalFees", optionalArgs);
     }
@@ -179,7 +204,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetCryptoWithdrawalFees2 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetCryptoWithdrawalFees2 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetCryptoWithdrawalFees2", optionalArgs);
     }
@@ -190,7 +215,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetNetworks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetNetworks (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetNetworks", optionalArgs);
     }
@@ -201,7 +226,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetPrimaryCurrencyConfig2 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetGetPrimaryCurrencyConfig2 (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetPrimaryCurrencyConfig2", optionalArgs);
     }
@@ -212,7 +237,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOpenOrders", optionalArgs);
     }
@@ -223,7 +248,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetClosedOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetClosedOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetClosedOrders", optionalArgs);
     }
@@ -234,7 +259,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetClosedFilledOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetClosedFilledOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetClosedFilledOrders", optionalArgs);
     }
@@ -245,7 +270,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOrderDetails (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetOrderDetails (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOrderDetails", optionalArgs);
     }
@@ -256,7 +281,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetAccounts", optionalArgs);
     }
@@ -267,7 +292,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetTransactions", optionalArgs);
     }
@@ -278,7 +303,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostGetFiatBankAccounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostGetFiatBankAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetFiatBankAccounts", optionalArgs);
     }
@@ -289,7 +314,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetDigitalCurrencyDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetDigitalCurrencyDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetDigitalCurrencyDepositAddress", optionalArgs);
     }
@@ -300,7 +325,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostGetDigitalCurrencyDepositAddress2 (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostGetDigitalCurrencyDepositAddress2 (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetDigitalCurrencyDepositAddress2", optionalArgs);
     }
@@ -311,7 +336,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetDigitalCurrencyDepositAddresses (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetDigitalCurrencyDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetDigitalCurrencyDepositAddresses", optionalArgs);
     }
@@ -322,7 +347,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetDigitalCurrencyDepositAddresses2 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetDigitalCurrencyDepositAddresses2 (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetDigitalCurrencyDepositAddresses2", optionalArgs);
     }
@@ -333,9 +358,20 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetTradesByOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetTradesByOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetTradesByOrder", optionalArgs);
     }
 
     /**
@@ -344,7 +380,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostGetBrokerageFees (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostGetBrokerageFees (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetBrokerageFees", optionalArgs);
     }
@@ -355,9 +391,42 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetDigitalCurrencyWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetDigitalCurrencyWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetDigitalCurrencyWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetFiatWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetFiatWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetFiatWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetDepositLimits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetDepositLimits (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetDepositLimits", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetWithdrawalLimits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetWithdrawalLimits (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetWithdrawalLimits", optionalArgs);
     }
 
     /**
@@ -366,7 +435,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPlaceLimitOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPlaceLimitOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPlaceLimitOrder", optionalArgs);
     }
@@ -377,7 +446,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPlaceMarketOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPlaceMarketOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPlaceMarketOrder", optionalArgs);
     }
@@ -388,9 +457,20 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCancelOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostCancelOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCancelOrders", optionalArgs);
     }
 
     /**
@@ -399,7 +479,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSynchDigitalCurrencyDepositAddressWithBlockchain (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSynchDigitalCurrencyDepositAddressWithBlockchain (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSynchDigitalCurrencyDepositAddressWithBlockchain", optionalArgs);
     }
@@ -410,7 +490,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRequestFiatWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRequestFiatWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRequestFiatWithdrawal", optionalArgs);
     }
@@ -421,7 +501,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawFiatCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawFiatCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawFiatCurrency", optionalArgs);
     }
@@ -432,7 +512,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawDigitalCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawDigitalCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawDigitalCurrency", optionalArgs);
     }
@@ -443,7 +523,7 @@ public class IndependentreserveApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawCrypto (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawCrypto (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawCrypto", optionalArgs);
     }

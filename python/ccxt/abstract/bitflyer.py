@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_List = list[object]
+_Dict = dict[str, object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_get_getmarkets_usa = publicGetGetmarketsUsa = Entry[_List]('getmarkets/usa', 'public', 'GET', {'cost': 1})
@@ -15,6 +14,7 @@ class ImplicitAPI:
     public_get_getboardstate = publicGetGetboardstate = Entry[_Dict]('getboardstate', 'public', 'GET', {'cost': 1})
     public_get_getchats = publicGetGetchats = Entry[_List]('getchats', 'public', 'GET', {'cost': 1})
     public_get_getfundingrate = publicGetGetfundingrate = Entry[_Dict]('getfundingrate', 'public', 'GET', {'cost': 1})
+    public_get_getfundingratehistory = publicGetGetfundingratehistory = Entry[_List]('getfundingratehistory', 'public', 'GET', {'cost': 1})
     private_get_getpermissions = privateGetGetpermissions = Entry[_List]('getpermissions', 'private', 'GET', {'cost': 1})
     private_get_getbalance = privateGetGetbalance = Entry[_Dict]('getbalance', 'private', 'GET', {'cost': 1})
     private_get_getbalancehistory = privateGetGetbalancehistory = Entry[_List]('getbalancehistory', 'private', 'GET', {'cost': 1})

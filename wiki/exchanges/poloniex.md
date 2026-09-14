@@ -316,6 +316,7 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price at which a trigger order is triggered at |
 | params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
+| params.clientOrderId | <code>string</code> | No | a unique identifier for the order |
 
 
 ```javascript
@@ -347,6 +348,7 @@ edit a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.clientOrderId | <code>string</code> | No | a unique identifier for the order |
 
 
 ```javascript

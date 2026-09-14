@@ -75,6 +75,21 @@ func SafeMapToMap(sm *sync.Map) map[string]any {
 	return result
 }
 
+// SafeMapTyped reads a free-form dictionary member (TS `Dict`), nil when absent or not a map.
+func SafeMapTyped(m any, key any) map[string]any {
+	res := SafeValue(m, key, nil)
+	if res == nil {
+		return nil
+	}
+	if asMap, ok := res.(map[string]any); ok {
+		return asMap
+	}
+	if asSyncMap, ok := res.(*sync.Map); ok {
+		return SafeMapToMap(asSyncMap)
+	}
+	return nil
+}
+
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]any
@@ -93,6 +108,7 @@ type MarketInterface struct {
 	Swap           *bool
 	Future         *bool
 	Option         *bool
+	Index          *bool
 	Stock          *bool
 	Contract       *bool
 	Settle         *string
@@ -166,6 +182,7 @@ func NewMarketInterface(data any) MarketInterface {
 		Swap:           SafeBoolTyped(m, "swap"),
 		Future:         SafeBoolTyped(m, "future"),
 		Option:         SafeBoolTyped(m, "option"),
+		Index:          SafeBoolTyped(m, "index"),
 		Stock:          SafeBoolTyped(m, "stock"),
 		Contract:       SafeBoolTyped(m, "contract"),
 		Settle:         SafeStringTyped(m, "settle"),
@@ -215,6 +232,8 @@ type Precision struct {
 	Amount *float64
 	Price  *float64
 	Cost   *float64
+	Base   *float64
+	Quote  *float64
 }
 
 func NewPrecision(data any) Precision {
@@ -223,6 +242,8 @@ func NewPrecision(data any) Precision {
 		Amount: SafeFloatTyped(m, "amount"),
 		Price:  SafeFloatTyped(m, "price"),
 		Cost:   SafeFloatTyped(m, "cost"),
+		Base:   SafeFloatTyped(m, "base"),
+		Quote:  SafeFloatTyped(m, "quote"),
 	}
 }
 
@@ -277,6 +298,7 @@ type TradingFeeInterface struct {
 	Taker      *float64
 	Percentage *bool
 	TierBased  *bool
+	Tiers      map[string]any
 	Info       map[string]any
 }
 
@@ -288,6 +310,7 @@ func NewTradingFeeInterface(data any) TradingFeeInterface {
 		Taker:      SafeFloatTyped(m, "taker"),
 		Percentage: SafeBoolTyped(m, "percentage"),
 		TierBased:  SafeBoolTyped(m, "tierBased"),
+		Tiers:      SafeMapTyped(m, "tiers"),
 		Info:       m,
 	}
 }
@@ -2645,4 +2668,84 @@ func (d *DepositWithdrawFees) Get(key string) (DepositWithdrawFee, error) {
 
 func (d *DepositWithdrawFees) Set(key string, fee DepositWithdrawFee) {
 	d.DepositWithdrawFees[key] = fee
+}
+
+// depositAddresses
+// DepositAddresses struct
+type DepositAddresses struct {
+	Info             map[string]any
+	DepositAddresses map[string]DepositAddress
+}
+
+// NewDepositAddresses initializes a DepositAddresses struct from a map.
+func NewDepositAddresses(depositAddressesData2 any) DepositAddresses {
+	depositAddressesData := depositAddressesData2.(map[string]any)
+	info := GetInfo(depositAddressesData)
+	depositAddressesMap := make(map[string]DepositAddress)
+
+	for key, value := range depositAddressesData {
+		if key != "info" {
+			if depositAddressData, ok := value.(map[string]any); ok {
+				depositAddressesMap[key] = NewDepositAddress(depositAddressData)
+			}
+		}
+	}
+
+	return DepositAddresses{
+		Info:             info,
+		DepositAddresses: depositAddressesMap,
+	}
+}
+
+// GetDepositAddress retrieves a DepositAddress by key.
+func (d *DepositAddresses) GetDepositAddress(key string) (DepositAddress, error) {
+	depositAddress, exists := d.DepositAddresses[key]
+	if !exists {
+		return DepositAddress{}, fmt.Errorf("the key '%s' was not found in the depositAddresses", key)
+	}
+	return depositAddress, nil
+}
+
+func (d *DepositAddresses) Set(key string, depositAddress DepositAddress) {
+	d.DepositAddresses[key] = depositAddress
+}
+
+// allGreeks
+// AllGreeks struct
+type AllGreeks struct {
+	Info   map[string]any
+	Greeks map[string]Greeks
+}
+
+// NewAllGreeks initializes an AllGreeks struct from a map.
+func NewAllGreeks(greeksData2 any) AllGreeks {
+	greeksData := greeksData2.(map[string]any)
+	info := GetInfo(greeksData)
+	greeksMap := make(map[string]Greeks)
+
+	for key, value := range greeksData {
+		if key != "info" {
+			if greekData, ok := value.(map[string]any); ok {
+				greeksMap[key] = NewGreeks(greekData)
+			}
+		}
+	}
+
+	return AllGreeks{
+		Info:   info,
+		Greeks: greeksMap,
+	}
+}
+
+// GetGreeks retrieves a Greeks by key.
+func (g *AllGreeks) GetGreeks(key string) (Greeks, error) {
+	greeks, exists := g.Greeks[key]
+	if !exists {
+		return Greeks{}, fmt.Errorf("the key '%s' was not found in the greeks", key)
+	}
+	return greeks, nil
+}
+
+func (g *AllGreeks) Set(key string, greeks Greeks) {
+	g.Greeks[key] = greeks
 }

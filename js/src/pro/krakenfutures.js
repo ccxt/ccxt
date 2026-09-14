@@ -8,7 +8,7 @@
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class krakenfutures extends krakenfuturesRest {
@@ -324,10 +324,19 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById();
+            // krakenfutures positions carry no id (parseWsPosition always sets
+            // 'id': undefined), so key by symbol + side instead of by-id, see
+            // https://github.com/ccxt/ccxt/issues/29709
+            this.positions = new ArrayCacheBySymbolBySide();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue(message, 'positions', []);
+        const rawPositions = this.safeList(message, 'positions');
+        if (rawPositions === undefined) {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -416,14 +425,29 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {int} [since] not used by krakenfutures watchOrders
      * @param {int} [limit] not used by krakenfutures watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.verbose] whether to subscribe to the open_orders_verbose feed
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const name = 'open_orders';
+        let verbose = false;
+        [verbose, params] = this.handleOptionAndParams(params, 'watchOrders', 'verbose', false);
+        let name = 'open_orders';
         let messageHash = 'orders';
+        if (verbose) {
+            name = 'open_orders_verbose';
+            messageHash = 'orders:verbose';
+        }
+        const feed = this.safeString(params, 'feed');
+        if (feed !== undefined) {
+            name = feed;
+            messageHash = 'orders';
+            if (feed === 'open_orders_verbose') {
+                messageHash = 'orders:verbose';
+            }
+        }
         if (symbol !== undefined) {
             const market = this.market(symbol);
             messageHash += ':' + market['symbol'];
@@ -732,7 +756,11 @@ export default class krakenfutures extends krakenfuturesRest {
         const order = this.safeValue(message, 'order');
         if (order !== undefined) {
             const marketId = this.safeString(order, 'instrument');
-            const messageHash = 'orders';
+            const feed = this.safeString(message, 'feed');
+            let messageHash = 'orders';
+            if (feed === 'open_orders_verbose') {
+                messageHash = 'orders:verbose';
+            }
             const symbol = this.safeSymbol(marketId);
             const orderId = this.safeString(order, 'order_id');
             const previousOrders = this.safeValue(orders.hashmap, symbol, {});
@@ -790,16 +818,34 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         else {
             const isCancel = this.safeValue(message, 'is_cancel');
-            if (isCancel) {
+            if (isCancel === true) {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
+                // so consumers can tell a user cancel from liquidation, etc.
+                const reason = this.safeString(message, 'reason');
+                let status = 'canceled';
+                if (reason === 'full_fill') {
+                    status = 'closed';
+                }
+                const feed = this.safeString(message, 'feed');
+                let messageHash = 'orders';
+                if (feed === 'open_orders_verbose') {
+                    messageHash = 'orders:verbose';
+                }
                 // get order without symbol
                 for (let i = 0; i < orders.length; i++) {
                     const currentOrder = orders[i];
                     if (currentOrder['id'] === message['order_id']) {
-                        orders[i] = this.extend(currentOrder, {
-                            'status': 'canceled',
+                        const info = this.extend(this.safeDict(currentOrder, 'info', {}), {
+                            'reason': reason,
                         });
-                        client.resolve(orders, 'orders');
-                        client.resolve(orders, 'orders:' + currentOrder['symbol']);
+                        orders[i] = this.extend(currentOrder, {
+                            'status': status,
+                            'info': info,
+                        });
+                        client.resolve(orders, messageHash);
+                        client.resolve(orders, messageHash + ':' + currentOrder['symbol']);
                         break;
                     }
                 }
@@ -855,9 +901,14 @@ export default class krakenfutures extends krakenfuturesRest {
         //            ...
         //        ]
         //    }
-        const orders = this.safeValue(message, 'orders', []);
+        const orders = this.safeList(message, 'orders', []);
         const limit = this.safeInteger(this.options, 'ordersLimit');
         this.orders = new ArrayCacheBySymbolById(limit);
+        const feed = this.safeString(message, 'feed');
+        let messageHash = 'orders';
+        if (feed === 'open_orders_verbose_snapshot') {
+            messageHash = 'orders:verbose';
+        }
         const symbols = {};
         const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
@@ -871,12 +922,12 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const length = this.orders.length;
         if (length > 0) {
-            client.resolve(this.orders, 'orders');
+            client.resolve(this.orders, messageHash);
             const keys = Object.keys(symbols);
             for (let i = 0; i < keys.length; i++) {
                 const symbol = keys[i];
-                const messageHash = 'orders:' + symbol;
-                client.resolve(this.orders, messageHash);
+                const symbolMessageHash = messageHash + ':' + symbol;
+                client.resolve(this.orders, symbolMessageHash);
             }
         }
     }
@@ -1408,7 +1459,7 @@ export default class krakenfutures extends krakenfuturesRest {
             client.resolve(this.balance['margin'], messageHash + 'futures');
         }
         if (flexFutures !== undefined) {
-            const flexFutureCurrencies = this.safeValue(flexFutures, 'currencies', {});
+            const flexFutureCurrencies = this.safeDict(flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys(flexFutureCurrencies); // multi-collateral margin account
             const flexFuturesResult = {
                 'info': message,
@@ -1459,7 +1510,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const trades = this.safeValue(message, 'fills', []);
+        const trades = this.safeList(message, 'fills', []);
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1515,7 +1566,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'symbol': this.safeString(market, 'symbol'),
             'order': this.safeString(trade, 'order_id'),
             'type': this.safeString(trade, 'type'),
-            'side': isBuy ? 'buy' : 'sell',
+            'side': (isBuy === true) ? 'buy' : 'sell',
             'takerOrMaker': this.safeString(trade, 'fill_type'),
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'qty'),

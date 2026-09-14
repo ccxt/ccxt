@@ -91,6 +91,8 @@ public class WsClient {
     public volatile CompletableFuture<Boolean> connected;
     public volatile long lastPong = 0;
     public boolean error = false;
+    public boolean isMock = false; // static ws tests: transport is stubbed, sends are recorded
+    public final java.util.List<Object> mockSentMessages = java.util.Collections.synchronizedList(new java.util.ArrayList<>()); // frames recorded in mock mode
     /**
      * Optional typed reason for a deliberate close. Set by Exchange.close()
      * to an ExchangeClosedByUser before invoking this.close(); the close path
@@ -101,6 +103,12 @@ public class WsClient {
 
     // Guards atomic complete-then-replace of `connected` and ping-thread bookkeeping.
     private final Object connectedLock = new Object();
+    /**
+     * Guards the futures / rejections pair. ConcurrentHashMap is per-map only;
+     * future/resolve/reject are a compound check-then-act across both maps.
+     * Settle after releasing: CompletableFuture may run continuations inline.
+     */
+    private final Object futuresSync = new Object();
     private volatile Thread pingThread;
 
     // Typed accessors for internal use
@@ -140,6 +148,11 @@ public class WsClient {
     private final ExecutorService messageExecutor = Executors.newSingleThreadExecutor(
             Thread.ofVirtual().name("ws-msg-", 0).factory());
 
+    /** Grace period before a discarded client's messageExecutor shuts down; overridable in tests. */
+    public long executorShutdownDelayMs = 5000;
+
+    private final AtomicBoolean executorShutdownScheduled = new AtomicBoolean(false);
+
     public WsClient(String url, String proxy,
                     BiConsumer<WsClient, Object> handleMessage,
                     Function<WsClient, Object> ping,
@@ -172,11 +185,16 @@ public class WsClient {
 
     /**
      * Get or create a Future for a messageHash.
-     * If a rejection was queued before the future existed, reject it immediately.
+     * A rejection queued before the future existed fails it fast.
+     * Mutate under futuresSync; settle outside so continuations can re-enter.
      */
     public Future future(String messageHash) {
-        Future f = futuresMap().computeIfAbsent(messageHash, k -> new Future());
-        Object rejection = rejectionsMap().remove(messageHash);
+        Future f;
+        Object rejection = null;
+        synchronized (futuresSync) {
+            f = futuresMap().computeIfAbsent(messageHash, k -> new Future());
+            rejection = rejectionsMap().remove(messageHash);
+        }
         if (rejection != null) {
             f.reject(rejection);
         }
@@ -190,15 +208,21 @@ public class WsClient {
     /**
      * Resolve a specific future by messageHash.
      * Removes it from the map so the next watch() call creates a fresh one.
+     * With no consumer future the value is dropped.
      */
     public void resolve(Object content, Object messageHash2) {
-        if (this.verbose && messageHash2 == null) {
-            System.out.println("resolve received null messageHash");
+        if (messageHash2 == null) {
+            if (this.verbose) {
+                System.out.println("resolve received null messageHash");
+            }
             return;
         }
         String messageHash = messageHash2.toString();
-        rejectionsMap().remove(messageHash); // clear any stale rejection for this hash
-        Future f = futuresMap().remove(messageHash);
+        Future f;
+        synchronized (futuresSync) {
+            f = futuresMap().remove(messageHash);
+            rejectionsMap().remove(messageHash); // clear any stale rejection for this hash
+        }
         if (f != null) {
             f.resolve(content);
         }
@@ -210,20 +234,29 @@ public class WsClient {
     public void reject(Object error, Object messageHash2) {
         if (messageHash2 != null) {
             String messageHash = messageHash2.toString();
-            Future f = futuresMap().remove(messageHash);
+            Future f;
+            synchronized (futuresSync) {
+                f = futuresMap().remove(messageHash);
+                if (f == null) {
+                    rejectionsMap().put(messageHash, error);
+                }
+            }
             if (f != null) {
                 f.reject(error);
-            } else {
-                rejectionsMap().put(messageHash, error);
             }
         } else {
-            // Reject all pending futures — snapshot keys to avoid ConcurrentModificationException.
-            var snapshot = new java.util.ArrayList<>(futuresMap().keySet());
-            for (String key : snapshot) {
-                Future f = futuresMap().remove(key);
-                if (f != null) {
-                    f.reject(error);
+            // Drain under the monitor; settle outside so continuations cannot re-enter.
+            var settled = new java.util.ArrayList<Future>();
+            synchronized (futuresSync) {
+                for (String key : new java.util.ArrayList<>(futuresMap().keySet())) {
+                    Future f = futuresMap().remove(key);
+                    if (f != null) {
+                        settled.add(f);
+                    }
                 }
+            }
+            for (Future f : settled) {
+                f.reject(error);
             }
         }
     }
@@ -411,19 +444,27 @@ public class WsClient {
             // unblocked AND preserves frame ordering per connection. Cross-frame races
             // on shared exchange state (orderbook cache, balance sub-maps, etc.) are
             // eliminated for same-client traffic.
-            messageExecutor.execute(() -> {
-                try {
-                    if (this.verbose) {
-                        System.out.println(getFormattedDate() + "OnMessage:" + message);
+            try {
+                messageExecutor.execute(() -> {
+                    try {
+                        if (this.verbose) {
+                            System.out.println(getFormattedDate() + "OnMessage:" + message);
+                        }
+                        this.handleMessageCallback.accept(this, message);
+                    } catch (Exception e) {
+                        if (this.verbose) {
+                            System.err.println("handleMessage error: " + e.getMessage());
+                        }
+                        this.reject(e);
                     }
-                    this.handleMessageCallback.accept(this, message);
-                } catch (Exception e) {
-                    if (this.verbose) {
-                        System.err.println("handleMessage error: " + e.getMessage());
-                    }
-                    this.reject(e);
+                });
+            } catch (java.util.concurrent.RejectedExecutionException e) {
+                // Client already discarded — drop late frames instead of propagating.
+                if (this.verbose) {
+                    System.out.println(getFormattedDate()
+                            + "Dropping frame after executor shutdown: " + this.url);
                 }
-            });
+            }
         }
     }
 
@@ -568,6 +609,21 @@ public class WsClient {
      * Callers should handle the returned future to detect send failures.
      */
     public CompletableFuture<Void> send(Object message) {
+        if (this.isMock) {
+            // static ws tests: record the outgoing frame so the test can assert it
+            try {
+                String mockJson;
+                if (message instanceof String s) {
+                    mockJson = s;
+                } else {
+                    mockJson = JSON_MAPPER.writeValueAsString(message);
+                }
+                this.mockSentMessages.add(JSON_MAPPER.readValue(mockJson, Object.class));
+            } catch (Exception e) {
+                // ignore malformed frames, the assertion will surface the gap
+            }
+            return CompletableFuture.completedFuture(null);
+        }
         String json;
         if (message instanceof String s) {
             json = s;
@@ -617,22 +673,53 @@ public class WsClient {
             pt.interrupt();
         }
 
-        // Snapshot keys before mutating the map to avoid ConcurrentModificationException.
-        // Prefer the typed closeReason (set by Exchange.close()) over a bare
-        // RuntimeException, so consumers can `catch (ExchangeClosedByUser)` and
-        // tell deliberate shutdown from a remote-side disconnect.
+        // Drain under futuresSync, then settle outside the monitor.
+        // Prefer closeReason (ExchangeClosedByUser) over a bare RuntimeException.
         Throwable rejectionReason = (this.closeReason != null)
                 ? this.closeReason
                 : new io.github.ccxt.errors.ExchangeClosedByUser("Connection closed by the user");
-        var snapshot = new java.util.ArrayList<>(futuresMap().keySet());
-        for (String key : snapshot) {
-            Future f = futuresMap().remove(key);
-            if (f != null && !f.isDone()) {
-                f.reject(rejectionReason);
+        var settled = new java.util.ArrayList<Future>();
+        synchronized (futuresSync) {
+            for (String key : new java.util.ArrayList<>(futuresMap().keySet())) {
+                Future f = futuresMap().remove(key);
+                if (f != null && !f.isDone()) {
+                    settled.add(f);
+                }
             }
+        }
+        for (Future f : settled) {
+            f.reject(rejectionReason);
         }
 
         messageExecutor.shutdown();
+    }
+
+    /**
+     * Delayed graceful executor shutdown for a discarded client: a synchronous
+     * shutdown rejects in-flight frames, omitting it leaks the executor. If the
+     * client reconnects before the timer fires, the shutdown is disarmed so a
+     * later disconnect can re-arm it.
+     */
+    public void scheduleExecutorShutdown() {
+        if (executorShutdownScheduled.compareAndSet(false, true)) {
+            CompletableFuture.delayedExecutor(executorShutdownDelayMs,
+                    java.util.concurrent.TimeUnit.MILLISECONDS)
+                    .execute(() -> {
+                        // Serialize with connect()'s CAS on startedConnecting.
+                        synchronized (connectedLock) {
+                            if (this.isConnected || this.startedConnecting.get()) {
+                                executorShutdownScheduled.set(false);
+                                return;
+                            }
+                            messageExecutor.shutdown();
+                        }
+                    });
+        }
+    }
+
+    /** For tests and consumers verifying cleanup. */
+    public boolean isMessageExecutorShutdown() {
+        return messageExecutor.isShutdown();
     }
 
     // ─── Binary decompression (matches C# lines 393-471) ───

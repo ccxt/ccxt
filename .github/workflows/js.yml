@@ -68,6 +68,8 @@ jobs:
       run: git diff --name-only HEAD^1 HEAD
     - name: Determine modified files
       run: ./build/utils/init_actions.sh
+    - name: Guard entry-point imports
+      run: ./build/utils/check_entry_point_imports.sh
     - name: Debug output
       run: |
         echo "Important files modified: ${{ env.important_modified }}"
@@ -141,6 +143,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-js -- $exchange
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-js
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run ws-tests-js -- $exchange
+        done
     - name: Request Prediction tests
       if: env.prediction_modified == 'true'
       run: npm run request-ts-prediction
@@ -180,7 +192,7 @@ jobs:
         git remote set-url origin \
           "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
-        git add js/ dist/ wiki/ README.md ts/ccxt.ts examples/
+        git add js/ dist/ wiki/ README.md ts/ccxt.ts ts/src/abstract/ examples/
 
         if git diff --cached --quiet; then
           echo "No changes to commit."

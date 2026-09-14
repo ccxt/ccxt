@@ -207,6 +207,7 @@ class cryptocom extends Exchange {
                             'private/get-deposit-history' => array( 'cost' => 10 / 3 ),
                             'private/get-fee-rate' => array( 'cost' => 2 ),
                             'private/get-instrument-fee-rate' => array( 'cost' => 2 ),
+                            'private/get-fee-credit-balances' => array( 'cost' => 10 / 3 ),
                             'private/fiat/fiat-deposit-info' => array( 'cost' => 10 / 3 ),
                             'private/fiat/fiat-deposit-history' => array( 'cost' => 10 / 3 ),
                             'private/fiat/fiat-withdraw-history' => array( 'cost' => 10 / 3 ),
@@ -226,6 +227,13 @@ class cryptocom extends Exchange {
                             'private/staking/get-convert-history' => array( 'cost' => 2 ),
                             'private/create-isolated-margin-transfer' => array( 'cost' => 10 / 3 ),
                             'private/change-isolated-margin-leverage' => array( 'cost' => 10 / 3 ),
+                            'private/bot/create-trading-bot' => array( 'cost' => 10 / 3 ),
+                            'private/bot/update-trading-bot' => array( 'cost' => 10 / 3 ),
+                            'private/bot/terminate-trading-bot' => array( 'cost' => 10 / 3 ),
+                            'private/bot/pause-trading-bot' => array( 'cost' => 10 / 3 ),
+                            'private/bot/resume-trading-bot' => array( 'cost' => 10 / 3 ),
+                            'private/bot/get-trading-bots' => array( 'cost' => 10 / 3 ),
+                            'private/bot/get-trading-bot-executions' => array( 'cost' => 10 / 3 ),
                         ),
                     ),
                 ),
@@ -806,8 +814,8 @@ class cryptocom extends Exchange {
                 $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $symbolOptionType;
                 $contract = true;
             }
-            $isLinear = ($contract) ? true : null;
-            $isInverse = ($contract) ? false : null;
+            $isLinear = ($contract === true) ? true : null;
+            $isInverse = ($contract === true) ? false : null;
             $result[] = array(
                 'id' => $this->safe_string($market, 'symbol'),
                 'symbol' => $symbol,
@@ -819,7 +827,7 @@ class cryptocom extends Exchange {
                 'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
-                'margin' => (($marginBuyEnabled) || ($marginSellEnabled)),
+                'margin' => (($marginBuyEnabled === true) || ($marginSellEnabled === true)),
                 'swap' => $swap,
                 'future' => $future,
                 'option' => $option,
@@ -1099,7 +1107,7 @@ class cryptocom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1179,7 +1187,7 @@ class cryptocom extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
         );
-        if ($limit) {
+        if (($limit !== null) && ($limit !== 0)) {
             $request['depth'] = min($limit, 50); // max 50
         }
         $response = $this->v1PublicGetPublicGetBook($this->extend($request, $params));
@@ -1211,7 +1219,7 @@ class cryptocom extends Exchange {
     public function parse_balance(mixed $response): array {
         $responseResult = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($responseResult, 'data', array());
-        $positionBalances = $this->safe_value($data[0], 'position_balances', array());
+        $positionBalances = $this->safe_list($data[0], 'position_balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($positionBalances); $i++) {
             $balance = $positionBalances[$i];
@@ -1386,7 +1394,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if (($postOnly) || ($timeInForce === 'PO')) {
+        if (($postOnly === true) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1606,7 +1614,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if (($postOnly) || ($timeInForce === 'PO')) {
+        if (($postOnly === true) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -3093,7 +3101,7 @@ class cryptocom extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3184,7 +3192,7 @@ class cryptocom extends Exchange {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
@@ -3374,8 +3382,8 @@ class cryptocom extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'hedged' => null,
-            'side' => Precise::string_gt($amount, '0') ? 'buy' : 'sell',
-            'contracts' => Precise::string_abs($amount),
+            'side' => Precise::string_gt($amount, '0') ? 'long' : 'short',
+            'contracts' => $this->parse_number(Precise::string_abs($amount)),
             'contractSize' => $market['contractSize'],
             'entryPrice' => null,
             'markPrice' => null,
@@ -3566,8 +3574,8 @@ class cryptocom extends Exchange {
             $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
             $isSwap = $market['swap'];
-            $takerFeeKey = $isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
-            $makerFeeKey = $isSwap ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            $takerFeeKey = ($isSwap === true) ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            $makerFeeKey = ($isSwap === true) ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
             $tradingFee = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -3607,7 +3615,7 @@ class cryptocom extends Exchange {
         $url = $this->urls['api'][$type] . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($access === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -3628,7 +3636,7 @@ class cryptocom extends Exchange {
                 'nonce' => $nonce,
             ));
             // fix issue https://github.com/ccxt/ccxt/issues/11179
-            // php always encodes dictionaries
+            // php always encodes dictionaries as arrays
             // if an array is empty, php will put it in square brackets
             // python and js will put it in curly brackets
             // the code below checks and replaces those brackets in empty requests

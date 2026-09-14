@@ -20,13 +20,10 @@ public partial class BaseExchange
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
-        // latest value resolved without a waiter, per message hash
-        public IDictionary<string, object> pendingResults = new ConcurrentDictionary<string, object>();
-        // spans future/resolve/reject so that a resolve landing between the
-        // pending-results check and the futures GetOrAdd cannot park a value
-        // while a consumer waits on an unresolvable future (the cs cousin of
-        // the go lost-wakeup fixed in #29719, the other lanes ride
-        // single-threaded event loops and do not need it)
+        // spans future/resolve/reject so a resolve cannot land between
+        // futures GetOrAdd and the waiter attaching, and so settlements
+        // happen outside the lock (TaskCompletionSource is not
+        // RunContinuationsAsynchronously)
         private readonly object futuresSync = new object();
         public bool verbose = false;
         public bool isConnected = false;
@@ -63,6 +60,10 @@ public partial class BaseExchange
 
         public bool decompressBinary = true;
 
+        public bool isMock = false; // static ws tests: transport is stubbed, sends are recorded
+
+        public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
+
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
             this.url = url;
@@ -88,32 +89,15 @@ public partial class BaseExchange
             var messageHash = messageHash2.ToString();
             Future future;
             object rejection = null;
-            object pending = null;
-            var hasPending = false;
             lock (futuresSync)
             {
-                // a value that arrived while no future existed satisfies this
-                // consumer immediately, the spent future intentionally stays
-                // out of the map so the next consumer waits for fresh data
-                if ((this.pendingResults as ConcurrentDictionary<string, object>).TryRemove(messageHash, out pending))
-                {
-                    hasPending = true;
-                    future = new Future();
-                }
-                else
-                {
-                    future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
-                    (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
-                }
+                future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+                (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
             }
             // settle outside the lock, the TaskCompletionSource is not
             // RunContinuationsAsynchronously so awaiter continuations can run
             // synchronously on this thread
-            if (hasPending)
-            {
-                future.resolve(pending);
-            }
-            else if (rejection != null)
+            if (rejection != null)
             {
                 future.reject(rejection);
             }
@@ -135,17 +119,7 @@ public partial class BaseExchange
             Future future = null;
             lock (futuresSync)
             {
-                if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
-                {
-                    // no consumer future right now, keep the latest value so
-                    // the next future() call is resolved with it instead of
-                    // waiting for data that already arrived. A successful
-                    // resolve after a retained error means the stream
-                    // recovered, the stale error must not fail a later waiter
-                    this.pendingResults[messageHash] = content;
-                    (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out _);
-                    future = null;
-                }
+                (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future);
             }
             if (future != null)
             {
@@ -166,8 +140,6 @@ public partial class BaseExchange
                         (this.rejections as ConcurrentDictionary<string, object>)[messageHash] = content;
                         future = null;
                     }
-                    // stale pre-error values must not satisfy post-error consumers
-                    (this.pendingResults as ConcurrentDictionary<string, object>).TryRemove(messageHash, out _);
                 }
                 if (future != null)
                 {
@@ -185,7 +157,6 @@ public partial class BaseExchange
                         this.futures.Remove(messageHash); // this order matters
                         settled.Add(future);
                     }
-                    this.pendingResults.Clear();
                 }
                 foreach (var future in settled)
                 {
@@ -270,6 +241,17 @@ public partial class BaseExchange
                         // labeled as "seconds", and raise RequestTimeout instead of a bare
                         // Exception the error-class handling cannot categorize
                         this.onError(this, new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
+                        // onError rejects the pending futures and the exchange drops
+                        // this client from its registry, but the socket itself is
+                        // still open: leaving the loop does not tear it down, and the
+                        // server never asked for a close. left alone the Receiving
+                        // task keeps pulling frames and dispatching them into the
+                        // exchange caches next to the replacement connection the
+                        // next watch call opens. close the transport here so the
+                        // timeout ends the connection and not only the futures
+                        // waiting on it, mirroring ts/src/base/ws/Client.ts
+                        // onPingInterval (ccxt/ccxt#30293)
+                        await this.Close();
                         break;
                     }
                     else
@@ -382,6 +364,12 @@ public partial class BaseExchange
         public async Task send(object message)
         {
             var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
+            if (this.isMock)
+            {
+                // static ws tests: record the outgoing frame so the test can assert it
+                this.mockSentMessages.Add(JsonHelper.Deserialize(jsonMessage));
+                return;
+            }
             if (this.verbose)
             {
                 Console.WriteLine($"Sending message: {jsonMessage}");

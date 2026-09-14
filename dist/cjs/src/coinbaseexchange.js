@@ -178,11 +178,15 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'time': { 'cost': 1 },
                         'products/spark-lines': { 'cost': 1 },
                         'products/volume-summary': { 'cost': 1 },
+                        'wrapped-assets': { 'cost': 1 },
+                        'wrapped-assets/{wrapped_asset_id}': { 'cost': 1 },
+                        'wrapped-assets/{wrapped_asset_id}/conversion-rate': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         'address-book': { 'cost': 1 },
+                        'address-book/counterparty': { 'cost': 1 },
                         'accounts': { 'cost': 1 },
                         'accounts/{id}': { 'cost': 1 },
                         'accounts/{id}/holds': { 'cost': 1 },
@@ -212,9 +216,11 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'reports/{report_id}': { 'cost': 1 },
                         'transfers': { 'cost': 1 },
                         'transfers/{transfer_id}': { 'cost': 1 },
+                        'travel-rules': { 'cost': 1 },
                         'users/self/exchange-limits': { 'cost': 1 },
                         'users/self/hold-balances': { 'cost': 1 },
                         'users/self/trailing-volume': { 'cost': 1 },
+                        'users/{user_id}/trading-volumes': { 'cost': 1 },
                         'withdrawals/fee-estimate': { 'cost': 1 },
                         'conversions/{conversion_id}': { 'cost': 1 },
                         'conversions': { 'cost': 1 },
@@ -230,12 +236,18 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'loans/interest': { 'cost': 1 },
                         'loans/assets': { 'cost': 1 },
                         'loans': { 'cost': 1 },
+                        'loans/options': { 'cost': 1 },
+                        'wrapped-assets/redeem': { 'cost': 1 },
+                        'wrapped-assets/redeem/{redeem_id}': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap/{stake_wrap_id}': { 'cost': 1 },
                     },
                     'post': {
                         'conversions': { 'cost': 1 },
                         'deposits/coinbase-account': { 'cost': 1 },
                         'deposits/payment-method': { 'cost': 1 },
                         'coinbase-accounts/{id}/addresses': { 'cost': 1 },
+                        'address-book': { 'cost': 1 },
                         'funding/repay': { 'cost': 1 },
                         'orders': { 'cost': 1 },
                         'position/close': { 'cost': 1 },
@@ -245,8 +257,14 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'reports': { 'cost': 1 },
                         'withdrawals/coinbase': { 'cost': 1 },
                         'withdrawals/coinbase-account': { 'cost': 1 },
+                        'withdrawals/counterparty': { 'cost': 1 },
                         'withdrawals/crypto': { 'cost': 1 },
                         'withdrawals/payment-method': { 'cost': 1 },
+                        'transfers/{transfer_id}/travel-rules': { 'cost': 1 },
+                        'travel-rules': { 'cost': 1 },
+                        'users/{user_id}/settlement-preferences': { 'cost': 1 },
+                        'wrapped-assets/redeem': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap': { 'cost': 1 },
                         'loans/open': { 'cost': 1 },
                         'loans/repay-interest': { 'cost': 1 },
                         'loans/repay-principal': { 'cost': 1 },
@@ -255,10 +273,13 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'orders': { 'cost': 1 },
                         'orders/client:{client_oid}': { 'cost': 1 },
                         'orders/{id}': { 'cost': 1 },
+                        'address-book/{id}': { 'cost': 1 },
+                        'travel-rules/{id}': { 'cost': 1 },
                     },
                     'put': {
                         'profiles/{id}/deactivate': { 'cost': 1 },
                         'profiles/{id}': { 'cost': 1 },
+                        'address-book/{id}': { 'cost': 1 },
                     },
                 },
             },
@@ -978,7 +999,13 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         };
         // publicGetProductsIdTicker or publicGetProductsIdStats
         const method = this.safeString(this.options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'publicGetProductsIdStats') {
+            response = await this.publicGetProductsIdStats(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetProductsIdTicker(this.extend(request, params));
+        }
         //
         // publicGetProductsIdTicker
         //
@@ -1397,17 +1424,16 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         }
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_oid');
-        let method = undefined;
+        let response = undefined;
         if (clientOrderId === undefined) {
-            method = 'privateGetOrdersId';
             request['id'] = id;
+            response = await this.privateGetOrdersId(this.extend(request, params));
         }
         else {
-            method = 'privateGetOrdersClientClientOid';
             request['client_oid'] = clientOrderId;
             params = this.omit(params, ['clientOrderId', 'client_oid']);
+            response = await this.privateGetOrdersClientClientOid(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         return this.parseOrder(response);
     }
     /**
@@ -1564,7 +1590,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             request['time_in_force'] = timeInForce;
         }
         const postOnly = this.safeValue2(params, 'postOnly', 'post_only', false);
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = true;
         }
         params = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice']);
@@ -1629,13 +1655,10 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         // 'product_id': market['id'], // the request will be more performant if you include it
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_oid');
-        let method = undefined;
         if (clientOrderId === undefined) {
-            method = 'privateDeleteOrdersId';
             request['id'] = id;
         }
         else {
-            method = 'privateDeleteOrdersClientClientOid';
             request['client_oid'] = clientOrderId;
             params = this.omit(params, ['clientOrderId', 'client_oid']);
         }
@@ -1644,7 +1667,13 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             market = this.market(symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (clientOrderId === undefined) {
+            response = await this.privateDeleteOrdersId(this.extend(request, params));
+        }
+        else {
+            response = await this.privateDeleteOrdersClientClientOid(this.extend(request, params));
+        }
         return this.safeOrder({ 'info': response });
     }
     /**
@@ -1696,22 +1725,21 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             'currency': currency['id'],
             'amount': amount,
         };
-        let method = 'privatePostWithdrawals';
+        let response = undefined;
         if ('payment_method_id' in params) {
-            method += 'PaymentMethod';
+            response = await this.privatePostWithdrawalsPaymentMethod(this.extend(request, params));
         }
         else if ('coinbase_account_id' in params) {
-            method += 'CoinbaseAccount';
+            response = await this.privatePostWithdrawalsCoinbaseAccount(this.extend(request, params));
         }
         else {
-            method += 'Crypto';
             request['crypto_address'] = address;
             if (tag !== undefined) {
                 request['destination_tag'] = tag;
             }
+            response = await this.privatePostWithdrawalsCrypto(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
-        if (!response) {
+        if (response === undefined) {
             throw new errors.ExchangeError(this.id + ' withdraw() error: ' + this.json(response));
         }
         return this.parseTransaction(response, currency);
@@ -1998,15 +2026,15 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
     }
     parseTransactionStatus(transaction) {
         const canceled = this.safeValue(transaction, 'canceled_at');
-        if (canceled) {
+        if ((canceled !== undefined) && (canceled !== null)) {
             return 'canceled';
         }
         const processed = this.safeValue(transaction, 'processed_at');
         const completed = this.safeValue(transaction, 'completed_at');
-        if (completed) {
+        if ((completed !== undefined) && (completed !== null)) {
             return 'ok';
         }
-        else if (processed && !completed) {
+        else if ((processed !== undefined) && (processed !== null)) {
             return 'failed';
         }
         else {
@@ -2137,7 +2165,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         let request = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }
@@ -2147,7 +2175,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             const nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     payload = body;
                 }

@@ -305,6 +305,13 @@ public partial class cryptocom : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateGetInstrumentFeeRate",parameters);
     }
 
+    /// <summary>Calls the v1PrivatePostPrivateGetFeeCreditBalances endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPrivateGetFeeCreditBalances (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateGetFeeCreditBalances",parameters);
+    }
+
     /// <summary>Calls the v1PrivatePostPrivateFiatFiatDepositInfo endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivatePostPrivateFiatFiatDepositInfo (object parameters = null)
@@ -436,6 +443,55 @@ public partial class cryptocom : Exchange
     public async Task<Dictionary<string, object>> v1PrivatePostPrivateChangeIsolatedMarginLeverage (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateChangeIsolatedMarginLeverage",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPrivateBotCreateTradingBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPrivateBotCreateTradingBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateBotCreateTradingBot",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPrivateBotUpdateTradingBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPrivateBotUpdateTradingBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateBotUpdateTradingBot",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPrivateBotTerminateTradingBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPrivateBotTerminateTradingBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateBotTerminateTradingBot",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPrivateBotPauseTradingBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPrivateBotPauseTradingBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateBotPauseTradingBot",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPrivateBotResumeTradingBot endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPrivateBotResumeTradingBot (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateBotResumeTradingBot",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPrivateBotGetTradingBots endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPrivateBotGetTradingBots (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateBotGetTradingBots",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPrivateBotGetTradingBotExecutions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPrivateBotGetTradingBotExecutions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPrivateBotGetTradingBotExecutions",parameters);
     }
 
     /// <summary>Calls the v2PublicGetPublicAuth endpoint.</summary>

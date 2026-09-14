@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -85,6 +86,14 @@ class deepcoin extends \ccxt\async\deepcoin {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
+                // the public stream drops the connection after 20 s without a
+                // text 'ping' from the client (https://www.deepcoin.com/docs/publicWS/public),
+                // and the base default of 30 s only sends the first one at
+                // 30 s. raw probes => no ping and a 20 s or 25 s cadence all
+                // died at 20.7 s with close 1000 'heartbeat timeout', a 10 s
+                // and a 15 s cadence stayed up. 15 s leaves the widest window
+                // that still fits under the 20 s cut-off
+                'keepAlive' => 15000,
             ),
         ));
     }
@@ -161,7 +170,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             throw new BadRequest($this->id . ' no $subscription for ' . $messageHash);
         }
         $subId = $this->safe_integer($existingSubscription, 'id');
-        $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id original subscribe message
+        $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id as the original subscribe message
         $unsubHash = 'unsubscribe::' . $messageHash;
         $subscription = $this->extend($subscription, array(
             'subHash' => $messageHash,
@@ -189,31 +198,68 @@ class deepcoin extends \ccxt\async\deepcoin {
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
         $time = $this->milliseconds();
-        $listenKeyExpiryTimestamp = $this->safe_integer($this->options, 'listenKeyExpiryTimestamp', $time);
-        $expired = ($time - $listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
-        $listenKey = $this->safe_string($this->options, 'listenKey');
-        $response = null;
-        if ($listenKey === null) {
-            $response = Async\await($this->privateGetDeepcoinListenkeyAcquire($params));
-        } elseif ($expired) {
-            $method = $this->safe_string($this->options, 'method', 'privateGetDeepcoinListenkeyExtend');
-            $getNewKey = ($method === 'privateGetDeepcoinListenkeyAcquire');
-            if ($getNewKey) {
+        // single-flight leader election on a never-dialed $client, see
+        // https://github.com/ccxt/ccxt/issues/29393 => the key rides the private ws url query string, so racing
+        // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
+        // check-then-fetch (acquire vs extend) is the critical section; the flight IS the $client->futures entry,
+        // settled through $client->resolve / $client->reject so the registry is only mutated inside the $client (one lock in go)
+        $messageHash = 'authenticate';
+        $client = $this->client('authenticationFlights');
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            // a flight is already in progress - wake when the leader
+            // settles it => the $listenKey is then in the bucket
+            Async\await($client->future($messageHash));
+            return $this->safe_string($this->options, 'listenKey');
+        }
+        $future = $client->reusableFuture($messageHash);
+        $listenKey = null;
+        try {
+            $listenKeyExpiryTimestamp = $this->safe_integer($this->options, 'listenKeyExpiryTimestamp', $time);
+            $expired = ($time - $listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
+            $listenKey = $this->safe_string($this->options, 'listenKey');
+            $response = null;
+            if ($listenKey === null) {
                 $response = Async\await($this->privateGetDeepcoinListenkeyAcquire($params));
-            } else {
-                $request = array(
-                    'listenkey' => $listenKey,
-                );
-                $response = Async\await($this->privateGetDeepcoinListenkeyExtend($this->extend($request, $params)));
+            } elseif ($expired) {
+                $method = $this->safe_string($this->options, 'method', 'privateGetDeepcoinListenkeyExtend');
+                $getNewKey = ($method === 'privateGetDeepcoinListenkeyAcquire');
+                if ($getNewKey) {
+                    $response = Async\await($this->privateGetDeepcoinListenkeyAcquire($params));
+                } else {
+                    $request = array(
+                        'listenkey' => $listenKey,
+                    );
+                    $response = Async\await($this->privateGetDeepcoinListenkeyExtend($this->extend($request, $params)));
+                }
             }
+            if ($response !== null) {
+                $data = $this->safe_dict($response, 'data', array());
+                $listenKey = $this->safe_string($data, 'listenkey');
+                if ($listenKey === null) {
+                    // reject the flight BEFORE any cache write => a hollow 200
+                    // would otherwise cache an empty credential together with a
+                    // fresh expiry, parking every caller on a query string with
+                    // no key and no retry until that expiry lapses - the catch
+                    // below rejects the flight instead, so the waiters throw
+                    // and the next caller re-leads
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
+                $listenKeyExpiryTimestamp = $this->safe_timestamp($data, 'expire_time');
+                $this->options['listenKey'] = $listenKey;
+                $this->options['listenKeyExpiryTimestamp'] = $listenKeyExpiryTimestamp;
+            }
+            // settle the flight => $client->resolve wakes every waiter and drops
+            // the $future from the registry under the client's own lock, so the
+            // next refresh cycle elects a fresh leader
+            $client->resolve($listenKey, $messageHash);
+        } catch (Exception $e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            $client->reject($e, $messageHash);
         }
-        if ($response !== null) {
-            $data = $this->safe_dict($response, 'data', array());
-            $listenKey = $this->safe_string($data, 'listenkey');
-            $listenKeyExpiryTimestamp = $this->safe_timestamp($data, 'expire_time');
-            $this->options['listenKey'] = $listenKey;
-            $this->options['listenKeyExpiryTimestamp'] = $listenKeyExpiryTimestamp;
-        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from killing the process
+        Async\await($future);
         return $listenKey;
     }
 
@@ -339,7 +385,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $ask = $this->safe_number($ticker, 'AP1');
         $baseVolume = $this->safe_number($ticker, 'V');
         $quoteVolume = $this->safe_number($ticker, 'T');
-        if ($this->safe_bool($market, 'inverse')) {
+        if ($this->safe_bool($market, 'inverse') === true) {
             $temp = $baseVolume;
             $baseVolume = $quoteVolume;
             $quoteVolume = $temp;
@@ -554,7 +600,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -585,7 +631,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} [$timeframe] the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -688,6 +734,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
@@ -695,7 +742,8 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
         $market = $this->market($symbol);
         $messageHash = 'orderbook' . '::' . $market['symbol'];
-        $suffix = '_0.1';
+        $suffix = null;
+        list($suffix, $params) = $this->order_book_suffix($market, 'watchOrderBook', $params);
         $orderbook = Async\await($this->watch_public($market, $messageHash, '25', $params, $suffix));
         return $orderbook->limit();
     }
@@ -712,6 +760,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          *
          * @param {string} $symbol unified array of symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         if ($this->markets === null) {
@@ -719,11 +768,38 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
         $market = $this->market($symbol);
         $messageHash = 'orderbook' . '::' . $market['symbol'];
-        $suffix = '_0.1';
+        $suffix = null;
+        list($suffix, $params) = $this->order_book_suffix($market, 'unWatchOrderBook', $params);
         $subscription = array(
             'topic' => 'orderbook',
         );
         return Async\await($this->un_watch_public($market, $messageHash, '25', $params, $subscription, $suffix));
+    }
+
+    public function order_book_suffix(array $market, string $methodName, $params = array()): array {
+        // the 25-level book is published per price-$aggregation level and the
+        // level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
+        // venue only serves the levels that exist for that $market, from the
+        // tick size up to a few coarser steps => subscribing to a level the
+        // $market does not have is answered with 'orderbook does not exist:
+        // XRP/USDT_0.1, no available orderbook data' and nothing is
+        // streamed. a fixed '_0.1' therefore only worked for markets whose
+        // tick happens to be 0.1 or finer by a step or two (23 of the first
+        // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
+        // itself was accepted on 116 and 117 of them, and the handful whose
+        // tick was rejected accepted the next coarser level
+        $symbol = $this->safe_string($market, 'symbol');
+        $aggregation = null;
+        list($aggregation, $params) = $this->handle_option_and_params($params, $methodName, 'aggregation');
+        if ($aggregation === null) {
+            $precision = $this->safe_dict($market, 'precision', array());
+            $tickSize = $this->safe_number($precision, 'price');
+            if ($tickSize === null) {
+                throw new BadRequest($this->id . ' ' . $methodName . '() requires a $params["aggregation"] price level for ' . $symbol . ' because the $market has no price precision');
+            }
+            $aggregation = $this->number_to_string($tickSize);
+        }
+        return array( '_' . $aggregation, $params );
     }
 
     public function handle_order_book(Client $client, mixed $message) {

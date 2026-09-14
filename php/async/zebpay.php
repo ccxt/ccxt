@@ -110,6 +110,7 @@ class zebpay extends Exchange {
                             'v2/system/time' => array( 'cost' => 10 ),
                             'v2/system/status' => array( 'cost' => 10 ),
                             'v2/market/orderbook' => array( 'cost' => 10 ),
+                            'v2/market/orderbook/ticker' => array( 'cost' => 10 ),
                             'v2/market/trades' => array( 'cost' => 10 ),
                             'v2/market/ticker' => array( 'cost' => 10 ),
                             'v2/market/allTickers' => array( 'cost' => 10 ),
@@ -125,9 +126,12 @@ class zebpay extends Exchange {
                             'v1/system/status' => array( 'cost' => 10 ),
                             'v1/exchange/tradefee' => array( 'cost' => 10 ),
                             'v1/exchange/tradefees' => array( 'cost' => 10 ),
+                            'v1/exchange/exchangeInfo' => array( 'cost' => 10 ),
+                            'v1/exchange/pairs' => array( 'cost' => 10 ),
                             'v1/market/orderBook' => array( 'cost' => 10 ),
                             'v1/market/ticker24Hr' => array( 'cost' => 10 ),
                             'v1/market/markets' => array( 'cost' => 10 ),
+                            'v1/market/marketInfo' => array( 'cost' => 10 ),
                             'v1/market/aggTrade' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
@@ -144,6 +148,7 @@ class zebpay extends Exchange {
                             'v2/ex/orders' => array( 'cost' => 10 ),
                             'v2/account/balance' => array( 'cost' => 10 ),
                             'v2/ex/tradefee' => array( 'cost' => 10 ),
+                            'v2/ex/myfee/{symbol}' => array( 'cost' => 10 ),
                             'v2/ex/order' => array( 'cost' => 10 ),
                             'v2/ex/order/fills' => array( 'cost' => 10 ),
                         ),
@@ -158,10 +163,12 @@ class zebpay extends Exchange {
                             'v1/wallet/balance' => array( 'cost' => 10 ),
                             'v1/trade/order' => array( 'cost' => 10 ),
                             'v1/trade/order/open-orders' => array( 'cost' => 10 ),
+                            'v1/trade/order/history' => array( 'cost' => 10 ),
                             'v1/trade/userLeverages' => array( 'cost' => 10 ),
                             'v1/trade/userLeverage' => array( 'cost' => 10 ),
                             'v1/trade/positions' => array( 'cost' => 10 ),
                             'v1/trade/history' => array( 'cost' => 10 ),
+                            'v1/trade/transaction/history' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
                             'v1/trade/order' => array( 'cost' => 10 ),
@@ -172,6 +179,10 @@ class zebpay extends Exchange {
                             'v1/trade/update/userLeverage' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/all' => array( 'cost' => 10 ),
+                        ),
+                        'patch' => array(
                             'v1/trade/order' => array( 'cost' => 10 ),
                         ),
                     ),
@@ -502,7 +513,7 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->privateSpotGetV2ExTradefee($this->extend($request, $params)));
             //
             // {
@@ -611,7 +622,7 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
@@ -660,7 +671,7 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->publicSpotGetV2MarketTicker($this->extend($request, $params)));
             //
             //     array(
@@ -750,7 +761,7 @@ class zebpay extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->endtime] the latest time in ms to fetch orders for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -762,16 +773,16 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         } else {
             $request['interval'] = $timeframe;
         }
-        if ($market['contract'] && ($limit !== null)) {
+        if (($market['contract'] === true) && ($limit !== null)) {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $request['startTime'] = $since;
             } else {
                 $request['since'] = $since;
@@ -783,7 +794,7 @@ class zebpay extends Exchange {
             $params = $this->omit($params, array( 'endtime', 'until' ));
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($until === null || $since === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
             }
@@ -850,11 +861,11 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot'] && $limit !== null) {
+        if (($market['spot'] === true) && $limit !== null) {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->publicSpotGetV2MarketTrades($this->extend($request, $params)));
         } else {
             $response = Async\await($this->publicSwapGetV1MarketAggTrade($this->extend($request, $params)));
@@ -1108,7 +1119,7 @@ class zebpay extends Exchange {
             'side' => strtoupper($side),
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
             $response = Async\await($this->privateSpotPostV2ExOrders($this->extend($request, $params)));
         } else {
@@ -1197,7 +1208,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $response = null;
         $request = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['orderId'] = $id;
             $response = Async\await($this->privateSpotDeleteV2ExOrder($this->extend($request, $params)));
         } else {
@@ -1283,7 +1294,7 @@ class zebpay extends Exchange {
         );
         $response = null;
         $orders = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['currentPage'] = 1;
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
@@ -1354,7 +1365,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['orderId'] = $id;
             $response = Async\await($this->privateSpotGetV2ExOrder($this->extend($request, $params)));
         } else {
@@ -2045,11 +2056,11 @@ class zebpay extends Exchange {
         $timestamp = (string) $this->milliseconds();
         $signature = '';
         $query = $this->omit($params, $this->extract_params($path));
-        $queryLength = $query;
+        $queryLength = count($query);
         $access = $this->safe_string($api, 0, 'public');
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
-                if ($queryLength) {
+                if (($queryLength !== null) && ($queryLength !== 0)) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
@@ -2084,7 +2095,7 @@ class zebpay extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;
         }

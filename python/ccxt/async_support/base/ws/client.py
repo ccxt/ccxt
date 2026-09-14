@@ -15,10 +15,9 @@ except ImportError:
         return json.dumps(message, separators=(',', ':'))
 
 from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
-from .functions import milliseconds, iso8601, deep_extend, is_json_encoded_object
-from ccxt import NetworkError, RequestTimeout
+from ccxt import Exchange, NetworkError, RequestTimeout
 from ccxt.async_support.base.ws.future import Future
-from ccxt.async_support.base.ws.functions import gunzip, inflate
+from ccxt.async_support.base.ws.functions import gunzip, inflate, is_json_encoded_object
 from typing import Dict
 
 from aiohttp import WSMsgType
@@ -32,14 +31,6 @@ class Client(object):
     options = {}  # ws-specific options
     subscriptions = {}
     rejections = {}
-    # latest resolved value per message_hash that arrived while no consumer
-    # future existed, so an update landing between a resolve and the
-    # consumer's next future() call is delivered instead of silently
-    # dropped, latest value wins matching watch coalescing semantics, see
-    # https://github.com/ccxt/ccxt/issues/28089 and
-    # https://github.com/ccxt/ccxt/issues/23251 and the go lane fix
-    # https://github.com/ccxt/ccxt/pull/29719
-    pending_results = {}
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -72,7 +63,6 @@ class Client(object):
             'futures': {},
             'subscriptions': {},
             'rejections': {},
-            'pending_results': {},
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
@@ -83,7 +73,7 @@ class Client(object):
         settings.update(config)
         for key in settings:
             if hasattr(self, key) and isinstance(getattr(self, key), dict):
-                setattr(self, key, deep_extend(getattr(self, key), settings[key]))
+                setattr(self, key, Exchange.deep_extend(getattr(self, key), settings[key]))
             else:
                 setattr(self, key, settings[key])
         # connection-related Future
@@ -111,14 +101,6 @@ class Client(object):
         self.last_message_at = None
 
     def future(self, message_hash):
-        # a value that arrived while no future existed satisfies this
-        # consumer immediately, the spent future intentionally stays out of
-        # the map so the next consumer waits for fresh data
-        if message_hash in self.pending_results:
-            pending = self.pending_results.pop(message_hash)
-            spent = Future()
-            spent.resolve(pending)
-            return spent
         if message_hash not in self.futures or self.futures[message_hash].cancelled():
             self.futures[message_hash] = Future()
         future = self.futures[message_hash]
@@ -127,27 +109,18 @@ class Client(object):
             del self.rejections[message_hash]
         return future
 
-    def reusable_future(self, message_hash):
-        return self.future(message_hash)  # only used in go
-
     def reusableFuture(self, message_hash):
-        return self.future(message_hash)  # only used in go
+        # camelCase on purpose: the transpiler emits `client.reusableFuture(...)`
+        # verbatim into python/ccxt/pro/*.py, so this is the only reachable spelling
+        return self.future(message_hash)
 
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
-            self.log(iso8601(milliseconds()), 'resolve received None messageHash')
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'resolve received None messageHash')
         if message_hash in self.futures:
             future = self.futures[message_hash]
             future.resolve(result)
             del self.futures[message_hash]
-        else:
-            # no consumer future right now, keep the latest value so the
-            # next future() call is resolved with it instead of waiting for
-            # data that already arrived. A successful resolve after a
-            # retained error means the stream recovered, the stale error
-            # must not fail a later waiter
-            self.pending_results[message_hash] = result
-            self.rejections.pop(message_hash, None)
         return result
 
     def reject(self, result, message_hash=None):
@@ -158,18 +131,15 @@ class Client(object):
                 del self.futures[message_hash]
             else:
                 self.rejections[message_hash] = result
-            # stale pre-error values must not satisfy post-error consumers
-            self.pending_results.pop(message_hash, None)
         else:
             message_hashes = list(self.futures.keys())
             for message_hash in message_hashes:
                 self.reject(result, message_hash)
-            self.pending_results = {}
         return result
 
     def receive_loop(self):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'receive loop')
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
         if not self.closed():
             # let's drain the aiohttp buffer to avoid latency
             if self.buffer and len(self.buffer) > 1:
@@ -200,7 +170,7 @@ class Client(object):
                 else:
                     error = NetworkError(str(exception))
                     if self.verbose:
-                        self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
+                        self.log(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)
                     self.reject(error)
 
             task.add_done_callback(after_interrupt)
@@ -213,16 +183,16 @@ class Client(object):
         if backoff_delay:
             await sleep(backoff_delay)
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
-        self.connectionStarted = milliseconds()
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
+        self.connectionStarted = Exchange.milliseconds()
         try:
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             self.connecting = False
-            self.connectionEstablished = milliseconds()
+            self.connectionEstablished = Exchange.milliseconds()
             self.isConnected = True
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'connected')
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve(self.url)
             self.on_connected_callback(self)
             # run both loops forever
@@ -233,7 +203,7 @@ class Client(object):
             self.dial_failed = True
             error = RequestTimeout('Connection timeout')
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'RequestTimeout', error)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
@@ -248,7 +218,7 @@ class Client(object):
                         pass
             error = NetworkError(e)
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'NetworkError', error)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
             self.on_error(error)
 
     @property
@@ -276,7 +246,7 @@ class Client(object):
 
     def on_error(self, error):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'on_error', error)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
         self.error = error
         self.reject(error)
         self.on_error_callback(self, error)
@@ -285,7 +255,7 @@ class Client(object):
 
     def on_close(self, code):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'on_close', code)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
         if not self.error:
             self.reject(NetworkError('Connection closed by remote server, closing code ' + str(code)))
         self.on_close_callback(self, code)
@@ -303,7 +273,7 @@ class Client(object):
     # helper method for binary and text messages
     def handle_text_or_binary_message(self, data):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'message', data)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'message', data)
         if self.decompressBinary and isinstance(data, bytes):
             data = data.decode()
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
@@ -315,10 +285,10 @@ class Client(object):
         self.on_message_callback(self, decode)
 
     def handle_message(self, message):
-        # self.log(iso8601(milliseconds()), message)
+        # self.log(Exchange.iso8601(Exchange.milliseconds()), message)
         # timestamp of the last inbound frame, lets timeout forensics tell a
         # dead pipe apart from frames arriving that never resolve a future
-        self.last_message_at = milliseconds()
+        self.last_message_at = Exchange.milliseconds()
         if message.type == WSMsgType.TEXT:
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
@@ -334,20 +304,20 @@ class Client(object):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         elif message.type == WSMsgType.PING:
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'ping', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
             ensure_future(self.connection.pong(message.data), loop=self.asyncio_loop)
         elif message.type == WSMsgType.PONG:
-            self.lastPong = milliseconds()
+            self.lastPong = Exchange.milliseconds()
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'pong', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)
             pass
         elif message.type == WSMsgType.CLOSE:
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'close', self.closed(), message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'close', self.closed(), message)
             self.on_close(message.data)
         elif message.type == WSMsgType.ERROR:
             if self.verbose:
-                self.log(iso8601(milliseconds()), 'error', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'error', message)
             error = NetworkError(str(message))
             self.on_error(error)
 
@@ -373,7 +343,7 @@ class Client(object):
 
     async def send(self, message):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'sending', message)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
         send_msg = None
         if isinstance(message, str):
             send_msg = message
@@ -385,7 +355,7 @@ class Client(object):
 
     async def close(self, code=1000):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'closing', code)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
         for future in self.futures.values():
             future.cancel()
         await self.aiohttp_close()
@@ -403,14 +373,14 @@ class Client(object):
 
     async def ping_loop(self):
         if self.verbose:
-            self.log(iso8601(milliseconds()), 'ping loop')
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
         while self.keepAlive and not self.closed():
             # sleep BEFORE the first (and every) ping so the initial subscribe goes out first —
             # this matches the JS client (setInterval fires after one keepAlive, not immediately).
             # some servers (e.g. Polymarket) close the connection if a ping arrives before the
             # subscribe frame, which is why the first ping must not be sent on connect.
             await sleep(self.keepAlive / 1000)
-            now = milliseconds()
+            now = Exchange.milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong
             if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
                 self.on_error(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))

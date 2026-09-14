@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\coinmate as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -197,10 +198,15 @@ class coinmate extends Exchange {
                         'adaWithdrawal' => array( 'cost' => 1 ),
                         'adaDepositAddresses' => array( 'cost' => 1 ),
                         'unconfirmedAdaDeposits' => array( 'cost' => 1 ),
+                        'daiWithdrawal' => array( 'cost' => 1 ),
+                        'daiDepositAddresses' => array( 'cost' => 1 ),
+                        'unconfirmedDaiDeposits' => array( 'cost' => 1 ),
                         'solWithdrawal' => array( 'cost' => 1 ),
                         'solDepositAddresses' => array( 'cost' => 1 ),
                         'unconfirmedSolDeposits' => array( 'cost' => 1 ),
                         'bankWireWithdrawal' => array( 'cost' => 1 ),
+                        'lightningDeposit' => array( 'cost' => 1 ),
+                        'lightningWithdraw' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -389,7 +395,7 @@ class coinmate extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -453,7 +459,7 @@ class coinmate extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_value($response, 'data', array());
+        $balances = $this->safe_dict($response, 'data', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
@@ -599,7 +605,7 @@ class coinmate extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $keys = is_array($data) ? array_keys($data) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -801,7 +807,7 @@ class coinmate extends Exchange {
         }
         $currency = $this->currency($code);
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
-        $methods = $this->safe_value($withdrawOptions, 'methods', array());
+        $methods = $this->safe_dict($withdrawOptions, 'methods', array());
         $method = $this->safe_string($methods, $code);
         if ($method === null) {
             $allowedCurrencies = is_array($methods) ? array_keys($methods) : array();
@@ -814,7 +820,29 @@ class coinmate extends Exchange {
         if ($tag !== null) {
             $request['destinationTag'] = $tag;
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $requestParams = $this->extend($request, $params);
+        $response = null;
+        if ($method === 'privatePostBitcoinWithdrawal') {
+            $response = Async\await($this->privatePostBitcoinWithdrawal($requestParams));
+        } elseif ($method === 'privatePostLitecoinWithdrawal') {
+            $response = Async\await($this->privatePostLitecoinWithdrawal($requestParams));
+        } elseif ($method === 'privatePostBitcoinCashWithdrawal') {
+            $response = Async\await($this->privatePostBitcoinCashWithdrawal($requestParams));
+        } elseif ($method === 'privatePostEthereumWithdrawal') {
+            $response = Async\await($this->privatePostEthereumWithdrawal($requestParams));
+        } elseif ($method === 'privatePostRippleWithdrawal') {
+            $response = Async\await($this->privatePostRippleWithdrawal($requestParams));
+        } elseif ($method === 'privatePostDashWithdrawal') {
+            $response = Async\await($this->privatePostDashWithdrawal($requestParams));
+        } elseif ($method === 'privatePostDaiWithdrawal') {
+            $response = Async\await($this->privatePostDaiWithdrawal($requestParams));
+        } elseif ($method === 'privatePostAdaWithdrawal') {
+            $response = Async\await($this->privatePostAdaWithdrawal($requestParams));
+        } elseif ($method === 'privatePostSolWithdrawal') {
+            $response = Async\await($this->privatePostSolWithdrawal($requestParams));
+        } else {
+            throw new ExchangeError($this->id . ' withdraw() does not support the ' . $method . ' method');
+        }
         //
         //     {
         //         "error" => false,
@@ -827,7 +855,7 @@ class coinmate extends Exchange {
         $data = $this->safe_value($response, 'data');
         $transaction = $this->parse_transaction($data, $currency);
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transaction['amount'] = $amount;
             $transaction['currency'] = $code;
             $transaction['address'] = $address;
@@ -1231,7 +1259,19 @@ class coinmate extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $method .= $this->capitalize($type);
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $requestParams = $this->extend($request, $params);
+        $response = null;
+        if ($method === 'privatePostBuyInstant') {
+            $response = Async\await($this->privatePostBuyInstant($requestParams));
+        } elseif ($method === 'privatePostSellInstant') {
+            $response = Async\await($this->privatePostSellInstant($requestParams));
+        } elseif ($method === 'privatePostBuyLimit') {
+            $response = Async\await($this->privatePostBuyLimit($requestParams));
+        } elseif ($method === 'privatePostSellLimit') {
+            $response = Async\await($this->privatePostSellLimit($requestParams));
+        } else {
+            throw new InvalidOrder($this->id . ' createOrder() does not support order $type ' . $type);
+        }
         $id = $this->safe_string($response, 'data');
         return $this->safe_order(array(
             'info' => $response,
@@ -1262,7 +1302,7 @@ class coinmate extends Exchange {
             'orderId' => $id,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
         }
         $response = Async\await($this->privatePostOrderById($this->extend($request, $params)));
@@ -1309,7 +1349,7 @@ class coinmate extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = ($this->urls['api'])['rest'] . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {

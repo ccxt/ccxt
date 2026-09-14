@@ -62,14 +62,17 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
     void storeArrayUnsafe(Object delta2) {
         List<Object> delta = (List<Object>) delta2;
         BigDecimal price = toBigDecimal(delta.get(0));
-        BigDecimal amount = toBigDecimal(delta.get(1));
         if (price == null) {
             return;
         }
+        // Amount is only tested for zero / nonzero / missing. Do not build a
+        // BigDecimal (valueOf → toString + parse) just to ask that; the row
+        // keeps the caller's original object. NaN/Inf/null → no-op.
+        double amount = (delta.get(1) instanceof Number n) ? n.doubleValue() : Double.NaN;
         // Bids store the negated price so a single ascending index list serves both sides.
         BigDecimal indexPrice = this.side ? price.negate() : price;
         int idx = bisectLeft(this.index, indexPrice);
-        if (amount != null && amount.compareTo(BigDecimal.ZERO) != 0) {
+        if (Double.isFinite(amount) && amount != 0) {
             if (idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
                 // Replace the inner list whole-cloth: snapshot() shallow-copies, so an
                 // in-place set(1, amount) would still race with concurrent readers.
@@ -78,7 +81,7 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
                 this.index.add(idx, indexPrice);
                 this.add(idx, new ArrayList<>(delta));
             }
-        } else if (amount != null && idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
+        } else if (amount == 0 && idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
             this.index.remove(idx);
             this.remove(idx);
         }

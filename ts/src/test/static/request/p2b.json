@@ -19,7 +19,7 @@
                     0.1,
                     55
                 ],
-                "output": "{\"market\":\"LTC_USDT\",\"side\":\"buy\",\"amount\":\"0.1\",\"price\":\"55\",\"request\":\"/api/v2/order/new\",\"nonce\":\"1700046291\"}"
+                "output": { "market": "LTC_USDT", "side": "buy", "amount": "0.1", "price": "55", "request": "/api/v2/order/new", "nonce": "1700046291" }
             },
             {
                 "description": "Limit sell order",
@@ -32,7 +32,7 @@
                     0.1,
                     100
                 ],
-                "output": "{\"market\":\"LTC_USDT\",\"side\":\"sell\",\"amount\":\"0.1\",\"price\":\"100\",\"request\":\"/api/v2/order/new\",\"nonce\":\"1700046477\"}"
+                "output": { "market": "LTC_USDT", "side": "sell", "amount": "0.1", "price": "100", "request": "/api/v2/order/new", "nonce": "1700046477" }
             }
         ],
         "cancelOrder": [
@@ -44,7 +44,7 @@
                     "175340201831",
                     "LTC/USDT"
                 ],
-                "output": "{\"market\":\"LTC_USDT\",\"orderId\":\"175340201831\",\"request\":\"/api/v2/order/cancel\",\"nonce\":\"1700046336\"}"
+                "output": { "market": "LTC_USDT", "orderId": "175340201831", "request": "/api/v2/order/cancel", "nonce": "1700046336" }
             }
         ],
         "fetchMyTrades": [
@@ -55,7 +55,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"market\":\"LTC_USDT\",\"startTime\":1699960007,\"endTime\":1700046407,\"request\":\"/api/v2/account/market_deal_history\",\"nonce\":\"1700046407\"}"
+                "output": { "market": "LTC_USDT", "startTime": 1699960007, "endTime": 1700046407, "request": "/api/v2/account/market_deal_history", "nonce": "1700046407" }
             }
         ],
         "fetchBalance": [
@@ -64,7 +64,7 @@
                 "method": "fetchBalance",
                 "url": "https://api.p2pb2b.com/api/v2/account/balances",
                 "input": [],
-                "output": "{\"request\":\"/api/v2/account/balances\",\"nonce\":\"1700046634\"}"
+                "output": { "request": "/api/v2/account/balances", "nonce": "1700046634" }
             }
         ],
         "fetchOrderBook": [

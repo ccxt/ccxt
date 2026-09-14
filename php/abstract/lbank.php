@@ -256,6 +256,12 @@ abstract class lbank extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function spot_private_post_supplement_add_deposit_address($params = array()) {
+        return $this->request('supplement/add_deposit_address', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function spot_private_post_supplement_asset_detail($params = array()) {
         return $this->request('supplement/asset_detail', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -330,6 +336,36 @@ abstract class lbank extends \ccxt\Exchange {
      */
     public function spot_private_post_supplement_transaction_history($params = array()) {
         return $this->request('supplement/transaction_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spot_private_post_spot_wallet_withdraw($params = array()) {
+        return $this->request('spot/wallet/withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spot_private_post_spot_wallet_deposit_history($params = array()) {
+        return $this->request('spot/wallet/deposit_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spot_private_post_spot_wallet_withdraws($params = array()) {
+        return $this->request('spot/wallet/withdraws', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spot_private_post_spot_trade_orders_info($params = array()) {
+        return $this->request('spot/trade/orders_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spot_private_post_spot_trade_orders_info_history($params = array()) {
+        return $this->request('spot/trade/orders_info_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
     /**
      * @return array<string, mixed>
@@ -604,6 +640,12 @@ abstract class lbank extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function spotPrivatePostSupplementAddDepositAddress($params = array()) {
+        return $this->request('supplement/add_deposit_address', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function spotPrivatePostSupplementAssetDetail($params = array()) {
         return $this->request('supplement/asset_detail', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -678,6 +720,36 @@ abstract class lbank extends \ccxt\Exchange {
      */
     public function spotPrivatePostSupplementTransactionHistory($params = array()) {
         return $this->request('supplement/transaction_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spotPrivatePostSpotWalletWithdraw($params = array()) {
+        return $this->request('spot/wallet/withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spotPrivatePostSpotWalletDepositHistory($params = array()) {
+        return $this->request('spot/wallet/deposit_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spotPrivatePostSpotWalletWithdraws($params = array()) {
+        return $this->request('spot/wallet/withdraws', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spotPrivatePostSpotTradeOrdersInfo($params = array()) {
+        return $this->request('spot/trade/orders_info', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function spotPrivatePostSpotTradeOrdersInfoHistory($params = array()) {
+        return $this->request('spot/trade/orders_info_history', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 2.5));
     }
     /**
      * @return array<string, mixed>

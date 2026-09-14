@@ -650,7 +650,7 @@ class paradex extends \ccxt\async\paradex {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         //

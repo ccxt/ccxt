@@ -536,6 +536,13 @@ public partial class bitfinex : Exchange
         return await this.callAsync<List<object>> ("privatePostAuthROrdersHist",parameters);
     }
 
+    /// <summary>Calls the privatePostAuthROrdersOtcSymbolHist endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAuthROrdersOtcSymbolHist (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAuthROrdersOtcSymbolHist",parameters);
+    }
+
     /// <summary>Calls the privatePostAuthROrderSymbolIdTrades endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privatePostAuthROrderSymbolIdTrades (object parameters = null)
@@ -639,6 +646,13 @@ public partial class bitfinex : Exchange
     public async Task<List<object>> privatePostAuthRPositionsSnap (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privatePostAuthRPositionsSnap",parameters);
+    }
+
+    /// <summary>Calls the privatePostAuthWPositionUpdateFundingType endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAuthWPositionUpdateFundingType (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAuthWPositionUpdateFundingType",parameters);
     }
 
     /// <summary>Calls the privatePostAuthWDerivCollateralSet endpoint.</summary>
@@ -858,11 +872,25 @@ public partial class bitfinex : Exchange
         return await this.callAsync<List<object>> ("privatePostAuthWDepositAddress",parameters);
     }
 
+    /// <summary>Calls the privatePostAuthRDepositAddressAll endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAuthRDepositAddressAll (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAuthRDepositAddressAll",parameters);
+    }
+
     /// <summary>Calls the privatePostAuthWDepositInvoice endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privatePostAuthWDepositInvoice (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privatePostAuthWDepositInvoice",parameters);
+    }
+
+    /// <summary>Calls the privatePostAuthRExtInvoicePayments endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAuthRExtInvoicePayments (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAuthRExtInvoicePayments",parameters);
     }
 
     /// <summary>Calls the privatePostAuthWWithdraw endpoint.</summary>
@@ -884,6 +912,13 @@ public partial class bitfinex : Exchange
     public async Task<List<object>> privatePostAuthRMovementsHist (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privatePostAuthRMovementsHist",parameters);
+    }
+
+    /// <summary>Calls the privatePostAuthRMovementsInfo endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAuthRMovementsInfo (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAuthRMovementsInfo",parameters);
     }
 
     /// <summary>Calls the privatePostAuthRAlerts endpoint.</summary>
@@ -961,6 +996,27 @@ public partial class bitfinex : Exchange
     public async Task<List<object>> privatePostAuthWPulseDel (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privatePostAuthWPulseDel",parameters);
+    }
+
+    /// <summary>Calls the privatePostAuthWExtWalletsDepositsRequest endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAuthWExtWalletsDepositsRequest (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAuthWExtWalletsDepositsRequest",parameters);
+    }
+
+    /// <summary>Calls the privatePostAuthWExtWalletsWithdrawalsRequest endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAuthWExtWalletsWithdrawalsRequest (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAuthWExtWalletsWithdrawalsRequest",parameters);
+    }
+
+    /// <summary>Calls the privatePostAuthRExtWalletsTransfersFreeCount endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAuthRExtWalletsTransfersFreeCount (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostAuthRExtWalletsTransfersFreeCount",parameters);
     }
 
 }

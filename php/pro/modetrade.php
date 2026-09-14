@@ -109,7 +109,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
          *
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -176,7 +176,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_ticker(string $symbol, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -272,7 +272,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_tickers(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-$tickers
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-$tickers
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -335,7 +335,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
          *
          * watches best bid & ask for $symbols
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -413,14 +413,14 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -501,7 +501,7 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple $trades made in a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
          *
          * @param {string} $symbol unified $market $symbol of the $market $trades were made in
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -643,7 +643,7 @@ class modetrade extends \ccxt\async\modetrade {
         //
         $messageHash = 'authenticated';
         $success = $this->safe_value($message, 'success');
-        if ($success) {
+        if ($success === true) {
             // $client->resolve($message, $messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);
@@ -730,8 +730,8 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -744,7 +744,7 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger) ? 'algoexecutionreport' : 'executionreport';
+        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
         if ($symbol !== null) {
@@ -772,8 +772,8 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple trades made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -786,7 +786,7 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger) ? 'algoexecutionreport' : 'executionreport';
+        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
         $params = $this->omit($params, 'stop');
         $messageHash = 'myTrades';
         if ($symbol !== null) {
@@ -1065,7 +1065,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
          *
          * watch all open positions
          * @param {string[]} [$symbols] list of unified market $symbols
@@ -1092,7 +1092,7 @@ class modetrade extends \ccxt\async\modetrade {
         $this->set_positions_cache($client, $symbols);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -1109,7 +1109,7 @@ class modetrade extends \ccxt\async\modetrade {
 
     public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1277,7 +1277,7 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watch balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -1359,7 +1359,7 @@ class modetrade extends \ccxt\async\modetrade {
             return false;
         }
         $success = $this->safe_bool($message, 'success');
-        if ($success) {
+        if ($success === true) {
             return false;
         }
         $errorMessage = $this->safe_string($message, 'errorMsg');
@@ -1384,7 +1384,7 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $methods = array(

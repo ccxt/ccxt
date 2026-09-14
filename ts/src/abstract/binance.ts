@@ -231,6 +231,7 @@ interface Exchange {
     sapiGetPortfolioPmloanHistory (params?: {}): Promise<Dict>;
     sapiGetPortfolioEarnAssetBalance (params?: {}): Promise<Dict>;
     sapiGetPortfolioDeltaMode (params?: {}): Promise<Dict>;
+    sapiGetPortfolioMarginCallLevel (params?: {}): Promise<Dict>;
     sapiGetStakingProductList (params?: {}): Promise<List>;
     sapiGetStakingPosition (params?: {}): Promise<List>;
     sapiGetStakingStakingRecord (params?: {}): Promise<List>;
@@ -388,6 +389,7 @@ interface Exchange {
     sapiPostPortfolioRedeem (params?: {}): Promise<Dict>;
     sapiPostPortfolioEarnAssetTransfer (params?: {}): Promise<Dict>;
     sapiPostPortfolioDeltaMode (params?: {}): Promise<Dict>;
+    sapiPostPortfolioMarginCallLevel (params?: {}): Promise<Dict>;
     sapiPostLendingAutoInvestPlanAdd (params?: {}): Promise<Dict>;
     sapiPostLendingAutoInvestPlanEdit (params?: {}): Promise<Dict>;
     sapiPostLendingAutoInvestPlanEditStatus (params?: {}): Promise<Dict>;
@@ -412,6 +414,7 @@ interface Exchange {
     sapiPostEquityListenKey (params?: {}): Promise<Dict>;
     sapiPutUserDataStream (params?: {}): Promise<Dict>;
     sapiPutUserDataStreamIsolated (params?: {}): Promise<Dict>;
+    sapiDeletePortfolioMarginCallLevel (params?: {}): Promise<Dict>;
     sapiDeleteMarginOpenOrders (params?: {}): Promise<List>;
     sapiDeleteMarginOrder (params?: {}): Promise<Dict>;
     sapiDeleteMarginOrderList (params?: {}): Promise<Dict>;
@@ -529,8 +532,8 @@ interface Exchange {
     fapiPublicGetFundingInfo (params?: {}): Promise<List>;
     fapiPublicGetPremiumIndex (params?: {}): Promise<List>;
     fapiPublicGetTicker24hr (params?: {}): Promise<Dict | List>;
-    fapiPublicGetTickerPrice (params?: {}): Promise<Dict>;
-    fapiPublicGetTickerBookTicker (params?: {}): Promise<List>;
+    fapiPublicGetTickerPrice (params?: {}): Promise<Dict | List>;
+    fapiPublicGetTickerBookTicker (params?: {}): Promise<Dict | List>;
     fapiPublicGetOpenInterest (params?: {}): Promise<Dict>;
     fapiPublicGetIndexInfo (params?: {}): Promise<List>;
     fapiPublicGetAssetIndex (params?: {}): Promise<Dict>;
@@ -615,7 +618,7 @@ interface Exchange {
     fapiPrivateDeleteListenKey (params?: {}): Promise<Dict>;
     fapiPrivateDeleteAlgoOrder (params?: {}): Promise<Dict>;
     fapiPrivateDeleteAlgoOpenOrders (params?: {}): Promise<Dict>;
-    fapiPublicV2GetTickerPrice (params?: {}): Promise<List>;
+    fapiPublicV2GetTickerPrice (params?: {}): Promise<Dict | List>;
     fapiPrivateV2GetAccount (params?: {}): Promise<Dict>;
     fapiPrivateV2GetBalance (params?: {}): Promise<List>;
     fapiPrivateV2GetPositionRisk (params?: {}): Promise<List>;
@@ -661,6 +664,7 @@ interface Exchange {
     eapiPrivatePostCountdownCancelAllHeartBeat (params?: {}): Promise<Dict>;
     eapiPrivatePostBlockOrderCreate (params?: {}): Promise<Dict>;
     eapiPrivatePostBlockOrderExecute (params?: {}): Promise<Dict>;
+    eapiPrivatePostStockContract (params?: {}): Promise<Dict>;
     eapiPrivatePutListenKey (params?: {}): Promise<Dict>;
     eapiPrivatePutBlockOrderCreate (params?: {}): Promise<Dict>;
     eapiPrivateDeleteOrder (params?: {}): Promise<Dict>;
@@ -680,10 +684,14 @@ interface Exchange {
     publicGetTicker24hr (params?: {}): Promise<Dict | List>;
     publicGetTicker (params?: {}): Promise<List>;
     publicGetTickerTradingDay (params?: {}): Promise<Dict>;
-    publicGetTickerPrice (params?: {}): Promise<List>;
+    publicGetTickerPrice (params?: {}): Promise<Dict | List>;
     publicGetTickerBookTicker (params?: {}): Promise<List>;
     publicGetExchangeInfo (params?: {}): Promise<Dict>;
+    publicGetExecutionRules (params?: {}): Promise<Dict>;
     publicGetAvgPrice (params?: {}): Promise<Dict>;
+    publicGetReferencePrice (params?: {}): Promise<Dict>;
+    publicGetReferencePriceCalculation (params?: {}): Promise<Dict>;
+    publicGetHistoricalBlockTrades (params?: {}): Promise<List>;
     publicPutUserDataStream (params?: {}): Promise<Dict>;
     publicPostUserDataStream (params?: {}): Promise<Dict>;
     publicDeleteUserDataStream (params?: {}): Promise<Dict>;
@@ -726,6 +734,9 @@ interface Exchange {
     papiGetUmConditionalOpenOrders (params?: {}): Promise<List>;
     papiGetUmConditionalOrderHistory (params?: {}): Promise<Dict>;
     papiGetUmConditionalAllOrders (params?: {}): Promise<List>;
+    papiGetUmAlgoAlgoOrder (params?: {}): Promise<Dict>;
+    papiGetUmAlgoOpenAlgoOrders (params?: {}): Promise<List>;
+    papiGetUmAlgoAllAlgoOrders (params?: {}): Promise<List>;
     papiGetCmConditionalOpenOrder (params?: {}): Promise<Dict>;
     papiGetCmConditionalOpenOrders (params?: {}): Promise<List>;
     papiGetCmConditionalOrderHistory (params?: {}): Promise<Dict>;
@@ -782,6 +793,7 @@ interface Exchange {
     papiGetRateLimitOrder (params?: {}): Promise<List>;
     papiPostUmOrder (params?: {}): Promise<Dict>;
     papiPostUmConditionalOrder (params?: {}): Promise<Dict>;
+    papiPostUmAlgoOrder (params?: {}): Promise<Dict>;
     papiPostCmOrder (params?: {}): Promise<Dict>;
     papiPostCmConditionalOrder (params?: {}): Promise<Dict>;
     papiPostMarginOrder (params?: {}): Promise<Dict>;
@@ -808,6 +820,8 @@ interface Exchange {
     papiDeleteUmConditionalOrder (params?: {}): Promise<Dict>;
     papiDeleteUmAllOpenOrders (params?: {}): Promise<List>;
     papiDeleteUmConditionalAllOpenOrders (params?: {}): Promise<List>;
+    papiDeleteUmAlgoOrder (params?: {}): Promise<Dict>;
+    papiDeleteUmAlgoAllOpenOrders (params?: {}): Promise<List>;
     papiDeleteCmOrder (params?: {}): Promise<Dict>;
     papiDeleteCmConditionalOrder (params?: {}): Promise<Dict>;
     papiDeleteCmAllOpenOrders (params?: {}): Promise<List>;

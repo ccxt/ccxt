@@ -8,7 +8,7 @@ import java.util.Map;
 // Prediction-market order request — carries an `outcome` handle instead of a
 // `symbol`. Mirrors the `PredictionOrderRequest` interface in ts/src/base/types.ts
 // and the Go/C# structs.
-public final class PredictionOrderRequest {
+public final class PredictionOrderRequest extends TypedMap {
     public String outcome; // unified handle "TRUMP_WIN_2024:YES"
     public String type;
     public String side;
@@ -18,6 +18,7 @@ public final class PredictionOrderRequest {
 
     @SuppressWarnings("unchecked")
     public PredictionOrderRequest(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.outcome = TypeHelper.safeString(data, "outcome");
         this.type = TypeHelper.safeString(data, "type");

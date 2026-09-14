@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class KrakenfuturesApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetFeeschedules (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetFeeschedules (Object... optionalArgs)
     {
         return this.callAsync ("publicGetFeeschedules", optionalArgs);
     }
@@ -36,9 +38,31 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetInstruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicGetInstruments", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetInstrumentsStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicGetInstrumentsStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetInstrumentsStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetInstrumentsSymbolStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicGetInstrumentsSymbolStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetInstrumentsSymbolStatus", optionalArgs);
     }
 
     /**
@@ -47,7 +71,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderbook", optionalArgs);
     }
@@ -58,9 +82,20 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickers", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetTickersSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicGetTickersSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetTickersSymbol", optionalArgs);
     }
 
     /**
@@ -69,7 +104,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetHistory", optionalArgs);
     }
@@ -80,7 +115,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetHistoricalfundingrates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetHistoricalfundingrates (Object... optionalArgs)
     {
         return this.callAsync ("publicGetHistoricalfundingrates", optionalArgs);
     }
@@ -91,7 +126,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFeeschedulesVolumes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFeeschedulesVolumes (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFeeschedulesVolumes", optionalArgs);
     }
@@ -100,9 +135,9 @@ public class KrakenfuturesApi extends Exchange
      * Calls the privateGetOpenpositions endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOpenpositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenpositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenpositions", optionalArgs);
     }
@@ -113,7 +148,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetNotifications (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetNotifications (Object... optionalArgs)
     {
         return this.callAsync ("privateGetNotifications", optionalArgs);
     }
@@ -124,7 +159,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccounts", optionalArgs);
     }
@@ -135,7 +170,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenorders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOpenorders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenorders", optionalArgs);
     }
@@ -146,7 +181,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRecentorders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetRecentorders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetRecentorders", optionalArgs);
     }
@@ -157,7 +192,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFills (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFills", optionalArgs);
     }
@@ -168,7 +203,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTransfers", optionalArgs);
     }
@@ -179,7 +214,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetLeveragepreferences (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetLeveragepreferences (Object... optionalArgs)
     {
         return this.callAsync ("privateGetLeveragepreferences", optionalArgs);
     }
@@ -190,7 +225,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetPnlpreferences (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetPnlpreferences (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPnlpreferences", optionalArgs);
     }
@@ -201,7 +236,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssignmentprogramCurrent (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssignmentprogramCurrent (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssignmentprogramCurrent", optionalArgs);
     }
@@ -212,7 +247,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssignmentprogramHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssignmentprogramHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssignmentprogramHistory", optionalArgs);
     }
@@ -223,9 +258,64 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUnwindqueue endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetUnwindqueue (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUnwindqueue", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetSelfTradeStrategy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetSelfTradeStrategy (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSelfTradeStrategy", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetSubaccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetSubaccounts (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSubaccounts", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetSubaccountUidTradingEnabled endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetSubaccountUidTradingEnabled (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSubaccountUidTradingEnabled", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetRfqAssignmentMaxLeverage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetRfqAssignmentMaxLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRfqAssignmentMaxLeverage", optionalArgs);
     }
 
     /**
@@ -234,7 +324,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSendorder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSendorder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSendorder", optionalArgs);
     }
@@ -245,7 +335,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEditorder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostEditorder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEditorder", optionalArgs);
     }
@@ -256,7 +346,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelorder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelorder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelorder", optionalArgs);
     }
@@ -267,9 +357,20 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransfer", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostTransferSubaccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostTransferSubaccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostTransferSubaccount", optionalArgs);
     }
 
     /**
@@ -278,7 +379,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBatchorder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBatchorder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBatchorder", optionalArgs);
     }
@@ -289,7 +390,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelallorders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelallorders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelallorders", optionalArgs);
     }
@@ -300,7 +401,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelallordersafter (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelallordersafter (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelallordersafter", optionalArgs);
     }
@@ -311,7 +412,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawal", optionalArgs);
     }
@@ -322,7 +423,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssignmentprogramAdd (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAssignmentprogramAdd (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssignmentprogramAdd", optionalArgs);
     }
@@ -333,7 +434,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssignmentprogramDelete (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAssignmentprogramDelete (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssignmentprogramDelete", optionalArgs);
     }
@@ -344,7 +445,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutLeveragepreferences (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutLeveragepreferences (Object... optionalArgs)
     {
         return this.callAsync ("privatePutLeveragepreferences", optionalArgs);
     }
@@ -355,9 +456,53 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutPnlpreferences (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutPnlpreferences (Object... optionalArgs)
     {
         return this.callAsync ("privatePutPnlpreferences", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutSelfTradeStrategy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePutSelfTradeStrategy (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutSelfTradeStrategy", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutSubaccountUidTradingEnabled endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePutSubaccountUidTradingEnabled (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutSubaccountUidTradingEnabled", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutRfqAssignmentMaxLeverage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePutRfqAssignmentMaxLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutRfqAssignmentMaxLeverage", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteRfqAssignmentMaxLeverage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateDeleteRfqAssignmentMaxLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteRfqAssignmentMaxLeverage", optionalArgs);
     }
 
     /**
@@ -366,9 +511,20 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  chartsGetPriceTypeSymbolInterval (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  chartsGetPriceTypeSymbolInterval (Object... optionalArgs)
     {
         return this.callAsync ("chartsGetPriceTypeSymbolInterval", optionalArgs);
+    }
+
+    /**
+     * Calls the chartsGetAnalyticsLiquidityPool endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  chartsGetAnalyticsLiquidityPool (Object... optionalArgs)
+    {
+        return this.callAsync ("chartsGetAnalyticsLiquidityPool", optionalArgs);
     }
 
     /**
@@ -377,7 +533,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  historyGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("historyGetOrders", optionalArgs);
     }
@@ -388,7 +544,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetExecutions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  historyGetExecutions (Object... optionalArgs)
     {
         return this.callAsync ("historyGetExecutions", optionalArgs);
     }
@@ -399,7 +555,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetTriggers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  historyGetTriggers (Object... optionalArgs)
     {
         return this.callAsync ("historyGetTriggers", optionalArgs);
     }
@@ -410,7 +566,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  historyGetAccountlogcsv (Object... optionalArgs)
+    public CompletableFuture<String>  historyGetAccountlogcsv (Object... optionalArgs)
     {
         return this.callAsync ("historyGetAccountlogcsv", optionalArgs);
     }
@@ -421,7 +577,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetAccountLog (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  historyGetAccountLog (Object... optionalArgs)
     {
         return this.callAsync ("historyGetAccountLog", optionalArgs);
     }
@@ -432,7 +588,7 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetMarketSymbolOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  historyGetMarketSymbolOrders (Object... optionalArgs)
     {
         return this.callAsync ("historyGetMarketSymbolOrders", optionalArgs);
     }
@@ -443,9 +599,31 @@ public class KrakenfuturesApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetMarketSymbolExecutions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  historyGetMarketSymbolExecutions (Object... optionalArgs)
     {
         return this.callAsync ("historyGetMarketSymbolExecutions", optionalArgs);
+    }
+
+    /**
+     * Calls the historyGetMarketSymbolPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  historyGetMarketSymbolPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("historyGetMarketSymbolPrice", optionalArgs);
+    }
+
+    /**
+     * Calls the historyGetPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  historyGetPositions (Object... optionalArgs)
+    {
+        return this.callAsync ("historyGetPositions", optionalArgs);
     }
 
 }

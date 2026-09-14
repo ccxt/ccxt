@@ -930,7 +930,7 @@ class coinex extends \ccxt\async\coinex {
         $timestamp = $this->safe_integer($depth, 'updated_at');
         $currentOrderBook = $this->safe_value($this->orderbooks, $symbol);
         $fullOrderBook = $this->safe_bool($data, 'is_full', false);
-        if ($fullOrderBook) {
+        if ($fullOrderBook === true) {
             $snapshot = $this->parse_order_book($depth, $symbol, $timestamp);
             if ($currentOrderBook === null) {
                 $this->orderbooks[$symbol] = $this->order_book($snapshot);
@@ -997,7 +997,7 @@ class coinex extends \ccxt\async\coinex {
             }
         }
         $method = null;
-        if ($trigger) {
+        if ($trigger === true) {
             $method = 'stop.subscribe';
         } else {
             $method = 'order.subscribe';

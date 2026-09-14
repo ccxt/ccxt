@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_api_v1_exchangeinfo = publicGetApiV1ExchangeInfo = Entry[_Dict]('api/v1/exchangeInfo', 'public', 'GET', {'cost': 5})
@@ -50,6 +49,7 @@ class ImplicitAPI:
     private_get_api_v1_account_deposit_address = privateGetApiV1AccountDepositAddress = Entry[_Dict]('api/v1/account/deposit/address', 'private', 'GET', {'cost': 1})
     private_get_api_v1_account_depositorders = privateGetApiV1AccountDepositOrders = Entry[_List]('api/v1/account/depositOrders', 'private', 'GET', {'cost': 1})
     private_get_api_v1_account_withdraworders = privateGetApiV1AccountWithdrawOrders = Entry[_List]('api/v1/account/withdrawOrders', 'private', 'GET', {'cost': 1})
+    private_get_api_v1_affiliate_inviteeinfo = privateGetApiV1AffiliateInviteeInfo = Entry[_List]('api/v1/affiliate/inviteeInfo', 'private', 'GET', {'cost': 1})
     private_post_api_v1_userdatastream = privatePostApiV1UserDataStream = Entry[_Dict]('api/v1/userDataStream', 'private', 'POST', {'cost': 1})
     private_post_api_v1_spot_ordertest = privatePostApiV1SpotOrderTest = Entry[_Dict]('api/v1/spot/orderTest', 'private', 'POST', {'cost': 1})
     private_post_api_v1_spot_order = privatePostApiV1SpotOrder = Entry[_Dict]('api/v1/spot/order', 'private', 'POST', {'cost': 1})
@@ -68,7 +68,9 @@ class ImplicitAPI:
     private_delete_api_v1_spot_order = privateDeleteApiV1SpotOrder = Entry[_Dict]('api/v1/spot/order', 'private', 'DELETE', {'cost': 1})
     private_delete_api_v1_spot_openorders = privateDeleteApiV1SpotOpenOrders = Entry[_List]('api/v1/spot/openOrders', 'private', 'DELETE', {'cost': 5})
     private_delete_api_v1_spot_cancelorderbyids = privateDeleteApiV1SpotCancelOrderByIds = Entry[_Dict]('api/v1/spot/cancelOrderByIds', 'private', 'DELETE', {'cost': 5})
+    private_delete_api_v1_spot_cancelallopenorders = privateDeleteApiV1SpotCancelAllOpenOrders = Entry[_Dict]('api/v1/spot/cancelAllOpenOrders', 'private', 'DELETE', {'cost': 5})
     private_delete_api_v1_futures_order = privateDeleteApiV1FuturesOrder = Entry[_Dict]('api/v1/futures/order', 'private', 'DELETE', {'cost': 1})
     private_delete_api_v1_futures_batchorders = privateDeleteApiV1FuturesBatchOrders = Entry[_Dict]('api/v1/futures/batchOrders', 'private', 'DELETE', {'cost': 1})
     private_delete_api_v1_futures_cancelorderbyids = privateDeleteApiV1FuturesCancelOrderByIds = Entry[_Dict]('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', {'cost': 1})
+    private_delete_api_v1_futures_cancelallopenorders = privateDeleteApiV1FuturesCancelAllOpenOrders = Entry[_Dict]('api/v1/futures/cancelAllOpenOrders', 'private', 'DELETE', {'cost': 1})
     private_delete_api_v1_userdatastream = privateDeleteApiV1UserDataStream = Entry[_Dict]('api/v1/userDataStream', 'private', 'DELETE', {'cost': 1})

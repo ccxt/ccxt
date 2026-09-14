@@ -208,6 +208,7 @@ class whitebit extends Exchange {
                             'collateral-account/positions/history' => array( 'cost' => 1 ),
                             'collateral-account/leverage' => array( 'cost' => 1 ),
                             'collateral-account/positions/open' => array( 'cost' => 1 ),
+                            'collateral-account/positions/closed-pnl' => array( 'cost' => 1 ),
                             'collateral-account/summary' => array( 'cost' => 1 ),
                             'collateral-account/funding-history' => array( 'cost' => 1 ),
                             'main-account/address' => array( 'cost' => 1 ),
@@ -221,6 +222,7 @@ class whitebit extends Exchange {
                             'main-account/history' => array( 'cost' => 1 ),
                             'main-account/withdraw' => array( 'cost' => 1 ),
                             'main-account/withdraw-pay' => array( 'cost' => 1 ),
+                            'main-account/express-withdraw/token' => array( 'cost' => 1 ),
                             'main-account/transfer' => array( 'cost' => 1 ),
                             'main-account/smart/plans' => array( 'cost' => 1 ),
                             'main-account/smart/investment' => array( 'cost' => 1 ),
@@ -228,9 +230,19 @@ class whitebit extends Exchange {
                             'main-account/smart/investments' => array( 'cost' => 1 ),
                             'main-account/fee' => array( 'cost' => 1 ),
                             'main-account/smart/interest-payment-history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/plans' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/payment-history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/invest' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/withdraw' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/close' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/auto-invest' => array( 'cost' => 1 ),
                             'trade-account/balance' => array( 'cost' => 1 ),
+                            // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history' => array( 'cost' => 1 ),
                             'trade-account/order/history' => array( 'cost' => 1 ),
+                            'trade-account/order/history/query' => array( 'cost' => 1 ),
                             'trade-account/order' => array( 'cost' => 1 ),
                             'order/collateral/limit' => array( 'cost' => 1 ),
                             'order/collateral/market' => array( 'cost' => 1 ),
@@ -244,6 +256,7 @@ class whitebit extends Exchange {
                             'order/stop_market' => array( 'cost' => 1 ),
                             'order/cancel' => array( 'cost' => 1 ),
                             'order/cancel/all' => array( 'cost' => 1 ),
+                            'order/cancel/bulk' => array( 'cost' => 1 ),
                             'order/kill-switch' => array( 'cost' => 1 ),
                             'order/kill-switch/status' => array( 'cost' => 1 ),
                             'order/bulk' => array( 'cost' => 1 ),
@@ -276,8 +289,22 @@ class whitebit extends Exchange {
                             'sub-account/api-key/ip-address/create' => array( 'cost' => 1 ),
                             'sub-account/api-key/ip-address/delete' => array( 'cost' => 1 ),
                             'mining/rewards' => array( 'cost' => 1 ),
+                            'mining/hashrate' => array( 'cost' => 1 ),
+                            'mining/payout-destination' => array( 'cost' => 1 ),
+                            'mining/payout-destination/edit' => array( 'cost' => 1 ),
+                            'mining/miners/info' => array( 'cost' => 1 ),
+                            'mining/workers/names' => array( 'cost' => 1 ),
+                            'mining/workers/hashrate' => array( 'cost' => 1 ),
+                            'mining/watcher-links/create' => array( 'cost' => 1 ),
+                            'mining/watcher-links/list' => array( 'cost' => 1 ),
+                            'mining/accounts/create' => array( 'cost' => 1 ),
+                            'mining/accounts' => array( 'cost' => 1 ),
                             'market/fee' => array( 'cost' => 1 ),
+                            'market/fee/single' => array( 'cost' => 1 ),
                             'conditional-orders' => array( 'cost' => 1 ),
+                            'travel-rule/vasps' => array( 'cost' => 1 ),
+                            'travel-rule/deposit/verification' => array( 'cost' => 1 ),
+                            'jwt' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -446,7 +473,7 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         $markets = $this->v4PublicGetMarkets();
@@ -489,8 +516,8 @@ class whitebit extends Exchange {
         $settle = null;
         $settleId = null;
         $symbol = $base . '/' . $quote;
-        $swap = $typeId === 'futures';
-        $margin = $isCollateral && !$swap;
+        $swap = ($typeId === 'futures') || ($typeId === 'tradfiFutures');
+        $margin = ($isCollateral === true) && !$swap;
         $contract = false;
         $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
         $linear = null;
@@ -1049,12 +1076,13 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $markets[$marketId];
-            if (!$market || !$market['symbol']) {
+            $marketSymbol = $this->safe_string($market, 'symbol');
+            if (($market === null) || ($market === null) || ($marketSymbol === null) || ($marketSymbol === '')) {
                 continue; // Skip invalid $markets silently
             }
             $symbol = $market['symbol'];
             // Filter by $symbols if specified
-            if ($symbols) {
+            if ($symbols !== null) {
                 $symbolFound = false;
                 for ($j = 0; $j < count($symbols); $j++) {
                     if ($symbols[$j] === $symbol) {
@@ -1072,10 +1100,10 @@ class whitebit extends Exchange {
             $priceLimits = $this->safe_dict($limits, 'price');
             $costLimits = $this->safe_dict($limits, 'cost');
             // Validate that all required $limits exist and are valid numbers
-            $hasAmountLimits = $amountLimits && $this->safe_number($amountLimits, 'min') !== null && $this->safe_number($amountLimits, 'max') !== null;
-            $hasPriceLimits = $priceLimits && $this->safe_number($priceLimits, 'min') !== null && $this->safe_number($priceLimits, 'max') !== null;
-            $hasCostLimits = $costLimits && $this->safe_number($costLimits, 'min') !== null && $this->safe_number($costLimits, 'max') !== null;
-            if ($hasAmountLimits && $hasPriceLimits && $hasCostLimits) {
+            $hasAmountLimits = ($amountLimits !== null) && ($amountLimits !== null) && $this->safe_number($amountLimits, 'min') !== null && $this->safe_number($amountLimits, 'max') !== null;
+            $hasPriceLimits = ($priceLimits !== null) && ($priceLimits !== null) && $this->safe_number($priceLimits, 'min') !== null && $this->safe_number($priceLimits, 'max') !== null;
+            $hasCostLimits = ($costLimits !== null) && ($costLimits !== null) && $this->safe_number($costLimits, 'min') !== null && $this->safe_number($costLimits, 'max') !== null;
+            if (($hasAmountLimits === true) && ($hasPriceLimits === true) && ($hasCostLimits === true)) {
                 $result[$symbol] = array(
                     'info' => $market,
                     'limits' => array(
@@ -1178,7 +1206,7 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($currencyKeys); $i++) {
             $code = $currencyKeys[$i];
             $currency = $currenciesData[$code];
-            if (!$currency) {
+            if ($currency === null) {
                 // Skip invalid $currency silently
                 continue;
             }
@@ -1192,7 +1220,7 @@ class whitebit extends Exchange {
             for ($j = 0; $j < count($feeKeys); $j++) {
                 $feeKey = $feeKeys[$j];
                 $fee = $this->safe_dict($feesData, $feeKey);
-                if ($fee && $fee['ticker'] === $code) {
+                if (($fee !== null && $fee !== null) && $fee['ticker'] === $code) {
                     $feeData = $fee;
                     break;
                 }
@@ -1210,14 +1238,14 @@ class whitebit extends Exchange {
                 ),
             );
             // Add $fee information if available
-            if ($feeData) {
+            if ($feeData !== null) {
                 $depositFee = $feeData['deposit'];
                 $withdrawFee = $feeData['withdraw'];
-                if ($depositFee) {
+                if (($depositFee !== null) && ($depositFee !== null)) {
                     $depositFeeData = array(
                         'fixed' => $this->safe_number($depositFee, 'fixed'),
                     );
-                    if ($depositFee['flex']) {
+                    if (($depositFee['flex'] !== null) && ($depositFee['flex'] !== null)) {
                         $depositFeeData['flex'] = array(
                             'min' => $this->safe_number($depositFee['flex'], 'min_fee'),
                             'max' => $this->safe_number($depositFee['flex'], 'max_fee'),
@@ -1226,11 +1254,11 @@ class whitebit extends Exchange {
                     }
                     $limits['deposit']['fee'] = $depositFeeData;
                 }
-                if ($withdrawFee) {
+                if (($withdrawFee !== null) && ($withdrawFee !== null)) {
                     $withdrawFeeData = array(
                         'fixed' => $this->safe_number($withdrawFee, 'fixed'),
                     );
-                    if ($withdrawFee['flex']) {
+                    if (($withdrawFee['flex'] !== null) && ($withdrawFee['flex'] !== null)) {
                         $withdrawFeeData['flex'] = array(
                             'min' => $this->safe_number($withdrawFee['flex'], 'min_fee'),
                             'max' => $this->safe_number($withdrawFee['flex'], 'max_fee'),
@@ -1241,7 +1269,7 @@ class whitebit extends Exchange {
                 }
             }
             // Add network-specific $limits if available
-            if ($currency['networks']) {
+            if ($currency['networks'] !== null) {
                 $limits['networks'] = $currency['networks'];
             }
             $result[$code] = array(
@@ -1437,7 +1465,7 @@ class whitebit extends Exchange {
             $request['market'] = $market['id'];
         }
         // Try active $orders first (if enabled)
-        if ($checkActive) {
+        if ($checkActive === true) {
             try {
                 $response = $this->v4PrivatePostOrders($this->extend($request, $params));
                 // Search for $order in active $orders $response (array format)
@@ -1458,7 +1486,7 @@ class whitebit extends Exchange {
             }
         }
         // Try executed $orders (if enabled)
-        if ($checkExecuted) {
+        if ($checkExecuted === true) {
             try {
                 $response = $this->v4PrivatePostTradeAccountOrderHistory($this->extend($request, $params));
                 // Search for $order in executed $orders $response (object format)
@@ -1506,7 +1534,7 @@ class whitebit extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                if (!($market['contract'])) {
+                if ($market['contract'] !== true) {
                     $onlyContractSymbols = false;
                     break;
                 }
@@ -1849,7 +1877,7 @@ class whitebit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2786,22 +2814,31 @@ class whitebit extends Exchange {
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "id" => 123456789,                    // Transaction ID
-        //             "method" => "1",                      // Method => 1=deposit, 2=withdrawal
-        //             "ticker" => "BTC",                    // Currency ticker
-        //             "amount" => "0.001",                  // Transaction amount
-        //             "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-        //             "memo" => "",                         // Memo/tag (if required)
-        //             "network" => "BTC",                   // Network name
-        //             "fee" => "0.0005",                    // Transaction fee
-        //             "status" => "1",                      // Status => 0=pending, 1=completed, 2=failed
-        //             "timestamp" => 1641051917,            // Transaction timestamp
-        //             "txid" => "abc123def456..."           // Transaction hash
+        //     {
+        //         "records" => array(
+        //             {
+        //                 "address" => "TDepositAddressExample1111111111111",
+        //                 "uniqueId" => null,
+        //                 "transactionId" => "11111111-2222-3333-4444-555555555555",
+        //                 "createdAt" => 1786182572,
+        //                 "currency" => "Tether US",
+        //                 "ticker" => "USDT",
+        //                 "method" => 1,                    // 1 = deposit, 2 = withdraw
+        //                 "amount" => "20.723117",
+        //                 "description" => null,
+        //                 "memo" => null,
+        //                 "fee" => "0",
+        //                 "status" => 3,
+        //                 "network" => "TRC20",
+        //                 "transactionHash" => "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        //                 "details" => array( "partial" => null ),
+        //                 "centralized" => false
+        //             }
         //         ),
-        //         array( ... )                                 // More transactions (deposits and withdrawals)
-        //     )
+        //         "total" => 1,
+        //         "limit" => 100,
+        //         "offset" => 0
+        //     }
         //
         $records = $this->safe_list($response, 'records', array());
         return $this->parse_transactions($records, $currency, $since, $limit);
@@ -2955,33 +2992,37 @@ class whitebit extends Exchange {
             $this->load_markets();
         }
         $accounts = array();
-        // Fetch sub-$accounts
+        $response = $this->v4PrivatePostSubAccountList($params);
         //
-        //     array(
-        //         {
-        //             "id" => "12345",
-        //             "name" => "SubAccount1",
-        //             "status" => "active",
-        //             "permissions" => ["trade", "withdraw"]
-        //         }
-        //     )
+        //     {
+        //         "offset" => 0,
+        //         "limit" => 100,
+        //         "data" => array(
+        //             {
+        //                 "id" => "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        //                 "alias" => "trading_bot",
+        //                 "userId" => "u-12345",
+        //                 "email" => "s***@example.com",
+        //                 "status" => "active",
+        //                 "color" => "#FF5733",
+        //                 "kyc" => array( "shareKyc" => false, "kycStatus" => "verified" ),
+        //                 "permissions" => array( "spotEnabled" => true, "collateralEnabled" => false )
+        //             }
+        //         )
+        //     }
         //
-        $subAccounts = $this->v4PrivatePostSubAccountList($params);
-        if ($subAccounts && (gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
-            for ($i = 0; $i < count($subAccounts); $i++) {
-                $subAccount = $this->safe_value($subAccounts, $i);
-                $accountId = $this->safe_string($subAccount, 'id');
-                $accountName = $this->safe_string($subAccount, 'name');
-                if ($accountId) {
-                    $accounts[] = array(
-                        'id' => $accountId,
-                        'type' => 'subaccount',
-                        'name' => $accountName || 'SubAccount ' . $accountId,
-                        'code' => null,
-                        'info' => $subAccount,
-                    );
-                }
-            }
+        $subAccounts = $this->safe_list($response, 'data', array());
+        for ($i = 0; $i < count($subAccounts); $i++) {
+            $subAccount = $this->safe_dict($subAccounts, $i, array());
+            $accountId = $this->safe_string($subAccount, 'id');
+            $accountName = $this->safe_string($subAccount, 'alias');
+            $accounts[] = array(
+                'id' => $accountId,
+                'type' => 'subaccount',
+                'name' => $accountName,
+                'code' => null,
+                'info' => $subAccount,
+            );
         }
         return $accounts;
     }
@@ -3200,7 +3241,7 @@ class whitebit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch information on a deposit
          *
@@ -3595,10 +3636,10 @@ class whitebit extends Exchange {
             $request['startDate'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $since;
+            $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endDate', $request, $params);
-        $response = $this->v4PrivatePostCollateralAccountFundingHistory($request);
+        $response = $this->v4PrivatePostCollateralAccountFundingHistory($this->extend($request, $params));
         //
         //     {
         //         "records" => array(
@@ -4224,7 +4265,7 @@ class whitebit extends Exchange {
         $pathWithParams = '/' . $this->implode_params($path, $params);
         $url = ($this->urls['api'])[$version][$accessibility] . $pathWithParams;
         if ($accessibility === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -4276,7 +4317,7 @@ class whitebit extends Exchange {
                     $errorsLength = count($errorKeys);
                     if ($errorsLength > 0) {
                         $errorKey = $errorKeys[0];
-                        $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
+                        $errorMessageArray = $this->safe_list($errorObject, $errorKey, array());
                         $errorMessageLength = count($errorMessageArray);
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
                     }
@@ -4287,7 +4328,7 @@ class whitebit extends Exchange {
             }
             // array("success":false,"message":array("limit":["limit must be less than or equal to 100"]),"result":null)
             $success = $this->safe_bool($response, 'success', true);
-            if (!$success) {
+            if ($success !== true) {
                 $errMsg = $this->safe_dict($response, 'message', array());
                 $errKeys = is_array($errMsg) ? array_keys($errMsg) : array();
                 $errKeysLength = count($errKeys);

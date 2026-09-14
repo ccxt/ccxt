@@ -50,7 +50,7 @@ public class Tests
         isWs = args.Contains("--ws");
         isBaseTests = args.Contains("--baseTests");
         isExchangeTests = args.Contains("--exchangeTests");
-        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response");
+        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response") || args.Contains("--wsTests");
         isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
 
         raceCondition = args.Contains("--race");
@@ -141,10 +141,12 @@ public class Tests
             if (isWs)
             {
                 WsCacheTests();
+                WsCacheRegressionTests();
                 WsOrderBookTests();
                 WsOrderBookDefaultsTests();
-                await WsClientRetentionTests();
+                WsOrderBookCopyAtomicityTests();
                 await WsClientKeepAliveLivenessTests();
+                await WsClientKeepAliveTimeoutTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -180,10 +182,10 @@ public class Tests
         Helper.Green(" [C#] ArrayCache tests passed");
     }
 
-    static async Task WsClientRetentionTests()
+    static void WsCacheRegressionTests()
     {
-        await baseTestInstance.testWsClientRetention();
-        Helper.Green(" [C#] WebSocketClient retention tests passed");
+        baseTestInstance.testWsCacheRegressions();
+        Helper.Green(" [C#] ArrayCache regression tests passed");
     }
 
     static void WsOrderBookDefaultsTests()
@@ -192,10 +194,24 @@ public class Tests
         Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
     }
 
+    static void WsOrderBookCopyAtomicityTests()
+    {
+        baseTestInstance.testWsOrderBookCopyAtomicity();
+        baseTestInstance.testWsOrderBookSingleStore();
+        baseTestInstance.testWsOrderBookSideCopyFidelity();
+        Helper.Green(" [C#] OrderBook Copy() atomicity tests passed");
+    }
+
     static async Task WsClientKeepAliveLivenessTests()
     {
         await baseTestInstance.testWsClientKeepAliveLiveness();
         Helper.Green(" [C#] WebSocketClient keepalive liveness tests passed");
+    }
+
+    static async Task WsClientKeepAliveTimeoutTests()
+    {
+        await baseTestInstance.testWsClientKeepAliveTimeout();
+        Helper.Green(" [C#] WebSocketClient keepalive timeout closes the socket tests passed");
     }
 
     static void WsOrderBookTests()

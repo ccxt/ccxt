@@ -87,7 +87,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function is_prediction(): bool {
-        return $this->safe_bool($this->has, 'prediction', false) === true;
+        return $this->safe_bool($this->has, 'prediction', false);
     }
 
     public function parse_search_queries($params = array()) {
@@ -150,7 +150,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $result = $this->filter_events_by_status($result, $this->safe_string($params, 'status'));
         $result = $this->filter_events_by_tags($result, $this->safe_list($params, 'tags'));
-        // own-line length read so the regex transpiler treats `$queries` array (count())
+        // own-line length read so the regex transpiler treats `$queries` as an array (count())
         // and not a string (strlen()); guard null since the default is null
         $queriesLength = 0;
         if ($queries !== null) {
@@ -363,7 +363,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function events_list(): array {
-        // the cached events list; empty on a cold instance ($this->events is keyed by both
+        // the cached events as a list; empty on a cold instance ($this->events is keyed by both
         // id and handle, so de-duplicate by $identity before returning)
         if ($this->events === null) {
             return array();
@@ -390,7 +390,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // note => the cache-hit shortcut ignores $params, so $events fetched under one scope are
         // returned for a later differently-scoped call. $events are scoped (unlike global
         // markets), so prefer fetchEvents ($params) directly when you need a specific scope
-        if (!$reload && $this->events) {
+        if (!$reload && ($this->events !== null && $this->events !== null)) {
             return $this->events;
         }
         $events = Async\await($this->fetch_events($params));
@@ -688,7 +688,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // register a single event's $markets into $this->markets and rebuild the outcome cache so the
         // handles fetchEvent() returns resolve immediately in outcome-addressed methods (fetchTicker,
         // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
-        // such, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        // such as kalshi, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
         // '\\ccxt\\BadSymbol's because the outcome was never cached
         if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
@@ -729,8 +729,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $missingLength = count($missing);
             $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if (($missingLength > 0) && $loadAll && !$wasWarm && !$reload) {
-                // same trade-off => on venues where the whole universe is one cheap
+            if (($missingLength > 0) && ($loadAll === true) && !$wasWarm && !$reload) {
+                // same trade-off as loadOutcome => on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 Async\await($this->load_outcomes());
                 $stillMissing = array();
@@ -802,7 +802,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if ($loadAll && !$wasWarm) {
+            if (($loadAll === true) && !$wasWarm) {
                 // a miss on a cold cache => bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -884,7 +884,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             try {
                 Async\await($this->fetch_events(array( 'query' => $searchQuery, 'limit' => $searchLimit )));
             } catch (Exception $e) {
-                // a query with zero matches surfaces on some venues — treat it
+                // a query with zero matches surfaces on some venues — treat it as a
                 // plain miss (the guidance-rich throw $below); $real transport errors propagate
                 if (!($e instanceof BadSymbol)) {
                     throw $e;
@@ -940,7 +940,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of candles to fetch
          * @param {array} [$params] extra exchange-specific parameters
-         * @return {int[][]} a list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
          */
         return Async\await(parent::fetch_ohlcv($outcome, $timeframe, $since, $limit, $params));
     }
@@ -1325,7 +1325,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             if ($orderType === 'market') {
                 $timeInForce = 'IOC';
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $timeInForce = 'PO';
             }
         } elseif ($postOnly === null) {
@@ -1684,7 +1684,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($value === null) {
             throw new ArgumentsRequired($this->id . ' intToRlpHex() requires a $value argument');
         }
-        // an integer minimal big-endian byte $hex; 0 is the empty byte string
+        // an integer as its minimal big-endian byte $hex; 0 is the empty byte string
         if ($value === 0) {
             return '';
         }
@@ -1694,7 +1694,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function hex_to_rlp_bytes(?string $hexValue) {
-        // a hex value (e.g. an RPC result) big-endian byte hex; leading zero bytes
+        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
         if ($hexValue === null) {
             return '';
@@ -1726,7 +1726,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     private function do_eth_rpc(?string $rpcUrl, string $method, array $rpcParams) {
         $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
         $headers = array( 'Content-Type' => 'application/json' );
-        $response = Async\await($this->fetch($rpcUrl, 'POST', $headers, $this->json($payload)));
+        $response = $this->do_fetch($rpcUrl, 'POST', $headers, $this->json($payload));
         $rpcError = $this->safe_value($response, 'error');
         if ($rpcError !== null) {
             throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
@@ -1765,7 +1765,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $start = $this->milliseconds();
         while (($this->milliseconds() - $start) < $timeout) {
             $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
-            if ($receipt) {
+            if (($receipt !== null) && ($receipt !== null)) {
                 return $receipt;
             }
             Async\await($this->sleep(2000));

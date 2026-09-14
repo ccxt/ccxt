@@ -1,6 +1,10 @@
 {
     "exchange": "apex",
-    "skipKeys": ["signature", "clientId", "expiration"],
+    "skipKeys": [
+        "signature",
+        "clientId",
+        "expiration"
+    ],
     "disabledJava": true,
     "disabledPy": true,
     "disabledPHP": true,
@@ -68,7 +72,8 @@
                     0.1,
                     89
                 ],
-                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508216685-821082&expiration=1765100216&limitFee=0.01&price=89&side=SELL&signature=295d28f6be45e960ec303efd9cbfc478646d1db8995e71027fdada7b2fb4b8a63c70ca07cd538b7fe78bbfa78c1f6adb4923f4ed455ef8fee9aa212426280200&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508216685-821082&expiration=1765100216&limitFee=0.01&price=89&side=SELL&signature=295d28f6be45e960ec303efd9cbfc478646d1db8995e71027fdada7b2fb4b8a63c70ca07cd538b7fe78bbfa78c1f6adb4923f4ed455ef8fee9aa212426280200&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET",
+                "disabledRS": true
             },
             {
                 "disabledJava": true,
@@ -82,7 +87,8 @@
                     0.1,
                     89
                 ],
-                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508201268-436951&expiration=1765100200&limitFee=0.01&price=89&side=BUY&signature=079f4fd6b73603555629d50ad92dbafd04874f5d08272d9c3dee35b6618067937c45cfbdb75879f9708e675e08b3422426fc28fc9dd082470fa37bfaad3c0e04&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508201268-436951&expiration=1765100200&limitFee=0.01&price=89&side=BUY&signature=079f4fd6b73603555629d50ad92dbafd04874f5d08272d9c3dee35b6618067937c45cfbdb75879f9708e675e08b3422426fc28fc9dd082470fa37bfaad3c0e04&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET",
+                "disabledRS": true
             },
             {
                 "disabledJava": true,
@@ -99,7 +105,8 @@
                         "takeProfitPrice": 120
                     }
                 ],
-                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508115388-460567&expiration=1765100114&limitFee=0.01&price=120&side=SELL&signature=cd148791024d7f12553661832b12a2ff69c4226f8fef085633ae848e331cb3a612693995d5756edaee260bfcd9a85f3cd2e2af1896527b9c98631551ded75700&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&triggerPrice=120&type=TAKE_PROFIT_LIMIT"
+                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508115388-460567&expiration=1765100114&limitFee=0.01&price=120&side=SELL&signature=cd148791024d7f12553661832b12a2ff69c4226f8fef085633ae848e331cb3a612693995d5756edaee260bfcd9a85f3cd2e2af1896527b9c98631551ded75700&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&triggerPrice=120&type=TAKE_PROFIT_LIMIT",
+                "disabledRS": true
             },
             {
                 "disabledJava": true,
@@ -116,7 +123,8 @@
                         "stopLossPrice": 50
                     }
                 ],
-                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762506999345-58380&expiration=1765098998&limitFee=0.01&price=51&side=SELL&signature=55ae828896d33f9bd0d301ea5ff3ebefa14ee6bfc363a9246ba68e3a04e53589feb316b5d883e99f25800d9fc0429956806de54869ff6656da2e5ec9300f0a01&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&triggerPrice=50&type=STOP_LIMIT"
+                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762506999345-58380&expiration=1765098998&limitFee=0.01&price=51&side=SELL&signature=55ae828896d33f9bd0d301ea5ff3ebefa14ee6bfc363a9246ba68e3a04e53589feb316b5d883e99f25800d9fc0429956806de54869ff6656da2e5ec9300f0a01&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&triggerPrice=50&type=STOP_LIMIT",
+                "disabledRS": true
             },
             {
                 "disabledJava": true,
@@ -133,7 +141,8 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1744628886130-231172&expiration=1747220885&limitFee=0.01&price=78&reduceOnly=true&side=SELL&signature=1d1ede80d6d9b116f12437f2cb262ced3ed0a22067cd2ffe3ba9672cb4d02317ceeaaf42e53c91b1bfa7701a08dde79189865a7aaf063c4f216eedf952f74803&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1744628886130-231172&expiration=1747220885&limitFee=0.01&price=78&reduceOnly=true&side=SELL&signature=1d1ede80d6d9b116f12437f2cb262ced3ed0a22067cd2ffe3ba9672cb4d02317ceeaaf42e53c91b1bfa7701a08dde79189865a7aaf063c4f216eedf952f74803&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET",
+                "disabledRS": true
             },
             {
                 "description": "swap market sell order",
@@ -147,7 +156,8 @@
                     0.1,
                     70
                 ],
-                "output": "brokerId=6956&clientId=apexomni-346629571951-1744293408391-603638&expiration=1746885408&limitFee=0.01&price=70&side=SELL&signature=ea9690ccc9c1bb9cb9987e4e4cf2f8e71ba16895db3281bb9eb0defd3d4cc11acf67968a95464be9baa7249b30a32ab840882c67d33d35fcbdad9ba174da2400&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+                "output": "brokerId=6956&clientId=apexomni-346629571951-1744293408391-603638&expiration=1746885408&limitFee=0.01&price=70&side=SELL&signature=ea9690ccc9c1bb9cb9987e4e4cf2f8e71ba16895db3281bb9eb0defd3d4cc11acf67968a95464be9baa7249b30a32ab840882c67d33d35fcbdad9ba174da2400&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET",
+                "disabledRS": true
             },
             {
                 "description": "swap market buy order",
@@ -161,7 +171,8 @@
                     0.1,
                     70
                 ],
-                "output": "brokerId=6956&clientId=apexomni-767005595056-1744293058826-220684&expiration=1746885058&limitFee=0.01&price=70&side=BUY&signature=caf585e3060eb6f9faaa36314eb27a6d838172dd6011c2172fed22f569d01a0bfd1c9f0038a0495d5699cab8d6ebe3ef1f33e0c68d63d79e2386e8807113dd03&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+                "output": "brokerId=6956&clientId=apexomni-767005595056-1744293058826-220684&expiration=1746885058&limitFee=0.01&price=70&side=BUY&signature=caf585e3060eb6f9faaa36314eb27a6d838172dd6011c2172fed22f569d01a0bfd1c9f0038a0495d5699cab8d6ebe3ef1f33e0c68d63d79e2386e8807113dd03&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET",
+                "disabledRS": true
             }
         ],
         "fetchTrades": [
@@ -175,5 +186,5 @@
                 "output": null
             }
         ]
-  }
+    }
 }

@@ -157,6 +157,7 @@ class cex extends Exchange {
                         'do_cancel_my_order' => array( 'cost' => 1 ),
                         'do_cancel_all_orders' => array( 'cost' => 5 ),
                         'get_order_book' => array( 'cost' => 1 ),
+                        'get_ticker' => array( 'cost' => 1 ),
                         'get_candles' => array( 'cost' => 1 ),
                         'get_trade_history' => array( 'cost' => 1 ),
                         'get_my_transaction_history' => array( 'cost' => 1 ),
@@ -362,7 +363,8 @@ class cex extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
-        $type = $this->safe_bool($rawCurrency, 'fiat') ? 'fiat' : 'crypto';
+        $isFiat = ($this->safe_bool($rawCurrency, 'fiat') === true);
+        $type = $isFiat ? 'fiat' : 'crypto';
         $currencyPrecision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
         $networks = array();
         $rawNetworks = $this->safe_dict($rawCurrency, 'blockchains', array());
@@ -771,7 +773,7 @@ class cex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest entry
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $dataType = null;
         list($dataType, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'dataType');
@@ -1646,7 +1648,7 @@ class cex extends Exchange {
             $transfer = $this->transfer_between_main_and_sub_account($code, $amount, $fromAccount, $toAccount, $params);
         }
         $fillResponseFromRequest = $this->handle_option('transfer', 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
         }
@@ -1814,7 +1816,7 @@ class cex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {

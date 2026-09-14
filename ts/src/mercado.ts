@@ -134,6 +134,7 @@ export default class mercado extends Exchange {
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
                     'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
+                    'v4Private': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
@@ -177,6 +178,16 @@ export default class mercado extends Exchange {
                 'v4PublicNet': {
                     'get': {
                         'candles': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                },
+                'v4Private': {
+                    'post': {
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'accounts/{accountId}/{symbol}/transfers/internal': { 'cost': 1 } as Endpoint<Dict>,
+                        'oauth2/token': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'patch': {
+                        'accounts/{accountId}/wallet/{symbol}/deposits/{depositId}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -508,25 +519,27 @@ export default class mercado extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let method = 'publicGetCoinTrades';
         const request: Dict = {
             'coin': market['base'],
         };
         if (since !== undefined) {
-            method += 'From';
             request['from'] = this.parseToInt (since / 1000);
         }
         const to = this.safeInteger (params, 'to');
-        if (to !== undefined) {
-            method += 'To';
+        let response = undefined;
+        if ((since !== undefined) && (to !== undefined)) {
+            response = await this.publicGetCoinTradesFromTo (this.extend (request, params));
+        } else if (since !== undefined) {
+            response = await this.publicGetCoinTradesFrom (this.extend (request, params));
+        } else {
+            response = await this.publicGetCoinTrades (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     override parseBalance (response: any): Balances {
         const data = this.safeValue (response, 'response_data', {});
-        const balances = this.safeValue (data, 'balance', {});
+        const balances = this.safeDict (data, 'balance', {});
         const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -580,13 +593,16 @@ export default class mercado extends Exchange {
         const request: Dict = {
             'coin_pair': market['id'],
         };
-        let method = this.capitalize (side) + 'Order';
+        let response = undefined;
         if (type === 'limit') {
-            method = 'privatePostPlace' + method;
             request['limit_price'] = this.priceToPrecision (market['symbol'], price);
             request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+            if (side === 'buy') {
+                response = await this.privatePostPlaceBuyOrder (this.extend (request, params));
+            } else {
+                response = await this.privatePostPlaceSellOrder (this.extend (request, params));
+            }
         } else {
-            method = 'privatePostPlaceMarket' + method;
             if (side === 'buy') {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
@@ -595,11 +611,12 @@ export default class mercado extends Exchange {
                 const priceString = this.numberToString (price);
                 const cost = this.parseToNumeric (Precise.stringMul (amountString, priceString));
                 request['cost'] = this.priceToPrecision (market['symbol'], cost);
+                response = await this.privatePostPlaceMarketBuyOrder (this.extend (request, params));
             } else {
                 request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+                response = await this.privatePostPlaceMarketSellOrder (this.extend (request, params));
             }
         }
-        const response = await this[method] (this.extend (request, params));
         // TODO: replace this with a call to parseOrder for unification
         return this.safeOrder ({
             'info': response,
@@ -1008,7 +1025,7 @@ export default class mercado extends Exchange {
     ordersToTrades (orders: any) {
         const result: Trade[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const trades = this.safeValue (orders[i], 'trades', []);
+            const trades = this.safeList (orders[i], 'trades', []);
             for (let y = 0; y < trades.length; y++) {
                 result.push (trades[y]);
             }
@@ -1021,7 +1038,7 @@ export default class mercado extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {
             url += this.implodeParams (path, params);
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {

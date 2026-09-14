@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 	ccxtPrediction "github.com/ccxt/ccxt/go/v4/prediction"
@@ -72,6 +73,74 @@ func NetworkError(v ...any) error {
 func SetFetchResponse(exchange ccxt.ICoreExchange, response any) ccxt.ICoreExchange {
 	exchange.SetFetchResponse(response)
 	return exchange
+}
+
+// wsClientProvider is satisfied by every core exchange through the embedded
+// BaseExchange — used by the static ws tests to reach the ws client
+type wsClientProvider interface {
+	Client(url any) *ccxt.WSClient
+}
+
+func SetupWsMockTransport(exchange ccxt.ICoreExchange, url any) ccxt.ICoreExchange {
+	// put the ws client for the given url into an "already connected" state
+	// with a transport stub, so watch* methods never open a real socket;
+	// everything above the socket (subscriptions, futures, caches, message
+	// routing) runs unmodified
+	client := exchange.(wsClientProvider).Client(url)
+	client.StartedConnecting = true
+	client.IsMock = true
+	client.IsConnected = true
+	client.Connected.(*ccxt.Future).Resolve(url)
+	return exchange
+}
+
+func InjectWsMessage(exchange ccxt.ICoreExchange, url any, message any) {
+	// feed one already-json-parsed frame into the exchange's ws message
+	// handler - the same entry point the real transport invokes
+	client := exchange.(wsClientProvider).Client(url)
+	client.OnMessageCallback(client, message)
+}
+
+func GetWsSentMessages(exchange ccxt.ICoreExchange, url any) []any {
+	// the frames the exchange sent over the mocked transport, already parsed
+	client := exchange.(wsClientProvider).Client(url)
+	return client.MockSentMessages
+}
+
+func WsClientHasPendingFutures(exchange ccxt.ICoreExchange, url any) bool {
+	// whether the watch flow is currently awaiting a message - the frame
+	// injector polls this instead of relying on a fixed head-start sleep
+	client := exchange.(wsClientProvider).Client(url)
+	client.FuturesMu.Lock()
+	defer client.FuturesMu.Unlock()
+	return len(client.Futures) > 0
+}
+
+var wsCompletedClientsMu sync.Mutex
+var wsCompletedClients = map[any]bool{}
+
+func MarkWsTestCompleted(exchange ccxt.ICoreExchange, url any) {
+	// the watch side of a static ws test flags completion here so the frame
+	// injector's rejection loop knows it can stop
+	client := exchange.(wsClientProvider).Client(url)
+	wsCompletedClientsMu.Lock()
+	defer wsCompletedClientsMu.Unlock()
+	wsCompletedClients[client] = true
+}
+
+func IsWsTestCompleted(exchange ccxt.ICoreExchange, url any) bool {
+	client := exchange.(wsClientProvider).Client(url)
+	wsCompletedClientsMu.Lock()
+	defer wsCompletedClientsMu.Unlock()
+	return wsCompletedClients[client]
+}
+
+func RejectPendingWsFutures(exchange ccxt.ICoreExchange, url any) {
+	// reject any futures the injected frames did not resolve, so a broken
+	// fixture fails the test instead of hanging it; resolved futures are
+	// already removed from the futures map, so only pending ones remain
+	client := exchange.(wsClientProvider).Client(url)
+	client.Reject(ccxt.ExchangeError("static ws test: the injected messages did not resolve the watch future"))
 }
 
 func GetCliArgValue(arg any) bool {

@@ -301,7 +301,7 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_with_method(...))($method, $code, $since, $limit, $params);
     }
 
@@ -320,7 +320,14 @@ class btcmarkets extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $response = null;
+        if ($method === 'privateGetTransfers') {
+            $response = Async\await($this->privateGetTransfers($this->extend($request, $params)));
+        } elseif ($method === 'privateGetDeposits') {
+            $response = Async\await($this->privateGetDeposits($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateGetWithdrawals($this->extend($request, $params)));
+        }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -473,7 +480,7 @@ class btcmarkets extends Exchange {
         $currencyId = $this->safe_string($transaction, 'assetName');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_string($transaction, 'amount');
-        if ($fee) {
+        if (($fee !== null) && ($fee !== '')) {
             $amount = Precise::string_sub($amount, $fee);
         }
         return array(
@@ -698,7 +705,7 @@ class btcmarkets extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -866,7 +873,7 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_ticker_2(string $symbol, $params = array()) {
+    public function fetch_ticker_2(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker_2(...))($symbol, $params);
     }
 
@@ -1517,7 +1524,7 @@ class btcmarkets extends Exchange {
             $secret = base64_decode($this->secret);
             $auth = $method . $request . $nonce;
             if (($method === 'GET') || ($method === 'DELETE')) {
-                if ($query) {
+                if (count($query) > 0) {
                     $request .= '?' . $this->urlencode($query);
                 }
             } else {
@@ -1534,7 +1541,7 @@ class btcmarkets extends Exchange {
                 'BM-AUTH-SIGNATURE' => $signature,
             );
         } elseif ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $request .= '?' . $this->urlencode($query);
             }
         }

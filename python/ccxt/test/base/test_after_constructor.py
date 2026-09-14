@@ -43,7 +43,7 @@ def helper_test_sandbox_state(exchange, expect_enabled=True):
         assert exchange.urls['api']['public'] == 'https://testnet.org'
         assert exchange.urls['apiBackup']['public'] == 'https://example.com'
     else:
-        assert not is_sandbox_mode_enabled
+        assert is_sandbox_mode_enabled is not True
         assert exchange.urls['api']['public'] == 'https://example.com'
         assert exchange.urls['test']['public'] == 'https://testnet.org'
 
@@ -278,7 +278,7 @@ def helper_test_properties():
     assert exchange.timeout == 10000, 'timeout should be 10000'
     assert exchange.verbose is False, 'verbose should be false'
     # assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); # todo WS
-    assert not test_shared_methods.exchange_prop(exchange, 'reloadingMarkets'), 'reloadingMarkets should be false'
+    assert test_shared_methods.exchange_prop(exchange, 'reloadingMarkets') is not True, 'reloadingMarkets should be false'
     assert test_shared_methods.exchange_prop(exchange, 'marketsLoading') is None, 'marketsLoading should be undefined'
     # undefined or false
     assert exchange.version is None, 'version should be undefined'

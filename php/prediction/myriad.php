@@ -811,7 +811,7 @@ class myriad extends Exchange {
     private function do_eth_rpc(?string $rpcUrl, string $method, array $rpcParams) {
         $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
         $headers = array( 'Content-Type' => 'application/json' );
-        $response = Async\await($this->fetch($rpcUrl, 'POST', $headers, $this->json($payload)));
+        $response = $this->do_fetch($rpcUrl, 'POST', $headers, $this->json($payload));
         $rpcError = $this->safe_value($response, 'error');
         if ($rpcError !== null) {
             throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
@@ -855,8 +855,8 @@ class myriad extends Exchange {
          * @param {string} $outcome unified $outcome or $outcome id
          * @param {string} $type 'limit' or 'market' (order book); ignored by the AMM path
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount number of $outcome shares to trade (AMM 'buy' spends this value instead)
-         * @param {float} [$price] $price per share fraction in [0, 1] (required for order-book limit orders)
+         * @param {float} $amount number of $outcome shares to trade (AMM 'buy' spends this as collateral value instead)
+         * @param {float} [$price] $price per share as a fraction in [0, 1] (required for order-book limit orders)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->tradingModel] 'ob' to force the order book, 'amm' to force the on-chain AMM; defaults to the market's model
          * @param {string} [$params->timeInForce] order-book time in force => 'GTC', 'GTD', 'FOK', 'FAK' or 'PO'
@@ -874,7 +874,7 @@ class myriad extends Exchange {
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         $enableAmm = $this->safe_bool_2($params, 'enableAmm', 'enableAmmOrders', $this->safe_bool($this->options, 'enableAmmOrders', false));
-        if (!$enableAmm) {
+        if ($enableAmm !== true) {
             throw new NotSupported($this->id . ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass $params->enableAmm=true to opt in');
         }
         return Async\await($this->create_amm_order($outcome, $type, $side, $amount, $price, $this->omit($rest, array( 'enableAmm', 'enableAmmOrders' ))));
@@ -985,7 +985,7 @@ class myriad extends Exchange {
         if (Precise::string_lt($priceWei, '1')) {
             $priceWei = '1';
         }
-        // $price is a fraction in (0, 1] encoded..1e18 wei (tick is 1 wei); reject out-of-range early
+        // $price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
         if (Precise::string_gt($priceWei, '1000000000000000000')) {
             throw new InvalidOrder($this->id . ' createOrder() $price must be a fraction between 0 and 1');
         }
@@ -1072,10 +1072,10 @@ class myriad extends Exchange {
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount number of $outcome shares for the new order
-         * @param {float} [$price] $price per share fraction in [0, 1]
+         * @param {float} [$price] $price per share as a fraction in [0, 1]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->orderResponse] a pre-fetched fetchOrder-style response for the order being replaced; avoids the internal lookup when already available, call fetchOrder to retrieve this data
-         * @param {array} [$params->rawOrder] the raw order payload to cancel alternative to $params->orderResponse, call fetchOrder to retrieve this data
+         * @param {array} [$params->rawOrder] the raw order payload to cancel as an alternative to $params->orderResponse, call fetchOrder to retrieve this data
          * @param {string} [$params->networkId] the order-book network $id, required when using $params->rawOrder without an embedded network $id
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
          */
@@ -1091,7 +1091,7 @@ class myriad extends Exchange {
     private function do_create_amm_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
-         * buys or sells $outcome shares by submitting the quote's $calldata on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
+         * buys or sells $outcome shares by submitting the quote's $calldata as an on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
          * @param {string} $outcome unified $outcome or $outcome id
          * @param {string} [$type] not used by the AMM path
          * @param {string} $side 'buy' or 'sell'
@@ -1105,12 +1105,12 @@ class myriad extends Exchange {
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
-        // would silently size `$amount` (inconsistent with every other venue and the wiki).
+        // would silently size `$amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
-        // plain createOrder buy on the AMM is rejected so it can't misinterpret shares
+        // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         $sideLower = ($side !== null) ? strtolower($side) : null;
         $isCostDenominated = $this->safe_bool($params, 'costDenominated', false);
-        if (($sideLower === 'buy') && !$isCostDenominated) {
+        if (($sideLower === 'buy') && ($isCostDenominated !== true)) {
             throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost($outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
         }
         if ($this->privateKey === null) {
@@ -1143,7 +1143,7 @@ class myriad extends Exchange {
         $txHashParam = $this->safe_string_2($params, 'transactionHash', 'txHash');
         $hasPreBroadcastTxHash = ($txHashParam !== null);
         $skipAllowance = $this->safe_bool($params, 'skipAllowance', $hasPreBroadcastTxHash);
-        if (($sideStr === 'buy') && ($tokenAddress !== null) && !$skipAllowance) {
+        if (($sideStr === 'buy') && ($tokenAddress !== null) && ($skipAllowance !== true)) {
             Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
         }
         $skipWaitForReceipt = $this->safe_bool($params, 'skipWaitForReceipt', $hasPreBroadcastTxHash);
@@ -1151,7 +1151,7 @@ class myriad extends Exchange {
         if ($txHash === null) {
             $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
         }
-        if (!$skipWaitForReceipt) {
+        if ($skipWaitForReceipt !== true) {
             Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
         }
         return $this->parse_trade_tx($txHash, $quote, $outcomeObj, $sideStr);
@@ -1247,7 +1247,7 @@ class myriad extends Exchange {
     public function clob_order_message(array $rawOrder): array {
         /**
          * @ignore
-         * normalises a fetched order-book order into a typed-data message (uint256 fields, uint8 fields)
+         * normalises a fetched order-book order into a typed-data message (uint256 fields as strings, uint8 fields as ints)
          * @return {array} the typed-data message
          */
         $signer = $this->safe_string_2($rawOrder, 'trader', 'user');
@@ -1478,7 +1478,7 @@ class myriad extends Exchange {
     private function do_fetch_amm_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * @ignore
-         * fetches executed AMM trades for a wallet from the user events feed and exposes them prediction orders
+         * fetches executed AMM trades for a wallet from the user events feed and exposes them as closed prediction orders
          * @param {string} [$outcome] unified $outcome to filter by
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of orders to return
@@ -1582,7 +1582,7 @@ class myriad extends Exchange {
          * @param {string} [$outcome] unified $outcome the order belongs to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->orderResponse] a pre-$fetched fetchOrder-style $response for the target order; avoids the internal order lookup when already available, call fetchOrder to retrieve this data
-         * @param {array} [$params->rawOrder] the raw order payload to sign alternative to $params->orderResponse, call fetchOrder to retrieve this data
+         * @param {array} [$params->rawOrder] the raw order payload to sign as an alternative to $params->orderResponse, call fetchOrder to retrieve this data
          * @param {string} [$params->networkId] the order-book network $id, required when using $params->rawOrder without an embedded network $id
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
          */
@@ -1648,7 +1648,7 @@ class myriad extends Exchange {
          *
          * @param {string} [$outcome] unified $outcome; when omitted cancels across all markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} the raw response with the count of cancelled orders
+         * @return {array[]} a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `$info` carries the cancelled count
          */
         if ($this->privateKey === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a privateKey to sign the cancellation');
@@ -1677,13 +1677,16 @@ class myriad extends Exchange {
             'signature' => $signature,
             'network_id' => $this->parse_to_int($networkId),
         );
-        return Async\await($this->myriadPublicPostOrdersCancelAll($request));
+        $response = Async\await($this->myriadPublicPostOrdersCancelAll($request));
         //
         //     {
         //         "cancelled_count" => 2,
         //         "market_ids_affected" => array( "2cfe87e8-12df-4671-b9a9-0758898fd54b" )
         //     }
         //
+        // the endpoint returns a count, not the orders => hand back one canceled order
+        // structure carrying the raw $response, like limitless does
+        return array( $this->safe_prediction_order(array( 'info' => $response, 'status' => 'canceled' )) );
     }
 
     public function cancel_orders(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {
@@ -1965,7 +1968,7 @@ class myriad extends Exchange {
 
     private function do_fetch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches the wallet's filled $order book $orders-> Note => Myriad's REST exposes the order's
+         * fetches the wallet's filled $order book $orders as $trades-> Note => Myriad's REST exposes the order's
          * $limit price, not the per-fill execution price, so the price reflects the order's $limit (exact for resting/limit
          * fills, an upper/lower bound for market $orders) — use watchTrades for live execution prices
          *
@@ -2206,7 +2209,7 @@ class myriad extends Exchange {
                 if ($winnerRaw) {
                     $resolvedOutcome = $outcomeHandle;
                 }
-            } elseif ($voided) {
+            } elseif ($voided === true) {
                 $winnerRaw = false;
             }
             // effectively-final copies for the object literal below (Java cannot capture a
@@ -2271,7 +2274,7 @@ class myriad extends Exchange {
             'linear' => null,
             'inverse' => null,
             'contractSize' => null,
-            'expiry' => $endDate ? $this->parse8601($endDate) : null,
+            'expiry' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
             'expiryDatetime' => $endDate,
             'strike' => null,
             'optionType' => null,
@@ -2524,7 +2527,7 @@ class myriad extends Exchange {
         //         "externalSources" => array()
         //     }
         //
-        $outcomeId = $market ? $this->safe_string($market['info'], 'outcomeId') : null;
+        $outcomeId = ($market !== null && $market !== null) ? $this->safe_string($market['info'], 'outcomeId') : null;
         $outcomes = $this->safe_list($raw, 'outcomes', array());
         $price = null;
         $change = null;
@@ -2785,7 +2788,7 @@ class myriad extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of candles to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
@@ -2891,7 +2894,7 @@ class myriad extends Exchange {
          * parses a single myriad $price chart data point into an $ohlcv tuple
          * @param {array} $ohlcv the raw $price chart data point
          * @param {array} [$market] the outcome object the candle belongs to
-         * @return {int[]} a candle ordered, $open, $high, $low, $close, volume
+         * @return {int[]} a candle ordered as timestamp, $open, $high, $low, $close, volume
          */
         //
         //     {
@@ -3102,14 +3105,14 @@ class myriad extends Exchange {
          * @param {array} [$params] extra exchange-specific parameters
          * @param {string} [$params->query] a single search term; an $eventId does a direct lookup and tags map to server-side keyword searches
          * @param {string[]} [$params->queries] multiple search terms (alternative to query)
-         * @param {string[]} [$params->tags] tag slugs to scope by (searched, e.g. ['bitcoin', 'world-cup'])
+         * @param {string[]} [$params->tags] tag slugs to scope by (searched as keywords, e.g. ['bitcoin', 'world-cup'])
          * @param {string} [$params->eventId] direct lookup by unified event id (composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
          * @param {int} [$params->limit] maximum number of markets per query, defaults to 50
          * @param {string} [$params->state] 'open', 'closed' or 'resolved', defaults to 'open'
          * @return {array[]} an array of event structures
          */
         $allowUnscopedFetchEvents = $this->safe_bool($this->options, 'allowUnscopedFetchEvents', false);
-        if (!$allowUnscopedFetchEvents) {
+        if ($allowUnscopedFetchEvents !== true) {
             $this->require_event_query($params);
         }
         $queries = $this->parse_search_queries($params);
@@ -3168,7 +3171,7 @@ class myriad extends Exchange {
                 $rawQuestions = $this->safe_list($responses, 1, array());
             }
         }
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $seenMarketHandles = array();
@@ -3243,7 +3246,7 @@ class myriad extends Exchange {
         return $this->extend($rawEvent, array(
             'id' => $this->safe_string($rawEvent, 'id'),
             'slug' => $questionSlug,
-            'event' => $questionSlug ? $this->shorten_slug($questionSlug) : null,
+            'event' => ($questionSlug !== null && $questionSlug !== '') ? $this->shorten_slug($questionSlug) : null,
             'title' => $this->safe_string($rawEvent, 'title'),
             'description' => $this->safe_string($rawEvent, 'description'),
             'markets' => $marketsList,
@@ -3257,7 +3260,7 @@ class myriad extends Exchange {
             'tags' => $this->safe_list($rawEvent, 'tags'),
             'created' => $this->parse8601($this->safe_string($rawEvent, 'createdAt')),
             'createdDatetime' => $this->safe_string($rawEvent, 'createdAt'),
-            'end' => $endDate ? $this->parse8601($endDate) : null,
+            'end' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
             'endDatetime' => $endDate,
             'lastUpdatedAt' => $this->parse8601($this->safe_string($rawEvent, 'updatedAt')),
             'resolutionSource' => $this->safe_string($rawEvent, 'resolutionSource'),
@@ -3310,7 +3313,7 @@ class myriad extends Exchange {
             $this->options['wsConnected'] = false;
             $requestId = $this->request_id($url);
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
-            // empty array JSON array, which Centrifugo rejects)
+            // empty array as a JSON array, which Centrifugo rejects)
             $connectMsg = array( 'connect' => array( 'name' => 'ccxt' ), 'id' => $requestId );
             return Async\await($this->watch($url, 'centrifugoConnected', $connectMsg, 'connect'));
         }
@@ -3346,7 +3349,7 @@ class myriad extends Exchange {
 
     public function handle_message(mixed $client, mixed $message) {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
-        // base JSON.parse and arrives here raw string, a single command arrives already $parsed
+        // base JSON.parse and arrives here as a raw string, a single command arrives already $parsed
         if (gettype($message) === 'string') {
             $lines = explode('\n', $message);
             $linesLength = count($lines);
@@ -4033,7 +4036,7 @@ class myriad extends Exchange {
     public function sign(mixed $path, mixed $api = 'myriad', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
-         * builds the request $url and attaches the x-$api-key header for private endpoints
+         * builds the request $url and attaches the apiKey header for private endpoints
          * @param {string} $path the endpoint $path
          * @param {string|string[]} $api the $api group and access level
          * @param {string} $method the http $method
@@ -4049,7 +4052,7 @@ class myriad extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
             $querystring = $this->urlencode($query);
-            if ($querystring) {
+            if ($querystring !== '') {
                 $url .= '?' . $querystring;
             }
         }
@@ -4058,7 +4061,7 @@ class myriad extends Exchange {
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
-        // non-GET requests carry the $params JSON $body (public POSTs like markets/quote
+        // non-GET requests carry the $params as a JSON $body (public POSTs like markets/quote
         // included — the previous logic only sent a $body for authenticated requests)
         if ($method !== 'GET') {
             $queryKeys = is_array($query) ? array_keys($query) : array();
@@ -4067,8 +4070,18 @@ class myriad extends Exchange {
                 $body = $this->json($query);
             }
         }
-        if ($this->apiKey) {
-            $headers = $this->extend($headers, array( 'x-$api-key' => $this->apiKey ));
+        if (($this->apiKey !== null) && ($this->apiKey !== '')) {
+            // keep this literal split. the php transpiler prefixes every occurrence of a local or
+            // parameter name with '$' at the text level, including occurrences inside single-quoted
+            // string literals, and this method's second parameter is named after the middle segment
+            // of the header below. collapsing the two halves back into one literal therefore emits a
+            // corrupted header name in php only - every other language stays green, so the
+            // regression would ship silently. pinned by the fixture in
+            // ts/src/test/static/request/prediction/myriad.json
+            $headerKey = 'x-api' . '-key';
+            $headersKey = array();
+            $headersKey[$headerKey] = $this->apiKey;
+            $headers = $this->extend($headers, $headersKey);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

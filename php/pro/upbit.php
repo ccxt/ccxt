@@ -292,7 +292,7 @@ class upbit extends \ccxt\async\upbit {
         $orderbook['symbol'] = $symbol;
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
-        $data = $this->safe_value($message, 'orderbook_units', array());
+        $data = $this->safe_list($message, 'orderbook_units', array());
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $ask_price = $this->safe_float($entry, 'ask_price');

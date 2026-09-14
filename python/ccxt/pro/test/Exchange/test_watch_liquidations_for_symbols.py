@@ -23,7 +23,7 @@ async def test_watch_liquidations_for_symbols(exchange, skipped_properties, symb
         m1 = (exchange.id + ' ' + method + '() test skipped')
         print(m1)
         return False
-    if not exchange.has[method]:
+    if exchange.has[method] is None or exchange.has[method] is False:
         m2 = (exchange.id + ' does not support ' + method + '() method')
         print(m2)
         return False

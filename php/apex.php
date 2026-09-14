@@ -179,6 +179,7 @@ class apex extends Exchange {
                         'v3/open-orders' => array( 'cost' => 1 ),
                         'v3/transfers' => array( 'cost' => 1 ),
                         'v3/transfer' => array( 'cost' => 1 ),
+                        'v3/stock/account' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'v3/delete-open-orders' => array( 'cost' => 1 ),
@@ -188,6 +189,10 @@ class apex extends Exchange {
                         'v3/set-initial-margin-rate' => array( 'cost' => 1 ),
                         'v3/transfer-out' => array( 'cost' => 1 ),
                         'v3/contract-transfer-out' => array( 'cost' => 1 ),
+                        'v3/contract-transfer-to' => array( 'cost' => 1 ),
+                        'v3/submit-withdraw-claim' => array( 'cost' => 1 ),
+                        'v3/stock/register-account' => array( 'cost' => 1 ),
+                        'v3/stock/generate-api' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -524,7 +529,7 @@ class apex extends Exchange {
                             'id' => $networkId,
                             'network' => $networkCode,
                             'active' => null,
-                            'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                            'deposit' => ($this->safe_bool($chain, 'depositDisable') !== true),
                             'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
                             'fee' => $this->safe_number($token, 'minFee'),
                             'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
@@ -821,7 +826,7 @@ class apex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1264,7 +1269,7 @@ class apex extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order_type(?string $type) {
@@ -1304,7 +1309,8 @@ class apex extends Exchange {
     }
 
     public function generate_random_client_id_omni(?string $_accountId) {
-        $accountId = $_accountId || (string) $this->rand_number(12);
+        $hasAccountId = ($_accountId !== null) && ($_accountId !== '');
+        $accountId = $hasAccountId ? $_accountId : (string) $this->rand_number(12);
         return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
     }
 
@@ -1321,7 +1327,7 @@ class apex extends Exchange {
     public function get_seeds() {
         $seeds = $this->safe_string($this->options, 'seeds');
         if ($seeds === null) {
-            throw new ArgumentsRequired($this->id . ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it.options["seeds"] = XXXX');
+            throw new ArgumentsRequired($this->id . ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX');
         }
         return $seeds;
     }
@@ -1975,7 +1981,7 @@ class apex extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
-            'entryPrice' => $this->safe_string($position, 'entryPrice'),
+            'entryPrice' => $this->safe_number($position, 'entryPrice'),
             'markPrice' => null,
             'notional' => null,
             'collateral' => null,
@@ -2008,7 +2014,7 @@ class apex extends Exchange {
         $signPath = '/api/' . $path;
         $signBody = $body;
         if (strtoupper($method) !== 'POST') {
-            if ($params) {
+            if (count($params) > 0) {
                 $signPath .= '?' . $this->rawencode($params);
                 $url .= '?' . $this->rawencode($params);
             }

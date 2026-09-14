@@ -114,14 +114,19 @@ export default class bitbns extends Exchange {
                         'withdrawHistory/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'withdrawHistoryAll/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'depositHistoryAll/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'userHistoryNew': { 'cost': 1 } as Endpoint<Dict>,
                         'listOpenOrders/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'listOpenOrdersOther/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'listOpenStopOrders/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'getCoinAddress/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'placeSellOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'placeSellOrderOther/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'placeBuyOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'placeBuyOrderOther/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'buyStopLoss/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'sellStopLoss/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrderOther/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelStopLossOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'listExecutedOrders/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'placeMarketOrder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
@@ -701,11 +706,9 @@ export default class bitbns extends Exchange {
             // 't_rate': this.priceToPrecision (symbol, stopPrice),
             // 'trail_rate': this.priceToPrecision (symbol, trailRate),
         };
-        let method = 'v2PostOrders';
         if (type === 'limit') {
             request['rate'] = this.priceToPrecision (symbol, price);
         } else {
-            method = 'v1PostPlaceMarketOrderQntySymbol';
             request['market'] = market['quoteId'];
         }
         if (triggerPrice !== undefined) {
@@ -717,7 +720,12 @@ export default class bitbns extends Exchange {
         if (trailRate !== undefined) {
             request['trail_rate'] = this.priceToPrecision (symbol, trailRate);
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'limit') {
+            response = await this.v2PostOrders (this.extend (request, params));
+        } else {
+            response = await this.v1PostPlaceMarketOrderQntySymbol (this.extend (request, params));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -758,7 +766,7 @@ export default class bitbns extends Exchange {
             'symbol': market['uppercaseId'],
         };
         let response: NullableDict = undefined;
-        const tail = isTrigger ? 'StopLossOrder' : 'Order';
+        const tail = (isTrigger === true) ? 'StopLossOrder' : 'Order';
         let quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         quoteSide += tail;
         request['side'] = quoteSide;
@@ -790,7 +798,7 @@ export default class bitbns extends Exchange {
             'entry_id': id,
         };
         const trigger = this.safeBool2 (params, 'trigger', 'stop');
-        if (trigger) {
+        if (trigger === true) {
             throw new BadRequest (this.id + ' fetchOrder cannot fetch stop orders');
         }
         const response = await this.v1PostOrderStatusSymbol (this.extend (request, params));
@@ -851,7 +859,7 @@ export default class bitbns extends Exchange {
         const request: Dict = {
             'symbol': market['uppercaseId'],
             'page': 0,
-            'side': isTrigger ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
+            'side': (isTrigger === true) ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
         };
         const response = await this.v2PostGetordersnew (this.extend (request, params));
         //
@@ -1291,11 +1299,11 @@ export default class bitbns extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (method === 'POST') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 body = this.json (query);
             } else {
                 body = '{}';

@@ -99,8 +99,7 @@ export default class toobit extends Exchange {
                     'https://api-docs.toobit.com/',
                 ],
                 'referral': {
-                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount': 0.1,
+                    'url': 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 },
                 'fees': 'https://www.toobit.com/fee',
             },
@@ -171,6 +170,16 @@ export default class toobit extends Exchange {
                         'api/v1/agent/user/export': { 'cost': 1 },
                         'api/v1/agent/export-list': { 'cost': 1 },
                         'api/v1/agent/export-url': { 'cost': 1 },
+                        // v2
+                        'api/v2/account/balance-flow': { 'cost': 5 },
+                        'api/v2/futures/order': { 'cost': 1 * 1.67 },
+                        'api/v2/futures/open-orders': { 'cost': 1 * 1.67 },
+                        'api/v2/futures/history-orders': { 'cost': 5 * 1.67 },
+                        'api/v2/futures/user-trades': { 'cost': 5 * 1.67 },
+                        'api/v2/futures/algo-order': { 'cost': 1 * 1.67 },
+                        'api/v2/futures/open-algo-orders': { 'cost': 1 * 1.67 },
+                        'api/v2/futures/history-algo-orders': { 'cost': 5 * 1.67 },
+                        'api/v2/futures/voucher/list': { 'cost': 5 },
                     },
                     'post': {
                         'api/v1/spot/orderTest': { 'cost': 1 * 1.67 },
@@ -989,7 +998,7 @@ export default class toobit extends Exchange {
             'option': false,
             'active': active,
             'contract': isContract,
-            'linear': isContract ? !inverse : undefined,
+            'linear': isContract ? (inverse !== true) : undefined,
             'inverse': isContract ? inverse : undefined,
             'contractSize': this.safeNumber(market, 'contractMultiplier'),
             'expiry': undefined,
@@ -1174,7 +1183,7 @@ export default class toobit extends Exchange {
             }
         }
         else {
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             }
             else {
@@ -1396,6 +1405,11 @@ export default class toobit extends Exchange {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(ticker, 't');
         const last = this.safeString(ticker, 'c');
+        let baseVolume = this.safeString(ticker, 'v');
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1412,9 +1426,10 @@ export default class toobit extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString(ticker, 'pc'),
-            'percentage': this.safeString(ticker, 'pcp'),
+            // 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise.stringMul(this.safeString(ticker, 'pcp'), '100'),
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'qv'),
             'info': ticker,
         }, market);
@@ -1513,9 +1528,15 @@ export default class toobit extends Exchange {
         return this.filterByArray(results, 'symbol', symbols);
     }
     parseBidAskCustom(ticker) {
+        // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        const marketId = this.safeString(ticker, 's');
+        const market = this.safeMarket(marketId);
+        const timestamp = this.safeInteger(ticker, 't');
         return {
-            'timestamp': this.safeString(ticker, 't'),
-            'symbol': this.safeString(ticker, 's'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'symbol': market['symbol'],
             'bid': this.safeNumber(ticker, 'b'),
             'bidVolume': this.safeNumber(ticker, 'bq'),
             'ask': this.safeNumber(ticker, 'a'),
@@ -1720,6 +1741,7 @@ export default class toobit extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1729,7 +1751,7 @@ export default class toobit extends Exchange {
         const market = this.market(symbol);
         let request = {};
         let response = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             [request, params] = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder(this.extend(request, params));
         }
@@ -1780,20 +1802,18 @@ export default class toobit extends Exchange {
         }
         let cost = undefined;
         [cost, params] = this.handleParamString(params, 'cost');
-        if (type === 'market') {
-            if (cost === undefined && side === 'buy') {
+        if (type === 'market' && side === 'buy') {
+            if (cost === undefined) {
                 throw new ArgumentsRequired(this.id + ' createOrder() requires params["cost"] for market buy order');
             }
-            else {
-                request['quantity'] = this.costToPrecision(symbol, cost);
-            }
+            request['quantity'] = this.costToPrecision(symbol, cost);
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
         let isPostOnly = undefined;
         [isPostOnly, params] = this.handlePostOnly(type === 'market', false, params);
-        if (isPostOnly) {
+        if (isPostOnly === true) {
             request['type'] = 'LIMIT_MAKER';
         }
         else {
@@ -1816,10 +1836,10 @@ export default class toobit extends Exchange {
         let reduceOnly = undefined;
         [reduceOnly, params] = this.handleParamBool(params, 'reduceOnly');
         if (side === 'buy') {
-            side = reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            side = (reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
         }
         else if (side === 'sell') {
-            side = reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            side = (reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         request['side'] = side;
         if (price !== undefined) {
@@ -1835,7 +1855,7 @@ export default class toobit extends Exchange {
         }
         let isPostOnly = undefined;
         [isPostOnly, params] = this.handlePostOnly(type === 'market', false, params);
-        if (isPostOnly) {
+        if (isPostOnly === true) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
         const values = this.handleTriggerPricesAndParams(symbol, params);
@@ -1946,7 +1966,19 @@ export default class toobit extends Exchange {
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const rawType = this.safeString(order, 'type');
-        const rawSideLower = this.safeStringLower(order, 'side');
+        let rawSideLower = this.safeStringLower(order, 'side');
+        let reduceOnly = undefined;
+        if (rawSideLower !== undefined) {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            const sideParts = rawSideLower.split('_');
+            const sideSuffix = this.safeString(sideParts, 1);
+            if (sideSuffix !== undefined) {
+                reduceOnly = (sideSuffix === 'close');
+            }
+            rawSideLower = this.safeString(sideParts, 0);
+        }
         let triggerPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         if (triggerPrice === '0.0') {
             triggerPrice = undefined;
@@ -1975,7 +2007,7 @@ export default class toobit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'marginMode': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'leverage': undefined,
             'hedged': undefined,
         }, market);
@@ -2170,7 +2202,7 @@ export default class toobit extends Exchange {
         };
         const market = this.market(symbol);
         let response = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, params));
         }
         else {
@@ -2970,7 +3002,7 @@ export default class toobit extends Exchange {
             'coin': currency['id'],
             'address': address,
             'quantity': this.currencyToPrecision(currency['code'], amount),
-            'chainType': networkCode,
+            'chainType': this.networkCodeToId(networkCode, code),
             'clientOrderId': this.milliseconds(),
         };
         if (tag !== undefined) {
@@ -3069,20 +3101,20 @@ export default class toobit extends Exchange {
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        const data = this.safeDict(response, 'data', {});
+        const data = this.safeDict(response, 0, {});
         return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
-        const marketId = this.safeString(leverage, 'symbol');
+        const marketId = this.safeString2(leverage, 'symbolId', 'symbol');
         const leverageValue = this.safeInteger(leverage, 'leverage');
-        const marginType = this.safeString(leverage, 'marginType');
-        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        const marginType = this.safeStringLower(leverage, 'marginType');
+        const marginMode = (marginType === 'cross') ? 'cross' : 'isolated';
         return {
             'info': leverage,
             'symbol': this.safeSymbol(marketId, market),
@@ -3153,12 +3185,12 @@ export default class toobit extends Exchange {
             'info': position,
             'id': this.safeString(position, 'id'),
             'symbol': market['symbol'],
-            'entryPrice': this.safeString(position, 'avgPrice'),
-            'markPrice': this.safeString(position, 'markPrice'),
-            'lastPrice': this.safeString(position, 'lastPrice'),
-            'notional': this.safeString(position, 'positionValue'),
+            'entryPrice': this.safeNumber(position, 'avgPrice'),
+            'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': this.safeNumber(position, 'lastPrice'),
+            'notional': this.safeNumber(position, 'positionValue'),
             'collateral': undefined,
-            'unrealizedPnl': this.safeString(position, 'unrealizedPnL'),
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedPnL'),
             'side': side,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
@@ -3167,7 +3199,7 @@ export default class toobit extends Exchange {
             'hedged': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeString(position, 'margin'),
+            'initialMargin': this.safeNumber(position, 'margin'),
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'liquidationPrice': undefined,
@@ -3185,7 +3217,7 @@ export default class toobit extends Exchange {
         if (api !== 'private') {
             // Public endpoints
             if (!isPost) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -3238,7 +3270,7 @@ export default class toobit extends Exchange {
         }
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
-        if (errorCode && errorCode !== '200' && errorCode !== '0') {
+        if ((errorCode !== undefined && errorCode !== '') && errorCode !== '200' && errorCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

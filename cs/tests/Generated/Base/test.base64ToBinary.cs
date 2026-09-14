@@ -14,43 +14,43 @@ public partial class BaseTest
             });
             // @SKIP_START_GO
             // Test 1: Simple base64
-            object b64_1 = "aGVsbG8="; // hello
+            string b64_1 = "aGVsbG8="; // hello
             object binary1 = exchange.base64ToBinary(b64_1);
             Assert(isEqual(exchange.binaryToBase64(binary1), b64_1));
             // Test 2: Binary with space in original
-            object b64_2 = "aGVsbG8gd29ybGQ="; // hello world
+            string b64_2 = "aGVsbG8gd29ybGQ="; // hello world
             object binary2 = exchange.base64ToBinary(b64_2);
             Assert(isEqual(exchange.binaryToBase64(binary2), b64_2));
             // Test 3: Short binary
-            object b64_3 = "dGVzdA=="; // test
+            string b64_3 = "dGVzdA=="; // test
             object binary3 = exchange.base64ToBinary(b64_3);
             Assert(isEqual(exchange.binaryToBase64(binary3), b64_3));
             // Test 4: Empty binary
-            object b64_4 = "";
+            string b64_4 = "";
             object binary4 = exchange.base64ToBinary(b64_4);
             Assert(isEqual(exchange.binaryToBase64(binary4), b64_4));
             // Test 5: Single byte
-            object b64_5 = "YQ=="; // a
+            string b64_5 = "YQ=="; // a
             object binary5 = exchange.base64ToBinary(b64_5);
             Assert(isEqual(exchange.binaryToBase64(binary5), b64_5));
             // Test 6: Two bytes
-            object b64_6 = "YWI="; // ab
+            string b64_6 = "YWI="; // ab
             object binary6 = exchange.base64ToBinary(b64_6);
             Assert(isEqual(exchange.binaryToBase64(binary6), b64_6));
             // Test 7: Three bytes (no padding)
-            object b64_7 = "YWJj"; // abc
+            string b64_7 = "YWJj"; // abc
             object binary7 = exchange.base64ToBinary(b64_7);
             Assert(isEqual(exchange.binaryToBase64(binary7), b64_7));
             // Test 8: JSON-like binary
-            object b64_8 = "eyJrZXkiOiJ2YWx1ZSJ9"; // {"key":"value"}
+            string b64_8 = "eyJrZXkiOiJ2YWx1ZSJ9"; // {"key":"value"}
             object binary8 = exchange.base64ToBinary(b64_8);
             Assert(isEqual(exchange.binaryToBase64(binary8), b64_8));
             // Test 9: Numbers as binary
-            object b64_9 = "MTIzNDU2"; // 123456
+            string b64_9 = "MTIzNDU2"; // 123456
             object binary9 = exchange.base64ToBinary(b64_9);
             Assert(isEqual(exchange.binaryToBase64(binary9), b64_9));
             // Test 10: Special characters
-            object b64_10 = "aGVsbG8rd29ybGQvdGVzdA=="; // hello+world/test
+            string b64_10 = "aGVsbG8rd29ybGQvdGVzdA=="; // hello+world/test
             object binary10 = exchange.base64ToBinary(b64_10);
             Assert(isEqual(exchange.binaryToBase64(binary10), b64_10));
             // @SKIP_END_GO

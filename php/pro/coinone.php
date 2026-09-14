@@ -357,7 +357,7 @@ class coinone extends \ccxt\async\coinone {
         $isSellerMaker = $this->safe_value($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
-            $side = $isSellerMaker ? 'sell' : 'buy';
+            $side = ($isSellerMaker === true) ? 'sell' : 'buy';
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
@@ -394,7 +394,7 @@ class coinone extends \ccxt\async\coinone {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $type = $this->safe_string($message, 'response_type');

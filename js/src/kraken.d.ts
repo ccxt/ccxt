@@ -415,7 +415,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
-    fetchDepositMethods(code: string, params?: {}): Promise<any>;
+    fetchDepositMethods(code: string, params?: {}): Promise<Dict[]>;
     /**
      * @method
      * @name kraken#fetchDepositAddress

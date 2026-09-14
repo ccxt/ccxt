@@ -6,9 +6,11 @@ var errors = require('../errors.js');
 var Future = require('./Future.js');
 var platform = require('../functions/platform.js');
 var generic = require('../functions/generic.js');
+require('../Precise.js');
 var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
+require('../functions/throttle.js');
 require('../functions/io.js');
 var base = require('@scure/base');
 
@@ -48,7 +50,6 @@ class Client {
             futures: {},
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
-            pendingResults: {}, // latest value resolved without a waiter, per message hash
             connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
@@ -76,16 +77,6 @@ class Client {
         return this.future(messageHash);
     }
     future(messageHash) {
-        // a value that arrived while no future existed satisfies this
-        // consumer immediately, the spent future intentionally stays out of
-        // the map so the next consumer waits for fresh data
-        if (messageHash in this.pendingResults) {
-            const pending = this.pendingResults[messageHash];
-            delete this.pendingResults[messageHash];
-            const spent = Future.Future();
-            spent.resolve(pending);
-            return spent;
-        }
         if (!(messageHash in this.futures)) {
             this.futures[messageHash] = Future.Future();
         }
@@ -100,21 +91,10 @@ class Client {
         if (this.verbose && (messageHash === undefined)) {
             this.log(new Date(), 'resolve received undefined messageHash');
         }
-        if (messageHash !== undefined) {
-            if (messageHash in this.futures) {
-                const promise = this.futures[messageHash];
-                promise.resolve(result);
-                delete this.futures[messageHash];
-            }
-            else {
-                // no consumer future right now, keep the latest value so the
-                // next future() call is resolved with it instead of waiting
-                // for data that already arrived. A successful resolve after a
-                // retained error means the stream recovered, the stale error
-                // must not fail a later waiter
-                this.pendingResults[messageHash] = result;
-                delete this.rejections[messageHash];
-            }
+        if ((messageHash !== undefined) && (messageHash in this.futures)) {
+            const promise = this.futures[messageHash];
+            promise.resolve(result);
+            delete this.futures[messageHash];
         }
         return result;
     }
@@ -133,15 +113,12 @@ class Client {
                 // instead we store the rejection for later
                 this.rejections[messageHash] = result;
             }
-            // stale pre-error values must not satisfy post-error consumers
-            delete this.pendingResults[messageHash];
         }
         else {
             const messageHashes = Object.keys(this.futures);
             for (let i = 0; i < messageHashes.length; i++) {
                 this.reject(result, messageHashes[i]);
             }
-            this.pendingResults = {};
         }
         return result;
     }
@@ -195,6 +172,16 @@ class Client {
             this.lastPong = this.lastPong || now;
             if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
                 this.onError(new errors.RequestTimeout('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'));
+                // onError rejects the pending futures and the exchange drops
+                // this client from its registry, but the socket itself is
+                // still OPEN: nothing above tears it down, and the server
+                // never asked for a close. left alone it keeps receiving
+                // frames and dispatching them into the exchange caches next
+                // to the replacement connection the next watch call opens.
+                // close the transport here, the same way onConnectionTimeout
+                // does for a dial that never completed, so the timeout ends
+                // the connection and not only the futures waiting on it
+                this.close();
             }
             else {
                 let message;
@@ -341,17 +328,11 @@ class Client {
             }
         }
         catch (error) {
-            // a frame that cannot be decompressed/decoded is connection-fatal:
-            // the stream is corrupt or misaligned, so no subsequent frame can
-            // be trusted either. the error must be handled here, at the throw
-            // site - if it escaped onMessage it would be lost: on node it
-            // would reject the fire-and-forget deliverLoop promise
-            // (WsClient.ts) and crash the process as an unhandled rejection,
-            // on browsers/bun the host event dispatch swallows handler
-            // exceptions silently. established error semantics: onError
-            // normalizes the error, sets this.error, rejects all pending
-            // futures and notifies the exchange, then close () tears the
-            // connection down
+            // a frame that cannot be decompressed/decoded is connection-fatal: the
+            // stream is corrupt, so no later frame can be trusted. it must be handled
+            // here - if it escaped onMessage it would reject the fire-and-forget
+            // deliverLoop (node: unhandled rejection crash) or be swallowed by the
+            // host event dispatch (browsers/bun). onError rejects all pending futures.
             this.onError(error);
             this.close();
             return;
