@@ -779,6 +779,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'sandbox': False,
                     'createOrders': None,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -793,6 +794,7 @@ class bingx(Exchange, ImplicitAPI):
                 #
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'sandbox': False,
                     'fetchCurrencies': {
                         'private': True,
                     },
@@ -818,18 +820,6 @@ class bingx(Exchange, ImplicitAPI):
                     },
                     'inverse': {
                         'extends': 'defaultForInverse',
-                    },
-                },
-                'defaultForFuture': {
-                    'extends': 'defaultForLinear',
-                    'fetchOrders': None,
-                },
-                'future': {
-                    'linear': {
-                        'extends': 'defaultForFuture',
-                    },
-                    'inverse': {
-                        'extends': 'defaultForFuture',
                     },
                 },
             },
@@ -3830,7 +3820,8 @@ class bingx(Exchange, ImplicitAPI):
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': self.safe_string_2(order, 'avgPrice', 'ap'),
-            'cost': self.safe_string(order, 'cummulativeQuoteQty'),
+            # Spot WS: Z is cumulative quote amount; Y is last-fill quote amount.
+            'cost': self.safe_string_2(order, 'cummulativeQuoteQty', 'Z'),
             'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity', 'totalAmount']),
             'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,
