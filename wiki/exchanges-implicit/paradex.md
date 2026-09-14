@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official paradex API documentation:** [docs.api.testnet.paradex.trade](https://docs.api.testnet.paradex.trade/)
 
-> 111 implicit endpoints across 2 access groups.
+> 127 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -76,6 +76,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetJwksJson` | GET | `jwks.json` | 1 |
 | `publicGetOnboarding` | GET | `onboarding` | 1 |
 | `publicGetReferralsConfig` | GET | `referrals/config` | 1 |
+| `publicGetStakingBalanceHistoryGlobal` | GET | `staking/balance/history/global` | 1 |
 | `publicGetStakingConfig` | GET | `staking/config` | 1 |
 | `publicGetSystemAnnouncements` | GET | `system/announcements` | 1 |
 | `publicGetSystemConfig` | GET | `system/config` | 1 |
@@ -85,6 +86,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetSystemVolumeTiers` | GET | `system/volume-tiers` | 1 |
 | `publicGetTrades` | GET | `trades` | 1 |
 | `publicGetVaults` | GET | `vaults` | 1 |
+| `publicGetVaultsAnalytics` | GET | `vaults/analytics` | 1 |
 | `publicGetVaultsBalance` | GET | `vaults/balance` | 1 |
 | `publicGetVaultsConfig` | GET | `vaults/config` | 1 |
 | `publicGetVaultsHistory` | GET | `vaults/history` | 1 |
@@ -131,6 +133,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetOrdersOrderId` | GET | `orders/{order_id}` | 1 |
 | `privateGetReferralsQrCode` | GET | `referrals/qr-code` | 1 |
 | `privateGetReferralsSummary` | GET | `referrals/summary` | 1 |
+| `privateGetRfqs` | GET | `rfqs` | 1 |
+| `privateGetRfqsDrafts` | GET | `rfqs/drafts` | 1 |
+| `privateGetRfqsMarkets` | GET | `rfqs/markets` | 1 |
+| `privateGetRfqsRfqIdBbo` | GET | `rfqs/{rfq_id}/bbo` | 1 |
+| `privateGetStakingBalanceHistory` | GET | `staking/balance/history` | 1 |
 | `privateGetStakingHistory` | GET | `staking/history` | 1 |
 | `privateGetStakingSummary` | GET | `staking/summary` | 1 |
 | `privateGetTransfers` | GET | `transfers` | 1 |
@@ -149,6 +156,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAccountProfileUsername` | POST | `account/profile/username` | 1 |
 | `privatePostAccountReferrer` | POST | `account/referrer` | 1 |
 | `privatePostAccountSettingsTradingValueDisplay` | POST | `account/settings/trading_value_display` | 1 |
+| `privatePostAccountParadigmEnable` | POST | `account/paradigm/enable` | 1 |
+| `privatePostAccountTerminalToken` | POST | `account/terminal-token` | 1 |
 | `privatePostAccountKeysSubkeysActivate` | POST | `account/keys/subkeys/activate` | 1 |
 | `privatePostAccountKeysSubkeys` | POST | `account/keys/subkeys` | 1 |
 | `privatePostAccountTokens` | POST | `account/tokens` | 1 |
@@ -161,12 +170,17 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostOnboarding` | POST | `onboarding` | 1 |
 | `privatePostOrders` | POST | `orders` | 1 |
 | `privatePostOrdersBatch` | POST | `orders/batch` | 1 |
+| `privatePostRfqs` | POST | `rfqs` | 1 |
+| `privatePostRfqsDrafts` | POST | `rfqs/drafts` | 1 |
+| `privatePostRfqsRfqIdExecute` | POST | `rfqs/{rfq_id}/execute` | 1 |
 | `privatePostV2Auth` | POST | `v2/auth` | 1 |
 | `privatePostV2Onboarding` | POST | `v2/onboarding` | 1 |
 | `privatePostVaults` | POST | `vaults` | 1 |
 | `privatePostXpTransfer` | POST | `xp/transfer` | 1 |
 | `privatePutAccountProfile` | PUT | `account/profile` | 1 |
 | `privatePutAccountKeysSubkeysPublicKey` | PUT | `account/keys/subkeys/{public_key}` | 1 |
+| `privatePutAccountKeysSubkeysPublicKeyAllowedCidrs` | PUT | `account/keys/subkeys/{public_key}/allowed-cidrs` | 1 |
+| `privatePutAccountTokensLookupIdAllowedCidrs` | PUT | `account/tokens/{lookup_id}/allowed-cidrs` | 1 |
 | `privatePutOrdersOrderId` | PUT | `orders/{order_id}` | 1 |
 | `privateDeleteAccountKeysSubkeysPublicKey` | DELETE | `account/keys/subkeys/{public_key}` | 1 |
 | `privateDeleteAccountTokensLookupId` | DELETE | `account/tokens/{lookup_id}` | 1 |
@@ -177,4 +191,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateDeleteOrdersBatch` | DELETE | `orders/batch` | 1 |
 | `privateDeleteOrdersByClientIdClientId` | DELETE | `orders/by_client_id/{client_id}` | 1 |
 | `privateDeleteOrdersOrderId` | DELETE | `orders/{order_id}` | 1 |
+| `privateDeleteRfqsDraftsDraftId` | DELETE | `rfqs/drafts/{draft_id}` | 1 |
+| `privateDeleteRfqsRfqId` | DELETE | `rfqs/{rfq_id}` | 1 |
 

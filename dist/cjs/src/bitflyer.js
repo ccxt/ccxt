@@ -100,6 +100,7 @@ class bitflyer extends bitflyer$1["default"] {
                         'getboardstate': { 'cost': 1 },
                         'getchats': { 'cost': 1 },
                         'getfundingrate': { 'cost': 1 },
+                        'getfundingratehistory': { 'cost': 1 },
                     },
                 },
                 'private': {
@@ -1217,7 +1218,7 @@ class bitflyer extends bitflyer$1["default"] {
         }
         request += path;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
@@ -1228,7 +1229,7 @@ class bitflyer extends bitflyer$1["default"] {
             const nonce = this.nonce().toString();
             const content = [nonce, method, request];
             let auth = content.join('');
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
                     body = this.json(params);
                     auth += body;

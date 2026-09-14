@@ -70,11 +70,11 @@ public class NumberHelpers {
             if (roundingMode == ROUND) {
                 String res = DecimalToPrecision(parsedX / toNearest, ROUND, 0, DECIMAL_PLACES, padMode);
                 double r = toDouble(res);
-                return NumberToString2(toNearest * r);
+                return NumberToString(toNearest * r);
             }
             if (roundingMode == TRUNCATE) {
                 double v = parsedX - (parsedX % toNearest);
-                return NumberToString2(v);
+                return NumberToString(v);
             }
         }
 
@@ -87,7 +87,7 @@ public class NumberHelpers {
             }
 
             if (roundingMode == TRUNCATE) {
-                String xStr = NumberToString2(parsedX);
+                String xStr = NumberToString(parsedX);
                 String truncatedX = TruncateToString(xStr, Math.max(0, newNumPrecisionDigits));
                 parsedX = toDouble(truncatedX);
 
@@ -405,24 +405,6 @@ public class NumberHelpers {
         }
         for (int z = pow; z > 0; z--) out[k++] = '0';
         return new String(out);
-    }
-
-    public static String NumberToString2(Object number) {
-        return NumberToString(number);
-        // if (number == null) return null;
-
-        // if (number instanceof Integer || number instanceof Long) {
-        //     return String.valueOf(number);
-        // }
-        // if (number instanceof String) {
-        //     return (String) number;
-        // }
-
-        // // Prefer BigDecimal plain string (covers both small and large exponents cleanly)
-        // if (number instanceof java.lang.Number) {
-        //     return BigDecimal.valueOf(((java.lang.Number) number).doubleValue()).toPlainString();
-        // }
-        // return String.valueOf(number);
     }
 
     // -----------------------------

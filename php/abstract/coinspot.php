@@ -292,8 +292,20 @@ abstract class coinspot extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v2_private_post_my_buy_now_coinlist($params = array()) {
+        return $this->request('my/buy/now/coinlist', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v2_private_post_my_sell_now($params = array()) {
         return $this->request('my/sell/now', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2_private_post_my_sell_now_coinlist($params = array()) {
+        return $this->request('my/sell/now/coinlist', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -336,6 +348,18 @@ abstract class coinspot extends \ccxt\Exchange {
      */
     public function v2_private_post_my_coin_withdraw_send($params = array()) {
         return $this->request('my/coin/withdraw/send', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2_private_post_my_coin_withdraw_send_async($params = array()) {
+        return $this->request('my/coin/withdraw/send/async', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2_private_post_my_coin_withdraw_send_status($params = array()) {
+        return $this->request('my/coin/withdraw/send/status', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -706,8 +730,20 @@ abstract class coinspot extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v2PrivatePostMyBuyNowCoinlist($params = array()) {
+        return $this->request('my/buy/now/coinlist', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v2PrivatePostMySellNow($params = array()) {
         return $this->request('my/sell/now', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2PrivatePostMySellNowCoinlist($params = array()) {
+        return $this->request('my/sell/now/coinlist', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -750,6 +786,18 @@ abstract class coinspot extends \ccxt\Exchange {
      */
     public function v2PrivatePostMyCoinWithdrawSend($params = array()) {
         return $this->request('my/coin/withdraw/send', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2PrivatePostMyCoinWithdrawSendAsync($params = array()) {
+        return $this->request('my/coin/withdraw/send/async', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v2PrivatePostMyCoinWithdrawSendStatus($params = array()) {
+        return $this->request('my/coin/withdraw/send/status', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

@@ -88,25 +88,25 @@ class coinone extends \ccxt\async\coinone {
     public function handle_order_book(mixed $client, mixed $message) {
         //
         //     {
-        //         "response_type" => "DATA",
-        //         "channel" => "ORDERBOOK",
-        //         "data" => {
-        //             "quote_currency" => "KRW",
-        //             "target_currency" => "BTC",
-        //             "timestamp" => 1705288918649,
-        //             "id" => "1705288918649001",
-        //             "asks" => array(
+        //         "response_type": "DATA",
+        //         "channel": "ORDERBOOK",
+        //         "data": {
+        //             "quote_currency": "KRW",
+        //             "target_currency": "BTC",
+        //             "timestamp": 1705288918649,
+        //             "id": "1705288918649001",
+        //             "asks": [
         //                 {
-        //                     "price" => "58412000",
-        //                     "qty" => "0.59919807"
+        //                     "price": "58412000",
+        //                     "qty": "0.59919807"
         //                 }
-        //             ),
-        //             "bids" => array(
+        //             ],
+        //             "bids": [
         //                 {
-        //                     "price" => "58292000",
-        //                     "qty" => "0.1045"
+        //                     "price": "58292000",
+        //                     "qty": "0.1045"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -175,30 +175,30 @@ class coinone extends \ccxt\async\coinone {
     public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
-        //         "response_type" => "DATA",
-        //         "channel" => "TICKER",
-        //         "data" => {
-        //             "quote_currency" => "KRW",
-        //             "target_currency" => "BTC",
-        //             "timestamp" => 1705301117198,
-        //             "quote_volume" => "19521465345.504",
-        //             "target_volume" => "334.81445168",
-        //             "high" => "58710000",
-        //             "low" => "57276000",
-        //             "first" => "57293000",
-        //             "last" => "58532000",
-        //             "volume_power" => "100",
-        //             "ask_best_price" => "58537000",
-        //             "ask_best_qty" => "0.1961",
-        //             "bid_best_price" => "58532000",
-        //             "bid_best_qty" => "0.00009258",
-        //             "id" => "1705301117198001",
-        //             "yesterday_high" => "59140000",
-        //             "yesterday_low" => "57273000",
-        //             "yesterday_first" => "58897000",
-        //             "yesterday_last" => "57301000",
-        //             "yesterday_quote_volume" => "12967227517.4262",
-        //             "yesterday_target_volume" => "220.09232233"
+        //         "response_type": "DATA",
+        //         "channel": "TICKER",
+        //         "data": {
+        //             "quote_currency": "KRW",
+        //             "target_currency": "BTC",
+        //             "timestamp": 1705301117198,
+        //             "quote_volume": "19521465345.504",
+        //             "target_volume": "334.81445168",
+        //             "high": "58710000",
+        //             "low": "57276000",
+        //             "first": "57293000",
+        //             "last": "58532000",
+        //             "volume_power": "100",
+        //             "ask_best_price": "58537000",
+        //             "ask_best_qty": "0.1961",
+        //             "bid_best_price": "58532000",
+        //             "bid_best_qty": "0.00009258",
+        //             "id": "1705301117198001",
+        //             "yesterday_high": "59140000",
+        //             "yesterday_low": "57273000",
+        //             "yesterday_first": "58897000",
+        //             "yesterday_last": "57301000",
+        //             "yesterday_quote_volume": "12967227517.4262",
+        //             "yesterday_target_volume": "220.09232233"
         //         }
         //     }
         //
@@ -213,27 +213,27 @@ class coinone extends \ccxt\async\coinone {
     public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "quote_currency" => "KRW",
-        //         "target_currency" => "BTC",
-        //         "timestamp" => 1705301117198,
-        //         "quote_volume" => "19521465345.504",
-        //         "target_volume" => "334.81445168",
-        //         "high" => "58710000",
-        //         "low" => "57276000",
-        //         "first" => "57293000",
-        //         "last" => "58532000",
-        //         "volume_power" => "100",
-        //         "ask_best_price" => "58537000",
-        //         "ask_best_qty" => "0.1961",
-        //         "bid_best_price" => "58532000",
-        //         "bid_best_qty" => "0.00009258",
-        //         "id" => "1705301117198001",
-        //         "yesterday_high" => "59140000",
-        //         "yesterday_low" => "57273000",
-        //         "yesterday_first" => "58897000",
-        //         "yesterday_last" => "57301000",
-        //         "yesterday_quote_volume" => "12967227517.4262",
-        //         "yesterday_target_volume" => "220.09232233"
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "timestamp": 1705301117198,
+        //         "quote_volume": "19521465345.504",
+        //         "target_volume": "334.81445168",
+        //         "high": "58710000",
+        //         "low": "57276000",
+        //         "first": "57293000",
+        //         "last": "58532000",
+        //         "volume_power": "100",
+        //         "ask_best_price": "58537000",
+        //         "ask_best_qty": "0.1961",
+        //         "bid_best_price": "58532000",
+        //         "bid_best_qty": "0.00009258",
+        //         "id": "1705301117198001",
+        //         "yesterday_high": "59140000",
+        //         "yesterday_low": "57273000",
+        //         "yesterday_first": "58897000",
+        //         "yesterday_last": "57301000",
+        //         "yesterday_quote_volume": "12967227517.4262",
+        //         "yesterday_target_volume": "220.09232233"
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -308,16 +308,16 @@ class coinone extends \ccxt\async\coinone {
     public function handle_trades(Client $client, mixed $message) {
         //
         //     {
-        //         "response_type" => "DATA",
-        //         "channel" => "TRADE",
-        //         "data" => {
-        //             "quote_currency" => "KRW",
-        //             "target_currency" => "BTC",
-        //             "id" => "1705303667916001",
-        //             "timestamp" => 1705303667916,
-        //             "price" => "58490000",
-        //             "qty" => "0.0008",
-        //             "is_seller_maker" => false
+        //         "response_type": "DATA",
+        //         "channel": "TRADE",
+        //         "data": {
+        //             "quote_currency": "KRW",
+        //             "target_currency": "BTC",
+        //             "id": "1705303667916001",
+        //             "timestamp": 1705303667916,
+        //             "price": "58490000",
+        //             "qty": "0.0008",
+        //             "is_seller_maker": false
         //         }
         //     }
         //
@@ -338,13 +338,13 @@ class coinone extends \ccxt\async\coinone {
     public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "quote_currency" => "KRW",
-        //         "target_currency" => "BTC",
-        //         "id" => "1705303667916001",
-        //         "timestamp" => 1705303667916,
-        //         "price" => "58490000",
-        //         "qty" => "0.0008",
-        //         "is_seller_maker" => false
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "id": "1705303667916001",
+        //         "timestamp": 1705303667916,
+        //         "price": "58490000",
+        //         "qty": "0.0008",
+        //         "is_seller_maker": false
         //     }
         //
         $baseId = $this->safe_string_upper($trade, 'target_currency');
@@ -357,7 +357,7 @@ class coinone extends \ccxt\async\coinone {
         $isSellerMaker = $this->safe_value($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
-            $side = $isSellerMaker ? 'sell' : 'buy';
+            $side = ($isSellerMaker === true) ? 'sell' : 'buy';
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
@@ -381,9 +381,9 @@ class coinone extends \ccxt\async\coinone {
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
-        //         "response_type" => "ERROR",
-        //         "error_code" => 160012,
-        //         "message" => "Invalid Topic"
+        //         "response_type": "ERROR",
+        //         "error_code": 160012,
+        //         "message": "Invalid Topic"
         //     }
         //
         $type = $this->safe_string($message, 'response_type', '');
@@ -394,7 +394,7 @@ class coinone extends \ccxt\async\coinone {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $type = $this->safe_string($message, 'response_type');

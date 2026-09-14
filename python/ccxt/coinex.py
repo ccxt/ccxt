@@ -338,6 +338,7 @@ class coinex(Exchange, ImplicitAPI):
                             'futures/basis-history': {'cost': 1},
                             'assets/deposit-withdraw-config': {'cost': 1},
                             'assets/all-deposit-withdraw-config': {'cost': 1},
+                            'assets/info': {'cost': 1},
                         },
                     },
                     'private': {
@@ -449,6 +450,8 @@ class coinex(Exchange, ImplicitAPI):
                             'futures/adjust-position-leverage': {'cost': 20},
                             'futures/set-position-stop-loss': {'cost': 20},
                             'futures/set-position-take-profit': {'cost': 20},
+                            'futures/modify-position-stop-loss': {'cost': 20},
+                            'futures/modify-position-take-profit': {'cost': 20},
                         },
                     },
                 },
@@ -646,7 +649,7 @@ class coinex(Exchange, ImplicitAPI):
                     '3008': RequestTimeout,  # Service busy, please try again later.
                     '3109': InsufficientFunds,  # {"code":3109,"data":{},"message":"balance not enough"}
                     '3127': InvalidOrder,  # The order quantity is below the minimum requirement. Please adjust the order quantity.
-                    '3157': BadSymbol,  # {"code":3157,"data":{},"message":"Service has been hasattr(self, stopped) market"}
+                    '3157': BadSymbol,  # {"code":3157,"data":{},"message":"Service has been stopped in this market"}
                     '3600': OrderNotFound,  # {"code":3600,"data":{},"message":"Order not found"}
                     '3606': InvalidOrder,  # The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610': ExchangeError,  # Order cancellation prohibited during the Call Auction period.
@@ -660,7 +663,7 @@ class coinex(Exchange, ImplicitAPI):
                     '3619': InvalidOrder,  # The deviation between your order price and the trigger price is too high. Please adjust your order price and try again.
                     '3620': InvalidOrder,  # Market order submission is temporarily unavailable due to insufficient depth in the current market
                     '3621': InvalidOrder,  # This order can't be completely executed and has been canceled.
-                    '3622': InvalidOrder,  # This order can't be set Only and has been canceled.
+                    '3622': InvalidOrder,  # This order can't be set as Maker Only and has been canceled.
                     '3627': InvalidOrder,  # The current market depth is low, please reduce your order amount and try again.
                     '3628': InvalidOrder,  # The current market depth is low, please reduce your order amount and try again.
                     '3629': InvalidOrder,  # The current market depth is low, please reduce your order amount and try again.
@@ -681,7 +684,7 @@ class coinex(Exchange, ImplicitAPI):
                     '4011': PermissionDenied,  # User prohibited from accessing, please contact customer service for help.
                     '4017': ExchangeError,  # Signature expired, please try again later.
                     '4115': AccountSuspended,  # User prohibited from trading, please contact customer service for help.
-                    '4117': BadSymbol,  # Trading hasattr(self, prohibited) market, please try again later.
+                    '4117': BadSymbol,  # Trading prohibited in this market, please try again later.
                     '4123': RateLimitExceeded,  # Rate limit triggered. Please adjust your strategy and reduce the request rate.
                     '4130': ExchangeError,  # Futures trading prohibited, please try again later.
                     '4158': ExchangeError,  # Trading prohibited, please try again later.
@@ -714,18 +717,18 @@ class coinex(Exchange, ImplicitAPI):
         #             {
         #                 "asset": {
         #                     "ccy": "CET",
-        #                     "deposit_enabled": True,
-        #                     "withdraw_enabled": True,
-        #                     "inter_transfer_enabled": True,
-        #                     "is_st": False
+        #                     "deposit_enabled": true,
+        #                     "withdraw_enabled": true,
+        #                     "inter_transfer_enabled": true,
+        #                     "is_st": false
         #                 },
         #                 "chains": [
         #                     {
         #                         "chain": "CSC",
         #                         "min_deposit_amount": "0.8",
         #                         "min_withdraw_amount": "8",
-        #                         "deposit_enabled": True,
-        #                         "withdraw_enabled": True,
+        #                         "deposit_enabled": true,
+        #                         "withdraw_enabled": true,
         #                         "deposit_delay_minutes": 0,
         #                         "safe_confirmations": 10,
         #                         "irreversible_confirmations": 20,
@@ -733,7 +736,7 @@ class coinex(Exchange, ImplicitAPI):
         #                         "withdrawal_fee": "0.026",
         #                         "withdrawal_precision": 8,
         #                         "memo": "",
-        #                         "is_memo_required_for_deposit": False,
+        #                         "is_memo_required_for_deposit": false,
         #                         "explorer_asset_url": ""
         #                     },
         #                 ]
@@ -846,10 +849,10 @@ class coinex(Exchange, ImplicitAPI):
         #                 "quote_ccy": "USDT",
         #                 "base_ccy_precision": 8,
         #                 "quote_ccy_precision": 2,
-        #                 "is_amm_available": True,
-        #                 "is_margin_available": True,
-        #                 "is_pre_trading_available": True,
-        #                 "is_api_trading_available": True
+        #                 "is_amm_available": true,
+        #                 "is_margin_available": true,
+        #                 "is_pre_trading_available": true,
+        #                 "is_api_trading_available": true
         #             }
         #         ],
         #         "message": "OK"
@@ -1054,7 +1057,7 @@ class coinex(Exchange, ImplicitAPI):
         symbol = market['symbol']
         # on inverse contracts 'value' is denominated in the settle currency, not
         # the quote, so it is the quote volume only for spot and linear markets
-        quoteVolume = None if market['inverse'] else self.safe_string(ticker, 'value')
+        quoteVolume = None if (market['inverse'] is True) else self.safe_string(ticker, 'value')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -1098,7 +1101,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PublicGetFuturesTicker(self.extend(request, params))
         else:
             response = self.v2PublicGetSpotTicker(self.extend(request, params))
@@ -1272,7 +1275,7 @@ class coinex(Exchange, ImplicitAPI):
             'interval': '0',
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PublicGetFuturesDepth(self.extend(request, params))
             #
             #     {
@@ -1293,7 +1296,7 @@ class coinex(Exchange, ImplicitAPI):
             #                 "last": "70851.94",
             #                 "updated_at": 1712824003252
             #             },
-            #             "is_full": True,
+            #             "is_full": true,
             #             "market": "BTCUSDT"
             #         },
             #         "message": "OK"
@@ -1320,7 +1323,7 @@ class coinex(Exchange, ImplicitAPI):
             #                 "last": "70857.19",
             #                 "updated_at": 1712823790987
             #             },
-            #             "is_full": True,
+            #             "is_full": true,
             #             "market": "BTCUSDT"
             #         },
             #         "message": "OK"
@@ -1333,7 +1336,7 @@ class coinex(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # Spot and Swap fetchTrades(public)
+        # Spot and Swap fetchTrades (public)
         #
         #     {
         #         "amount": "0.00049432",
@@ -1343,7 +1346,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "side": "buy"
         #     }
         #
-        # Spot and Margin fetchMyTrades(private)
+        # Spot and Margin fetchMyTrades (private)
         #
         #     {
         #         "amount": "0.00010087",
@@ -1356,7 +1359,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "side": "sell"
         #     }
         #
-        # Swap fetchMyTrades(private)
+        # Swap fetchMyTrades (private)
         #
         #     {
         #         "deal_id": 1180222387,
@@ -1425,7 +1428,7 @@ class coinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PublicGetFuturesDeals(self.extend(request, params))
         else:
             response = self.v2PublicGetSpotDeals(self.extend(request, params))
@@ -1466,7 +1469,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response: dict
-        if market['spot']:
+        if market['spot'] is True:
             response = self.v2PublicGetSpotMarket(self.extend(request, params))
             #
             #     {
@@ -1475,8 +1478,8 @@ class coinex(Exchange, ImplicitAPI):
             #             {
             #                 "base_ccy": "BTC",
             #                 "base_ccy_precision": 8,
-            #                 "is_amm_available": False,
-            #                 "is_margin_available": True,
+            #                 "is_amm_available": false,
+            #                 "is_margin_available": true,
             #                 "maker_fee_rate": "0.002",
             #                 "market": "BTCUSDT",
             #                 "min_amount": "0.0001",
@@ -1562,8 +1565,8 @@ class coinex(Exchange, ImplicitAPI):
             #             {
             #                 "base_ccy": "BTC",
             #                 "base_ccy_precision": 8,
-            #                 "is_amm_available": False,
-            #                 "is_margin_available": True,
+            #                 "is_amm_available": false,
+            #                 "is_margin_available": true,
             #                 "maker_fee_rate": "0.002",
             #                 "market": "BTCUSDT",
             #                 "min_amount": "0.0001",
@@ -1606,8 +1609,8 @@ class coinex(Exchange, ImplicitAPI):
         #         "low": "66988.53",
         #         "market": "BTCUSDT",
         #         "open": "66988.53",
-        #         "value": "0.1572393",        # base volume
-        #         "volume": "10533.2501364336"  # quote volume
+        #         "value": "0.1572393",        // base volume
+        #         "volume": "10533.2501364336" // quote volume
         #     }
         #
         return [
@@ -1631,7 +1634,7 @@ class coinex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1643,7 +1646,7 @@ class coinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PublicGetFuturesKline(self.extend(request, params))
         else:
             response = self.v2PublicGetSpotKline(self.extend(request, params))
@@ -2133,7 +2136,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -2154,8 +2157,8 @@ class coinex(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, option == 'maker_only', params)
         timeInForceRaw = self.safe_string_upper(params, 'timeInForce')
         reduceOnly = self.safe_bool(params, 'reduceOnly')
-        if reduceOnly:
-            if not market['swap']:
+        if reduceOnly is True:
+            if market['swap'] is not True:
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
         request = {
             'market': market['id'],
@@ -2167,7 +2170,7 @@ class coinex(Exchange, ImplicitAPI):
         else:
             request['client_id'] = clientOrderId
         if (stopLossPrice is None) and (takeProfitPrice is None):
-            if not reduceOnly:
+            if reduceOnly is not True:
                 request['side'] = side
             requestType = type
             if postOnly:
@@ -2180,13 +2183,13 @@ class coinex(Exchange, ImplicitAPI):
             if not isMarketOrder:
                 request['price'] = self.price_to_precision(symbol, price)
             request['type'] = requestType
-        if swap:
+        if swap is True:
             request['market_type'] = 'FUTURES'
-            if stopLossPrice or takeProfitPrice:
-                if stopLossPrice:
+            if (stopLossPrice is not None and stopLossPrice != '') or (takeProfitPrice is not None and takeProfitPrice != ''):
+                if stopLossPrice is not None and stopLossPrice != '':
                     request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
                     request['stop_loss_type'] = self.safe_string(params, 'stop_type', 'latest_price')
-                elif takeProfitPrice:
+                elif takeProfitPrice is not None and takeProfitPrice != '':
                     request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
                     request['take_profit_type'] = self.safe_string(params, 'stop_type', 'latest_price')
             else:
@@ -2263,7 +2266,7 @@ class coinex(Exchange, ImplicitAPI):
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if isTriggerOrder:
                 response = self.v2PrivatePostSpotStopOrder(request)
                 #
@@ -2400,7 +2403,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             else:
-                if reduceOnly:
+                if reduceOnly is True:
                     response = self.v2PrivatePostFuturesClosePosition(request)
                     #
                     #     {
@@ -2514,7 +2517,7 @@ class coinex(Exchange, ImplicitAPI):
             'orders': ordersRequests,
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if isTriggerOrder:
                 response = self.v2PrivatePostSpotBatchStopOrder(request)
                 #
@@ -2642,7 +2645,7 @@ class coinex(Exchange, ImplicitAPI):
                     status = 'open'
             innerData = self.safe_dict(entry, 'data', {})
             order: Order
-            if market['spot'] and not isTriggerOrder:
+            if (market['spot'] is True) and not isTriggerOrder:
                 entry['status'] = status
                 order = self.parse_order(entry, market)
             else:
@@ -2680,12 +2683,12 @@ class coinex(Exchange, ImplicitAPI):
         requestIds = []
         for i in range(0, len(ids)):
             requestIds.append(int(ids[i]))
-        if trigger:
+        if trigger is True:
             request['stop_ids'] = requestIds
         else:
             request['order_ids'] = requestIds
-        if market['spot']:
-            if trigger:
+        if market['spot'] is True:
+            if trigger is True:
                 response = self.v2PrivatePostSpotCancelBatchStopOrder(self.extend(request, params))
                 #
                 #     {
@@ -2754,7 +2757,7 @@ class coinex(Exchange, ImplicitAPI):
                 #
         else:
             request['market_type'] = 'FUTURES'
-            if trigger:
+            if trigger is True:
                 response = self.v2PrivatePostFuturesCancelBatchStopOrder(self.extend(request, params))
                 #
                 #     {
@@ -2870,7 +2873,7 @@ class coinex(Exchange, ImplicitAPI):
             request['order_id'] = self.parse_to_numeric(id)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('editOrder', params)
-        if market['spot']:
+        if market['spot'] is True:
             if marginMode is not None:
                 request['market_type'] = 'MARGIN'
             else:
@@ -2992,7 +2995,7 @@ class coinex(Exchange, ImplicitAPI):
             marginMode = None
             marginMode, orderParams = self.handle_margin_mode_and_params('editOrders', orderParams)
             market_type = 'SPOT'
-            if market['swap']:
+            if market['swap'] is True:
                 market_type = 'FUTURES'
             elif marginMode is not None:
                 market_type = 'MARGIN'
@@ -3013,7 +3016,7 @@ class coinex(Exchange, ImplicitAPI):
             'orders': ordersRequests,
         }
         response = None
-        if firstMarket['spot']:
+        if firstMarket['spot'] is True:
             response = self.v2PrivatePostSpotBatchModifyOrder(self.extend(request, params))
         else:
             response = self.v2PrivatePostFuturesBatchModifyOrder(self.extend(request, params))
@@ -3023,7 +3026,7 @@ class coinex(Exchange, ImplicitAPI):
             entry = data[i]
             code = self.safe_string(entry, 'code')
             message = self.safe_string(entry, 'message', '')
-            if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
+            if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and (data is None)):
                 feedback = self.id + ' ' + message
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
@@ -3065,7 +3068,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
-        if swap:
+        if swap is True:
             request['market_type'] = 'FUTURES'
         else:
             if marginMode is not None:
@@ -3077,8 +3080,8 @@ class coinex(Exchange, ImplicitAPI):
         response = None
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-            if isTriggerOrder:
-                if swap:
+            if isTriggerOrder is True:
+                if swap is True:
                     response = self.v2PrivatePostFuturesCancelStopOrderByClientId(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3134,7 +3137,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK"
                     #     }
             else:
-                if swap:
+                if swap is True:
                     response = self.v2PrivatePostFuturesCancelOrderByClientId(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3204,9 +3207,9 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK"
                     #     }
         else:
-            if isTriggerOrder:
+            if isTriggerOrder is True:
                 request['stop_id'] = self.parse_to_numeric(id)
-                if swap:
+                if swap is True:
                     response = self.v2PrivatePostFuturesCancelStopOrder(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3252,7 +3255,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
             else:
                 request['order_id'] = self.parse_to_numeric(id)
-                if swap:
+                if swap is True:
                     response = self.v2PrivatePostFuturesCancelOrder(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3338,7 +3341,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             request['market_type'] = 'FUTURES'
             response = self.v2PrivatePostFuturesCancelAllOrder(self.extend(request, params))
             #
@@ -3383,7 +3386,7 @@ class coinex(Exchange, ImplicitAPI):
             'order_id': self.parse_to_numeric(id),
         }
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PrivateGetFuturesOrderStatus(self.extend(request, params))
             #
             #     {
@@ -3486,7 +3489,7 @@ class coinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             request['market_type'] = 'FUTURES'
             if isClosed:
-                if trigger:
+                if trigger is True:
                     response = self.v2PrivateGetFuturesFinishedStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3510,7 +3513,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         ],
                     #         "message": "OK",
                     #         "pagination": {
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3542,12 +3545,12 @@ class coinex(Exchange, ImplicitAPI):
                     #         ],
                     #         "message": "OK",
                     #         "pagination": {
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
             elif isOpen:
-                if trigger:
+                if trigger is True:
                     response = self.v2PrivateGetFuturesPendingStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3572,7 +3575,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK",
                     #         "pagination": {
                     #             "total": 1,
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3608,7 +3611,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK",
                     #         "pagination": {
                     #             "total": 1,
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3620,7 +3623,7 @@ class coinex(Exchange, ImplicitAPI):
             else:
                 request['market_type'] = 'SPOT'
             if isClosed:
-                if trigger:
+                if trigger is True:
                     response = self.v2PrivateGetSpotFinishedStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3645,7 +3648,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         ],
                     #         "message": "OK",
                     #         "pagination": {
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3679,12 +3682,12 @@ class coinex(Exchange, ImplicitAPI):
                     #         ],
                     #         "message": "OK",
                     #         "pagination": {
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
             elif status == 'pending':
-                if trigger:
+                if trigger is True:
                     response = self.v2PrivateGetSpotPendingStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3710,7 +3713,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK",
                     #         "pagination": {
                     #             "total": 1,
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3747,7 +3750,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK",
                     #         "pagination": {
                     #             "total": 1,
-                    #             "has_next": False
+                    #             "has_next": false
                     #         }
                     #     }
                     #
@@ -3921,7 +3924,7 @@ class coinex(Exchange, ImplicitAPI):
             request['start_time'] = since
         request, params = self.handle_until_option('end_time', request, params)
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             request['market_type'] = 'FUTURES'
             response = self.v2PrivateGetFuturesUserDeals(self.extend(request, params))
             #
@@ -3940,7 +3943,7 @@ class coinex(Exchange, ImplicitAPI):
             #         ],
             #         "message": "OK",
             #         "pagination": {
-            #             "has_next": True
+            #             "has_next": true
             #         }
             #     }
             #
@@ -3969,7 +3972,7 @@ class coinex(Exchange, ImplicitAPI):
             #         ],
             #         "message": "OK",
             #         "pagination": {
-            #             "has_next": True
+            #             "has_next": true
             #         }
             #     }
             #
@@ -4052,7 +4055,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": False
+        #             "has_next": false
         #         }
         #     }
         #
@@ -4119,7 +4122,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": False
+        #             "has_next": false
         #         }
         #     }
         #
@@ -4258,7 +4261,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
@@ -4338,7 +4341,7 @@ class coinex(Exchange, ImplicitAPI):
             marketId = self.safe_string(info, 'market')
             market = self.safe_market(marketId, market, None, 'swap')
             maxNotional = self.safe_number(tier, 'amount')
-            curr = market['base'] if market['linear'] else market['quote']
+            curr = market['base'] if (market['linear'] is True) else market['quote']
             notional = minNotional
             tiers.append({
                 'tier': self.sum(i, 1),
@@ -4554,7 +4557,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": True
+        #             "has_next": true
         #         }
         #     }
         #
@@ -4589,7 +4592,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'market': market['id'],
@@ -4699,7 +4702,7 @@ class coinex(Exchange, ImplicitAPI):
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
-            if not market['swap']:
+            if market['swap'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingRates() supports swap contracts only')
             marketIds = self.market_ids(symbols)
             request['market'] = ','.join(marketIds)
@@ -4845,7 +4848,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": True
+        #             "has_next": true
         #         }
         #     }
         #
@@ -5088,7 +5091,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "pagination": {
         #             "total": 8,
-        #             "has_next": False
+        #             "has_next": false
         #         },
         #         "code": 0,
         #         "message": "OK"
@@ -5145,7 +5148,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "pagination": {
         #             "total": 9,
-        #             "has_next": True
+        #             "has_next": true
         #         },
         #         "code": 0,
         #         "message": "OK"
@@ -5199,7 +5202,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "paginatation": {
         #             "total": 8,
-        #             "has_next": True
+        #             "has_next": true
         #         },
         #         "code": 0,
         #         "message": "OK"
@@ -5317,13 +5320,13 @@ class coinex(Exchange, ImplicitAPI):
         #                 "expired_at": 1655625016000,
         #                 "borrow_amount": "100",
         #                 "to_repaied_amount": "0",
-        #                 "is_auto_renew": False,
+        #                 "is_auto_renew": false,
         #                 "status": "finish"
         #             },
         #         ],
         #         "pagination": {
         #             "total": 4,
-        #             "has_next": True
+        #             "has_next": true
         #         },
         #         "code": 0,
         #         "message": "OK"
@@ -5344,7 +5347,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "expired_at": 1655625016000,
         #         "borrow_amount": "100",
         #         "to_repaied_amount": "0",
-        #         "is_auto_renew": False,
+        #         "is_auto_renew": false,
         #         "status": "finish"
         #     }
         #
@@ -5498,18 +5501,18 @@ class coinex(Exchange, ImplicitAPI):
         #         "data": {
         #             "asset": {
         #                 "ccy": "USDT",
-        #                 "deposit_enabled": True,
-        #                 "withdraw_enabled": True,
-        #                 "inter_transfer_enabled": True,
-        #                 "is_st": False
+        #                 "deposit_enabled": true,
+        #                 "withdraw_enabled": true,
+        #                 "inter_transfer_enabled": true,
+        #                 "is_st": false
         #             },
         #             "chains": [
         #                 {
         #                     "chain": "TRC20",
         #                     "min_deposit_amount": "2.4",
         #                     "min_withdraw_amount": "2.4",
-        #                     "deposit_enabled": True,
-        #                     "withdraw_enabled": True,
+        #                     "deposit_enabled": true,
+        #                     "withdraw_enabled": true,
         #                     "deposit_delay_minutes": 0,
         #                     "safe_confirmations": 10,
         #                     "irreversible_confirmations": 20,
@@ -5517,7 +5520,7 @@ class coinex(Exchange, ImplicitAPI):
         #                     "withdrawal_fee": "2.4",
         #                     "withdrawal_precision": 6,
         #                     "memo": "",
-        #                     "is_memo_required_for_deposit": False,
+        #                     "is_memo_required_for_deposit": false,
         #                     "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
         #                 },
         #             ]
@@ -5548,18 +5551,18 @@ class coinex(Exchange, ImplicitAPI):
         #             {
         #                 "asset": {
         #                     "ccy": "CET",
-        #                     "deposit_enabled": True,
-        #                     "withdraw_enabled": True,
-        #                     "inter_transfer_enabled": True,
-        #                     "is_st": False
+        #                     "deposit_enabled": true,
+        #                     "withdraw_enabled": true,
+        #                     "inter_transfer_enabled": true,
+        #                     "is_st": false
         #                 },
         #                 "chains": [
         #                     {
         #                         "chain": "CSC",
         #                         "min_deposit_amount": "0.8",
         #                         "min_withdraw_amount": "8",
-        #                         "deposit_enabled": True,
-        #                         "withdraw_enabled": True,
+        #                         "deposit_enabled": true,
+        #                         "withdraw_enabled": true,
         #                         "deposit_delay_minutes": 0,
         #                         "safe_confirmations": 10,
         #                         "irreversible_confirmations": 20,
@@ -5567,7 +5570,7 @@ class coinex(Exchange, ImplicitAPI):
         #                         "withdrawal_fee": "0.026",
         #                         "withdrawal_precision": 8,
         #                         "memo": "",
-        #                         "is_memo_required_for_deposit": False,
+        #                         "is_memo_required_for_deposit": false,
         #                         "explorer_asset_url": ""
         #                     },
         #                 ]
@@ -5595,18 +5598,18 @@ class coinex(Exchange, ImplicitAPI):
         #     {
         #         "asset": {
         #             "ccy": "USDT",
-        #             "deposit_enabled": True,
-        #             "withdraw_enabled": True,
-        #             "inter_transfer_enabled": True,
-        #             "is_st": False
+        #             "deposit_enabled": true,
+        #             "withdraw_enabled": true,
+        #             "inter_transfer_enabled": true,
+        #             "is_st": false
         #         },
         #         "chains": [
         #             {
         #                 "chain": "TRC20",
         #                 "min_deposit_amount": "2.4",
         #                 "min_withdraw_amount": "2.4",
-        #                 "deposit_enabled": True,
-        #                 "withdraw_enabled": True,
+        #                 "deposit_enabled": true,
+        #                 "withdraw_enabled": true,
         #                 "deposit_delay_minutes": 0,
         #                 "safe_confirmations": 10,
         #                 "irreversible_confirmations": 20,
@@ -5614,7 +5617,7 @@ class coinex(Exchange, ImplicitAPI):
         #                 "withdrawal_fee": "2.4",
         #                 "withdrawal_precision": 6,
         #                 "memo": "",
-        #                 "is_memo_required_for_deposit": False,
+        #                 "is_memo_required_for_deposit": false,
         #                 "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
         #             },
         #         ]
@@ -5637,11 +5640,11 @@ class coinex(Exchange, ImplicitAPI):
         for i in range(0, len(chains)):
             entry = chains[i]
             isWithdrawEnabled = self.safe_bool(entry, 'withdraw_enabled')
-            if isWithdrawEnabled:
+            if isWithdrawEnabled is True:
                 result['withdraw']['fee'] = self.safe_number(entry, 'withdrawal_fee')
                 result['withdraw']['percentage'] = False
                 networkId = self.safe_string(entry, 'chain')
-                if networkId:
+                if (networkId is not None) and (networkId != ''):
                     currencyId = self.safe_string(asset, 'ccy')
                     feeCode = self.safe_currency_code(currencyId, currency)
                     networkCode = self.network_id_to_code(networkId, feeCode)
@@ -5785,7 +5788,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": False
+        #             "has_next": false
         #         }
         #     }
         #
@@ -5921,7 +5924,7 @@ class coinex(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
                 body = urlencoded
         elif requestUrl == 'public' or requestUrl == 'perpetualPublic':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             if version == 'v1':
@@ -5949,7 +5952,7 @@ class coinex(Exchange, ImplicitAPI):
                 if method == 'POST':
                     body = self.json(query)
                     preparedString += body
-                elif urlencoded:
+                elif urlencoded != '':
                     preparedString += '?' + urlencoded
                 preparedString += nonce + self.secret
                 signature = self.hash(self.encode(preparedString), 'sha256')
@@ -5961,7 +5964,7 @@ class coinex(Exchange, ImplicitAPI):
                     'X-COINEX-TIMESTAMP': nonce,
                 }
                 if method != 'POST':
-                    if urlencoded:
+                    if urlencoded != '':
                         url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -5971,7 +5974,7 @@ class coinex(Exchange, ImplicitAPI):
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message', '')
-        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
+        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and (data is None)):
             feedback = self.id + ' ' + message
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
@@ -6034,7 +6037,7 @@ class coinex(Exchange, ImplicitAPI):
         #         ],
         #         "message": "OK",
         #         "pagination": {
-        #             "has_next": True
+        #             "has_next": true
         #         }
         #     }
         #

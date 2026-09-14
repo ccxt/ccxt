@@ -49,7 +49,8 @@ class kucoinfutures extends kucoin {
         $request = array(
             'method' => 'futuresPublicGetAllTickers',
         );
-        return $this->fetch_tickers($symbols, $this->extend($request, $params));
+        $extendedRequest = $this->extend($request, $params);
+        return $this->fetch_tickers($symbols, $extendedRequest);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
@@ -78,25 +79,25 @@ class kucoinfutures extends kucoin {
             $response = $this->futuresPrivatePostTransferOut($this->extend($request, $params));
             //
             //     {
-            //         "code" => "200000",
-            //         "data" => {
-            //             "applyId" => "6738754373ceee00011ec3f8",
-            //             "bizNo" => "6738754373ceee00011ec3f7",
-            //             "payAccountType" => "CONTRACT",
-            //             "payTag" => "DEFAULT",
-            //             "remark" => "",
-            //             "recAccountType" => "MAIN",
-            //             "recTag" => "DEFAULT",
-            //             "recRemark" => "",
-            //             "recSystem" => "KUCOIN",
-            //             "status" => "PROCESSING",
-            //             "currency" => "USDT",
-            //             "amount" => "5",
-            //             "fee" => "0",
-            //             "sn" => 1519769124846692,
-            //             "reason" => "",
-            //             "createdAt" => 1731753283000,
-            //             "updatedAt" => 1731753283000
+            //         "code": "200000",
+            //         "data": {
+            //             "applyId": "6738754373ceee00011ec3f8",
+            //             "bizNo": "6738754373ceee00011ec3f7",
+            //             "payAccountType": "CONTRACT",
+            //             "payTag": "DEFAULT",
+            //             "remark": "",
+            //             "recAccountType": "MAIN",
+            //             "recTag": "DEFAULT",
+            //             "recRemark": "",
+            //             "recSystem": "KUCOIN",
+            //             "status": "PROCESSING",
+            //             "currency": "USDT",
+            //             "amount": "5",
+            //             "fee": "0",
+            //             "sn": 1519769124846692,
+            //             "reason": "",
+            //             "createdAt": 1731753283000,
+            //             "updatedAt": 1731753283000
             //         }
             //     }
             //
@@ -105,9 +106,9 @@ class kucoinfutures extends kucoin {
             $response = $this->futuresPrivatePostTransferIn($this->extend($request, $params));
             //
             //    {
-            //        "code" => "200000",
-            //        "data" => {
-            //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out $request ID
+            //        "code": "200000",
+            //        "data": {
+            //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
             //        }
             //    }
             //

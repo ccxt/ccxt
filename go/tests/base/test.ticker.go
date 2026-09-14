@@ -71,7 +71,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		}
 	}
 	if IsTrue(InOp(skippedProperties, "skipNonActiveMarkets")) {
-		if IsTrue(IsTrue(IsEqual(market, nil)) || !IsTrue(GetValue(market, "active"))) {
+		if IsTrue(IsTrue(IsEqual(market, nil)) || IsTrue((!IsEqual(GetValue(market, "active"), true)))) {
 			return
 		}
 	}
@@ -116,7 +116,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// far above baseVolume * high), so the spot-derived invariant does not hold there,
 		// see https://github.com/ccxt/ccxt/pull/29563
 		var isInverse any = exchange.SafeBool(market, "inverse", false)
-		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) && !IsTrue(isInverse)) {
+		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) && IsTrue((!IsEqual(isInverse, true)))) {
 			var baseLow any = ccxt.Precise.StringMul(baseVolume, low)
 			var baseHigh any = ccxt.Precise.StringMul(baseVolume, high)
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -150,6 +150,46 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			Assert(ccxt.Precise.StringGe(quoteVolume, baseLow), Add("quoteVolume should be => baseVolume * low", logText))
 			Assert(ccxt.Precise.StringLe(quoteVolume, baseHigh), Add("quoteVolume should be <= baseVolume * high", logText))
 		}
+	}
+	//
+	// change & percentage
+	//
+	// the Manual defines both against open: change is `last - open`, and
+	// percentage is `(change/open) * 100`
+	var changeString any = exchange.SafeString(entry, "change")
+	var percentageString any = exchange.SafeString(entry, "percentage")
+	if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(changeString, nil))) && IsTrue((!IsEqual(open, nil)))) && IsTrue((!IsEqual(close, nil)))) && !IsTrue((InOp(skippedProperties, "compareChange")))) {
+		// the window is the larger of two roundings: float residue on a change
+		// safeTicker derived, which needs a part per million of the price, and an
+		// exchange's own rounding, which its reported decimals reveal
+		var pricePart any = ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(close), "1000000")
+		var changeDecimals any = exchange.PrecisionFromString(changeString)
+		// exponent notation ("1e4") makes `precisionFromString` return a negative
+		// count, which `parsePrecision` would turn into a step of 10000 - a string
+		// like that reveals no rounding at all, so fall back to the price part
+		// instead of letting it widen the window
+		var changeWindow any = pricePart
+		if IsTrue(IsGreaterThanOrEqual(changeDecimals, 0)) {
+			var changeQuantum any = exchange.ParsePrecision(exchange.NumberToString(changeDecimals))
+			// a change of "0" prints no decimals, so its apparent step is a whole unit
+			// and accepts anything on a micro-priced asset. a per cent of the price
+			// caps it, and covers whole units on a price in the tens of thousands
+			var quantumCap any = ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(close), "100")
+			changeQuantum = ccxt.Precise.StringMin(changeQuantum, quantumCap)
+			changeWindow = ccxt.Precise.StringMax(pricePart, changeQuantum)
+		}
+		var difference any = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(changeString, ccxt.Precise.StringSub(close, open)))
+		Assert(ccxt.Precise.StringLe(difference, changeWindow), Add("`change` should be `last - open`", logText))
+	}
+	if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(changeString, nil))) && IsTrue((!IsEqual(percentageString, nil)))) && IsTrue((!IsEqual(open, nil)))) && !IsTrue((InOp(skippedProperties, "comparePercentage")))) {
+		var derived any = ccxt.Precise.StringMul(ccxt.Precise.StringDiv(changeString, open), "100")
+		// exchanges round the percentage, so allow one part in fifty of the derived
+		// value plus a floor for moves near zero. a ratio where a percentage
+		// belongs is out by a hundred and clears that by three orders of magnitude
+		var relative any = ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(derived), "50")
+		var allowed any = ccxt.Precise.StringMax(relative, "0.01")
+		var gap any = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(percentageString, derived))
+		Assert(ccxt.Precise.StringLe(gap, allowed), Add("`percentage` should be `(change/open) * 100`", logText))
 	}
 	// open and close should be between High & Low
 	if IsTrue(IsTrue(IsTrue(!IsEqual(high, nil)) && IsTrue(!IsEqual(low, nil))) && !IsTrue((InOp(skippedProperties, "compareOHLC")))) {
@@ -211,7 +251,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		if IsTrue(!IsEqual(percentage, nil)) {
 			// - should be above -100 and (for non-options) below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))
-			if !IsTrue(isOptionMarket) {
+			if IsTrue(!IsEqual(isOptionMarket, true)) {
 				Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add(Add(Add("percentage should be below ", maxIncrease), "00% "), logText))
 			}
 		}
@@ -222,7 +262,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		if IsTrue(!IsEqual(change, nil)) {
 			// - should be above -price and (for non-options) below +price*maxIncrease
 			Assert(ccxt.Precise.StringGe(change, ccxt.Precise.StringNeg(approxValue)), Add("change should be above -price ", logText))
-			if !IsTrue(isOptionMarket) {
+			if IsTrue(!IsEqual(isOptionMarket, true)) {
 				Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add(Add(Add("change should be below ", maxIncrease), "x price "), logText))
 			}
 		}

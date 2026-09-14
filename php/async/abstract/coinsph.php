@@ -394,6 +394,18 @@ abstract class coinsph extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_openapi_fiat_v2_history($params = array()) {
+        return $this->request('openapi/fiat/v2/history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_openapi_fiat_v1_cancel_qr_code($params = array()) {
+        return $this->request('openapi/fiat/v1/cancel_qr_code', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_openapi_migration_v4_sellorder($params = array()) {
         return $this->request('openapi/migration/v4/sellorder', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -858,6 +870,18 @@ abstract class coinsph extends \ccxt\async\Exchange {
      */
     public function privatePostOpenapiFiatV1History($params = array()) {
         return $this->request('openapi/fiat/v1/history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostOpenapiFiatV2History($params = array()) {
+        return $this->request('openapi/fiat/v2/history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostOpenapiFiatV1CancelQrCode($params = array()) {
+        return $this->request('openapi/fiat/v1/cancel_qr_code', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

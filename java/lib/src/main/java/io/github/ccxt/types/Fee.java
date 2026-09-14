@@ -5,13 +5,14 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Fee {
+public final class Fee extends TypedMap {
     public Double rate;
     public Double cost;
     public String currency;
 
     @SuppressWarnings("unchecked")
     public Fee(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.rate = TypeHelper.safeFloat(data, "rate");
         this.cost = TypeHelper.safeFloat(data, "cost");

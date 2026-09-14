@@ -201,6 +201,7 @@ class okx extends okx$1["default"] {
                         'market/ticker': { 'cost': 1 },
                         'market/books': { 'cost': 1 / 2 },
                         'market/books-full': { 'cost': 2 },
+                        'market/books-rpi': { 'cost': 1 / 2 },
                         'market/candles': { 'cost': 1 / 2 },
                         'market/history-candles': { 'cost': 1 },
                         'market/trades': { 'cost': 1 / 5 },
@@ -253,6 +254,8 @@ class okx extends okx$1["default"] {
                         'public/event-contract/markets': { 'cost': 1 },
                         'public/event-contract/series': { 'cost': 1 },
                         'public/vip-interest-rate-loan-quota': { 'cost': 10 }, // not documented
+                        'public/mm-instrument-types': { 'cost': 4 },
+                        'public/delta-hedge-currencies': { 'cost': 1 },
                         // rubik
                         'rubik/stat/trading-data/support-coin': { 'cost': 4 },
                         'rubik/stat/contracts/open-interest-history': { 'cost': 2 },
@@ -463,6 +466,21 @@ class okx extends okx$1["default"] {
                         'finance/flexible-loan/loan-info': { 'cost': 4 },
                         'finance/flexible-loan/loan-history': { 'cost': 4 },
                         'finance/flexible-loan/interest-accrued': { 'cost': 4 },
+                        'finance/flexible-loan/emode-info': { 'cost': 4 },
+                        // okusd
+                        'finance/okusd/limits': { 'cost': 10 },
+                        'finance/okusd/account': { 'cost': 10 },
+                        'finance/okusd/subscribe/history': { 'cost': 4 },
+                        'finance/okusd/redeem/history': { 'cost': 4 },
+                        'finance/okusd/rewards/history': { 'cost': 4 },
+                        'finance/okusd/rate/history': { 'cost': 4 },
+                        // stable rewards
+                        'finance/stable-rewards/product-info': { 'cost': 4 },
+                        'finance/stable-rewards/balance': { 'cost': 4 },
+                        'finance/stable-rewards/apy-history': { 'cost': 5 / 3 },
+                        // glp
+                        'users/glp/todayperformance': { 'cost': 4 },
+                        'users/glp/historicalperformance': { 'cost': 4 },
                         // copytrading
                         'copytrading/current-subpositions': { 'cost': 1 },
                         'copytrading/subpositions-history': { 'cost': 1 },
@@ -498,6 +516,11 @@ class okx extends okx$1["default"] {
                         'finance/sfp/dcd/order-history': { 'cost': 2 },
                         // affiliate
                         'affiliate/invitee/detail': { 'cost': 1 },
+                        'affiliate/performance/summary': { 'cost': 10 / 3 },
+                        'affiliate/invitee/list': { 'cost': 10 / 3 },
+                        'affiliate/link/list': { 'cost': 10 / 3 },
+                        'affiliate/co-inviter/list': { 'cost': 10 / 3 },
+                        'affiliate/sub-affiliate/list': { 'cost': 10 / 3 },
                         'users/partner/if-rebate': { 'cost': 1 }, // not documented
                         'support/announcements': { 'cost': 4 },
                     },
@@ -652,6 +675,11 @@ class okx extends okx$1["default"] {
                         'finance/staking-defi/sol/cancel-redeem': { 'cost': 5 },
                         'finance/flexible-loan/max-loan': { 'cost': 4 },
                         'finance/flexible-loan/adjust-collateral': { 'cost': 4 },
+                        'finance/flexible-loan/borrow': { 'cost': 10 },
+                        'finance/flexible-loan/repay': { 'cost': 10 },
+                        // okusd
+                        'finance/okusd/subscribe': { 'cost': 20 },
+                        'finance/okusd/redeem': { 'cost': 20 },
                         // copytrading
                         'copytrading/algo-order': { 'cost': 1 },
                         'copytrading/close-subposition': { 'cost': 1 },
@@ -949,6 +977,7 @@ class okx extends okx$1["default"] {
                     '54008': errors.InvalidOrder, // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
                     '54009': errors.InvalidOrder, // The range of {param0} should be [{param1}, {param2}].
                     '54011': errors.InvalidOrder, // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54051': errors.InvalidOrder, // RPI order rejected. The order value is below the minimum required
                     '54072': errors.ExchangeError, // This contract is currently view-only and not tradable.
                     '54073': errors.BadRequest, // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074': errors.ExchangeError, // Your settings failed as you have positions, bot or open orders for USD contracts.
@@ -1718,7 +1747,7 @@ class okx extends okx$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         let types = ['spot', 'future', 'swap', 'option'];
@@ -2003,7 +2032,7 @@ class okx extends okx$1["default"] {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        if (!this.checkRequiredCredentials(false) || isSandboxMode) {
+        if (!this.checkRequiredCredentials(false) || (isSandboxMode === true)) {
             return {};
         }
         //
@@ -2126,10 +2155,12 @@ class okx extends okx$1["default"] {
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+     * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -2140,17 +2171,27 @@ class okx extends okx$1["default"] {
         const request = {
             'instId': market['id'],
         };
+        let rpi = false;
+        [rpi, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'rpi');
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if (method === 'publicGetMarketBooksFull' && limit === undefined) {
             limit = 5000;
         }
         limit = (limit === undefined) ? 100 : limit;
+        if (rpi && (limit > 400)) {
+            // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
+            // including the 5000 that publicGetMarketBooksFull defaults to
+            limit = 400;
+        }
         if (limit !== undefined) {
             request['sz'] = limit; // max 400
         }
         let response = undefined;
-        if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
+        if (rpi) {
+            response = await this.publicGetMarketBooksRpi(this.extend(request, params));
+        }
+        else if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
             response = await this.publicGetMarketBooksFull(this.extend(request, params));
         }
         else {
@@ -2176,6 +2217,10 @@ class okx extends okx$1["default"] {
         //             }
         //         ]
         //     }
+        //
+        // the rpi book has the same envelope, but each level is
+        // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
+        // rpi liquidity, so index 0 and 1 stay the price and the amount
         //
         const data = this.safeList(response, 'data', []);
         const first = this.safeDict(data, 0, {});
@@ -2226,7 +2271,7 @@ class okx extends okx$1["default"] {
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(market, 'spot', false);
-        const quoteVolume = spot ? this.safeString(ticker, 'volCcy24h') : undefined;
+        const quoteVolume = (spot === true) ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
         const low = this.safeString(ticker, 'low24h');
@@ -2554,7 +2599,7 @@ class okx extends okx$1["default"] {
             'instId': market['id'],
         };
         let response = undefined;
-        if (market['option']) {
+        if (market['option'] === true) {
             response = await this.publicGetPublicOptionTrades(this.extend(request, params));
         }
         else {
@@ -2929,10 +2974,10 @@ class okx extends okx$1["default"] {
             // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
             // "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         };
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['instId'] = market['id'];
         }
-        else if (market['swap'] || market['future'] || market['option']) {
+        else if ((market['swap'] === true) || (market['future'] === true) || (market['option'] === true)) {
             request['uly'] = market['baseId'] + '-' + market['quoteId'];
         }
         else {
@@ -3105,7 +3150,7 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
         }
         const req = {
@@ -3129,7 +3174,7 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot markets only');
         }
         const req = {
@@ -3186,10 +3231,10 @@ class okx extends okx$1["default"] {
         const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const tpOrdPx = this.safeValue(params, 'tpOrdPx', price);
+        const tpOrdPx = this.safeNumber(params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString(params, 'tpTriggerPxType', 'last');
         // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
-        const slOrdPx = this.safeValue(params, 'slOrdPx', price);
+        const slOrdPx = this.safeNumber(params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString(params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         const stopLoss = this.safeValue(params, 'stopLoss');
@@ -3201,7 +3246,7 @@ class okx extends okx$1["default"] {
         const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
         const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
-        const isReduceOnly = this.safeValue(params, 'reduceOnly', false) || (closeFraction !== undefined);
+        const isReduceOnly = (this.safeBool(params, 'reduceOnly', false) === true) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
         let margin = false;
@@ -3212,17 +3257,17 @@ class okx extends okx$1["default"] {
             marginMode = defaultMarginMode;
             margin = this.safeBool(params, 'margin', false);
         }
-        if (spot) {
-            if (margin) {
+        if (spot === true) {
+            if (margin === true) {
                 const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
                 const currency = this.safeString(params, 'ccy', defaultCurrency);
                 request['ccy'] = this.safeCurrencyCode(currency);
             }
-            const tradeMode = margin ? marginMode : 'cash';
+            const tradeMode = (margin === true) ? marginMode : 'cash';
             request['tdMode'] = tradeMode;
         }
-        else if (contract) {
-            if (market['swap'] || market['future']) {
+        else if (contract === true) {
+            if ((market['swap'] === true) || (market['future'] === true)) {
                 let positionSide = undefined;
                 [positionSide, params] = this.handleOptionAndParams(params, 'createOrder', 'positionSide');
                 if (positionSide !== undefined) {
@@ -3231,7 +3276,7 @@ class okx extends okx$1["default"] {
                 else {
                     let hedged = undefined;
                     [hedged, params] = this.handleOptionAndParams(params, 'createOrder', 'hedged');
-                    if (hedged) {
+                    if (hedged === true) {
                         const isBuy = (side === 'buy');
                         const isProtective = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined) || isReduceOnly;
                         if (isProtective) {
@@ -3260,12 +3305,12 @@ class okx extends okx$1["default"] {
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString(params, 'tgtCcy', defaultTgtCcy);
-        if ((!contract) && (!margin)) {
+        if ((contract !== true) && (margin !== true)) {
             request['tgtCcy'] = tgtCcy;
         }
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
-            if (spot && (side === 'buy')) {
+            if ((spot === true) && (side === 'buy')) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
@@ -3293,7 +3338,7 @@ class okx extends okx$1["default"] {
                     request['sz'] = this.costToPrecision(symbol, notional);
                 }
             }
-            if (marketIOC && contract) {
+            if (marketIOC && (contract === true)) {
                 request['ordType'] = 'optimal_limit_ioc';
             }
         }
@@ -3478,7 +3523,7 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market' or 'limit', or 'rpi' for a retail price improvement maker order
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -3498,6 +3543,8 @@ class okx extends okx$1["default"] {
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
+     * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
+     * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -3618,11 +3665,11 @@ class okx extends okx$1["default"] {
                 request['ordId'] = id;
             }
         }
-        let stopLossTriggerPrice = this.safeValue2(params, 'stopLossPrice', 'newSlTriggerPx');
-        let stopLossPrice = this.safeValue(params, 'newSlOrdPx');
+        let stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'newSlTriggerPx');
+        let stopLossPrice = this.safeNumber(params, 'newSlOrdPx');
         const stopLossTriggerPriceType = this.safeString(params, 'newSlTriggerPxType', 'last');
-        let takeProfitTriggerPrice = this.safeValue2(params, 'takeProfitPrice', 'newTpTriggerPx');
-        let takeProfitPrice = this.safeValue(params, 'newTpOrdPx');
+        let takeProfitTriggerPrice = this.safeNumber2(params, 'takeProfitPrice', 'newTpTriggerPx');
+        let takeProfitPrice = this.safeNumber(params, 'newTpOrdPx');
         const takeProfitTriggerPriceType = this.safeString(params, 'newTpTriggerPxType', 'last');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
@@ -3661,16 +3708,16 @@ class okx extends okx$1["default"] {
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
             }
             if (hasStopLoss) {
-                stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
-                stopLossPrice = this.safeValue(stopLoss, 'price');
+                stopLossTriggerPrice = this.safeNumber(stopLoss, 'triggerPrice');
+                stopLossPrice = this.safeNumber(stopLoss, 'price');
                 const stopLossType = this.safeString(stopLoss, 'type');
                 request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType;
             }
             if (hasTakeProfit) {
-                takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
-                takeProfitPrice = this.safeValue(takeProfit, 'price');
+                takeProfitTriggerPrice = this.safeNumber(takeProfit, 'triggerPrice');
+                takeProfitPrice = this.safeNumber(takeProfit, 'price');
                 const takeProfitType = this.safeString(takeProfit, 'type');
                 request['newTpOrdKind'] = (takeProfitType === 'limit') ? takeProfitType : 'condition';
                 request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
@@ -3778,7 +3825,8 @@ class okx extends okx$1["default"] {
         }
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trigger || trailing) {
+        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        if (isTrigger || (trailing === true)) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeDict(orderInner, 0);
         }
@@ -3801,7 +3849,7 @@ class okx extends okx$1["default"] {
         const query = this.omit(params, ['clOrdId', 'clientOrderId']);
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
@@ -3843,14 +3891,15 @@ class okx extends okx$1["default"] {
         }
         const market = this.market(symbol);
         const request = [];
-        const options = this.safeValue(this.options, 'cancelOrders', {});
+        const options = this.safeDict(this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString(params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds(this.safeValue2(params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds(this.safeValue(params, 'algoId'));
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trigger || trailing) {
+        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        if (isTrigger || (trailing === true)) {
             method = 'privatePostTradeCancelAlgos';
         }
         if (clientOrderIds === undefined) {
@@ -3864,7 +3913,7 @@ class okx extends okx$1["default"] {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (trailing || trigger) {
+                if ((trailing === true) || (trigger !== undefined)) {
                     request.push({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -3880,7 +3929,7 @@ class okx extends okx$1["default"] {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                if (trailing || trigger) {
+                if ((trailing === true) || (trigger !== undefined)) {
                     request.push({
                         'instId': market['id'],
                         'algoClOrdId': clientOrderIds[i],
@@ -3931,7 +3980,10 @@ class okx extends okx$1["default"] {
         //     }
         //
         const ordersData = this.safeList(response, 'data', []);
-        return this.parseOrders(ordersData, market, undefined, undefined, params);
+        // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
+        // request would otherwise come back as a list under the unified string field
+        const orderParams = this.omit(params, ['clOrdId', 'clientOrderId', 'algoId', 'stop', 'trigger', 'trailing', 'method']);
+        return this.parseOrders(ordersData, market, undefined, undefined, orderParams);
     }
     /**
      * @method
@@ -3955,8 +4007,8 @@ class okx extends okx$1["default"] {
         let method = this.safeString(params, 'method', defaultMethod);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        const isStopOrTrailing = trigger || trailing;
-        if (isStopOrTrailing) {
+        const isStopOrTrailing = (trigger === true) || (trailing === true);
+        if (isStopOrTrailing === true) {
             method = 'privatePostTradeCancelAlgos';
         }
         for (let i = 0; i < orders.length; i++) {
@@ -3969,16 +4021,11 @@ class okx extends okx$1["default"] {
             }
             const market = this.market(symbol);
             let idKey = 'ordId';
-            if (isStopOrTrailing) {
+            if (isStopOrTrailing === true) {
                 idKey = 'algoId';
             }
             else if (clientOrderId !== undefined) {
-                if (isStopOrTrailing) {
-                    idKey = 'algoClOrdId';
-                }
-                else {
-                    idKey = 'clOrdId';
-                }
+                idKey = 'clOrdId';
             }
             const requestItem = {
                 'instId': market['id'],
@@ -4064,8 +4111,10 @@ class okx extends okx$1["default"] {
         const statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
+            'mmp_canceled': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
+            'partially_effective': 'open',
             'filled': 'closed',
             'effective': 'closed',
         };
@@ -4287,6 +4336,11 @@ class okx extends okx$1["default"] {
             timeInForce = 'IOC';
             type = 'limit';
         }
+        else if (type === 'rpi') {
+            // retail price improvement orders are maker-only limit orders
+            postOnly = true;
+            type = 'limit';
+        }
         const marketId = this.safeString(order, 'instId');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market, '-');
@@ -4328,7 +4382,7 @@ class okx extends okx$1["default"] {
         const takeProfitPrice = this.safeNumber2(order, 'tpTriggerPx', 'tpOrdPx');
         const reduceOnlyRaw = this.safeString(order, 'reduceOnly');
         let reduceOnly = false;
-        if (reduceOnly !== undefined) {
+        if (reduceOnlyRaw !== undefined) {
             reduceOnly = (reduceOnlyRaw === 'true');
         }
         return this.safeOrder({
@@ -4386,11 +4440,12 @@ class okx extends okx$1["default"] {
             // 'instType': // spot, swap, futures, margin
         };
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        const options = this.safeValue(this.options, 'fetchOrder', {});
+        const options = this.safeDict(this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrder');
         let method = this.safeString(params, 'method', defaultMethod);
         const trigger = this.safeValue2(params, 'stop', 'trigger');
-        if (trigger) {
+        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        if (isTrigger) {
             method = 'privateGetTradeOrderAlgo';
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
@@ -4511,7 +4566,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
@@ -4560,20 +4615,21 @@ class okx extends okx$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, maxLimit); // default 100, max 100
         }
-        const options = this.safeValue(this.options, 'fetchOpenOrders', {});
-        const algoOrderTypes = this.safeValue(this.options, 'algoOrderTypes', {});
+        const options = this.safeDict(this.options, 'fetchOpenOrders', {});
+        const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrdersPending');
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trailing || trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
+        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        if ((trailing === true) || isTrigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
-        if (trailing) {
+        if (trailing === true) {
             request['ordType'] = 'move_order_stop';
         }
-        else if (trigger && (ordType === undefined)) {
+        else if ((trigger !== undefined) && (ordType === undefined)) {
             request['ordType'] = 'trigger';
         }
         const query = this.omit(params, ['method', 'stop', 'trigger', 'trailing']);
@@ -4727,25 +4783,26 @@ class okx extends okx$1["default"] {
             request['limit'] = limit; // default 100, max 100
         }
         request['state'] = 'canceled';
-        const options = this.safeValue(this.options, 'fetchCanceledOrders', {});
-        const algoOrderTypes = this.safeValue(this.options, 'algoOrderTypes', {});
+        const options = this.safeDict(this.options, 'fetchCanceledOrders', {});
+        const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trailing) {
+        const isTrigger = (trigger !== undefined) && (trigger !== false);
+        if (trailing === true) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
         }
-        else if (trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
+        else if (isTrigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoHistory';
             const algoId = this.safeString(params, 'algoId');
             if (algoId !== undefined) {
                 request['algoId'] = algoId;
                 params = this.omit(params, 'algoId');
             }
-            if (trigger) {
+            if (isTrigger) {
                 if (ordType === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
@@ -4931,14 +4988,14 @@ class okx extends okx$1["default"] {
         const ordType = this.safeString(params, 'ordType');
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        if (trailing || trigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
+        if ((trailing === true) || (trigger === true) || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
         }
-        if (trailing) {
+        if (trailing === true) {
             request['ordType'] = 'move_order_stop';
         }
-        else if (trigger) {
+        else if (trigger === true) {
             if (ordType === undefined) {
                 request['ordType'] = 'trigger';
             }
@@ -5402,16 +5459,16 @@ class okx extends okx$1["default"] {
         const address = this.safeString(depositAddress, 'addr');
         let tag = this.safeStringN(depositAddress, ['tag', 'pmtId', 'memo']);
         if (tag === undefined) {
-            const addrEx = this.safeValue(depositAddress, 'addrEx', {});
+            const addrEx = this.safeDict(depositAddress, 'addrEx', {});
             tag = this.safeString(addrEx, 'comment');
         }
         const currencyId = this.safeString(depositAddress, 'ccy');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
         const chain = this.safeString(depositAddress, 'chain');
-        const networks = this.safeValue(currency, 'networks', {});
+        const networks = this.safeDict(currency, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
-        let networkData = (chain === undefined) ? undefined : this.safeValue(networksById, chain);
+        let networkData = (chain === undefined) ? undefined : this.safeDict(networksById, chain);
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -5454,7 +5511,7 @@ class okx extends okx$1["default"] {
         //     },
         //
         if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
+            networkData = this.safeDict2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon');
         }
         const network = this.safeString(networkData, 'network');
         const networkCode = this.networkIdToCode(network, code);
@@ -5719,7 +5776,7 @@ class okx extends okx$1["default"] {
             request['ccy'] = currency['id'];
         }
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         const deposit = this.safeDict(data, 0, {});
         return this.parseTransaction(deposit, currency);
     }
@@ -6335,7 +6392,7 @@ class okx extends okx$1["default"] {
         let side = this.safeString2(position, 'posSide', 'direction');
         const hedged = side !== 'net';
         const contracts = this.parseNumber(contractsAbs);
-        if (market['margin']) {
+        if (market['margin'] === true) {
             // margin position
             if (side === 'net') {
                 const posCcy = this.safeString(position, 'posCcy');
@@ -6367,7 +6424,7 @@ class okx extends okx$1["default"] {
         const contractSizeString = this.numberToString(contractSize);
         const markPriceString = this.safeString(position, 'markPx');
         let notionalString = this.safeString(position, 'notionalUsd');
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             notionalString = Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber(notionalString);
@@ -6393,7 +6450,7 @@ class okx extends okx$1["default"] {
             initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
                 initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
             }
@@ -6703,7 +6760,7 @@ class okx extends okx$1["default"] {
         let url = this.implodeHostname(this.urls['api']['rest']) + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -6742,14 +6799,14 @@ class okx extends okx$1["default"] {
             };
             let auth = timestamp + method + request;
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     const urlencodedQuery = '?' + this.urlencode(query);
                     url += urlencodedQuery;
                     auth += urlencodedQuery;
                 }
             }
             else {
-                if (isArray || Object.keys(query).length) {
+                if (isArray || (Object.keys(query).length > 0)) {
                     body = this.json(query);
                     auth += body;
                 }
@@ -6860,7 +6917,7 @@ class okx extends okx$1["default"] {
         const marketInfo = this.safeDict(market, 'info', {});
         const ruleType = this.safeString(marketInfo, 'ruleType');
         const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-        if (!market['swap'] && !isExtendedPerpetual) {
+        if ((market['swap'] !== true) && !isExtendedPerpetual) {
             throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures');
         }
         const request = {
@@ -6907,7 +6964,7 @@ class okx extends okx$1["default"] {
                 const marketInfo = this.safeDict(market, 'info', {});
                 const ruleType = this.safeString(marketInfo, 'ruleType');
                 const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-                if (!market['swap'] && !isExtendedPerpetual) {
+                if ((market['swap'] !== true) && !isExtendedPerpetual) {
                     throw new errors.BadRequest(this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbols[i] + ' is not');
                 }
             }
@@ -7031,8 +7088,8 @@ class okx extends okx$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];
-            if (market['contract']) {
-                if (market['linear']) {
+            if (market['contract'] === true) {
+                if (market['linear'] === true) {
                     request['ctType'] = 'linear';
                     request['ccy'] = market['quoteId'];
                 }
@@ -7601,7 +7658,7 @@ class okx extends okx$1["default"] {
         const amount = Precise["default"].stringAbs(amountRaw);
         const marketId = this.safeString(data, 'instId');
         const responseMarket = this.safeMarket(marketId, market);
-        const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
+        const code = (responseMarket['inverse'] === true) ? responseMarket['base'] : responseMarket['quote'];
         const timestamp = this.safeInteger(data, 'ts');
         return {
             'info': data,
@@ -7658,9 +7715,9 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType(market['type']);
+        const type = (market['spot'] === true) ? 'MARGIN' : this.convertToInstrumentType(market['type']);
         const uly = this.safeString(market['info'], 'uly');
-        if (!uly) {
+        if ((uly === undefined) || (uly === '')) {
             if (type !== 'MARGIN') {
                 throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
@@ -7952,7 +8009,7 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const type = this.convertToInstrumentType(market['type']);
@@ -8275,7 +8332,7 @@ class okx extends okx$1["default"] {
             const currencyId = this.safeString(feeInfo, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
             if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
@@ -8287,7 +8344,7 @@ class okx extends okx$1["default"] {
                     continue;
                 }
                 const chainSplit = chain.split('-');
-                const networkId = this.safeValue(chainSplit, 1);
+                const networkId = this.safeString(chainSplit, 1);
                 const withdrawFee = this.safeNumber(feeInfo, 'fee');
                 const withdrawResult = {
                     'fee': withdrawFee,
@@ -8527,7 +8584,7 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.uly Underlying, either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -9205,7 +9262,7 @@ class okx extends okx$1["default"] {
         return result;
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -9268,7 +9325,7 @@ class okx extends okx$1["default"] {
         }
         const isAdd = type === 'add';
         let subType = isAdd ? '160' : '161';
-        if (auto) {
+        if (auto === true) {
             if (isAdd) {
                 subType = '162';
             }

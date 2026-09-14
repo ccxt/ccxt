@@ -190,6 +190,7 @@ export default class bitteam extends Exchange {
                         'trade/api/pairs': { 'cost': 1 }, // not unified
                         'trade/api/pairs/precisions': { 'cost': 1 }, // not unified
                         'trade/api/rates': { 'cost': 1 }, // not unified
+                        'trade/api/stats': { 'cost': 1 }, // not unified
                         'trade/api/trade/{id}': { 'cost': 1 }, // not unified
                         'trade/api/trades': { 'cost': 1 }, // not unified
                         'trade/api/ccxt/pairs': { 'cost': 1 },
@@ -470,7 +471,7 @@ export default class bitteam extends Exchange {
         let minCost = undefined;
         const currenciesValuedInUsd = this.handleOption('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
-        if (quoteInUsd) {
+        if (quoteInUsd === true) {
             const settings = this.safeValue(market, 'settings', {});
             minCost = this.safeNumber(settings, 'limit_usd');
         }

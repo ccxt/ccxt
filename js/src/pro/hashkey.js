@@ -448,7 +448,7 @@ export default class hashkey extends hashkeyRest {
         let timeInForce = this.safeString(order, 'f');
         let postOnly = undefined;
         [type, timeInForce, postOnly] = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
-        if (market['contract']) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if (market['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
         return this.safeOrder({
@@ -738,7 +738,7 @@ export default class hashkey extends hashkeyRest {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const snapshot = this.safeBool(options, 'fetchBalanceSnapshot', true);
-        if (snapshot) {
+        if (snapshot === true) {
             const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);

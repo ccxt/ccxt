@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan any {
+func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any) chan any {
 	ch := make(chan any)
 	go func() {
 		defer close(ch)

@@ -72,7 +72,7 @@ func  (this *PredictionExchange) Describe() any  {
     })
 }
 func  (this *PredictionExchange) IsPrediction() any  {
-    return IsEqual(this.SafeBool(this.Has, "prediction", false), true)
+    return this.SafeBool(this.Has, "prediction", false)
 }
 func  (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) any  {
     // accepts either `query` (a single search string) or `queries` (a list of strings)
@@ -142,7 +142,7 @@ func  (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs 
     result = this.FilterEventsByTags(result, this.SafeList(params, "tags"))
     // own-line length read so the regex transpiler treats `queries` as an array (count())
     // and not a string (strlen()); guard undefined since the default is undefined
-    var queriesLength any = 0
+    var queriesLength int = 0
     if IsTrue(!IsEqual(queries, nil)) {
         queriesLength = GetArrayLength(queries)
     }
@@ -206,7 +206,7 @@ func  (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any,
     // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
     searchIn := GetArg(optionalArgs, 0, nil)
     _ = searchIn
-    var queriesLength any = 0
+    var queriesLength int = 0
     if IsTrue(!IsEqual(queries, nil)) {
         queriesLength = GetArrayLength(queries)
     }
@@ -252,7 +252,7 @@ func  (this *PredictionExchange) NormalizeTagKey(tag any) any  {
     // plain concatenation would create ("us open" vs "household")
     var lower string = ToLower(tag)
     var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
-    var chars any = this.StringToCharsArray(lower)
+    var chars []string = this.StringToCharsArray(lower)
     var s any = ""
     var pendingSep bool = false
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
@@ -317,7 +317,7 @@ func  (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...
     }
     return result
 }
-func  (this *PredictionExchange) FetchEvents(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchEventsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventsBody(ch, optionalArgs...)
     return ch
@@ -329,7 +329,7 @@ func (this *PredictionExchange) fetchEventsBody(ch chan any, optionalArgs ...any
         _ = params
         panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
 }
-func  (this *PredictionExchange) FetchEvent(id any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchEventAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventBody(ch, id, optionalArgs...)
     return ch
@@ -387,7 +387,7 @@ func  (this *PredictionExchange) EventsList() any  {
     }
     return result
 }
-func  (this *PredictionExchange) LoadEventsHelper(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) LoadEventsHelperAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadEventsHelperBody(ch, optionalArgs...)
     return ch
@@ -402,19 +402,19 @@ func (this *PredictionExchange) loadEventsHelperBody(ch chan any, optionalArgs .
         _ = reload
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        if IsTrue(!IsTrue(reload) && IsTrue(this.Events)) {
+        if IsTrue(!IsTrue(reload) && IsTrue((IsTrue(!IsEqual(this.Events, nil)) && IsTrue(!IsEqual(this.Events, nil))))) {
     
             ch <- this.Events
             return nil
         }
     
-        events:= <-this.DerivedExchange.FetchEvents(params)
+        events:= <-this.DerivedExchange.FetchEventsAsync(params)
         PanicOnError(events)
     
         ch <- this.SetEvents(events)
         return nil
 }
-func  (this *PredictionExchange) LoadEvents(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) LoadEventsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadEventsBody(ch, optionalArgs...)
     return ch
@@ -430,7 +430,7 @@ func (this *PredictionExchange) loadEventsBody(ch chan any, optionalArgs ...any)
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-            retRes39415 :=  (<-this.LoadEventsHelper(reload, params))
+            retRes39415 :=  (<-this.LoadEventsHelperAsync(reload, params))
             PanicOnError(retRes39415)
     ch <- retRes39415
             return nil
@@ -536,7 +536,7 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
     var stopWords []any = []any{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
     var lower any = Ternary(IsTrue((IsEqual(slug, nil))), "", ToLower(slug))
     var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
-    var chars any = this.StringToCharsArray(lower)
+    var chars []string = this.StringToCharsArray(lower)
     var s any = ""
     var lastDash bool = true // start true to drop leading separators
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
@@ -565,7 +565,7 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
             AppendToArray(&parts, w)
         }
     }
-    var joined any = Join(parts, "_")
+    var joined string = Join(parts, "_")
     return ToUpper(joined)
 }
 func  (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any) any  {
@@ -597,7 +597,7 @@ func  (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug a
     }
     var upper string = ToUpper(outcome)
     var allowed string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    var chars any = this.StringToCharsArray(upper)
+    var chars []string = this.StringToCharsArray(upper)
     var label any = ""
     var pendingSep bool = false
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
@@ -624,7 +624,7 @@ func  (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) an
     // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
     currencies := GetArg(optionalArgs, 0, nil)
     _ = currencies
-    var marketsList any = this.ToArray(markets)
+    var marketsList []any = this.ToArray(markets)
     var aliased any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(marketsList)); i++ {
         var row any = GetValue(marketsList, i)
@@ -676,7 +676,7 @@ func  (this *PredictionExchange) IndexMarketOutcomes(market any)  {
             if IsTrue(!IsEqual(existing, nil)) {
                 var existingId any = this.SafeString(existing, "outcomeId")
                 if IsTrue(IsTrue(IsTrue((!IsEqual(existingId, nil))) && IsTrue((!IsEqual(ocId, nil)))) && IsTrue((!IsEqual(existingId, ocId)))) {
-                    var idLen any =                     GetLength(ocId)
+                    var idLen int =                     GetLength(ocId)
                     var suffix any = ocId
                     if IsTrue(IsGreaterThan(idLen, 6)) {
                         suffix = Slice(ocId, Subtract(idLen, 6), nil)
@@ -729,7 +729,7 @@ func  (this *PredictionExchange) IndexEventOutcomes(event any)  {
     }
     this.PopulateOutcomes()
 }
-func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) LoadOutcomesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadOutcomesBody(ch, optionalArgs...)
     return ch
@@ -764,9 +764,9 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
             var missingLength int =         GetArrayLength(missing)
             var wasWarm bool = IsTrue((!IsEqual(this.Outcomes, nil))) && !IsTrue(this.IsEmpty(this.Outcomes))
             var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
-            if IsTrue(IsTrue(IsTrue(IsTrue((IsGreaterThan(missingLength, 0))) && IsTrue(loadAll)) && !IsTrue(wasWarm)) && !IsTrue(reload)) {
+            if IsTrue(IsTrue(IsTrue(IsTrue((IsGreaterThan(missingLength, 0))) && IsTrue((IsEqual(loadAll, true)))) && !IsTrue(wasWarm)) && !IsTrue(reload)) {
     
-                retRes71716 := (<-this.LoadOutcomes())
+                retRes71716 := (<-this.LoadOutcomesAsync())
                 PanicOnError(retRes71716)
                 var stillMissing any = []any{}
                 for i := 0; IsLessThan(i, missingLength); i++ {
@@ -779,7 +779,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
             }
             if IsTrue(IsGreaterThan(missingLength, 0)) {
     
-                retRes72816 := <-this.DerivedExchange.FetchOutcomes(missing)
+                retRes72816 := <-this.DerivedExchange.FetchOutcomesAsync(missing)
                 PanicOnError(retRes72816)
             }
     
@@ -792,7 +792,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
             return nil
         }
     
-        retRes7358 := (<-this.LoadMarkets(reload, params))
+        retRes7358 := (<-this.LoadMarketsAsync(reload, params))
         PanicOnError(retRes7358)
         this.PopulateOutcomes()
     
@@ -807,7 +807,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
  * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
  * @returns {object} the outcome cache
  */
-func  (this *PredictionExchange) FetchOutcomes(outcomeSymbols any) <- chan any {
+func  (this *PredictionExchange) FetchOutcomesAsync(outcomeSymbols any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOutcomesBody(ch, outcomeSymbols)
     return ch
@@ -817,14 +817,14 @@ func (this *PredictionExchange) fetchOutcomesBody(ch chan any, outcomeSymbols an
     defer ReturnPanicError(ch)
         for i := 0; IsLessThan(i, GetArrayLength(outcomeSymbols)); i++ {
     
-            retRes75012 := <-this.DerivedExchange.FetchOutcome(GetValue(outcomeSymbols, i))
+            retRes75012 := <-this.DerivedExchange.FetchOutcomeAsync(GetValue(outcomeSymbols, i))
             PanicOnError(retRes75012)
         }
     
         ch <- this.Outcomes
         return nil
 }
-func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) LoadOutcomeAsync(outcomeSymbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadOutcomeBody(ch, outcomeSymbol, optionalArgs...)
     return ch
@@ -863,13 +863,13 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
                 }
             }
             var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
-            if IsTrue(IsTrue(loadAll) && !IsTrue(wasWarm)) {
+            if IsTrue(IsTrue((IsEqual(loadAll, true))) && !IsTrue(wasWarm)) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                 // the whole listing (which would mask typos and clobber offline-injected markets)
     
-                retRes78616 := (<-this.LoadOutcomes())
+                retRes78616 := (<-this.LoadOutcomesAsync())
                 PanicOnError(retRes78616)
                 if IsTrue(this.HasOutcome(outcomeSymbol)) {
     
@@ -879,7 +879,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
             }
         }
     
-            retRes79215 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
+            retRes79215 :=  <-this.DerivedExchange.FetchOutcomeAsync(outcomeSymbol)
             PanicOnError(retRes79215)
             ch <- retRes79215
             return nil
@@ -898,7 +898,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
         return nil
     }
     // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-    var normalized any = Replace(ToLower(marketPart), "-", "_")
+    var normalized string = Replace(ToLower(marketPart), "-", "_")
     var rawWords []string = Split(normalized, "_")
     var words any = []any{}
     var hasLetters bool = false
@@ -911,7 +911,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
             continue
         }
         var wordHasLetters bool = false
-        var chars any = this.StringToCharsArray(word)
+        var chars []string = this.StringToCharsArray(word)
         for ci := 0; IsLessThan(ci, GetArrayLength(chars)); ci++ {
             if IsTrue(IsGreaterThanOrEqual(GetIndexOf(letters, GetValue(chars, ci)), 0)) {
                 wordHasLetters = true
@@ -935,7 +935,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
     }
     return Join(words, " ")
 }
-func  (this *PredictionExchange) FetchOutcome(outcomeSymbol any) <- chan any {
+func  (this *PredictionExchange) FetchOutcomeAsync(outcomeSymbol any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOutcomeBody(ch, outcomeSymbol)
     return ch
@@ -997,7 +997,7 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func  (this *PredictionExchange) FetchTicker(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchTickerAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, outcome, optionalArgs...)
     return ch
@@ -1017,7 +1017,7 @@ func (this *PredictionExchange) fetchTickerBody(ch chan any, outcome any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
  */
-func  (this *PredictionExchange) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1040,7 +1040,7 @@ func (this *PredictionExchange) fetchTickersBody(ch chan any, optionalArgs ...an
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func  (this *PredictionExchange) FetchOrderBook(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchOrderBookAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
     return ch
@@ -1065,7 +1065,7 @@ func (this *PredictionExchange) fetchOrderBookBody(ch chan any, outcome any, opt
  * @param {object} [params] extra exchange-specific parameters
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *PredictionExchange) FetchOHLCV(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchOHLCVAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
     return ch
@@ -1082,7 +1082,7 @@ func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome any, optiona
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes92115 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
+            retRes92115 :=  (<-this.BaseExchange.FetchOHLCVAsync(outcome, timeframe, since, limit, params))
             PanicOnError(retRes92115)
             ch <- retRes92115
             return nil
@@ -1097,7 +1097,7 @@ func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome any, optiona
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func  (this *PredictionExchange) FetchTrades(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchTradesAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, outcome, optionalArgs...)
     return ch
@@ -1125,7 +1125,7 @@ func (this *PredictionExchange) fetchTradesBody(ch chan any, outcome any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) CreateOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1148,7 +1148,7 @@ func (this *PredictionExchange) createOrderBody(ch chan any, outcome any, typeVa
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1170,7 +1170,7 @@ func (this *PredictionExchange) cancelOrderBody(ch chan any, id any, optionalArg
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func  (this *PredictionExchange) WatchTicker(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) WatchTickerAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTickerBody(ch, outcome, optionalArgs...)
     return ch
@@ -1191,7 +1191,7 @@ func (this *PredictionExchange) watchTickerBody(ch chan any, outcome any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func  (this *PredictionExchange) WatchOrderBook(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) WatchOrderBookAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOrderBookBody(ch, outcome, optionalArgs...)
     return ch
@@ -1215,7 +1215,7 @@ func (this *PredictionExchange) watchOrderBookBody(ch chan any, outcome any, opt
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func  (this *PredictionExchange) WatchTrades(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) WatchTradesAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTradesBody(ch, outcome, optionalArgs...)
     return ch
@@ -1241,7 +1241,7 @@ func (this *PredictionExchange) watchTradesBody(ch chan any, outcome any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1269,7 +1269,7 @@ func (this *PredictionExchange) fetchOrdersBody(ch chan any, optionalArgs ...any
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1297,7 +1297,7 @@ func (this *PredictionExchange) fetchOpenOrdersBody(ch chan any, optionalArgs ..
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1326,7 +1326,7 @@ func (this *PredictionExchange) fetchClosedOrdersBody(ch chan any, optionalArgs 
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func  (this *PredictionExchange) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -1354,7 +1354,7 @@ func (this *PredictionExchange) fetchOrderTradesBody(ch chan any, id any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func  (this *PredictionExchange) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1380,7 +1380,7 @@ func (this *PredictionExchange) fetchMyTradesBody(ch chan any, optionalArgs ...a
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func  (this *PredictionExchange) FetchPosition(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchPositionAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, outcome, optionalArgs...)
     return ch
@@ -1400,7 +1400,7 @@ func (this *PredictionExchange) fetchPositionBody(ch chan any, outcome any, opti
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func  (this *PredictionExchange) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -1422,7 +1422,7 @@ func (this *PredictionExchange) fetchPositionsBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
  */
-func  (this *PredictionExchange) FetchTradingFee(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchTradingFeeAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, outcome, optionalArgs...)
     return ch
@@ -1442,7 +1442,7 @@ func (this *PredictionExchange) fetchTradingFeeBody(ch chan any, outcome any, op
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
  */
-func  (this *PredictionExchange) FetchOpenInterest(outcome any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchOpenInterestAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, outcome, optionalArgs...)
     return ch
@@ -1462,7 +1462,7 @@ func (this *PredictionExchange) fetchOpenInterestBody(ch chan any, outcome any, 
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -1483,7 +1483,7 @@ func (this *PredictionExchange) createOrdersBody(ch chan any, orders any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -1506,7 +1506,7 @@ func (this *PredictionExchange) cancelOrdersBody(ch chan any, ids any, optionalA
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) CreateMarketBuyOrderWithCost(outcome any, cost any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) CreateMarketBuyOrderWithCostAsync(outcome any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
     return ch
@@ -1520,7 +1520,7 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
         _ = params
         if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false))) {
     
-                retRes116319 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
+                retRes116319 :=  <-this.DerivedExchange.CreateOrderAsync(outcome, "market", "buy", cost, 1, params)
                 PanicOnError(retRes116319)
                 ch <- retRes116319
                 return nil
@@ -1536,7 +1536,7 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) CreateMarketSellOrderWithCost(outcome any, cost any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) CreateMarketSellOrderWithCostAsync(outcome any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketSellOrderWithCostBody(ch, outcome, cost, optionalArgs...)
     return ch
@@ -1548,7 +1548,7 @@ func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, o
         _ = params
         if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketSellOrderWithCost", false))) {
     
-                retRes117919 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
+                retRes117919 :=  <-this.DerivedExchange.CreateOrderAsync(outcome, "market", "sell", cost, 1, params)
                 PanicOnError(retRes117919)
                 ch <- retRes117919
                 return nil
@@ -1563,7 +1563,7 @@ func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, o
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func  (this *PredictionExchange) WatchTickers(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) WatchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTickersBody(ch, optionalArgs...)
     return ch
@@ -1587,7 +1587,7 @@ func (this *PredictionExchange) watchTickersBody(ch chan any, optionalArgs ...an
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func  (this *PredictionExchange) WatchOrders(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) WatchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1615,7 +1615,7 @@ func (this *PredictionExchange) watchOrdersBody(ch chan any, optionalArgs ...any
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func  (this *PredictionExchange) WatchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) WatchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1643,7 +1643,7 @@ func (this *PredictionExchange) watchMyTradesBody(ch chan any, optionalArgs ...a
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func  (this *PredictionExchange) WatchPositions(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) WatchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchPositionsBody(ch, optionalArgs...)
     return ch
@@ -1672,7 +1672,7 @@ func (this *PredictionExchange) watchPositionsBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction settlement structures
  */
-func  (this *PredictionExchange) FetchSettlements(optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) FetchSettlementsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSettlementsBody(ch, optionalArgs...)
     return ch
@@ -1783,7 +1783,7 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
         if IsTrue(IsEqual(orderType, "market")) {
             timeInForce = "IOC"
         }
-        if IsTrue(postOnly) {
+        if IsTrue(IsEqual(postOnly, true)) {
             timeInForce = "PO"
         }
     } else if IsTrue(IsEqual(postOnly, nil)) {
@@ -2012,7 +2012,7 @@ func  (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs 
     _ = limit
     params := GetArg(optionalArgs, 3, map[string]any {})
     _ = params
-    var rows any = this.ToArray(trades)
+    var rows []any = this.ToArray(trades)
     var results any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(GetValue(rows, i), outcomeObj)
@@ -2045,7 +2045,7 @@ func  (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs 
     _ = limit
     params := GetArg(optionalArgs, 3, map[string]any {})
     _ = params
-    var rows any = this.ToArray(orders)
+    var rows []any = this.ToArray(orders)
     var results any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(GetValue(rows, i), outcomeObj)
@@ -2072,7 +2072,7 @@ func  (this *PredictionExchange) ParsePredictionPositions(positions any, optiona
     // per venue: kalshi positions are market-level, polymarket ones are per token)
     params := GetArg(optionalArgs, 0, map[string]any {})
     _ = params
-    var rows any = this.ToArray(positions)
+    var rows []any = this.ToArray(positions)
     var results any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(GetValue(rows, i))
@@ -2131,7 +2131,7 @@ func  (this *PredictionExchange) PadHexToEven(hex any) any  {
         return ""
     }
     // prepend a nibble so the hex has an even number of characters (whole bytes)
-    var hexLength any =     GetLength(hex)
+    var hexLength int =     GetLength(hex)
     if IsTrue(!IsEqual((Mod(hexLength, 2)), 0)) {
         return Add("0", hex)
     }
@@ -2142,7 +2142,7 @@ func  (this *PredictionExchange) PadHexAddress(address any) any  {
         return ""
     }
     // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-    var stripped any = this.Remove0xPrefix(address)
+    var stripped string = this.Remove0xPrefix(address)
     return Add("000000000000000000000000", stripped)
 }
 func  (this *PredictionExchange) RlpEncodeBytes(hex any) any  {
@@ -2214,7 +2214,7 @@ func  (this *PredictionExchange) HexToRlpBytes(hexValue any) any  {
 func  (this *PredictionExchange) SignEvmTransaction(tx any, privateKey any) any  {
     panic(NotSupported(Add(this.Id, " signEvmTransaction() must be overridden by the exchange")))
 }
-func  (this *PredictionExchange) EthRpc(rpcUrl any, method any, rpcParams any) <- chan any {
+func  (this *PredictionExchange) EthRpcAsync(rpcUrl any, method any, rpcParams any) <- chan any {
     ch := make(chan any, 1)
     go this.ethRpcBody(ch, rpcUrl, method, rpcParams)
     return ch
@@ -2232,7 +2232,7 @@ func (this *PredictionExchange) ethRpcBody(ch chan any, rpcUrl any, method any, 
             "Content-Type": "application/json",
         }
     
-        response:= (<-this.Fetch(rpcUrl, "POST", headers, this.Json(payload)))
+        response:= (<-this.FetchAsync(rpcUrl, "POST", headers, this.Json(payload)))
         PanicOnError(response)
         var rpcError any = this.SafeValue(response, "error")
         if IsTrue(!IsEqual(rpcError, nil)) {
@@ -2244,7 +2244,7 @@ func (this *PredictionExchange) ethRpcBody(ch chan any, rpcUrl any, method any, 
     ch <- this.SafeValue(response, "result")
         return nil
 }
-func  (this *PredictionExchange) SendEvmTransaction(rpcUrl any, chainId any, fromAddress any, to any, value any, data any, gasLimit any) <- chan any {
+func  (this *PredictionExchange) SendEvmTransactionAsync(rpcUrl any, chainId any, fromAddress any, to any, value any, data any, gasLimit any) <- chan any {
     ch := make(chan any, 1)
     go this.sendEvmTransactionBody(ch, rpcUrl, chainId, fromAddress, to, value, data, gasLimit)
     return ch
@@ -2253,10 +2253,10 @@ func (this *PredictionExchange) sendEvmTransactionBody(ch chan any, rpcUrl any, 
     defer close(ch)
     defer ReturnPanicError(ch)
     
-        nonce:= (<-this.EthRpc(rpcUrl, "eth_getTransactionCount", []any{fromAddress, "pending"}))
+        nonce:= (<-this.EthRpcAsync(rpcUrl, "eth_getTransactionCount", []any{fromAddress, "pending"}))
         PanicOnError(nonce)
     
-        gasPrice:= (<-this.EthRpc(rpcUrl, "eth_gasPrice", []any{}))
+        gasPrice:= (<-this.EthRpcAsync(rpcUrl, "eth_gasPrice", []any{}))
         PanicOnError(gasPrice)
         var tx map[string]any = map[string]any {
             "chainId": chainId,
@@ -2272,12 +2272,12 @@ func (this *PredictionExchange) sendEvmTransactionBody(ch chan any, rpcUrl any, 
         var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
         PanicOnError(signed)
     
-            retRes178015 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
+            retRes178015 :=  (<-this.EthRpcAsync(rpcUrl, "eth_sendRawTransaction", []any{signed}))
             PanicOnError(retRes178015)
             ch <- retRes178015
             return nil
 }
-func  (this *PredictionExchange) WaitForTransactionReceipt(rpcUrl any, txHash any, optionalArgs ...any) <- chan any {
+func  (this *PredictionExchange) WaitForTransactionReceiptAsync(rpcUrl any, txHash any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.waitForTransactionReceiptBody(ch, rpcUrl, txHash, optionalArgs...)
     return ch
@@ -2290,9 +2290,9 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
         var start int64 = this.Milliseconds()
         for IsLessThan((Subtract(this.Milliseconds(), start)), timeout) {
     
-            receipt:= (<-this.EthRpc(rpcUrl, "eth_getTransactionReceipt", []any{txHash}))
+            receipt:= (<-this.EthRpcAsync(rpcUrl, "eth_getTransactionReceipt", []any{txHash}))
             PanicOnError(receipt)
-            if IsTrue(receipt) {
+            if IsTrue(IsTrue((!IsEqual(receipt, nil))) && IsTrue((!IsEqual(receipt, nil)))) {
     
                 ch <- receipt
                 return nil

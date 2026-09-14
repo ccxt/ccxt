@@ -3,6 +3,17 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetch a single ticker",
+                "method": "fetchTicker",
+                "url": "https://futures.kraken.com/derivatives/api/v3/tickers/PF_XBTUSD",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "output": null
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "fetch ledger with since, limit and until",

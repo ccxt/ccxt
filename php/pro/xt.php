@@ -95,16 +95,16 @@ class xt extends \ccxt\async\xt {
         $token = $this->safe_string($client->subscriptions, 'token');
         if ($token === null) {
             // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
-            // concurrent callers each minted their own $token, last write won, and the losers
-            // carried an orphaned $token into name . '@' . $listenKey so their streams went dead
+            // concurrent callers each minted their own token, last write won, and the losers
+            // carried an orphaned token into name + '@' + listenKey so their streams went dead
             $messageHash = 'authenticate:' . $tradeType;
             if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 // a flight is already in progress - wake when the leader
-                // settles it => the $token is then in the bucket
+                // settles it: the token is then in the bucket
                 Async\await($client->future($messageHash));
                 return $client->subscriptions['token'];
             }
-            // $client->futures is the same registry Exchange.watch () dedupes on, so registering
+            // client.futures is the same registry Exchange.watch () dedupes on, so registering
             // the flight here, before any suspension point, makes concurrent callers wait
             $future = $client->reusableFuture($messageHash);
             try {
@@ -113,10 +113,10 @@ class xt extends \ccxt\async\xt {
                     $response = Async\await($this->privateLinearGetFutureUserV1UserListenKey());
                     //
                     //    {
-                    //        returnCode => '0',
-                    //        msgInfo => 'success',
-                    //        error => null,
-                    //        $result => '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    //        returnCode: '0',
+                    //        msgInfo: 'success',
+                    //        error: null,
+                    //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
                     //    }
                     //
                     $listenKey = $this->safe_string($response, 'result');
@@ -124,12 +124,12 @@ class xt extends \ccxt\async\xt {
                     $response = Async\await($this->privateSpotPostWsToken());
                     //
                     //    {
-                    //        "rc" => 0,
-                    //        "mc" => "SUCCESS",
-                    //        "ma" => array(),
-                    //        "result" => {
-                    //            "token" => "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                    //            "refreshToken" => "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    //        "rc": 0,
+                    //        "mc": "SUCCESS",
+                    //        "ma": [],
+                    //        "result": {
+                    //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
                     //        }
                     //    }
                     //
@@ -137,16 +137,16 @@ class xt extends \ccxt\async\xt {
                     $listenKey = $this->safe_string($result, 'accessToken');
                 }
                 if ($listenKey === null) {
-                    // reject instead of caching an empty $token, so waiters
+                    // reject instead of caching an empty token, so waiters
                     // retry rather than subscribing with the literal
-                    // string 'null' for the rest of the session
+                    // string 'undefined' for the rest of the session
                     throw new AuthenticationError($this->id . ' getListenKey() received an empty listen key');
                 }
                 $client->subscriptions['token'] = $listenKey;
                 $client->resolve($listenKey, $messageHash);
             } catch (Exception $e) {
                 // hand the failure to every waiter so the next caller re-leads instead of
-                // deadlocking on a dead flight. no throw here => the trailing $future rethrows
+                // deadlocking on a dead flight. no throw here: the trailing future rethrows
                 // to this caller and keeps a waiterless rejection from crashing the process
                 $client->reject($e, $messageHash);
             }
@@ -156,7 +156,7 @@ class xt extends \ccxt\async\xt {
     }
 
     public function get_cache_index(mixed $orderbook, mixed $cache) {
-        // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
         $firstDeltaNonce = $this->safe_integer_2($firstDelta, 'i', 'u');
@@ -191,8 +191,8 @@ class xt extends \ccxt\async\xt {
             $quantity = $this->safe_number($ask, 1);
             $asks->store($price, $quantity);
         }
-        // $this->handleBidAsks(storedBids, $bids);
-        // $this->handleBidAsks(storedAsks, $asks);
+        // this.handleBidAsks (storedBids, bids);
+        // this.handleBidAsks (storedAsks, asks);
     }
 
     public function subscribe(string $name, string $access, string $methodName, ?array $market = null, ?array $symbols = null, $params = array()) {
@@ -458,7 +458,7 @@ class xt extends \ccxt\async\xt {
          * @param {int} [$since] not used by xt watchOHLCV
          * @param {int} [$limit] not used by xt watchOHLCV
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -486,7 +486,7 @@ class xt extends \ccxt\async\xt {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -726,7 +726,7 @@ class xt extends \ccxt\async\xt {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         $cache = $this->positions;
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->is_empty($cache)) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && $this->is_empty($cache)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -756,7 +756,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $market['id'];
@@ -781,7 +781,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' unWatchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $market['id'];
@@ -792,12 +792,12 @@ class xt extends \ccxt\async\xt {
     public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
-        //         "topic" => "fund_rate",
-        //         "event" => "fund_rate@btc_usdt",
-        //         "data" => {
-        //             "s" => "btc_usdt",  // $symbol
-        //             "r" => "0.01",      // funding rate
-        //             "t" => 123124124    // $timestamp
+        //         "topic": "fund_rate",
+        //         "event": "fund_rate@btc_usdt",
+        //         "data": {
+        //             "s": "btc_usdt",  // symbol
+        //             "r": "0.01",      // funding rate
+        //             "t": 123124124    // timestamp
         //         }
         //     }
         //
@@ -826,7 +826,7 @@ class xt extends \ccxt\async\xt {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot');
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -850,7 +850,7 @@ class xt extends \ccxt\async\xt {
                 $cache->append($position);
             }
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -861,31 +861,31 @@ class xt extends \ccxt\async\xt {
     public function handle_position(mixed $client, mixed $message) {
         //
         //    {
-        //      topic => 'position',
-        //      event => 'position',
-        //      $data => {
-        //        accountId => 245296,
-        //        accountType => 0,
-        //        symbol => 'eth_usdt',
-        //        contractType => 'PERPETUAL',
-        //        positionType => 'CROSSED',
-        //        positionSide => 'LONG',
-        //        positionSize => '1',
-        //        closeOrderSize => '0',
-        //        availableCloseSize => '1',
-        //        realizedProfit => '-0.0121',
-        //        entryPrice => '2637.87',
-        //        openOrderSize => '1',
-        //        isolatedMargin => '2.63787',
-        //        openOrderMarginFrozen => '2.78832014',
-        //        underlyingType => 'U_BASED',
-        //        leverage => 10,
-        //        welfareAccount => false,
-        //        profitFixedLatest => array(),
-        //        closeProfit => '0.0000',
-        //        totalFee => '-0.0158',
-        //        totalFundFee => '0.0037',
-        //        markPrice => '2690.96'
+        //      topic: 'position',
+        //      event: 'position',
+        //      data: {
+        //        accountId: 245296,
+        //        accountType: 0,
+        //        symbol: 'eth_usdt',
+        //        contractType: 'PERPETUAL',
+        //        positionType: 'CROSSED',
+        //        positionSide: 'LONG',
+        //        positionSize: '1',
+        //        closeOrderSize: '0',
+        //        availableCloseSize: '1',
+        //        realizedProfit: '-0.0121',
+        //        entryPrice: '2637.87',
+        //        openOrderSize: '1',
+        //        isolatedMargin: '2.63787',
+        //        openOrderMarginFrozen: '2.78832014',
+        //        underlyingType: 'U_BASED',
+        //        leverage: 10,
+        //        welfareAccount: false,
+        //        profitFixedLatest: {},
+        //        closeProfit: '0.0000',
+        //        totalFee: '-0.0158',
+        //        totalFundFee: '0.0037',
+        //        markPrice: '2690.96'
         //      }
         //    }
         //
@@ -915,59 +915,59 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        topic => 'ticker',
-        //        $event => 'ticker@btc_usdt',
-        //        $data => {
-        //           s => 'btc_usdt',            // $symbol
-        //           t => 1683501935877,         // time(Last transaction time)
-        //           $cv => '-82.67',             // priceChangeValue(24 hour price change)
-        //           cr => '-0.0028',            // priceChangeRate 24-hour price change (percentage)
-        //           o => '28823.87',            // open price
-        //           c => '28741.20',            // close price
-        //           h => '29137.64',            // highest price
-        //           l => '28660.93',            // lowest price
-        //           q => '6372.601573',         // quantity
-        //           v => '184086075.2772391'    // volume
+        //        topic: 'ticker',
+        //        event: 'ticker@btc_usdt',
+        //        data: {
+        //           s: 'btc_usdt',            // symbol
+        //           t: 1683501935877,         // time(Last transaction time)
+        //           cv: '-82.67',             // priceChangeValue(24 hour price change)
+        //           cr: '-0.0028',            // priceChangeRate 24-hour price change (percentage)
+        //           o: '28823.87',            // open price
+        //           c: '28741.20',            // close price
+        //           h: '29137.64',            // highest price
+        //           l: '28660.93',            // lowest price
+        //           q: '6372.601573',         // quantity
+        //           v: '184086075.2772391'    // volume
         //        }
         //    }
         //
         // contract
         //
         //    {
-        //        "topic" => "ticker",
-        //        "event" => "ticker@btc_usdt",
-        //        "data" => {
-        //            "s" => "btc_index",  // trading pair
-        //            "o" => "49000",      // opening price
-        //            "c" => "50000",      // closing price
-        //            "h" => "0.1",        // highest price
-        //            "l" => "0.1",        // lowest price
-        //            "a" => "0.1",        // volume
-        //            "v" => "0.1",        // turnover
-        //            "ch" => "0.21",      // quote change
-        //            "t" => 123124124     // timestamp
+        //        "topic": "ticker",
+        //        "event": "ticker@btc_usdt",
+        //        "data": {
+        //            "s": "btc_index",  // trading pair
+        //            "o": "49000",      // opening price
+        //            "c": "50000",      // closing price
+        //            "h": "0.1",        // highest price
+        //            "l": "0.1",        // lowest price
+        //            "a": "0.1",        // volume
+        //            "v": "0.1",        // turnover
+        //            "ch": "0.21",      // quote change
+        //            "t": 123124124     // timestamp
         //       }
         //    }
         //
         // agg_ticker (contract)
         //
         //    {
-        //        "topic" => "agg_ticker",
-        //        "event" => "agg_ticker@btc_usdt",
-        //        "data" => {
-        //            "s" => "btc_index",          // trading pair
-        //            "o" => "49000",              // opening price
-        //            "c" => "50000",              // closing price
-        //            "h" => "0.1",                // highest price
-        //            "l" => "0.1",                // lowest price
-        //            "a" => "0.1",                // volume
-        //            "v" => "0.1",                // turnover
-        //            "ch" => "0.21",              // quote change
-        //            "i" => "0.21" ,              // index price
-        //            "m" => "0.21",               // mark price
-        //            "bp" => "0.21",              // bid price
-        //            "ap" => "0.21" ,             // ask price
-        //            "t" => 123124124             // timestamp
+        //        "topic": "agg_ticker",
+        //        "event": "agg_ticker@btc_usdt",
+        //        "data": {
+        //            "s": "btc_index",          // trading pair
+        //            "o": "49000",              // opening price
+        //            "c": "50000",              // closing price
+        //            "h": "0.1",                // highest price
+        //            "l": "0.1",                // lowest price
+        //            "a": "0.1",                // volume
+        //            "v": "0.1",                // turnover
+        //            "ch": "0.21",              // quote change
+        //            "i": "0.21" ,              // index price
+        //            "m": "0.21",               // mark price
+        //            "bp": "0.21",              // bid price
+        //            "ap": "0.21" ,             // ask price
+        //            "t": 123124124             // timestamp
         //       }
         //    }
         //
@@ -994,67 +994,67 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        topic => 'tickers',
-        //        event => 'tickers',
-        //        $data => array(
-        //            array(
-        //                s => 'elon_usdt',
-        //                t => 1683502958381,
-        //                cv => '-0.0000000125',
-        //                cr => '-0.0495',
-        //                o => '0.0000002522',
-        //                c => '0.0000002397',
-        //                h => '0.0000002690',
-        //                l => '0.0000002371',
-        //                q => '3803783034.0000000000',
-        //                v => '955.3260820022'
-        //            ),
+        //        topic: 'tickers',
+        //        event: 'tickers',
+        //        data: [
+        //            {
+        //                s: 'elon_usdt',
+        //                t: 1683502958381,
+        //                cv: '-0.0000000125',
+        //                cr: '-0.0495',
+        //                o: '0.0000002522',
+        //                c: '0.0000002397',
+        //                h: '0.0000002690',
+        //                l: '0.0000002371',
+        //                q: '3803783034.0000000000',
+        //                v: '955.3260820022'
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         // contract
         //
         //    {
-        //        "topic" => "tickers",
-        //        "event" => "tickers",
-        //        "data" => array(
+        //        "topic": "tickers",
+        //        "event": "tickers",
+        //        "data": [
         //            {
-        //                "s" => "btc_index",  // trading pair
-        //                "o" => "49000",      // opening price
-        //                "c" => "50000",      // closing price
-        //                "h" => "0.1",        // highest price
-        //                "l" => "0.1",        // lowest price
-        //                "a" => "0.1",        // volume
-        //                "v" => "0.1",        // turnover
-        //                "ch" => "0.21",      // quote change
-        //                "t" => 123124124     // timestamp
+        //                "s": "btc_index",  // trading pair
+        //                "o": "49000",      // opening price
+        //                "c": "50000",      // closing price
+        //                "h": "0.1",        // highest price
+        //                "l": "0.1",        // lowest price
+        //                "a": "0.1",        // volume
+        //                "v": "0.1",        // turnover
+        //                "ch": "0.21",      // quote change
+        //                "t": 123124124     // timestamp
         //            }
-        //        )
+        //        ]
         //    }
         //
         // agg_ticker (contract)
         //
         //    {
-        //        "topic" => "agg_tickers",
-        //        "event" => "agg_tickers",
-        //        "data" => array(
+        //        "topic": "agg_tickers",
+        //        "event": "agg_tickers",
+        //        "data": [
         //            {
-        //                "s" => "btc_index",          // trading pair
-        //                "o" => "49000",              // opening price
-        //                "c" => "50000",              // closing price
-        //                "h" => "0.1",                // highest price
-        //                "l" => "0.1",                // lowest price
-        //                "a" => "0.1",                // volume
-        //                "v" => "0.1",                // turnover
-        //                "ch" => "0.21",              // quote change
-        //                "i" => "0.21" ,              // index price
-        //                "m" => "0.21",               // mark price
-        //                "bp" => "0.21",              // bid price
-        //                "ap" => "0.21" ,             // ask price
-        //                "t" => 123124124             // timestamp
+        //                "s": "btc_index",          // trading pair
+        //                "o": "49000",              // opening price
+        //                "c": "50000",              // closing price
+        //                "h": "0.1",                // highest price
+        //                "l": "0.1",                // lowest price
+        //                "a": "0.1",                // volume
+        //                "v": "0.1",                // turnover
+        //                "ch": "0.21",              // quote change
+        //                "i": "0.21" ,              // index price
+        //                "m": "0.21",               // mark price
+        //                "bp": "0.21",              // bid price
+        //                "ap": "0.21" ,             // ask price
+        //                "t": 123124124             // timestamp
         //            }
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -1094,36 +1094,36 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        "topic" => "kline",
-        //        "event" => "kline@btc_usdt,5m",
-        //        "data" => {
-        //            "s" => "btc_usdt",        // $symbol
-        //            "t" => 1656043200000,     // time
-        //            "i" => "5m",              // interval
-        //            "o" => "44000",           // open price
-        //            "c" => "50000",           // close price
-        //            "h" => "52000",           // highest price
-        //            "l" => "36000",           // lowest price
-        //            "q" => "34.2",            // qty(quantity)
-        //            "v" => "230000"           // volume
+        //        "topic": "kline",
+        //        "event": "kline@btc_usdt,5m",
+        //        "data": {
+        //            "s": "btc_usdt",        // symbol
+        //            "t": 1656043200000,     // time
+        //            "i": "5m",              // interval
+        //            "o": "44000",           // open price
+        //            "c": "50000",           // close price
+        //            "h": "52000",           // highest price
+        //            "l": "36000",           // lowest price
+        //            "q": "34.2",            // qty(quantity)
+        //            "v": "230000"           // volume
         //        }
         //    }
         //
         // contract
         //
         //    {
-        //        "topic" => "kline",
-        //        "event" => "kline@btc_usdt,5m",
-        //        "data" => {
-        //            "s" => "btc_index",      // trading pair
-        //            "o" => "49000",          // opening price
-        //            "c" => "50000",          // closing price
-        //            "h" => "0.1",            // highest price
-        //            "l" => "0.1",            // lowest price
-        //            "a" => "0.1",            // volume
-        //            "v" => "0.1",            // turnover
-        //            "ch" => "0.21",          // quote change
-        //            "t" => 123124124         // timestamp
+        //        "topic": "kline",
+        //        "event": "kline@btc_usdt,5m",
+        //        "data": {
+        //            "s": "btc_index",      // trading pair
+        //            "o": "49000",          // opening price
+        //            "c": "50000",          // closing price
+        //            "h": "0.1",            // highest price
+        //            "l": "0.1",            // lowest price
+        //            "a": "0.1",            // volume
+        //            "v": "0.1",            // turnover
+        //            "ch": "0.21",          // quote change
+        //            "t": 123124124         // timestamp
         //        }
         //    }
         //
@@ -1155,29 +1155,29 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        topic => 'trade',
-        //        $event => 'trade@btc_usdt',
-        //        $data => {
-        //            s => 'btc_usdt',
-        //            $i => '228825383103928709',
-        //            t => 1684258222702,
-        //            p => '27003.65',
-        //            q => '0.000796',
-        //            b => true
+        //        topic: 'trade',
+        //        event: 'trade@btc_usdt',
+        //        data: {
+        //            s: 'btc_usdt',
+        //            i: '228825383103928709',
+        //            t: 1684258222702,
+        //            p: '27003.65',
+        //            q: '0.000796',
+        //            b: true
         //        }
         //    }
         //
         // contract
         //
         //    {
-        //        "topic" => "trade",
-        //        "event" => "trade@btc_usdt",
-        //        "data" => {
-        //            "s" => "btc_index",  // trading pair
-        //            "p" => "50000",      // price
-        //            "a" => "0.1"         // Quantity
-        //            "m" => "BID"         // Deal side  BID:Buy ASK:Sell
-        //            "t" => 123124124     // timestamp
+        //        "topic": "trade",
+        //        "event": "trade@btc_usdt",
+        //        "data": {
+        //            "s": "btc_index",  // trading pair
+        //            "p": "50000",      // price
+        //            "a": "0.1"         // Quantity
+        //            "m": "BID"         // Deal side  BID:Buy ASK:Sell
+        //            "t": 123124124     // timestamp
         //        }
         //    }
         //
@@ -1208,58 +1208,58 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        "topic" => "depth",
-        //        "event" => "depth@btc_usdt,20",
-        //        "data" => {
-        //            "s" => "btc_usdt",        // $symbol
-        //            "fi" => 1681433733351,    // firstUpdateId = previous lastUpdateId + 1
-        //            "i" => 1681433733371,     // updateId
-        //            "a" => array(                  // $asks(sell order)
-        //                array(                   // [0]$price, [1]$quantity
-        //                    "34000",        // $price
-        //                    "1.2"           // $quantity
-        //                ),
-        //                array(
+        //        "topic": "depth",
+        //        "event": "depth@btc_usdt,20",
+        //        "data": {
+        //            "s": "btc_usdt",        // symbol
+        //            "fi": 1681433733351,    // firstUpdateId = previous lastUpdateId + 1
+        //            "i": 1681433733371,     // updateId
+        //            "a": [                  // asks(sell order)
+        //                [                   // [0]price, [1]quantity
+        //                    "34000",        // price
+        //                    "1.2"           // quantity
+        //                ],
+        //                [
         //                    "34001",
         //                    "2.3"
-        //                )
-        //            ),
-        //            "b" => array(                   // $bids(buy order)
-        //                array(
+        //                ]
+        //            ],
+        //            "b": [                   // bids(buy order)
+        //                [
         //                    "32000",
         //                    "0.2"
-        //                ),
-        //                array(
+        //                ],
+        //                [
         //                    "31000",
         //                    "0.5"
-        //                )
-        //            )
+        //                ]
+        //            ]
         //        }
         //    }
         //
         // contract
         //
         //    {
-        //        "topic" => "depth",
-        //        "event" => "depth@btc_usdt,20",
-        //        "data" => {
-        //            s => "btc_usdt",
-        //            pu => "548111455664",
-        //            fu => "548111455665",
-        //            u => "548111455667",
-        //            a => array(
-        //                array(
+        //        "topic": "depth",
+        //        "event": "depth@btc_usdt,20",
+        //        "data": {
+        //            s: "btc_usdt",
+        //            pu: "548111455664",
+        //            fu: "548111455665",
+        //            u: "548111455667",
+        //            a: [
+        //                [
         //                    "26841.5",
         //                    "50210",
-        //                ),
-        //            ),
-        //            b => array(
-        //                array(
+        //                ],
+        //            ],
+        //            b: [
+        //                [
         //                    "26841",
         //                    "67075",
-        //                ),
-        //            ),
-        //            t => 1684530667083,
+        //                ],
+        //            ],
+        //            t: 1684530667083,
         //        }
         //    }
         //
@@ -1324,34 +1324,34 @@ class xt extends \ccxt\async\xt {
     public function parse_ws_order_trade(array $trade, ?array $market = null) {
         //
         //    {
-        //        "s" => "btc_usdt",                         // symbol
-        //        "t" => 1656043204763,                      // time happened time
-        //        "i" => "6216559590087220004",              // orderId,
-        //        "ci" => "test123",                         // clientOrderId
-        //        "st" => "PARTIALLY_FILLED",                // state
-        //        "sd" => "BUY",                             // side BUY/SELL
-        //        "eq" => "2",                               // executedQty executed quantity
-        //        "ap" => "30000",                           // avg price
-        //        "f" => "0.002"                             // fee
+        //        "s": "btc_usdt",                         // symbol
+        //        "t": 1656043204763,                      // time happened time
+        //        "i": "6216559590087220004",              // orderId,
+        //        "ci": "test123",                         // clientOrderId
+        //        "st": "PARTIALLY_FILLED",                // state
+        //        "sd": "BUY",                             // side BUY/SELL
+        //        "eq": "2",                               // executedQty executed quantity
+        //        "ap": "30000",                           // avg price
+        //        "f": "0.002"                             // fee
         //    }
         //
         // contract
         //
         //    {
-        //        "symbol" => "btc_usdt",                    // Trading pair
-        //        "orderId" => "1234",                       // Order Id
-        //        "origQty" => "34244",                      // Original Quantity
-        //        "avgPrice" => "123",                       // Quantity
-        //        "price" => "1111",                         // Average price
-        //        "executedQty" => "34244",                  // Volume (Cont)
-        //        "orderSide" => "BUY",                      // BUY, SELL
-        //        "positionSide" => "LONG",                  // LONG, SHORT
-        //        "marginFrozen" => "123",                   // Occupied margin
-        //        "sourceType" => "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        //        "symbol": "btc_usdt",                    // Trading pair
+        //        "orderId": "1234",                       // Order Id
+        //        "origQty": "34244",                      // Original Quantity
+        //        "avgPrice": "123",                       // Quantity
+        //        "price": "1111",                         // Average price
+        //        "executedQty": "34244",                  // Volume (Cont)
+        //        "orderSide": "BUY",                      // BUY, SELL
+        //        "positionSide": "LONG",                  // LONG, SHORT
+        //        "marginFrozen": "123",                   // Occupied margin
+        //        "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
         //        "sourceId" : "1231231",                  // Triggering conditions ID
-        //        "state" => "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        //        "createTime" => 1731231231,                // CreateTime
-        //        "clientOrderId" => "204788317630342726"
+        //        "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        //        "createTime": 1731231231,                // CreateTime
+        //        "clientOrderId": "204788317630342726"
         //    }
         //
         $marketId = $this->safe_string($trade, 's');
@@ -1384,42 +1384,42 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        "s" => "btc_usdt",                // symbol
-        //        "bc" => "btc",                    // base currency
-        //        "qc" => "usdt",                   // quotation currency
-        //        "t" => 1656043204763,             // happened time
-        //        "ct" => 1656043204663,            // create time
-        //        "i" => "6216559590087220004",     // $order id,
-        //        "ci" => "test123",                // client $order id
-        //        "st" => "PARTIALLY_FILLED",       // state NEW/PARTIALLY_FILLED/FILLED/CANCELED/REJECTED/EXPIRED
-        //        "sd" => "BUY",                    // side BUY/SELL
-        //        "tp" => "LIMIT",                  // type LIMIT/MARKET
-        //        "oq" =>  "4"                      // original quantity
-        //        "oqq" =>  48000,                  // original quotation quantity
-        //        "eq" => "2",                      // executed quantity
-        //        "lq" => "2",                      // remaining quantity
-        //        "p" => "4000",                    // price
-        //        "ap" => "30000",                  // avg price
+        //        "s": "btc_usdt",                // symbol
+        //        "bc": "btc",                    // base currency
+        //        "qc": "usdt",                   // quotation currency
+        //        "t": 1656043204763,             // happened time
+        //        "ct": 1656043204663,            // create time
+        //        "i": "6216559590087220004",     // order id,
+        //        "ci": "test123",                // client order id
+        //        "st": "PARTIALLY_FILLED",       // state NEW/PARTIALLY_FILLED/FILLED/CANCELED/REJECTED/EXPIRED
+        //        "sd": "BUY",                    // side BUY/SELL
+        //        "tp": "LIMIT",                  // type LIMIT/MARKET
+        //        "oq":  "4"                      // original quantity
+        //        "oqq":  48000,                  // original quotation quantity
+        //        "eq": "2",                      // executed quantity
+        //        "lq": "2",                      // remaining quantity
+        //        "p": "4000",                    // price
+        //        "ap": "30000",                  // avg price
         //        "f":"0.002"                     // fee
         //    }
         //
         // contract
         //
         //    {
-        //        "symbol" => "btc_usdt",                    // Trading pair
-        //        "orderId" => "1234",                       // Order Id
-        //        "origQty" => "34244",                      // Original Quantity
-        //        "avgPrice" => "123",                       // Quantity
-        //        "price" => "1111",                         // Average price
-        //        "executedQty" => "34244",                  // Volume (Cont)
-        //        "orderSide" => "BUY",                      // BUY, SELL
-        //        "positionSide" => "LONG",                  // LONG, SHORT
-        //        "marginFrozen" => "123",                   // Occupied margin
-        //        "sourceType" => "default",                 // DEFAULT:normal $order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        //        "symbol": "btc_usdt",                    // Trading pair
+        //        "orderId": "1234",                       // Order Id
+        //        "origQty": "34244",                      // Original Quantity
+        //        "avgPrice": "123",                       // Quantity
+        //        "price": "1111",                         // Average price
+        //        "executedQty": "34244",                  // Volume (Cont)
+        //        "orderSide": "BUY",                      // BUY, SELL
+        //        "positionSide": "LONG",                  // LONG, SHORT
+        //        "marginFrozen": "123",                   // Occupied margin
+        //        "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
         //        "sourceId" : "1231231",                  // Triggering conditions ID
-        //        "state" => "",                             // state:NEW：New $order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        //        "createTime" => 1731231231,                // CreateTime
-        //        "clientOrderId" => "204788317630342726"
+        //        "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        //        "createTime": 1731231231,                // CreateTime
+        //        "clientOrderId": "204788317630342726"
         //    }
         //
         $marketId = $this->safe_string_2($order, 's', 'symbol');
@@ -1461,41 +1461,41 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        "topic" => "order",
-        //        "event" => "order",
-        //        "data" => {
-        //            "s" => "btc_usdt",                // symbol
-        //            "t" => 1656043204763,             // time happened time
-        //            "i" => "6216559590087220004",     // orderId,
-        //            "ci" => "test123",                // clientOrderId
-        //            "st" => "PARTIALLY_FILLED",       // state
-        //            "sd" => "BUY",                    // side BUY/SELL
-        //            "eq" => "2",                      // executedQty executed quantity
-        //            "ap" => "30000",                  // avg price
-        //            "f" => "0.002"                    // fee
+        //        "topic": "order",
+        //        "event": "order",
+        //        "data": {
+        //            "s": "btc_usdt",                // symbol
+        //            "t": 1656043204763,             // time happened time
+        //            "i": "6216559590087220004",     // orderId,
+        //            "ci": "test123",                // clientOrderId
+        //            "st": "PARTIALLY_FILLED",       // state
+        //            "sd": "BUY",                    // side BUY/SELL
+        //            "eq": "2",                      // executedQty executed quantity
+        //            "ap": "30000",                  // avg price
+        //            "f": "0.002"                    // fee
         //        }
         //    }
         //
         // contract
         //
         //    {
-        //        "topic" => "order",
-        //        "event" => "order@123456",
-        //        "data" => {
-        //             "symbol" => "btc_usdt",                    // Trading pair
-        //             "orderId" => "1234",                       // Order Id
-        //             "origQty" => "34244",                      // Original Quantity
-        //             "avgPrice" => "123",                       // Quantity
-        //             "price" => "1111",                         // Average price
-        //             "executedQty" => "34244",                  // Volume (Cont)
-        //             "orderSide" => "BUY",                      // BUY, SELL
-        //             "positionSide" => "LONG",                  // LONG, SHORT
-        //             "marginFrozen" => "123",                   // Occupied margin
-        //             "sourceType" => "default",                 // DEFAULT:normal $order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        //        "topic": "order",
+        //        "event": "order@123456",
+        //        "data": {
+        //             "symbol": "btc_usdt",                    // Trading pair
+        //             "orderId": "1234",                       // Order Id
+        //             "origQty": "34244",                      // Original Quantity
+        //             "avgPrice": "123",                       // Quantity
+        //             "price": "1111",                         // Average price
+        //             "executedQty": "34244",                  // Volume (Cont)
+        //             "orderSide": "BUY",                      // BUY, SELL
+        //             "positionSide": "LONG",                  // LONG, SHORT
+        //             "marginFrozen": "123",                   // Occupied margin
+        //             "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
         //             "sourceId" : "1231231",                  // Triggering conditions ID
-        //             "state" => "",                             // state:NEW：New $order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        //             "createTime" => 1731231231,                // CreateTime
-        //             "clientOrderId" => "204788317630342726"
+        //             "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        //             "createTime": 1731231231,                // CreateTime
+        //             "clientOrderId": "204788317630342726"
         //           }
         //    }
         //
@@ -1522,33 +1522,33 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        topic => 'balance',
-        //        event => 'balance',
-        //        $data => {
-        //            a => 3513677381884,
-        //            t => 1684250056775,
-        //            c => 'usdt',
-        //            b => '7.71000000',
-        //            f => '0.00000000',
-        //            z => 'SPOT'
+        //        topic: 'balance',
+        //        event: 'balance',
+        //        data: {
+        //            a: 3513677381884,
+        //            t: 1684250056775,
+        //            c: 'usdt',
+        //            b: '7.71000000',
+        //            f: '0.00000000',
+        //            z: 'SPOT'
         //        }
         //    }
         //
         // contract
         //
         //    {
-        //        "topic" => "balance",
-        //        "event" => "balance@123456",
-        //        "data" => {
-        //            "coin" => "usdt",
-        //            "underlyingType" => 1,                          // 1:Coin-M,2:USDT-M
-        //            "walletBalance" => "123",                       // Balance
-        //            "openOrderMarginFrozen" => "123",               // Frozen order
-        //            "isolatedMargin" => "213",                      // Isolated Margin
-        //            "crossedMargin" => "0"                          // Crossed Margin
-        //            "availableBalance" => '2.256114450000000000',
-        //            "coupon" => '0',
-        //            "bonus" => '0'
+        //        "topic": "balance",
+        //        "event": "balance@123456",
+        //        "data": {
+        //            "coin": "usdt",
+        //            "underlyingType": 1,                          // 1:Coin-M,2:USDT-M
+        //            "walletBalance": "123",                       // Balance
+        //            "openOrderMarginFrozen": "123",               // Frozen order
+        //            "isolatedMargin": "213",                      // Isolated Margin
+        //            "crossedMargin": "0"                          // Crossed Margin
+        //            "availableBalance": '2.256114450000000000',
+        //            "coupon": '0',
+        //            "bonus": '0'
         //        }
         //    }
         //
@@ -1572,33 +1572,33 @@ class xt extends \ccxt\async\xt {
         // spot
         //
         //    {
-        //        "topic" => "trade",
-        //        "event" => "trade",
-        //        "data" => {
-        //            "s" => "btc_usdt",                // symbol
-        //            "t" => 1656043204763,             // time
-        //            "i" => "6316559590087251233",     // tradeId
-        //            "oi" => "6216559590087220004",    // orderId
-        //            "p" => "30000",                   // trade price
-        //            "q" => "3",                       // qty quantity
-        //            "v" => "90000"                    // volume trade amount
+        //        "topic": "trade",
+        //        "event": "trade",
+        //        "data": {
+        //            "s": "btc_usdt",                // symbol
+        //            "t": 1656043204763,             // time
+        //            "i": "6316559590087251233",     // tradeId
+        //            "oi": "6216559590087220004",    // orderId
+        //            "p": "30000",                   // trade price
+        //            "q": "3",                       // qty quantity
+        //            "v": "90000"                    // volume trade amount
         //        }
         //    }
         //
         // contract
         //
         //    {
-        //       "topic" => "trade",
-        //       "event" => "trade@123456",
-        //       "data" => {
-        //            "symbol" => 'btc_usdt',
-        //            "orderSide" => 'SELL',
-        //            "positionSide" => 'LONG',
-        //            "orderId" => '231485367663419328',
-        //            "price" => '27152.7',
-        //            "quantity" => '33',
-        //            "marginUnfrozen" => '2.85318000',
-        //            "timestamp" => 1684892412565
+        //       "topic": "trade",
+        //       "event": "trade@123456",
+        //       "data": {
+        //            "symbol": 'btc_usdt',
+        //            "orderSide": 'SELL',
+        //            "positionSide": 'LONG',
+        //            "orderId": '231485367663419328',
+        //            "price": '27152.7',
+        //            "quantity": '33',
+        //            "marginUnfrozen": '2.85318000',
+        //            "timestamp": 1684892412565
         //        }
         //    }
         //
@@ -1616,7 +1616,7 @@ class xt extends \ccxt\async\xt {
         }
         $market = $this->market($tradeSymbol);
         $stored->append($parsedTrade);
-        $tradeType = $market['contract'] ? 'contract' : 'spot';
+        $tradeType = ($market['contract'] === true) ? 'contract' : 'spot';
         $client->resolve($stored, 'trade::' . $tradeType);
     }
 
@@ -1664,17 +1664,17 @@ class xt extends \ccxt\async\xt {
     public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
-        //         $id => '1763045665228ticker@eth_usdt',
-        //         code => 0,
-        //         msg => 'SUCCESS',
-        //         method => 'unsubscribe'
+        //         id: '1763045665228ticker@eth_usdt',
+        //         code: 0,
+        //         msg: 'SUCCESS',
+        //         method: 'unsubscribe'
         //     }
         //
         //     {
-        //         code => 0,
-        //         msg => 'success',
-        //         $id => '1764032903806ticker@btc_usdt',
-        //         sessionId => '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        //         code: 0,
+        //         msg: 'success',
+        //         id: '1764032903806ticker@btc_usdt',
+        //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -1683,7 +1683,7 @@ class xt extends \ccxt\async\xt {
         if ($id !== null) {
             $subscription = $this->safe_dict($subscriptionsById, $id, array());
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-            if ($unsubscribe) {
+            if ($unsubscribe === true) {
                 $this->handle_un_subscription($client, $subscription);
             }
         }
@@ -1704,9 +1704,9 @@ class xt extends \ccxt\async\xt {
     public function handle_error_message(Client $client, array $message) {
         //
         //    {
-        //        "id" => "123",
-        //        "code" => 401,
-        //        "msg" => "token expire"
+        //        "id": "123",
+        //        "code": 401,
+        //        "msg": "token expire"
         //    }
         //
         $msg = $this->safe_string($message, 'msg');

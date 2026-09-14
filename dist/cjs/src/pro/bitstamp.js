@@ -334,7 +334,7 @@ class bitstamp extends bitstamp$1["default"] {
         // }
         //
         const channel = this.safeString(message, 'channel');
-        const order = this.safeValue(message, 'data', {});
+        const order = this.safeDict(message, 'data', {});
         const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -533,7 +533,7 @@ class bitstamp extends bitstamp$1["default"] {
         return true;
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         //

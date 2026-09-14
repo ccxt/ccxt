@@ -389,7 +389,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': rawCurrency,
             'type': 'fiat' if isFiat else 'crypto',
             'name': None,
-            'active': deposit and withdraw,
+            'active': ((deposit is True) and (withdraw is True)),
             'deposit': deposit,
             'withdraw': withdraw,
             'fee': self.safe_number(rawCurrency, 'withdrawFee'),
@@ -441,7 +441,7 @@ class bitopro(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
-        active = not self.safe_bool(market, 'maintain')
+        active = (self.safe_bool(market, 'maintain') is not True)
         id = self.safe_string(market, 'pair')
         if id is None:
             raise ExchangeError(self.id + ' parseMarket() missing id')
@@ -687,7 +687,7 @@ class bitopro(Exchange, ImplicitAPI):
         side = self.safe_string_lower(trade, 'action')
         if side is None:
             isBuyer = self.safe_bool(trade, 'isBuyer')
-            if isBuyer:
+            if isBuyer is True:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -872,7 +872,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1256,7 +1256,7 @@ class bitopro(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {
-            # 'pair': market['id'],  # optional
+            # 'pair': market['id'], // optional
         }
         response = None
         if symbol is not None:
@@ -1499,7 +1499,7 @@ class bitopro(Exchange, ImplicitAPI):
         #        "id": "2905906537"
         #    }
         #
-        # fetchWithdrawals or fetchWithdraw
+        # fetchWithdrawals || fetchWithdraw
         #
         #    {
         #        "serial": "20220215BW14069838",
@@ -1583,7 +1583,7 @@ class bitopro(Exchange, ImplicitAPI):
             'currency': currency['id'],
             # 'endTimestamp': 0,
             # 'id': '',
-            # 'statuses': '',  # 'ROCESSING,COMPLETE,INVALID,WAIT_PROCESS,CANCELLED,FAILED'
+            # 'statuses': '', // 'ROCESSING,COMPLETE,INVALID,WAIT_PROCESS,CANCELLED,FAILED'
         }
         if since is not None:
             request['startTimestamp'] = since
@@ -1633,7 +1633,7 @@ class bitopro(Exchange, ImplicitAPI):
             'currency': currency['id'],
             # 'endTimestamp': 0,
             # 'id': '',
-            # 'statuses': '',  # 'PROCESSING,COMPLETE,EXPIRED,INVALID,WAIT_PROCESS,WAIT_CONFIRMATION,EMAIL_VERIFICATION,CANCELLED'
+            # 'statuses': '', // 'PROCESSING,COMPLETE,EXPIRED,INVALID,WAIT_PROCESS,WAIT_CONFIRMATION,EMAIL_VERIFICATION,CANCELLED'
         }
         if since is not None:
             request['startTimestamp'] = since
@@ -1661,7 +1661,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1823,7 +1823,7 @@ class bitopro(Exchange, ImplicitAPI):
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature
             elif method == 'GET' or method == 'DELETE':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
                 nonce = self.milliseconds()
                 rawData = {
@@ -1836,7 +1836,7 @@ class bitopro(Exchange, ImplicitAPI):
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature
         elif api == 'public' and method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

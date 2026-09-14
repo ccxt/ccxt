@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 // fields (flat typed access) and adds the prediction identity
 // fields. Mirrors the standalone `PredictionOrder` interface in
 // ts/src/base/types.ts.
-public final class PredictionOrder {
+public final class PredictionOrder extends TypedMap {
     public String id;
     public String clientOrderId;
     public Long timestamp;
@@ -42,6 +42,7 @@ public final class PredictionOrder {
 
     @SuppressWarnings("unchecked")
     public PredictionOrder(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.clientOrderId = TypeHelper.safeString(data, "clientOrderId");

@@ -21,7 +21,7 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
         return false;
     }
 
-    if (!exchange.has[method]) {
+    if (exchange.has[method] === undefined || exchange.has[method] === false) {
         const m2 = (exchange.id + ' does not support ' + method + '() method');
         console.log (m2);
         return false;

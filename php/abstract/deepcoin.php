@@ -52,6 +52,30 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_deepcoin_market_mark_price($params = array()) {
+        return $this->request('deepcoin/market/mark-price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_deepcoin_market_open_interest_volume($params = array()) {
+        return $this->request('deepcoin/market/open-interest-volume', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_deepcoin_market_long_short_ratio($params = array()) {
+        return $this->request('deepcoin/market/long-short-ratio', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_deepcoin_market_taker_volume($params = array()) {
+        return $this->request('deepcoin/market/taker-volume', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_deepcoin_market_step_margin($params = array()) {
         return $this->request('deepcoin/market/step-margin', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -82,6 +106,12 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_deepcoin_account_all_balances($params = array()) {
+        return $this->request('deepcoin/account/all-balances', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_deepcoin_account_bills($params = array()) {
         return $this->request('deepcoin/account/bills', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -94,6 +124,24 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_deepcoin_account_trade_fee($params = array()) {
+        return $this->request('deepcoin/account/trade-fee', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_deepcoin_account_leverage_info($params = array()) {
+        return $this->request('deepcoin/account/leverage-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_deepcoin_account_positions_history($params = array()) {
+        return $this->request('deepcoin/account/positions-history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_deepcoin_trade_fills($params = array()) {
         return $this->request('deepcoin/trade/fills', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -102,6 +150,12 @@ abstract class deepcoin extends \ccxt\Exchange {
      */
     public function private_get_deepcoin_trade_orderbyid($params = array()) {
         return $this->request('deepcoin/trade/orderByID', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_deepcoin_trade_order($params = array()) {
+        return $this->request('deepcoin/trade/order', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -232,6 +286,12 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_deepcoin_sub_account_sub_account_apikey($params = array()) {
+        return $this->request('deepcoin/sub-account/sub-account-apikey', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_deepcoin_account_set_leverage($params = array()) {
         return $this->request('deepcoin/account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -280,6 +340,12 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_deepcoin_trade_amend_trigger_order($params = array()) {
+        return $this->request('deepcoin/trade/amend-trigger-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_deepcoin_trade_batch_close_position($params = array()) {
         return $this->request('deepcoin/trade/batch-close-position', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -294,6 +360,18 @@ abstract class deepcoin extends \ccxt\Exchange {
      */
     public function private_post_deepcoin_trade_close_position_by_ids($params = array()) {
         return $this->request('deepcoin/trade/close-position-by-ids', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_deepcoin_trade_increase_position($params = array()) {
+        return $this->request('deepcoin/trade/increase-position', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_deepcoin_trade_merge_positions($params = array()) {
+        return $this->request('deepcoin/trade/merge-positions', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -324,6 +402,24 @@ abstract class deepcoin extends \ccxt\Exchange {
      */
     public function private_post_deepcoin_asset_transfer($params = array()) {
         return $this->request('deepcoin/asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_deepcoin_sub_account_create_sub_account($params = array()) {
+        return $this->request('deepcoin/sub-account/create-sub-account', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_deepcoin_sub_account_sub_account_apikey($params = array()) {
+        return $this->request('deepcoin/sub-account/sub-account-apikey', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_deepcoin_sub_account_delete_sub_account_apikey($params = array()) {
+        return $this->request('deepcoin/sub-account/delete-sub-account-apikey', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -370,6 +466,30 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function publicGetDeepcoinMarketMarkPrice($params = array()) {
+        return $this->request('deepcoin/market/mark-price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetDeepcoinMarketOpenInterestVolume($params = array()) {
+        return $this->request('deepcoin/market/open-interest-volume', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetDeepcoinMarketLongShortRatio($params = array()) {
+        return $this->request('deepcoin/market/long-short-ratio', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetDeepcoinMarketTakerVolume($params = array()) {
+        return $this->request('deepcoin/market/taker-volume', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetDeepcoinMarketStepMargin($params = array()) {
         return $this->request('deepcoin/market/step-margin', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -400,6 +520,12 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetDeepcoinAccountAllBalances($params = array()) {
+        return $this->request('deepcoin/account/all-balances', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetDeepcoinAccountBills($params = array()) {
         return $this->request('deepcoin/account/bills', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -412,6 +538,24 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetDeepcoinAccountTradeFee($params = array()) {
+        return $this->request('deepcoin/account/trade-fee', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetDeepcoinAccountLeverageInfo($params = array()) {
+        return $this->request('deepcoin/account/leverage-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetDeepcoinAccountPositionsHistory($params = array()) {
+        return $this->request('deepcoin/account/positions-history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetDeepcoinTradeFills($params = array()) {
         return $this->request('deepcoin/trade/fills', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -420,6 +564,12 @@ abstract class deepcoin extends \ccxt\Exchange {
      */
     public function privateGetDeepcoinTradeOrderByID($params = array()) {
         return $this->request('deepcoin/trade/orderByID', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetDeepcoinTradeOrder($params = array()) {
+        return $this->request('deepcoin/trade/order', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -550,6 +700,12 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetDeepcoinSubAccountSubAccountApikey($params = array()) {
+        return $this->request('deepcoin/sub-account/sub-account-apikey', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostDeepcoinAccountSetLeverage($params = array()) {
         return $this->request('deepcoin/account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -598,6 +754,12 @@ abstract class deepcoin extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostDeepcoinTradeAmendTriggerOrder($params = array()) {
+        return $this->request('deepcoin/trade/amend-trigger-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostDeepcoinTradeBatchClosePosition($params = array()) {
         return $this->request('deepcoin/trade/batch-close-position', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -612,6 +774,18 @@ abstract class deepcoin extends \ccxt\Exchange {
      */
     public function privatePostDeepcoinTradeClosePositionByIds($params = array()) {
         return $this->request('deepcoin/trade/close-position-by-ids', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostDeepcoinTradeIncreasePosition($params = array()) {
+        return $this->request('deepcoin/trade/increase-position', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostDeepcoinTradeMergePositions($params = array()) {
+        return $this->request('deepcoin/trade/merge-positions', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -642,5 +816,23 @@ abstract class deepcoin extends \ccxt\Exchange {
      */
     public function privatePostDeepcoinAssetTransfer($params = array()) {
         return $this->request('deepcoin/asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostDeepcoinSubAccountCreateSubAccount($params = array()) {
+        return $this->request('deepcoin/sub-account/create-sub-account', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostDeepcoinSubAccountSubAccountApikey($params = array()) {
+        return $this->request('deepcoin/sub-account/sub-account-apikey', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostDeepcoinSubAccountDeleteSubAccountApikey($params = array()) {
+        return $this->request('deepcoin/sub-account/delete-sub-account-apikey', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
 }

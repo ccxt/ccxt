@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official kucoinfutures API documentation:** [docs.kucoin.com](https://docs.kucoin.com)
 
-> 351 implicit endpoints across 9 access groups.
+> 360 implicit endpoints across 9 access groups.
 
 ## public
 
@@ -83,6 +83,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetMarginConfig` | GET | `margin/config` | 25 |
 | `publicGetAnnouncements` | GET | `announcements` | 20 |
 | `publicGetMarginCollateralRatio` | GET | `margin/collateralRatio` | 10 |
+| `publicGetMarginAvailableInventory` | GET | `margin/available-inventory` | 10 |
 | `publicGetConvertSymbol` | GET | `convert/symbol` | 5 |
 | `publicGetConvertCurrencies` | GET | `convert/currencies` | 5 |
 | `publicPostBulletPublic` | POST | `bullet-public` | 10 |
@@ -164,6 +165,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetMarginBorrow` | GET | `margin/borrow` | 15 |
 | `privateGetMarginRepay` | GET | `margin/repay` | 15 |
 | `privateGetMarginInterest` | GET | `margin/interest` | 20 |
+| `privateGetMarginBorrowRate` | GET | `margin/borrowRate` | 20 |
 | `privateGetProjectList` | GET | `project/list` | 10 |
 | `privateGetProjectMarketInterestRate` | GET | `project/marketInterestRate` | 5 |
 | `privateGetRedeemOrders` | GET | `redeem/orders` | 10 |
@@ -180,6 +182,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetConvertLimitOrderDetail` | GET | `convert/limit/order/detail` | 5 |
 | `privateGetConvertLimitOrders` | GET | `convert/limit/orders` | 5 |
 | `privateGetAffiliateInviterStatistics` | GET | `affiliate/inviter/statistics` | 30 |
+| `privateGetAffiliateQueryInvitees` | GET | `affiliate/queryInvitees` | 30 |
+| `privateGetAffiliateQueryMyCommission` | GET | `affiliate/queryMyCommission` | 30 |
+| `privateGetAffiliateQueryTransactionByUid` | GET | `affiliate/queryTransactionByUid` | 30 |
+| `privateGetAffiliateQueryTransactionByTime` | GET | `affiliate/queryTransactionByTime` | 30 |
+| `privateGetAffiliateQueryKumining` | GET | `affiliate/queryKumining` | 30 |
 | `privatePostSubUserCreated` | POST | `sub/user/created` | 15 |
 | `privatePostSubApiKey` | POST | `sub/api-key` | 20 |
 | `privatePostSubApiKeyUpdate` | POST | `sub/api-key/update` | 30 |
@@ -372,6 +379,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `brokerGetBrokerNdAccount` | GET | `broker/nd/account` | 4 |
 | `brokerGetBrokerNdAccountApikey` | GET | `broker/nd/account/apikey` | 4 |
 | `brokerGetBrokerNdRebaseDownload` | GET | `broker/nd/rebase/download` | 4 |
+| `brokerGetBrokerNdMarkUp` | GET | `broker/nd/mark-up` | 4 |
 | `brokerGetAssetNdbrokerDepositList` | GET | `asset/ndbroker/deposit/list` | 2 |
 | `brokerGetBrokerNdTransferDetail` | GET | `broker/nd/transfer/detail` | 2 |
 | `brokerGetBrokerNdDepositDetail` | GET | `broker/nd/deposit/detail` | 2 |
@@ -380,6 +388,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `brokerPostBrokerNdAccount` | POST | `broker/nd/account` | 6 |
 | `brokerPostBrokerNdAccountApikey` | POST | `broker/nd/account/apikey` | 6 |
 | `brokerPostBrokerNdAccountUpdateApikey` | POST | `broker/nd/account/update-apikey` | 6 |
+| `brokerPostBrokerNdMarkUp` | POST | `broker/nd/mark-up` | 6 |
 | `brokerDeleteBrokerNdAccountApikey` | DELETE | `broker/nd/account/apikey` | 6 |
 
 ## earn

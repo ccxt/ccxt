@@ -31,9 +31,9 @@ func TestLiquidation(exchange ccxt.ICoreExchange, skippedProperties any, method 
 	var contractSize any = exchange.SafeString(entry, "contractSize")
 	var price any = exchange.SafeString(entry, "price")
 	var baseValue any = exchange.SafeString(entry, "baseValue")
-	if IsTrue(IsTrue(contracts) && IsTrue(contractSize)) {
+	if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(contracts, nil))) && IsTrue((!IsEqual(contracts, "")))) && IsTrue((!IsEqual(contractSize, nil)))) && IsTrue((!IsEqual(contractSize, "")))) {
 		Assert(ccxt.Precise.StringEq(baseValue, ccxt.Precise.StringMul(contracts, contractSize)), Add("baseValue == contracts * contractSize", logText))
-		if IsTrue(price) {
+		if IsTrue(IsTrue((!IsEqual(price, nil))) && IsTrue((!IsEqual(price, "")))) {
 			Assert(ccxt.Precise.StringEq(baseValue, ccxt.Precise.StringMul(ccxt.Precise.StringMul(contracts, contractSize), price)), Add("quoteValue == contracts * contractSize * price", logText))
 		}
 	}

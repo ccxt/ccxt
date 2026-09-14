@@ -52,34 +52,9 @@ export default class okx extends okxRest {
             },
             'options': {
                 'watchOrderBook': {
-                    'checksum': true,
                     //
-                    // bbo-tbt
-                    // 1. Newly added channel that sends tick-by-tick Level 1 data
-                    // 2. All API users can subscribe
-                    // 3. Public depth channel, verification not required
-                    //
-                    // books-l2-tbt
-                    // 1. Only users who're VIP5 and above can subscribe
-                    // 2. Identity verification required before subscription
-                    //
-                    // books50-l2-tbt
-                    // 1. Only users who're VIP4 and above can subscribe
-                    // 2. Identity verification required before subscription
-                    //
-                    // books
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    //
-                    // books5
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-                    //
-                    // books-rpi
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    // 3. 400 depth levels, data feeds will be delivered every 100ms
+                    // channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
+                    // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
                     //
                     'depth': 'books',
                 },
@@ -89,6 +64,9 @@ export default class okx extends okxRest {
                 },
                 'watchTickers': {
                     'channel': 'tickers', // tickers, sprd-tickers, index-tickers, block-tickers
+                },
+                'watchBidsAsks': {
+                    'channel': 'bbo-tbt', // bbo-tbt (10ms L1), tickers (100ms)
                 },
                 'watchOrders': {
                     'type': 'ANY', // SPOT, MARGIN, SWAP, FUTURES, OPTION, ANY
@@ -121,7 +99,7 @@ export default class okx extends okxRest {
             throw new ArgumentsRequired (this.id + ' getUrl() requires a channel argument');
         }
         const isSandbox = this.options['sandboxMode'];
-        const sandboxSuffix = isSandbox ? '?brokerId=9999' : '';
+        const sandboxSuffix = (isSandbox === true) ? '?brokerId=9999' : '';
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
         const url = this.urls['api']['ws'];
@@ -352,7 +330,7 @@ export default class okx extends okxRest {
         const channel = this.safeString (arg, 'channel');
         const marketId = this.safeString (arg, 'instId');
         const symbol = this.safeSymbol (marketId);
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
@@ -632,7 +610,7 @@ export default class okx extends okxRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
@@ -646,10 +624,12 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchBidsAsks
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -658,7 +638,7 @@ export default class okx extends okxRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'tickers');
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'bbo-tbt');
         const url = this.getUrl (channel, 'public');
         const messageHashes: List = [];
         const args: List = [];
@@ -686,6 +666,8 @@ export default class okx extends okxRest {
 
     handleBidAsk (client: Client, message: any) {
         //
+        // tickers
+        //
         //     {
         //         "arg": { channel: "tickers", instId: "BTC-USDT" },
         //         "data": [
@@ -710,9 +692,25 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg": { "channel": "bbo-tbt", "instId": "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "asks": [ [ "36232.2", "1.8826134", "0", "17" ] ],
+        //                 "bids": [ [ "36232.1", "0.00572212", "0", "2" ] ],
+        //                 "ts": "1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
+        const arg = this.safeDict (message, 'arg', {});
+        const marketId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (marketId);
         const data = this.safeList (message, 'data', []);
         const ticker = this.safeDict (data, 0, {});
-        const parsedTicker = this.parseWsBidAsk (ticker);
+        const parsedTicker = this.parseWsBidAsk (ticker, market);
         const symbol = parsedTicker['symbol'];
         if (symbol !== undefined) {
             this.bidsasks[symbol] = parsedTicker;
@@ -726,14 +724,30 @@ export default class okx extends okxRest {
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (ticker, 'ts');
+        let ask = this.safeString (ticker, 'askPx');
+        let askVolume = this.safeString (ticker, 'askSz');
+        let bid = this.safeString (ticker, 'bidPx');
+        let bidVolume = this.safeString (ticker, 'bidSz');
+        if (ask === undefined) {
+            const asks = this.safeList (ticker, 'asks', []);
+            const firstAsk = this.safeList (asks, 0, []);
+            ask = this.safeString (firstAsk, 0);
+            askVolume = this.safeString (firstAsk, 1);
+        }
+        if (bid === undefined) {
+            const bids = this.safeList (ticker, 'bids', []);
+            const firstBid = this.safeList (bids, 0, []);
+            bid = this.safeString (firstBid, 0);
+            bidVolume = this.safeString (firstBid, 1);
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'ask': this.safeString (ticker, 'askPx'),
-            'askVolume': this.safeString (ticker, 'askSz'),
-            'bid': this.safeString (ticker, 'bidPx'),
-            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'ask': ask,
+            'askVolume': askVolume,
+            'bid': bid,
+            'bidVolume': bidVolume,
             'info': ticker,
         }, market);
     }
@@ -766,7 +780,7 @@ export default class okx extends okxRest {
         }
         const market = this.getMarketFromSymbols (symbols);
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchliquidationsForSymbols', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', market, params);
         const channel = 'liquidation-orders';
         if (type === 'spot') {
             type = 'SWAP';
@@ -855,7 +869,8 @@ export default class okx extends okxRest {
         }
         const isTrigger = this.safeValue2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
+        const accessType = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate ({ 'access': accessType });
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const messageHash = 'myLiquidations';
         const messageHashes: List = [];
@@ -1177,7 +1192,7 @@ export default class okx extends okxRest {
         if (channel === undefined) {
             return;
         }
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1219,32 +1234,8 @@ export default class okx extends okxRest {
      */
     override watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         //
-        // bbo-tbt
-        // 1. Newly added channel that sends tick-by-tick Level 1 data
-        // 2. All API users can subscribe
-        // 3. Public depth channel, verification not required
-        //
-        // books-l2-tbt
-        // 1. Only users who're VIP5 and above can subscribe
-        // 2. Identity verification required before subscription
-        //
-        // books50-l2-tbt
-        // 1. Only users who're VIP4 and above can subscribe
-        // 2. Identity verification required before subscription
-        //
-        // books
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        //
-        // books5
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-        //
-        // books-rpi
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        // 3. 400 depth levels, data feeds will be delivered every 100ms
+        // channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
+        // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
         //
         return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
@@ -1563,17 +1554,25 @@ export default class okx extends okxRest {
                 }
             }
         } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
-            if (!(symbol in this.orderbooks)) {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
+            // shared order-book cache when watchOrderBook subscribed to this
+            // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
+            if (messageHash in client.subscriptions) {
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook ({}, limit);
+                }
+                const orderbook = this.orderbooks[symbol];
+                for (let i = 0; i < data.length; i++) {
+                    const update = data[i];
+                    const timestamp = this.safeInteger (update, 'ts');
+                    const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1);
+                    orderbook.reset (snapshot);
+                    client.resolve (orderbook, messageHash);
+                }
             }
-            const orderbook = this.orderbooks[symbol];
-            for (let i = 0; i < data.length; i++) {
-                const update = data[i];
-                const timestamp = this.safeInteger (update, 'ts');
-                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1);
-                orderbook.reset (snapshot);
-                client.resolve (orderbook, messageHash);
-            }
+        }
+        if (channel === 'bbo-tbt') {
+            this.handleBidAsk (client, message);
         }
         return message;
     }
@@ -1780,8 +1779,9 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
-        const channel = isTrigger ? 'orders-algo' : 'orders';
+        const access = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate ({ 'access': access });
+        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1929,7 +1929,7 @@ export default class okx extends okxRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel', '');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1978,7 +1978,8 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
+        const accessType = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate ({ 'access': accessType });
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2002,7 +2003,7 @@ export default class okx extends okxRest {
         const request: Dict = {
             'instType': uppercaseType,
         };
-        const channel = isTrigger ? 'orders-algo' : 'orders';
+        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.subscribe ('private', channel, channel, symbol, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -2068,7 +2069,7 @@ export default class okx extends okxRest {
         this.handleMyTrades (client, message);
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
-        const orders = this.safeValue (message, 'data', []);
+        const orders = this.safeList (message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -2151,7 +2152,7 @@ export default class okx extends okxRest {
         //
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
-        const rawOrders = this.safeValue (message, 'data', []);
+        const rawOrders = this.safeList (message, 'data', []);
         const filteredOrders: List = [];
         // filter orders with no last trade id
         for (let i = 0; i < rawOrders.length; i++) {
@@ -2489,7 +2490,7 @@ export default class okx extends okxRest {
         //
         let errorCode = this.safeString (message, 'code');
         try {
-            if (errorCode && errorCode !== '0') {
+            if ((errorCode !== undefined && errorCode !== '') && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json (message);
                 if (errorCode !== '1') {
                     this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
@@ -2537,7 +2538,7 @@ export default class okx extends okxRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         //

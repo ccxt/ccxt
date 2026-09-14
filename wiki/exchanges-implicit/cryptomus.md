@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official cryptomus API documentation:** [doc.cryptomus.com](https://doc.cryptomus.com/personal)
 
-> 16 implicit endpoints across 2 access groups.
+> 31 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -65,6 +65,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `publicGetV2UserApiExchangeMarkets` | GET | `v2/user-api/exchange/markets` | 1 |
 | `publicGetV2UserApiExchangeMarketPrice` | GET | `v2/user-api/exchange/market/price` | 1 |
+| `publicGetV2UserApiExchangeMarketsPrice` | GET | `v2/user-api/exchange/markets/price` | 1 |
 | `publicGetV1ExchangeMarketAssets` | GET | `v1/exchange/market/assets` | 1 |
 | `publicGetV1ExchangeMarketOrderBookCurrencyPair` | GET | `v1/exchange/market/order-book/{currencyPair}` | 1 |
 | `publicGetV1ExchangeMarketTickers` | GET | `v1/exchange/market/tickers` | 1 |
@@ -83,7 +84,21 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV2UserApiPaymentServices` | GET | `v2/user-api/payment/services` | 1 |
 | `privateGetV2UserApiPayoutServices` | GET | `v2/user-api/payout/services` | 1 |
 | `privateGetV2UserApiTransactionList` | GET | `v2/user-api/transaction/list` | 1 |
+| `privateGetV2UserApiBalance` | GET | `v2/user-api/balance` | 1 |
+| `privateGetV2UserApiConvertDirectionList` | GET | `v2/user-api/convert/direction-list` | 1 |
+| `privateGetV2UserApiConvertOrderList` | GET | `v2/user-api/convert/order-list` | 1 |
+| `privateGetV2UserApiAmlCheckBalance` | GET | `v2/user-api/aml/check/balance` | 1 |
+| `privateGetV2UserApiAmlCheckCurrencies` | GET | `v2/user-api/aml/check/currencies` | 1 |
+| `privateGetV2UserApiAmlCheckPackages` | GET | `v2/user-api/aml/check/packages` | 1 |
+| `privateGetV2UserApiAmlCheckRequest` | GET | `v2/user-api/aml/check/request` | 1 |
+| `privateGetV2UserApiAmlCheckRequestId` | GET | `v2/user-api/aml/check/request/{id}` | 1 |
 | `privatePostV2UserApiExchangeOrders` | POST | `v2/user-api/exchange/orders` | 1 |
 | `privatePostV2UserApiExchangeOrdersMarket` | POST | `v2/user-api/exchange/orders/market` | 1 |
+| `privatePostV2UserApiConvert` | POST | `v2/user-api/convert` | 1 |
+| `privatePostV2UserApiConvertCalculate` | POST | `v2/user-api/convert/calculate` | 1 |
+| `privatePostV2UserApiConvertLimit` | POST | `v2/user-api/convert/limit` | 1 |
+| `privatePostV2UserApiAmlCheckRequest` | POST | `v2/user-api/aml/check/request` | 1 |
+| `privatePostV2UserApiAmlCheckRequestIdReportSend` | POST | `v2/user-api/aml/check/request/{id}/report/send` | 1 |
 | `privateDeleteV2UserApiExchangeOrdersOrderId` | DELETE | `v2/user-api/exchange/orders/{orderId}` | 1 |
+| `privateDeleteV2UserApiConvertOrderUuid` | DELETE | `v2/user-api/convert/{orderUuid}` | 1 |
 

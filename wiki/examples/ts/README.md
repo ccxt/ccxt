@@ -116,6 +116,8 @@
 
 - [Exchanges](./examples/ts/exchanges.md)
 
+- [Extended Builder](./examples/ts/extended-builder.md)
+
 - [Fetch All Balances](./examples/ts/fetch-all-balances.md)
 
 - [Fetch All Tickers To Files 2](./examples/ts/fetch-all-tickers-to-files-2.md)
@@ -165,6 +167,8 @@
 - [Gate Watch Order Book](./examples/ts/gate-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/ts/graceful-shutdown.md)
+
+- [Grvt Builder](./examples/ts/grvt-builder.md)
 
 - [Hibachi Example](./examples/ts/hibachi-example.md)
 

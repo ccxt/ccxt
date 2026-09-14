@@ -27,6 +27,8 @@ func HelperDefaultInputDict() any {
 		"floatNumeric": 0.123,
 		"floatString":  "0.123",
 		"longInt":      123456789012345,
+		"tiny":         0.5,
+		"largeInt":     1000000000000000,
 	}
 }
 func TestSafeString() {
@@ -239,7 +241,7 @@ func TestSafeInteger() {
 	// safeInteger
 	var inputDict any = HelperDefaultInputDict()
 	var inputList []any = []any{"Hi", 2}
-	var factor any = 10
+	var factor int = 10
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "i"), 1))
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "f"), 0))
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "strNumber"), 3))
@@ -266,16 +268,24 @@ func TestSafeInteger() {
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputList, 1, factor), 20))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "longInt", 0.000001), 123456789))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "inexistent", 0.000001, 123456789), 123456789))
+	// regression: 0.5 * 0.000001 is 5e-7, the product is rendered in exponential notation and the old parseInt-based truncation returned 5 instead of 0
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "tiny", 0.000001), 0))
+	// a product of 1e18 stays within fixed notation (no exponential form) and fits signed int64 range in non-JS target languages
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "largeInt", 1000), 1000000000000000000))
 	// safeIntegerProduct2
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "i", factor), 10))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "f", factor), 1)) // NB the result is 1
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "strNumber", factor), 30))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputList, 2, 1, factor), 20))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "tiny", 0.000001), 0))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "largeInt", 1000), 1000000000000000000))
 	// safeIntegerProductN
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputDict, []any{"a", "b", "i"}, factor), 10))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputDict, []any{"a", "b", "f"}, factor), 1)) // NB the result is 1
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputDict, []any{"a", "b", "strNumber"}, factor), 30))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputList, []any{3, 2, 1}, factor), 20))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputDict, []any{"a", "b", "tiny"}, 0.000001), 0))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputDict, []any{"a", "b", "largeInt"}, 1000), 1000000000000000000))
 }
 func TestSafeTimestamp() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -290,16 +300,20 @@ func TestSafeTimestamp() {
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputDict, "f"), 123))
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputDict, "strNumber"), 3000))
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputList, 1), 2000))
+	// 1e15 seconds multiplied by 1000 is 1e18 ms, the largest timestamp product every language represents exactly
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputDict, "largeInt"), 1000000000000000000))
 	// safeTimestamp2
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputDict, "a", "i"), 1000))
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputDict, "a", "f"), 123))
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputDict, "a", "strNumber"), 3000))
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputList, 2, 1), 2000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputDict, "a", "largeInt"), 1000000000000000000))
 	// safeTimestampN
 	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputDict, []any{"a", "b", "i"}), 1000))
 	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputDict, []any{"a", "b", "f"}), 123))
 	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputDict, []any{"a", "b", "strNumber"}), 3000))
 	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputList, []any{3, 2, 1}), 2000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputDict, []any{"a", "b", "largeInt"}), 1000000000000000000))
 }
 func TestSafeFloat() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -333,6 +347,28 @@ func TestSafeFloat() {
 	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "strNumber"}), ccxt.ParseFloat(3)))
 	// @ts-expect-error
 	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []any{3, 2, 1}), ccxt.ParseFloat(2)))
+	// safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "nonexistent"), nil), "safeFloat failed for missing key")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "emptyString"), nil), "safeFloat failed for empty string")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "str"), nil), "safeFloat failed for non-numeric string")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "undefined"), nil), "safeFloat failed for None value")
+	assert(ccxt.IsEqual(exchange.SafeFloat(nil, "i"), nil), "safeFloat failed for undefined container")
+	assert(ccxt.IsEqual(exchange.SafeFloat(nil, "i", 7), 7), "safeFloat failed for undefined container with default")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputList, 5), nil), "safeFloat failed for out-of-range list index")
+	// safeFloat2 - negative paths
+	assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "nonexistent", "nonexistent2"), nil), "safeFloat2 failed for missing keys")
+	assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "nonexistent", "str"), nil), "safeFloat2 failed for missing then non-numeric")
+	assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "nonexistent", "emptyString"), nil), "safeFloat2 failed for missing then empty string")
+	assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "nonexistent", "nonexistent2", 9), 9), "safeFloat2 failed for missing keys with default")
+	assert(ccxt.IsEqual(exchange.SafeFloat2(nil, "i", "f"), nil), "safeFloat2 failed for undefined container")
+	// safeFloatN - negative paths
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "nonexistent"}), nil), "safeFloatN failed for missing keys")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "emptyString"}), nil), "safeFloatN failed for empty string")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "str"}), nil), "safeFloatN failed for non-numeric string")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "nonexistent"}, 11), 11), "safeFloatN failed for missing keys with default")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(nil, []any{"a", "b", "i"}), nil), "safeFloatN failed for undefined container")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []any{5, 6}), nil), "safeFloatN failed for out-of-range list indices")
 }
 func TestSafeNumber() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)

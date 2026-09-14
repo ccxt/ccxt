@@ -6,7 +6,7 @@ import Exchange from './abstract/htx.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -412,6 +412,12 @@ export default class htx extends Exchange {
                             'v2/etp/transactions': { 'cost': 5 } as Endpoint<Dict>,
                             'v2/etp/transaction': { 'cost': 5 } as Endpoint<Dict>,
                             'v2/etp/limit': { 'cost': 1 } as Endpoint<Dict>,
+                            // Referral
+                            'v2/invitee/rebate/referrals': { 'cost': 10 } as Endpoint<Dict>, // 1 request per second
+                            'v2/invitee/rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/invitee/rebate/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/invitee/rebate/all_rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/invitee/rebate/batcher_rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             // Account
@@ -462,6 +468,8 @@ export default class htx extends Exchange {
                             'v2/etp/redemption': { 'cost': 5 } as Endpoint<Dict>,
                             'v2/etp/{transactId}/cancel': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/etp/batch-cancel': { 'cost': 50 } as Endpoint<Dict>,
+                            // Universal Transfer
+                            'v5/account/universal_transfer': { 'cost': 4 } as Endpoint<Dict>, // 5 requests per 2 seconds
                         },
                     },
                 },
@@ -601,6 +609,13 @@ export default class htx extends Exchange {
                             'v5/algo/order/opens': { 'cost': 0.41679 } as Endpoint<Dict>,
                             'v5/algo/order': { 'cost': 0.41679 } as Endpoint<Dict>,
                             'v5/algo/order/history': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/instruments': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/statistics': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/profit-sharing-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/profit-sharing-history-summary': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/unrealized-profit-sharing-summary': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/followers': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
                             // Future Account Interface
@@ -735,6 +750,12 @@ export default class htx extends Exchange {
                             'v5/account/fee_deduction_currency': { 'cost': 0.20834 } as Endpoint<Dict>,
                             'v5/algo/order': { 'cost': 0.41679 } as Endpoint<Dict>,
                             'v5/algo/cancel_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/follower': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/transfer': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/follower-settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/config': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/apikey': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1523,7 +1544,7 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         let types: NullableDict = undefined;
@@ -1533,7 +1554,7 @@ export default class htx extends Exchange {
         const keys = Object.keys (types);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.safeBool (types, key)) {
+            if (this.safeBool (types, key) === true) {
                 if (key === 'spot') {
                     promises.push (this.fetchMarketsByTypeAndSubType ('spot', undefined, params));
                 } else if (key === 'linear') {
@@ -1565,7 +1586,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarketsByTypeAndSubType (type: Str, subType: Str, params = {}) {
+    async fetchMarketsByTypeAndSubType (type: Str, subType: Str, params = {}): Promise<Market[]> {
         const isSpot = (type === 'spot');
         const request: Dict = {};
         let response = undefined;
@@ -1745,9 +1766,9 @@ export default class htx extends Exchange {
             let symbol = base + '/' + quote;
             let expiry: Int = undefined;
             if (contract) {
-                if (inverse) {
+                if (inverse === true) {
                     symbol += ':' + base;
-                } else if (linear) {
+                } else if (linear === true) {
                     symbol += ':' + quote;
                 }
                 if (future) {
@@ -1760,9 +1781,9 @@ export default class htx extends Exchange {
             const maxAmount = this.safeNumber (market, 'max-order-amt');
             let minAmount = this.safeNumber (market, 'min-order-amt');
             if (contract) {
-                if (linear) {
+                if (linear === true) {
                     minAmount = contractSize;
-                } else if (inverse) {
+                } else if (inverse === true) {
                     minCost = contractSize;
                 }
             }
@@ -1894,7 +1915,7 @@ export default class htx extends Exchange {
             const contractType = this.safeString (info, 'contract_type');
             const contractSuffix = this.safeValue (futuresCharsMaps, contractType);
             // see comment on formats a bit above
-            const constructedId = market['linear'] ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
+            const constructedId = (market['linear'] === true) ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
             if (constructedId === symbolOrMarketId) {
                 const symbol = market['symbol'];
                 this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbol;
@@ -2025,14 +2046,14 @@ export default class htx extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             request['contract_code'] = market['id'];
             response = await this.contractPublicGetLinearSwapExMarketDetailMerged (this.extend (request, params));
-        } else if (market['inverse']) {
-            if (market['future']) {
+        } else if (market['inverse'] === true) {
+            if (market['future'] === true) {
                 request['symbol'] = market['id'];
                 response = await this.contractPublicGetMarketDetailMerged (this.extend (request, params));
-            } else if (market['swap']) {
+            } else if (market['swap'] === true) {
                 request['contract_code'] = market['id'];
                 response = await this.contractPublicGetSwapExMarketDetailMerged (this.extend (request, params));
             }
@@ -2357,14 +2378,14 @@ export default class htx extends Exchange {
             // 'contract_code': market['id'], // swap
         };
         let response = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             request['contract_code'] = market['id'];
             response = await this.contractPublicGetLinearSwapExMarketDepth (this.extend (request, params));
-        } else if (market['inverse']) {
-            if (market['future']) {
+        } else if (market['inverse'] === true) {
+            if (market['future'] === true) {
                 request['symbol'] = market['id'];
                 response = await this.contractPublicGetMarketDepth (this.extend (request, params));
-            } else if (market['swap']) {
+            } else if (market['swap'] === true) {
                 request['contract_code'] = market['id'];
                 response = await this.contractPublicGetSwapExMarketDepth (this.extend (request, params));
             }
@@ -2414,7 +2435,7 @@ export default class htx extends Exchange {
             throw new NullResponse (this.id + ' fetchOrderBook() returned empty response');
         }
         if ('tick' in response) {
-            if (!response['tick']) {
+            if ((response['tick'] === undefined) || (response['tick'] === null)) {
                 throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
             const tick = this.safeValue (response, 'tick');
@@ -2636,7 +2657,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchSpotOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2719,13 +2740,13 @@ export default class htx extends Exchange {
                 request['start_time'] = since;
             }
             [ request, params ] = this.handleUntilOption ('end_time', request, params);
-            if (this.safeBool (market, 'linear')) {
+            if (this.safeBool (market, 'linear') === true) {
                 request['contract_code'] = this.safeString (market, 'id');
                 if (limit !== undefined) {
                     request['limit'] = limit; // default 100, max 500
                 }
                 response = await this.contractPrivateGetV5TradeOrderDetails (this.extend (request, params));
-            } else if (this.safeBool (market, 'inverse')) {
+            } else if (this.safeBool (market, 'inverse') === true) {
                 if (limit !== undefined) {
                     request['page_size'] = limit; // default 100, max 500
                 }
@@ -2874,19 +2895,19 @@ export default class htx extends Exchange {
             request['size'] = Math.min (limit, 2000); // max 2000
         }
         let response = undefined;
-        if (market['future']) {
-            if (market['inverse']) {
+        if (market['future'] === true) {
+            if (market['inverse'] === true) {
                 request['symbol'] = market['id'];
                 response = await this.contractPublicGetMarketHistoryTrade (this.extend (request, params));
-            } else if (market['linear']) {
+            } else if (market['linear'] === true) {
                 request['contract_code'] = market['id'];
                 response = await this.contractPublicGetLinearSwapExMarketHistoryTrade (this.extend (request, params));
             }
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             request['contract_code'] = market['id'];
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 response = await this.contractPublicGetSwapExMarketHistoryTrade (this.extend (request, params));
-            } else if (market['linear']) {
+            } else if (market['linear'] === true) {
                 response = await this.contractPublicGetLinearSwapExMarketHistoryTrade (this.extend (request, params));
             }
         } else {
@@ -2917,10 +2938,10 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         let result: List = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue (data[i], 'data', []);
+            const trades = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade (trades[j], market);
                 result.push (trade);
@@ -2993,7 +3014,7 @@ export default class htx extends Exchange {
         let until: Int = undefined;
         [ until, params ] = this.handleParamInteger (params, 'until');
         const untilSeconds = (until !== undefined) ? this.parseToInt (until / 1000) : undefined;
-        if (market['contract']) {
+        if (market['contract'] === true) {
             if (limit !== undefined) {
                 request['size'] = Math.min (limit, 2000); // when using limit: from & to are ignored
                 // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
@@ -3016,8 +3037,8 @@ export default class htx extends Exchange {
             }
         }
         let response = undefined;
-        if (market['future']) {
-            if (market['inverse']) {
+        if (market['future'] === true) {
+            if (market['inverse'] === true) {
                 request['symbol'] = market['id'];
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryMarkPriceKline (this.extend (request, params));
@@ -3028,7 +3049,7 @@ export default class htx extends Exchange {
                 } else {
                     response = await this.contractPublicGetMarketHistoryKline (this.extend (request, params));
                 }
-            } else if (market['linear']) {
+            } else if (market['linear'] === true) {
                 request['contract_code'] = market['id'];
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, params));
@@ -3040,9 +3061,9 @@ export default class htx extends Exchange {
                     response = await this.contractPublicGetLinearSwapExMarketHistoryKline (this.extend (request, params));
                 }
             }
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             request['contract_code'] = market['id'];
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistorySwapMarkPriceKline (this.extend (request, params));
                 } else if (priceType === 'index') {
@@ -3052,7 +3073,7 @@ export default class htx extends Exchange {
                 } else {
                     response = await this.contractPublicGetSwapExMarketHistoryKline (this.extend (request, params));
                 }
-            } else if (market['linear']) {
+            } else if (market['linear'] === true) {
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, params));
                 } else if (priceType === 'index') {
@@ -3159,9 +3180,9 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    async fetchAccountIdByType (type: string, marginMode: Str = undefined, symbol: Str = undefined, params = {}) {
+    async fetchAccountIdByType (type: string, marginMode: Str = undefined, symbol: Str = undefined, params = {}): Promise<Str> {
         const accounts = await this.loadAccounts ();
-        const accountId = this.safeValue2 (params, 'accountId', 'account-id');
+        const accountId = this.safeString2 (params, 'accountId', 'account-id');
         if (accountId !== undefined) {
             return accountId;
         }
@@ -3347,7 +3368,7 @@ export default class htx extends Exchange {
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
-        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
+        const uniqueNetworkIds = this.safeDict (this.options['networkChainIdsByNames'], currencyCode, {});
         if (networkCode in uniqueNetworkIds) {
             return uniqueNetworkIds[networkCode];
         } else {
@@ -3585,7 +3606,6 @@ export default class htx extends Exchange {
             if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const entry = data[i];
-                    const symbol = this.safeSymbol (this.safeString (entry, 'symbol'));
                     const balances = this.safeValue (entry, 'list');
                     const subResult: Dict = {};
                     for (let j = 0; j < balances.length; j++) {
@@ -3596,10 +3616,15 @@ export default class htx extends Exchange {
                             subResult[code] = this.parseMarginBalanceHelper (balance, code, subResult);
                         }
                     }
-                    result[symbol] = this.safeBalance (subResult);
+                    const subCodes = Object.keys (subResult);
+                    for (let j = 0; j < subCodes.length; j++) {
+                        const subCode = subCodes[j];
+                        result = this.mergeBalanceAccount (result, subCode, subResult[subCode]);
+                    }
                 }
+                result = this.safeBalance (result);
             } else {
-                const balances = this.safeValue (data, 'list', []);
+                const balances = this.safeList (data, 'list', []);
                 for (let i = 0; i < balances.length; i++) {
                     const balance = balances[i];
                     const currencyId = this.safeString (balance, 'currency');
@@ -3687,34 +3712,34 @@ export default class htx extends Exchange {
             const stopLoss = this.safeBool (params, 'stopLoss');
             const takeProfit = this.safeBool (params, 'takeProfit');
             const trailing = this.safeBool (params, 'trailing');
-            const isAlgo = (trigger || stopLoss || takeProfit || stopLossTakeProfit || trailing);
+            const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing === true));
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
             const clientOrderId = this.safeStringN (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
             if (clientOrderId === undefined) {
-                if (isAlgo) {
+                if (isAlgo === true) {
                     request['algo_id'] = id;
                 } else {
                     request['order_id'] = id;
                 }
             } else {
-                if (isAlgo) {
+                if (isAlgo === true) {
                     request['algo_client_order_id'] = clientOrderId;
                 } else {
                     request['client_order_id'] = clientOrderId;
                 }
                 params = this.omit (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
             }
-            if (this.safeBool (market, 'linear')) {
-                if (isAlgo) {
-                    if (trigger) {
+            if (this.safeBool (market, 'linear') === true) {
+                if (isAlgo === true) {
+                    if (trigger === true) {
                         request['type'] = 'trigger';
-                    } else if (trailing) {
+                    } else if (trailing === true) {
                         request['type'] = 'trailing_stop';
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         request['type'] = 'tpsl';
-                    } else if (stopLoss) {
+                    } else if (stopLoss === true) {
                         request['type'] = 'sl';
-                    } else if (takeProfit) {
+                    } else if (takeProfit === true) {
                         request['type'] = 'tp';
                     }
                     response = await this.contractPrivateGetV5AlgoOrder (this.extend (request, params));
@@ -3729,7 +3754,7 @@ export default class htx extends Exchange {
                     request['margin_mode'] = marginMode;
                     response = await this.contractPrivateGetV5TradeOrder (this.extend (request, params));
                 }
-            } else if (this.safeBool (market, 'inverse')) {
+            } else if (this.safeBool (market, 'inverse') === true) {
                 if (marketType === 'future') {
                     request['symbol'] = this.safeString (market, 'settleId');
                     response = await this.contractPrivatePostApiV1ContractOrderInfo (this.extend (request, params));
@@ -3869,7 +3894,7 @@ export default class htx extends Exchange {
         return account;
     }
 
-    async fetchSpotOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
             if (symbol === undefined) {
@@ -3953,7 +3978,7 @@ export default class htx extends Exchange {
         return await this.fetchSpotOrdersByStates ('filled', symbol, since, limit, params);
     }
 
-    async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
         }
@@ -3968,13 +3993,13 @@ export default class htx extends Exchange {
         const stopLoss = this.safeBool (params, 'stopLoss');
         const takeProfit = this.safeBool (params, 'takeProfit');
         const trailing = this.safeBool (params, 'trailing', false);
-        const isAlgo = (trigger || stopLoss || takeProfit || stopLossTakeProfit || trailing);
+        const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing === true));
         params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
         if (since !== undefined) {
             request['start_time'] = since;
         }
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
-        if (market['linear']) {
+        if (market['linear'] === true) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -3983,16 +4008,16 @@ export default class htx extends Exchange {
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             request['margin_mode'] = marginMode;
             request['contract_code'] = market['id'];
-            if (isAlgo) {
-                if (trigger) {
+            if (isAlgo === true) {
+                if (trigger === true) {
                     request['type'] = 'trigger';
-                } else if (trailing) {
+                } else if (trailing === true) {
                     request['type'] = 'trailing_stop';
-                } else if (stopLossTakeProfit) {
+                } else if (stopLossTakeProfit === true) {
                     request['type'] = 'tpsl';
-                } else if (stopLoss) {
+                } else if (stopLoss === true) {
                     request['type'] = 'sl';
-                } else if (takeProfit) {
+                } else if (takeProfit === true) {
                     request['type'] = 'tp';
                 }
                 response = await this.contractPrivateGetV5AlgoOrderHistory (this.extend (request, params));
@@ -4073,28 +4098,28 @@ export default class htx extends Exchange {
                 //     }
                 //
             }
-        } else if (market['inverse']) {
+        } else if (market['inverse'] === true) {
             request['contract'] = market['id'];
             request['type'] = 1; // 1:All Orders,2:Order in Finished Status
             request['trade_type'] = 0; // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
             request['status'] = '0'; // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
-            if (market['swap']) {
-                if (trigger) {
+            if (market['swap'] === true) {
+                if (trigger === true) {
                     response = await this.contractPrivatePostSwapApiV1SwapTriggerHisorders (this.extend (request, params));
-                } else if (stopLossTakeProfit) {
+                } else if (stopLossTakeProfit === true) {
                     response = await this.contractPrivatePostSwapApiV1SwapTpslHisorders (this.extend (request, params));
-                } else if (trailing) {
+                } else if (trailing === true) {
                     response = await this.contractPrivatePostSwapApiV1SwapTrackHisorders (this.extend (request, params));
                 } else {
                     response = await this.contractPrivatePostSwapApiV3SwapHisorders (this.extend (request, params));
                 }
-            } else if (market['future']) {
+            } else if (market['future'] === true) {
                 request['symbol'] = market['settleId'];
-                if (trigger) {
+                if (trigger === true) {
                     response = await this.contractPrivatePostApiV1ContractTriggerHisorders (this.extend (request, params));
-                } else if (stopLossTakeProfit) {
+                } else if (stopLossTakeProfit === true) {
                     response = await this.contractPrivatePostApiV1ContractTpslHisorders (this.extend (request, params));
-                } else if (trailing) {
+                } else if (trailing === true) {
                     response = await this.contractPrivatePostApiV1ContractTrackHisorders (this.extend (request, params));
                 } else {
                     response = await this.contractPrivatePostApiV3ContractHisorders (this.extend (request, params));
@@ -4117,14 +4142,14 @@ export default class htx extends Exchange {
         }
         const request: Dict = {};
         const market = this.market (symbol);
-        if (market['linear']) {
+        if (market['linear'] === true) {
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const stopLoss = this.safeBool (params, 'stopLoss');
             const takeProfit = this.safeBool (params, 'takeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
-            const isAlgo = (trigger || stopLoss || takeProfit || stopLossTakeProfit || trailing);
-            if (isAlgo) {
+            const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing === true));
+            if (isAlgo === true) {
                 request['states'] = 'effective';
             } else {
                 request['states'] = 'filled';
@@ -4218,14 +4243,14 @@ export default class htx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument for ' + marketType + ' orders');
             }
             const request: Dict = {};
-            if (this.safeBool (market, 'linear')) {
+            if (this.safeBool (market, 'linear') === true) {
                 const trigger = this.safeBool2 (params, 'stop', 'trigger');
                 const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
                 const stopLoss = this.safeBool (params, 'stopLoss');
                 const takeProfit = this.safeBool (params, 'takeProfit');
                 const trailing = this.safeBool (params, 'trailing', false);
-                const isAlgo = (trigger || stopLoss || takeProfit || stopLossTakeProfit || trailing);
-                if (isAlgo) {
+                const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing === true));
+                if (isAlgo === true) {
                     request['states'] = 'canceled';
                 } else {
                     request['states'] = 'partially_canceled,canceled';
@@ -4354,16 +4379,16 @@ export default class htx extends Exchange {
             const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
             if (isLinear) {
-                if (trigger || trailing || stopLossTakeProfit || stopLoss || takeProfit) {
-                    if (trigger) {
+                if ((trigger === true) || (trailing === true) || (stopLossTakeProfit === true) || (stopLoss === true) || (takeProfit === true)) {
+                    if (trigger === true) {
                         request['type'] = 'trigger';
-                    } else if (trailing) {
+                    } else if (trailing === true) {
                         request['type'] = 'trailing_stop';
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         request['type'] = 'tpsl';
-                    } else if (stopLoss) {
+                    } else if (stopLoss === true) {
                         request['type'] = 'sl';
-                    } else if (takeProfit) {
+                    } else if (takeProfit === true) {
                         request['type'] = 'tp';
                     }
                     response = await this.contractPrivateGetV5AlgoOrderOpens (this.extend (request, params));
@@ -4372,22 +4397,22 @@ export default class htx extends Exchange {
                 }
             } else if (subType === 'inverse') {
                 if (marketType === 'swap') {
-                    if (trigger) {
+                    if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOpenorders (this.extend (request, params));
-                    } else if (trailing) {
+                    } else if (trailing === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackOpenorders (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapOpenorders (this.extend (request, params));
                     }
                 } else if (marketType === 'future') {
                     request['symbol'] = this.safeString (market, 'settleId', 'usdt');
-                    if (trigger) {
+                    if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         response = await this.contractPrivatePostApiV1ContractTpslOpenorders (this.extend (request, params));
-                    } else if (trailing) {
+                    } else if (trailing === true) {
                         response = await this.contractPrivatePostApiV1ContractTrackOpenorders (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostApiV1ContractOpenorders (this.extend (request, params));
@@ -4903,9 +4928,9 @@ export default class htx extends Exchange {
         const id = this.safeStringN (order, [ 'algo_id', 'id', 'order_id_str', 'order-id', 'order_id' ]);
         let side = this.safeString2 (order, 'direction', 'side');
         const contractCode = this.safeString (order, 'contract_code');
-        const isLinearOrder = (contractCode !== undefined) && (market !== undefined) && market['linear'] && !market['spot'];
+        const isLinearOrder = (contractCode !== undefined) && (market !== undefined) && (market['linear'] === true) && (market['spot'] !== true);
         let type: Str = undefined;
-        if (isLinearOrder) {
+        if (isLinearOrder === true) {
             type = this.safeString (order, 'type');
             if ((type === undefined) || (type === 'tp') || (type === 'sl') || (type === 'tpsl')) {
                 type = this.safeString2 (order, 'tp_type', 'sl_type');
@@ -4930,7 +4955,7 @@ export default class htx extends Exchange {
         const clientOrderId = this.safeStringN (order, [ 'client_order_id', 'client-or' + 'der-id', 'algo_client_order_id' ]); // transpiler regex trick for php issue
         let cost: Str = undefined;
         let amount: Str = undefined;
-        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!isLinearOrder)) {
+        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (isLinearOrder !== true)) {
             cost = this.safeString (order, 'field-cash-amount');
         } else {
             amount = this.safeString2 (order, 'volume', 'amount');
@@ -4957,7 +4982,7 @@ export default class htx extends Exchange {
         const average = this.safeString (order, 'trade_avg_price');
         const trades = this.safeValue (order, 'trades');
         let reduceOnly: Bool = undefined;
-        if (isLinearOrder) {
+        if (isLinearOrder === true) {
             reduceOnly = this.safeBool (order, 'reduce_only');
         } else {
             const reduceOnlyInteger = this.safeInteger (order, 'reduce_only');
@@ -5008,7 +5033,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -5088,7 +5113,7 @@ export default class htx extends Exchange {
         const options = this.safeValue (this.options, market['type'], {});
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop-price' ]);
         if (triggerPrice === undefined) {
-            const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
+            const stopOrderTypes = this.safeDict (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice for a trigger order');
             }
@@ -5103,9 +5128,9 @@ export default class htx extends Exchange {
                 throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        let postOnly: NullableDict = undefined;
+        let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (orderType === 'market', orderType === 'limit-maker', params);
-        if (postOnly) {
+        if (postOnly === true) {
             orderType = 'limit-maker';
         }
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
@@ -5159,7 +5184,7 @@ export default class htx extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const limitOrderTypes = this.safeValue (options, 'limitOrderTypes', {});
+        const limitOrderTypes = this.safeDict (options, 'limitOrderTypes', {});
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -5203,9 +5228,9 @@ export default class htx extends Exchange {
             'contract_code': market['id'],
             'volume': this.amountToPrecision (symbol, amount),
         };
-        let postOnly: NullableDict = undefined;
+        let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
-        if (postOnly) {
+        if (postOnly === true) {
             type = 'post_only';
         }
         let subType: SubType = undefined;
@@ -5256,8 +5281,8 @@ export default class htx extends Exchange {
                 params = this.omit (params, 'takeProfit');
             }
         } else {
-            if (hedged) {
-                if (reduceOnly) {
+            if (hedged === true) {
+                if (reduceOnly === true) {
                     request['offset'] = 'close';
                 } else {
                     request['offset'] = 'open';
@@ -5342,7 +5367,7 @@ export default class htx extends Exchange {
             }
         }
         if (!isStopLossTriggerOrder && !isTakeProfitTriggerOrder) {
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 request['reduce_only'] = 1;
             }
             if (isLinear) {
@@ -5421,7 +5446,7 @@ export default class htx extends Exchange {
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (isTrailingPercentOrder) {
                 throw new NotSupported (this.id + ' createOrder() does not support trailing orders for spot markets');
             }
@@ -5429,18 +5454,18 @@ export default class htx extends Exchange {
             response = await this.spotPrivatePostV1OrderOrdersPlace (spotRequest);
         } else {
             const contractRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 if (isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder) {
                     response = await this.contractPrivatePostV5AlgoOrder (contractRequest);
                 } else {
                     response = await this.contractPrivatePostV5TradeOrder (contractRequest);
                 }
-            } else if (market['inverse']) {
+            } else if (market['inverse'] === true) {
                 const offset = this.safeString (params, 'offset');
                 if (offset === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder () requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
                 }
-                if (market['swap']) {
+                if (market['swap'] === true) {
                     if (isTrigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
@@ -5450,7 +5475,7 @@ export default class htx extends Exchange {
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapOrder (contractRequest);
                     }
-                } else if (market['future']) {
+                } else if (market['future'] === true) {
                     if (isTrigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
@@ -5521,7 +5546,7 @@ export default class htx extends Exchange {
         //
         let data: NullableDict = undefined;
         let result: NullableDict = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return this.safeOrder ({
                 'info': response,
                 'id': this.safeString (response, 'data'),
@@ -5542,7 +5567,7 @@ export default class htx extends Exchange {
                 'clientOrderId': undefined,
                 'average': undefined,
             }, market) as Order;
-        } else if (market['linear']) {
+        } else if (market['linear'] === true) {
             if (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                 data = this.safeList (response, 'data', []);
                 result = this.safeDict (data, 0, {});
@@ -5621,7 +5646,7 @@ export default class htx extends Exchange {
             }
             market = this.market (symbol);
             let orderRequest: NullableDict = undefined;
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 orderRequest = await this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             } else {
                 orderRequest = this.createContractOrderRequest (marketId, type, side, amount, price, orderParams);
@@ -5631,16 +5656,16 @@ export default class htx extends Exchange {
         }
         const request: Dict = {};
         let response = undefined;
-        if (this.safeBool (market, 'spot')) {
+        if (this.safeBool (market, 'spot') === true) {
             response = await this.privatePostOrderBatchOrders (ordersRequests);
         } else {
-            if (this.safeBool (market, 'linear')) {
+            if (this.safeBool (market, 'linear') === true) {
                 response = await this.contractPrivatePostV5TradeBatchOrders (ordersRequests);
-            } else if (this.safeBool (market, 'inverse')) {
+            } else if (this.safeBool (market, 'inverse') === true) {
                 request['orders_data'] = ordersRequests;
-                if (this.safeBool (market, 'swap')) {
+                if (this.safeBool (market, 'swap') === true) {
                     response = await this.contractPrivatePostSwapApiV1SwapBatchorder (request);
-                } else if (this.safeBool (market, 'future')) {
+                } else if (this.safeBool (market, 'future') === true) {
                     response = await this.contractPrivatePostApiV1ContractBatchorder (request);
                 }
             }
@@ -5710,7 +5735,7 @@ export default class htx extends Exchange {
         //
         //
         let result: NullableDict = undefined;
-        if (this.safeBool (market, 'spot')) {
+        if (this.safeBool (market, 'spot') === true) {
             result = this.safeValue (response, 'data', []);
         } else {
             const data = this.safeValue (response, 'data');
@@ -5787,7 +5812,7 @@ export default class htx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
             const clientOrderId = this.safeStringN (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
-            if (!(isLinear && (trigger || stopLossTakeProfit || trailing))) {
+            if (!(isLinear && ((trigger === true) || (stopLossTakeProfit === true) || (trailing === true)))) {
                 if (clientOrderId === undefined) {
                     request['order_id'] = id;
                 } else {
@@ -5795,13 +5820,13 @@ export default class htx extends Exchange {
                     params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
                 }
             }
-            if (this.safeBool (market, 'future')) {
+            if (this.safeBool (market, 'future') === true) {
                 request['symbol'] = this.safeString (market, 'settleId');
             } else {
                 request['contract_code'] = this.safeString (market, 'id');
             }
             if (isLinear) {
-                if (trigger || stopLossTakeProfit || trailing) {
+                if ((trigger === true) || (stopLossTakeProfit === true) || (trailing === true)) {
                     const requestItem: Dict = {
                         'contract_code': this.safeString (market, 'id'),
                     };
@@ -5817,23 +5842,23 @@ export default class htx extends Exchange {
                 } else {
                     response = await this.contractPrivatePostV5TradeCancelOrder (this.extend (request, params));
                 }
-            } else if (this.safeBool (market, 'inverse')) {
-                if (this.safeBool (market, 'swap')) {
-                    if (trigger) {
+            } else if (this.safeBool (market, 'inverse') === true) {
+                if (this.safeBool (market, 'swap') === true) {
+                    if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancel (this.extend (request, params));
-                    } else if (trailing) {
+                    } else if (trailing === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackCancel (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel (this.extend (request, params));
                     }
-                } else if (this.safeBool (market, 'future')) {
-                    if (trigger) {
+                } else if (this.safeBool (market, 'future') === true) {
+                    if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancel (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancel (this.extend (request, params));
-                    } else if (trailing) {
+                    } else if (trailing === true) {
                         response = await this.contractPrivatePostApiV1ContractTrackCancel (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostApiV1ContractCancel (this.extend (request, params));
@@ -5892,7 +5917,7 @@ export default class htx extends Exchange {
         //
         let result: NullableDict = undefined;
         if (isLinear) {
-            if (trigger || stopLossTakeProfit || trailing) {
+            if ((trigger === true) || (stopLossTakeProfit === true) || (trailing === true)) {
                 const data = this.safeList (response, 'data', []);
                 result = this.safeDict (data, 0, {});
             } else {
@@ -5971,19 +5996,19 @@ export default class htx extends Exchange {
             let clientOrderIds = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeValue2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
             params = this.omit (params, [ 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ]);
-            if (!this.safeBool (market, 'linear')) {
+            if (this.safeBool (market, 'linear') !== true) {
                 if (clientOrderIds === undefined) {
                     request['order_id'] = ids.join (',');
                 } else {
                     request['client_order_id'] = clientOrderIds;
                 }
             }
-            if (this.safeBool (market, 'future')) {
+            if (this.safeBool (market, 'future') === true) {
                 request['symbol'] = this.safeString (market, 'settleId');
             } else {
                 request['contract_code'] = this.safeString (market, 'id');
             }
-            if (this.safeBool (market, 'linear')) {
+            if (this.safeBool (market, 'linear') === true) {
                 if (clientOrderIds === undefined) {
                     request['order_id'] = ids;
                 } else {
@@ -5994,19 +6019,19 @@ export default class htx extends Exchange {
                     }
                 }
                 response = await this.contractPrivatePostV5TradeCancelBatchOrders (this.extend (request, params));
-            } else if (this.safeBool (market, 'inverse')) {
-                if (this.safeBool (market, 'swap')) {
-                    if (trigger) {
+            } else if (this.safeBool (market, 'inverse') === true) {
+                if (this.safeBool (market, 'swap') === true) {
+                    if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancel (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel (this.extend (request, params));
                     }
-                } else if (this.safeBool (market, 'future')) {
-                    if (trigger) {
+                } else if (this.safeBool (market, 'future') === true) {
+                    if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancel (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancel (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostApiV1ContractCancel (this.extend (request, params));
@@ -6089,7 +6114,7 @@ export default class htx extends Exchange {
         //         "ts": 1780822053167
         //     }
         //
-        if (this.safeBool (market, 'linear') && !trigger && !stopLossTakeProfit) {
+        if ((this.safeBool (market, 'linear') === true) && (trigger !== true) && (stopLossTakeProfit !== true)) {
             return this.parseCancelOrders (response) as Order[];
         }
         const data = this.safeDict (response, 'data');
@@ -6248,7 +6273,7 @@ export default class htx extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
             }
-            if (this.safeBool (market, 'future')) {
+            if (this.safeBool (market, 'future') === true) {
                 request['symbol'] = this.safeString (market, 'settleId');
             }
             request['contract_code'] = this.safeString (market, 'id');
@@ -6256,7 +6281,7 @@ export default class htx extends Exchange {
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
-            if (this.safeBool (market, 'linear')) {
+            if (this.safeBool (market, 'linear') === true) {
                 response = await this.contractPrivatePostV5TradeCancelAllOrders (this.extend (request, params));
                 //
                 //     {
@@ -6273,23 +6298,23 @@ export default class htx extends Exchange {
                 //         "ts": 1780899655629
                 //     }
                 //
-            } else if (this.safeBool (market, 'inverse')) {
-                if (this.safeBool (market, 'swap')) {
-                    if (trigger) {
+            } else if (this.safeBool (market, 'inverse') === true) {
+                if (this.safeBool (market, 'swap') === true) {
+                    if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancelall (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancelall (this.extend (request, params));
-                    } else if (trailing) {
+                    } else if (trailing === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackCancelall (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapCancelall (this.extend (request, params));
                     }
-                } else if (this.safeBool (market, 'future')) {
-                    if (trigger) {
+                } else if (this.safeBool (market, 'future') === true) {
+                    if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancelall (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
+                    } else if (stopLossTakeProfit === true) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancelall (this.extend (request, params));
-                    } else if (trailing) {
+                    } else if (trailing === true) {
                         response = await this.contractPrivatePostApiV1ContractTrackCancelall (this.extend (request, params));
                     } else {
                         response = await this.contractPrivatePostApiV1ContractCancelall (this.extend (request, params));
@@ -6308,7 +6333,7 @@ export default class htx extends Exchange {
             //         "ts": "1683435723755"
             //     }
             //
-            if (this.safeBool (market, 'linear') && (!trigger && !trailing && !stopLossTakeProfit)) {
+            if ((this.safeBool (market, 'linear') === true) && ((trigger !== true) && (trailing !== true) && (stopLossTakeProfit !== true))) {
                 return this.parseCancelOrders (response) as Order[];
             }
             const data = this.safeDict (response, 'data');
@@ -6385,7 +6410,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6409,7 +6434,7 @@ export default class htx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
-        return this.indexBy (parsed, 'network') as DepositAddress[];
+        return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
     /**
@@ -6432,7 +6457,7 @@ export default class htx extends Exchange {
         return this.safeValue (indexedAddresses, selectedNetworkCode);
     }
 
-    async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params = {}) {
+    async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7135,7 +7160,7 @@ export default class htx extends Exchange {
         const request: Dict = {
             'contract_code': market['id'],
         };
-        if (market['linear']) {
+        if (market['linear'] === true) {
             if (limit !== undefined) {
                 request['limit'] = Math.min (limit, 100); // max 100
             }
@@ -7150,7 +7175,7 @@ export default class htx extends Exchange {
             }
         }
         let response = undefined;
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
             //
             //     {
@@ -7174,7 +7199,7 @@ export default class htx extends Exchange {
             //         "ts": 1781254828066
             //     }
             //
-        } else if (market['linear']) {
+        } else if (market['linear'] === true) {
             response = await this.contractPublicGetV5MarketFundingRateHistory (this.extend (request, params));
             //
             //     {
@@ -7196,7 +7221,7 @@ export default class htx extends Exchange {
         }
         const data = this.safeValue (response, 'data');
         const rates: List = [];
-        if (market['linear']) {
+        if (market['linear'] === true) {
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
                 const marketId = this.safeString (entry, 'contract_code');
@@ -7212,7 +7237,7 @@ export default class htx extends Exchange {
             }
         } else {
             const cursor = this.safeValue (data, 'current_page');
-            const result = this.safeValue (data, 'data', []);
+            const result = this.safeList (data, 'data', []);
             for (let i = 0; i < result.length; i++) {
                 const entry = result[i];
                 entry['current_page'] = cursor;
@@ -7317,7 +7342,7 @@ export default class htx extends Exchange {
             'contract_code': market['id'],
         };
         let response = undefined;
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             response = await this.contractPublicGetSwapApiV1SwapFundingRate (this.extend (request, params));
             //
             //     {
@@ -7334,7 +7359,7 @@ export default class htx extends Exchange {
             //         "ts": 1781254404101
             //     }
             //
-        } else if (market['linear']) {
+        } else if (market['linear'] === true) {
             response = await this.contractPublicGetV5MarketFundingRate (this.extend (request, params));
             //
             //     {
@@ -7357,7 +7382,7 @@ export default class htx extends Exchange {
             throw new NotSupported (this.id + ' fetchFundingRate() supports inverse and linear swaps only');
         }
         let result: NullableDict = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             const data = this.safeList (response, 'data', []);
             result = this.safeDict (data, 0, {});
         } else {
@@ -7387,7 +7412,7 @@ export default class htx extends Exchange {
             const firstSymbol = this.safeString (symbols, 0);
             const market = this.market (firstSymbol);
             const isLinear = market['linear'];
-            subType = isLinear ? 'linear' : 'inverse';
+            subType = (isLinear === true) ? 'linear' : 'inverse';
         }
         const request: Dict = {
             // 'contract_code': market['id'],
@@ -7556,6 +7581,7 @@ export default class htx extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
+        const pathString: string = path;
         let url = '/';
         const isArrayParams = Array.isArray (params);
         let query: NullableDict = undefined;
@@ -7609,7 +7635,7 @@ export default class htx extends Exchange {
                     };
                 }
             } else {
-                if ((query !== undefined) && Object.keys (query).length) {
+                if ((query !== undefined) && (Object.keys (query).length > 0)) {
                     url += '?' + this.urlencode (query);
                 }
             }
@@ -7634,7 +7660,7 @@ export default class htx extends Exchange {
             hostname = hostnames;
             url += this.implodeParams (path, params);
             if (access === 'public') {
-                if ((query !== undefined) && Object.keys (query).length) {
+                if ((query !== undefined) && (Object.keys (query).length > 0)) {
                     url += '?' + this.urlencode (query);
                 }
             } else if (access === 'private') {
@@ -7643,13 +7669,13 @@ export default class htx extends Exchange {
                     const options = this.safeValue (this.options, 'broker', {});
                     const id = this.safeString (options, 'id', 'AA03022abc');
                     if (!isArrayParams) {
-                        if (path.indexOf ('cancel') === -1 && path.endsWith ('order')) {
+                        if ((pathString.indexOf ('cancel') === -1) && pathString.endsWith ('order')) {
                             // swap order placement
                             const channelCode = this.safeString (params, 'channel_code');
                             if (channelCode === undefined) {
                                 params['channel_code'] = id;
                             }
-                        } else if (path.endsWith ('orders/place')) {
+                        } else if (pathString.endsWith ('orders/place')) {
                             // spot order placement
                             const clientOrderId = this.safeString (params, 'client-order-id');
                             if (clientOrderId === undefined) {
@@ -7771,7 +7797,7 @@ export default class htx extends Exchange {
         };
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
         if (since !== undefined) {
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 request['start_time'] = since;
             } else {
                 request['start_date'] = since;
@@ -7779,7 +7805,7 @@ export default class htx extends Exchange {
         }
         let response = undefined;
         if (marketType === 'swap') {
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 let marginMode: Str = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -7864,13 +7890,13 @@ export default class htx extends Exchange {
         const request: Dict = {
             'lever_rate': leverage,
         };
-        if (marketType === 'future' && market['inverse']) {
+        if (marketType === 'future' && (market['inverse'] === true)) {
             request['symbol'] = market['settleId'];
         } else {
             request['contract_code'] = market['id'];
         }
         let response: Dict | undefined = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -8042,7 +8068,7 @@ export default class htx extends Exchange {
         const lastPrice = this.safeString (position, 'last_price');
         const faceValue = Precise.stringMul (contracts, contractSizeString);
         let notional: Str = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             notional = Precise.stringMul (faceValue, lastPrice);
         } else {
             notional = Precise.stringDiv (faceValue, lastPrice);
@@ -8230,7 +8256,7 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
@@ -8265,16 +8291,16 @@ export default class htx extends Exchange {
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         const request: Dict = {};
-        if (market['future'] && market['inverse']) {
+        if ((market['future'] === true) && (market['inverse'] === true)) {
             request['symbol'] = market['settleId'];
         } else {
-            if (!market['linear'] && (marginMode === 'cross')) {
+            if ((market['linear'] !== true) && (marginMode === 'cross')) {
                 request['margin_account'] = 'USDT'; // only allowed value
             }
             request['contract_code'] = market['id'];
         }
         let response = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             response = await this.contractPrivateGetV5TradePositionOpens (this.extend (request, query));
             //
             //     {
@@ -8388,7 +8414,7 @@ export default class htx extends Exchange {
             //
         }
         const data = this.safeValue (response, 'data');
-        if (market['linear']) {
+        if (market['linear'] === true) {
             const linearPosition = this.safeDict (data, 0, {});
             return this.parsePosition (linearPosition, market);
         }
@@ -8401,7 +8427,7 @@ export default class htx extends Exchange {
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
         let position: NullableDict = undefined;
-        if (market['future'] && market['inverse']) {
+        if ((market['future'] === true) && (market['inverse'] === true)) {
             for (let i = 0; i < positions.length; i++) {
                 const entry = positions[i];
                 if (entry['contract_code'] === market['id']) {
@@ -8673,12 +8699,12 @@ export default class htx extends Exchange {
             request['size'] = limit;
         }
         let response = undefined;
-        if (market['future']) {
+        if (market['future'] === true) {
             request['contract_type'] = this.safeString (market['info'], 'contract_type');
             request['symbol'] = market['baseId'];  // currency code on coin-m futures
             // coin-m futures
             response = await this.contractPublicGetApiV1ContractHisOpenInterest (this.extend (request, params));
-        } else if (market['linear']) {
+        } else if (market['linear'] === true) {
             request['contract_type'] = 'swap';
             request['contract_code'] = market['id'];
             request['contract_code'] = market['id'];
@@ -8845,22 +8871,22 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        if (market['option']) {
+        if (market['option'] === true) {
             throw new NotSupported (this.id + ' fetchOpenInterest() does not currently support option markets');
         }
         const request: Dict = {
             'contract_code': market['id'],
         };
         let response = undefined;
-        if (market['future']) {
+        if (market['future'] === true) {
             request['contract_type'] = this.safeString (market['info'], 'contract_type');
             request['symbol'] = market['baseId'];
             // COIN-M futures
             response = await this.contractPublicGetApiV1ContractOpenInterest (this.extend (request, params));
-        } else if (market['linear']) {
+        } else if (market['linear'] === true) {
             // USDT-M swaps
             response = await this.contractPublicGetV5MarketOpenInterest (this.extend (request, params));
         } else {
@@ -8923,14 +8949,14 @@ export default class htx extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'ts');
-        if (market['linear']) {
+        if (market['linear'] === true) {
             const result = this.safeDict (response, 'data', {});
             return this.extend (this.parseOpenInterest (result, market), {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             }) as OpenInterest;
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
         openInterest['timestamp'] = timestamp;
         openInterest['datetime'] = this.iso8601 (timestamp);
@@ -9214,13 +9240,13 @@ export default class htx extends Exchange {
         }
         const market = this.market (symbol);
         let request: Dict = {};
-        if (market['future']) {
+        if (market['future'] === true) {
             request['symbol'] = market['baseId'];
         } else {
             request['contract_code'] = market['id'];
         }
         if (limit !== undefined) {
-            if (market['linear'] && market['swap']) {
+            if ((market['linear'] === true) && (market['swap'] === true)) {
                 request['limit'] = limit;
             } else {
                 request['page_size'] = limit;
@@ -9231,8 +9257,8 @@ export default class htx extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
         let response = undefined;
-        if (market['swap']) {
-            if (market['linear']) {
+        if (market['swap'] === true) {
+            if (market['linear'] === true) {
                 response = await this.contractPublicGetV5MarketSettlementHistory (this.extend (request, params));
             } else {
                 response = await this.contractPublicGetSwapApiV1SwapSettlementRecords (this.extend (request, params));
@@ -9309,7 +9335,7 @@ export default class htx extends Exchange {
         //         "ts": 1781853150623
         //     }
         //
-        if (market['linear']) {
+        if (market['linear'] === true) {
             const dataLinear = this.safeList (response, 'data', []);
             const settlementsLinear = this.parseSettlements (dataLinear, market);
             return this.sortBy (settlementsLinear, 'timestamp');
@@ -9406,7 +9432,7 @@ export default class htx extends Exchange {
         //              "instStatus": "normal"
         //          }
         //
-        const chains = this.safeValue (fee, 'chains', []);
+        const chains = this.safeList (fee, 'chains', []);
         const code = this.safeString (currency, 'code');
         let result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
@@ -9496,7 +9522,7 @@ export default class htx extends Exchange {
         for (let i = 0; i < settlements.length; i++) {
             const settlement = settlements[i];
             const list = this.safeValue (settlement, 'list');
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 const parsedSettlement = this.parseSettlement (settlement, market);
                 result.push (parsedSettlement);
             } else if (list !== undefined) {
@@ -9584,7 +9610,7 @@ export default class htx extends Exchange {
         const market = this.market (symbol);
         const tradeType = this.safeInteger2 (params, 'trade_type', 'tradeType', 0);
         let request: Dict = {};
-        if (!market['linear']) {
+        if (market['linear'] !== true) {
             request['trade_type'] = tradeType;
         }
         params = this.omit (params, [ 'trade_type', 'tradeType' ]);
@@ -9593,8 +9619,8 @@ export default class htx extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
         let response = undefined;
-        if (market['swap']) {
-            if (market['linear']) {
+        if (market['swap'] === true) {
+            if (market['linear'] === true) {
                 request['contract_code'] = market['id'];
                 if (limit !== undefined) {
                     request['limit'] = limit;
@@ -9624,7 +9650,7 @@ export default class htx extends Exchange {
                 request['contract'] = market['id'];
                 response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders (this.extend (request, params));
             }
-        } else if (market['future']) {
+        } else if (market['future'] === true) {
             request['symbol'] = market['id'];
             response = await this.contractPublicGetApiV3ContractLiquidationOrders (this.extend (request, params));
         } else {
@@ -9729,7 +9755,7 @@ export default class htx extends Exchange {
         }
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' closePosition() symbol supports contract markets only');
         }
         const request: Dict = {
@@ -9740,7 +9766,7 @@ export default class htx extends Exchange {
             params = this.omit (params, 'clientOrderId');
         }
         let response = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
             request['margin_mode'] = marginMode;
@@ -9765,13 +9791,13 @@ export default class htx extends Exchange {
             request['volume'] = this.amountToPrecision (symbol, amount);
             request['direction'] = side;
             params = this.omit (params, [ 'volume', 'amount' ]);
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 response = await this.contractPrivatePostSwapApiV1SwapLightningClosePosition (this.extend (request, params));
             } else {  // future
                 response = await this.contractPrivatePostApiV1LightningClosePosition (this.extend (request, params));
             }
         }
-        if (market['linear']) {
+        if (market['linear'] === true) {
             const data = this.safeDict (response, 'data', {});
             return this.parseOrder (data, market);
         }
@@ -9804,7 +9830,7 @@ export default class htx extends Exchange {
         const request: Dict = {
             'position_mode': posMode,
         };
-        if ((market !== undefined) && (market['inverse'])) {
+        if ((market !== undefined) && (market['inverse'] === true)) {
             throw new BadRequest (this.id + ' setPositionMode can only be used for linear markets');
         }
         const response = await this.contractPrivatePostV5PositionMode (this.extend (request, params));

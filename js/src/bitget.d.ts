@@ -79,13 +79,15 @@ export default class bitget extends Exchange {
      * @name bitget#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+     * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Records
      * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [since] the earliest time in ms to fetch deposits for, the window between since and until must not exceed 30 days for uta accounts
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in milliseconds
-     * @param {string} [params.idLessThan] return records with id less than the provided value
+     * @param {string} [params.idLessThan] *non-uta only* return records with id less than the provided value
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -94,12 +96,14 @@ export default class bitget extends Exchange {
      * @name bitget#withdraw
      * @description make a withdrawal
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+     * @see https://www.bitget.com/api-doc/uta/account/withdrawal/
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
@@ -108,25 +112,30 @@ export default class bitget extends Exchange {
      * @name bitget#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+     * @see https://www.bitget.com/api-doc/uta/account/withdrawal/Get-Withdrawal-Records
      * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for, the window between since and until must not exceed 30 days for uta accounts
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in milliseconds
-     * @param {string} [params.idLessThan] return records with id less than the provided value
+     * @param {string} [params.idLessThan] *non-uta only* return records with id less than the provided value
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name bitget#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+     * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
@@ -209,9 +218,11 @@ export default class bitget extends Exchange {
      * @name bitget#fetchTradingFee
      * @description fetch the trading fees for a market
      * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
@@ -222,9 +233,11 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.margin] set to true for spot margin
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: Dict): Promise<TradingFees>;

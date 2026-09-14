@@ -8,106 +8,126 @@
 package ccxt
 
 // PublicGetCoins returns a channel that yields a JSON array.
-func (this *MercadoCore) PublicGetCoins(args ...any) <-chan any {
+func (this *Mercado) PublicGetCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCoins", args...)
 }
 
 // PublicGetCoinOrderbook returns a channel that yields a JSON object.
-func (this *MercadoCore) PublicGetCoinOrderbook(args ...any) <-chan any {
+func (this *Mercado) PublicGetCoinOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCoinOrderbook", args...)
 }
 
 // PublicGetCoinTicker returns a channel that yields a JSON object.
-func (this *MercadoCore) PublicGetCoinTicker(args ...any) <-chan any {
+func (this *Mercado) PublicGetCoinTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCoinTicker", args...)
 }
 
 // PublicGetCoinTrades returns a channel that yields a JSON array.
-func (this *MercadoCore) PublicGetCoinTrades(args ...any) <-chan any {
+func (this *Mercado) PublicGetCoinTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCoinTrades", args...)
 }
 
 // PublicGetCoinTradesFrom returns a channel that yields a JSON array.
-func (this *MercadoCore) PublicGetCoinTradesFrom(args ...any) <-chan any {
+func (this *Mercado) PublicGetCoinTradesFrom(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCoinTradesFrom", args...)
 }
 
 // PublicGetCoinTradesFromTo returns a channel that yields a JSON array.
-func (this *MercadoCore) PublicGetCoinTradesFromTo(args ...any) <-chan any {
+func (this *Mercado) PublicGetCoinTradesFromTo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCoinTradesFromTo", args...)
 }
 
 // PublicGetCoinDaySummaryYearMonthDay returns a channel that yields a JSON object.
-func (this *MercadoCore) PublicGetCoinDaySummaryYearMonthDay(args ...any) <-chan any {
+func (this *Mercado) PublicGetCoinDaySummaryYearMonthDay(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCoinDaySummaryYearMonthDay", args...)
 }
 
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostCancelOrder(args ...any) <-chan any {
+func (this *Mercado) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
 // PrivatePostGetAccountInfo returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostGetAccountInfo(args ...any) <-chan any {
+func (this *Mercado) PrivatePostGetAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetAccountInfo", args...)
 }
 
 // PrivatePostGetOrder returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostGetOrder(args ...any) <-chan any {
+func (this *Mercado) PrivatePostGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrder", args...)
 }
 
 // PrivatePostGetWithdrawal returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostGetWithdrawal(args ...any) <-chan any {
+func (this *Mercado) PrivatePostGetWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetWithdrawal", args...)
 }
 
 // PrivatePostListSystemMessages returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostListSystemMessages(args ...any) <-chan any {
+func (this *Mercado) PrivatePostListSystemMessages(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostListSystemMessages", args...)
 }
 
 // PrivatePostListOrders returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostListOrders(args ...any) <-chan any {
+func (this *Mercado) PrivatePostListOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostListOrders", args...)
 }
 
 // PrivatePostListOrderbook returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostListOrderbook(args ...any) <-chan any {
+func (this *Mercado) PrivatePostListOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostListOrderbook", args...)
 }
 
 // PrivatePostPlaceBuyOrder returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostPlaceBuyOrder(args ...any) <-chan any {
+func (this *Mercado) PrivatePostPlaceBuyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPlaceBuyOrder", args...)
 }
 
 // PrivatePostPlaceSellOrder returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostPlaceSellOrder(args ...any) <-chan any {
+func (this *Mercado) PrivatePostPlaceSellOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPlaceSellOrder", args...)
 }
 
 // PrivatePostPlaceMarketBuyOrder returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostPlaceMarketBuyOrder(args ...any) <-chan any {
+func (this *Mercado) PrivatePostPlaceMarketBuyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPlaceMarketBuyOrder", args...)
 }
 
 // PrivatePostPlaceMarketSellOrder returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostPlaceMarketSellOrder(args ...any) <-chan any {
+func (this *Mercado) PrivatePostPlaceMarketSellOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPlaceMarketSellOrder", args...)
 }
 
 // PrivatePostWithdrawCoin returns a channel that yields a JSON object.
-func (this *MercadoCore) PrivatePostWithdrawCoin(args ...any) <-chan any {
+func (this *Mercado) PrivatePostWithdrawCoin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawCoin", args...)
 }
 
 // V4PublicGetCoinCandle returns a channel that yields a JSON object.
-func (this *MercadoCore) V4PublicGetCoinCandle(args ...any) <-chan any {
+func (this *Mercado) V4PublicGetCoinCandle(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PublicGetCoinCandle", args...)
 }
 
 // V4PublicNetGetCandles returns a channel that yields a JSON object.
-func (this *MercadoCore) V4PublicNetGetCandles(args ...any) <-chan any {
+func (this *Mercado) V4PublicNetGetCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PublicNetGetCandles", args...)
+}
+
+// V4PrivatePostAccounts returns a channel that yields a JSON object.
+func (this *Mercado) V4PrivatePostAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostAccounts", args...)
+}
+
+// V4PrivatePostAccountsAccountIdSymbolTransfersInternal returns a channel that yields a JSON object.
+func (this *Mercado) V4PrivatePostAccountsAccountIdSymbolTransfersInternal(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostAccountsAccountIdSymbolTransfersInternal", args...)
+}
+
+// V4PrivatePostOauth2Token returns a channel that yields a JSON object.
+func (this *Mercado) V4PrivatePostOauth2Token(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostOauth2Token", args...)
+}
+
+// V4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId returns a channel that yields a JSON object.
+func (this *Mercado) V4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId", args...)
 }

@@ -8,231 +8,296 @@
 package ccxt
 
 // RootGet returns a channel that yields a JSON object.
-func (this *LighterCore) RootGet(args ...any) <-chan any {
+func (this *Lighter) RootGet(args ...any) <-chan any {
 	return this.callEndpointAsync("rootGet", args...)
 }
 
 // RootGetInfo returns a channel that yields a JSON object.
-func (this *LighterCore) RootGetInfo(args ...any) <-chan any {
+func (this *Lighter) RootGetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("rootGetInfo", args...)
 }
 
 // PublicGetAccount returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetAccount(args ...any) <-chan any {
+func (this *Lighter) PublicGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAccount", args...)
 }
 
 // PublicGetAccountsByL1Address returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetAccountsByL1Address(args ...any) <-chan any {
+func (this *Lighter) PublicGetAccountsByL1Address(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAccountsByL1Address", args...)
 }
 
 // PublicGetApikeys returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetApikeys(args ...any) <-chan any {
+func (this *Lighter) PublicGetApikeys(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApikeys", args...)
 }
 
 // PublicGetExchangeStats returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetExchangeStats(args ...any) <-chan any {
+func (this *Lighter) PublicGetExchangeStats(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangeStats", args...)
 }
 
 // PublicGetAssetDetails returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetAssetDetails(args ...any) <-chan any {
+func (this *Lighter) PublicGetAssetDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssetDetails", args...)
 }
 
 // PublicGetOrderBookDetails returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetOrderBookDetails(args ...any) <-chan any {
+func (this *Lighter) PublicGetOrderBookDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderBookDetails", args...)
 }
 
 // PublicGetOrderBookOrders returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetOrderBookOrders(args ...any) <-chan any {
+func (this *Lighter) PublicGetOrderBookOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderBookOrders", args...)
 }
 
 // PublicGetOrderBooks returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetOrderBooks(args ...any) <-chan any {
+func (this *Lighter) PublicGetOrderBooks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderBooks", args...)
 }
 
 // PublicGetRecentTrades returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetRecentTrades(args ...any) <-chan any {
+func (this *Lighter) PublicGetRecentTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetRecentTrades", args...)
 }
 
 // PublicGetBlockTxs returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetBlockTxs(args ...any) <-chan any {
+func (this *Lighter) PublicGetBlockTxs(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBlockTxs", args...)
 }
 
 // PublicGetNextNonce returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetNextNonce(args ...any) <-chan any {
+func (this *Lighter) PublicGetNextNonce(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetNextNonce", args...)
 }
 
 // PublicGetTx returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetTx(args ...any) <-chan any {
+func (this *Lighter) PublicGetTx(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTx", args...)
 }
 
 // PublicGetTxFromL1TxHash returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetTxFromL1TxHash(args ...any) <-chan any {
+func (this *Lighter) PublicGetTxFromL1TxHash(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTxFromL1TxHash", args...)
 }
 
 // PublicGetTxs returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetTxs(args ...any) <-chan any {
+func (this *Lighter) PublicGetTxs(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTxs", args...)
 }
 
 // PublicGetAnnouncement returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetAnnouncement(args ...any) <-chan any {
+func (this *Lighter) PublicGetAnnouncement(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAnnouncement", args...)
 }
 
 // PublicGetBlock returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetBlock(args ...any) <-chan any {
+func (this *Lighter) PublicGetBlock(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBlock", args...)
 }
 
 // PublicGetBlocks returns a channel that yields a JSON array.
-func (this *LighterCore) PublicGetBlocks(args ...any) <-chan any {
+func (this *Lighter) PublicGetBlocks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBlocks", args...)
 }
 
 // PublicGetCurrentHeight returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetCurrentHeight(args ...any) <-chan any {
+func (this *Lighter) PublicGetCurrentHeight(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrentHeight", args...)
 }
 
 // PublicGetCandles returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetCandles(args ...any) <-chan any {
+func (this *Lighter) PublicGetCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCandles", args...)
 }
 
+// PublicGetMarkPriceCandles returns a channel that yields a JSON object.
+func (this *Lighter) PublicGetMarkPriceCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkPriceCandles", args...)
+}
+
 // PublicGetFundings returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetFundings(args ...any) <-chan any {
+func (this *Lighter) PublicGetFundings(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFundings", args...)
 }
 
 // PublicGetFastbridgeInfo returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetFastbridgeInfo(args ...any) <-chan any {
+func (this *Lighter) PublicGetFastbridgeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFastbridgeInfo", args...)
 }
 
 // PublicGetFundingRates returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetFundingRates(args ...any) <-chan any {
+func (this *Lighter) PublicGetFundingRates(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFundingRates", args...)
 }
 
 // PublicGetWithdrawalDelay returns a channel that yields a JSON object.
-func (this *LighterCore) PublicGetWithdrawalDelay(args ...any) <-chan any {
+func (this *Lighter) PublicGetWithdrawalDelay(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWithdrawalDelay", args...)
 }
 
+// PublicGetPartnerStats returns a channel that yields a JSON object.
+func (this *Lighter) PublicGetPartnerStats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPartnerStats", args...)
+}
+
+// PublicGetSyntheticSpotInfo returns a channel that yields a JSON object.
+func (this *Lighter) PublicGetSyntheticSpotInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSyntheticSpotInfo", args...)
+}
+
+// PublicGetTokenlist returns a channel that yields a JSON object.
+func (this *Lighter) PublicGetTokenlist(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTokenlist", args...)
+}
+
 // PublicPostSendTx returns a channel that yields a JSON object.
-func (this *LighterCore) PublicPostSendTx(args ...any) <-chan any {
+func (this *Lighter) PublicPostSendTx(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostSendTx", args...)
 }
 
 // PublicPostSendTxBatch returns a channel that yields a JSON object.
-func (this *LighterCore) PublicPostSendTxBatch(args ...any) <-chan any {
+func (this *Lighter) PublicPostSendTxBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostSendTxBatch", args...)
 }
 
 // PrivateGetAccountLimits returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetAccountLimits(args ...any) <-chan any {
+func (this *Lighter) PrivateGetAccountLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountLimits", args...)
 }
 
 // PrivateGetAccountMetadata returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetAccountMetadata(args ...any) <-chan any {
+func (this *Lighter) PrivateGetAccountMetadata(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountMetadata", args...)
 }
 
 // PrivateGetPnl returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetPnl(args ...any) <-chan any {
+func (this *Lighter) PrivateGetPnl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPnl", args...)
 }
 
 // PrivateGetL1Metadata returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetL1Metadata(args ...any) <-chan any {
+func (this *Lighter) PrivateGetL1Metadata(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetL1Metadata", args...)
 }
 
 // PrivateGetLiquidations returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetLiquidations(args ...any) <-chan any {
+func (this *Lighter) PrivateGetLiquidations(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLiquidations", args...)
 }
 
 // PrivateGetPositionFunding returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetPositionFunding(args ...any) <-chan any {
+func (this *Lighter) PrivateGetPositionFunding(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPositionFunding", args...)
 }
 
 // PrivateGetPublicPoolsMetadata returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetPublicPoolsMetadata(args ...any) <-chan any {
+func (this *Lighter) PrivateGetPublicPoolsMetadata(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPublicPoolsMetadata", args...)
 }
 
+// PrivateGetGetMakerOnlyApiKeys returns a channel that yields a JSON object.
+func (this *Lighter) PrivateGetGetMakerOnlyApiKeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetMakerOnlyApiKeys", args...)
+}
+
 // PrivateGetAccountActiveOrders returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetAccountActiveOrders(args ...any) <-chan any {
+func (this *Lighter) PrivateGetAccountActiveOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountActiveOrders", args...)
 }
 
 // PrivateGetAccountInactiveOrders returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetAccountInactiveOrders(args ...any) <-chan any {
+func (this *Lighter) PrivateGetAccountInactiveOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountInactiveOrders", args...)
 }
 
+// PrivateGetAccountOrders returns a channel that yields a JSON object.
+func (this *Lighter) PrivateGetAccountOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountOrders", args...)
+}
+
 // PrivateGetExport returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetExport(args ...any) <-chan any {
+func (this *Lighter) PrivateGetExport(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExport", args...)
 }
 
+// PrivateGetExportHistoricalTrades returns a channel that yields a JSON object.
+func (this *Lighter) PrivateGetExportHistoricalTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExportHistoricalTrades", args...)
+}
+
 // PrivateGetTrades returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetTrades(args ...any) <-chan any {
+func (this *Lighter) PrivateGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
 // PrivateGetAccountTxs returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetAccountTxs(args ...any) <-chan any {
+func (this *Lighter) PrivateGetAccountTxs(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountTxs", args...)
 }
 
 // PrivateGetDepositHistory returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetDepositHistory(args ...any) <-chan any {
+func (this *Lighter) PrivateGetDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDepositHistory", args...)
 }
 
 // PrivateGetTransferHistory returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetTransferHistory(args ...any) <-chan any {
+func (this *Lighter) PrivateGetTransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransferHistory", args...)
 }
 
 // PrivateGetWithdrawHistory returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetWithdrawHistory(args ...any) <-chan any {
+func (this *Lighter) PrivateGetWithdrawHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawHistory", args...)
 }
 
 // PrivateGetReferralPoints returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetReferralPoints(args ...any) <-chan any {
+func (this *Lighter) PrivateGetReferralPoints(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetReferralPoints", args...)
 }
 
 // PrivateGetTransferFeeInfo returns a channel that yields a JSON object.
-func (this *LighterCore) PrivateGetTransferFeeInfo(args ...any) <-chan any {
+func (this *Lighter) PrivateGetTransferFeeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransferFeeInfo", args...)
 }
 
+// PrivateGetRfqGet returns a channel that yields a JSON object.
+func (this *Lighter) PrivateGetRfqGet(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqGet", args...)
+}
+
+// PrivateGetRfqList returns a channel that yields a JSON object.
+func (this *Lighter) PrivateGetRfqList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqList", args...)
+}
+
 // PrivatePostChangeAccountTier returns a channel that yields a JSON object.
-func (this *LighterCore) PrivatePostChangeAccountTier(args ...any) <-chan any {
+func (this *Lighter) PrivatePostChangeAccountTier(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostChangeAccountTier", args...)
 }
 
+// PrivatePostSetMakerOnlyApiKeys returns a channel that yields a JSON object.
+func (this *Lighter) PrivatePostSetMakerOnlyApiKeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSetMakerOnlyApiKeys", args...)
+}
+
 // PrivatePostNotificationAck returns a channel that yields a JSON object.
-func (this *LighterCore) PrivatePostNotificationAck(args ...any) <-chan any {
+func (this *Lighter) PrivatePostNotificationAck(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostNotificationAck", args...)
+}
+
+// PrivatePostRfqCreate returns a channel that yields a JSON object.
+func (this *Lighter) PrivatePostRfqCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqCreate", args...)
+}
+
+// PrivatePostRfqRespond returns a channel that yields a JSON object.
+func (this *Lighter) PrivatePostRfqRespond(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqRespond", args...)
+}
+
+// PrivatePostRfqUpdate returns a channel that yields a JSON object.
+func (this *Lighter) PrivatePostRfqUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqUpdate", args...)
 }

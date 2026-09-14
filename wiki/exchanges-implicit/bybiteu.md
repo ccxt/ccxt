@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bybiteu API documentation:** [bybit-exchange.github.io](https://bybit-exchange.github.io/docs/inverse/) · [bybit-exchange.github.io](https://bybit-exchange.github.io/docs/linear/) · [github.com](https://github.com/bybit-exchange)
 
-> 404 implicit endpoints across 2 access groups.
+> 442 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -130,6 +130,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetV5InsLoanProductInfos` | GET | `v5/ins-loan/product-infos` | 5 |
 | `publicGetV5InsLoanEnsureTokensConvert` | GET | `v5/ins-loan/ensure-tokens-convert` | 5 |
 | `publicGetV5EarnProduct` | GET | `v5/earn/product` | 5 |
+| `publicGetV5SpotXLaunchpoolProjectList` | GET | `v5/spot-x/launchpool/project/list` | 5 |
+| `publicGetV5SpotXPuzzleProjectList` | GET | `v5/spot-x/puzzle/project/list` | 5 |
+| `publicGetV5SpotXTokenSplashProjectList` | GET | `v5/spot-x/token-splash/project/list` | 5 |
+| `publicGetV5EventInstrumentsInfo` | GET | `v5/event/instruments-info` | 5 |
+| `publicGetV5EventOrderbook` | GET | `v5/event/orderbook` | 5 |
 
 ## private
 
@@ -271,10 +276,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV5UserSubmembers` | GET | `v5/user/submembers` | 5 |
 | `privateGetV5UserEscrowSubMembers` | GET | `v5/user/escrow_sub_members` | 5 |
 | `privateGetV5UserInvitationReferrals` | GET | `v5/user/invitation/referrals` | 5 |
+| `privateGetV5UserInvitationCode` | GET | `v5/user/invitation/code` | 5 |
 | `privateGetV5AffiliateAffUserList` | GET | `v5/affiliate/aff-user-list` | 5 |
 | `privateGetV5AffiliateAffiliateSubList` | GET | `v5/affiliate/affiliate-sub-list` | 5 |
 | `privateGetV5SpotLeverTokenOrderRecord` | GET | `v5/spot-lever-token/order-record` | 1 |
 | `privateGetV5SpotMarginTradeFlexibleAvailableInventory` | GET | `v5/spot-margin-trade/flexible-available-inventory` | 5 |
+| `privateGetV5SpotMarginTradeFixedAvailableInventory` | GET | `v5/spot-margin-trade/fixed-available-inventory` | 5 |
 | `privateGetV5SpotMarginTradeInterestRateHistory` | GET | `v5/spot-margin-trade/interest-rate-history` | 5 |
 | `privateGetV5SpotMarginTradeState` | GET | `v5/spot-margin-trade/state` | 5 |
 | `privateGetV5SpotMarginTradeMaxBorrowable` | GET | `v5/spot-margin-trade/max-borrowable` | 5 |
@@ -309,6 +316,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV5CryptoLoanFixedRenewInfo` | GET | `v5/crypto-loan-fixed/renew-info` | 10 |
 | `privateGetV5CryptoLoanFixedSupplyOrderInfo` | GET | `v5/crypto-loan-fixed/supply-order-info` | 10 |
 | `privateGetV5CryptoLoanFixedRepaymentHistory` | GET | `v5/crypto-loan-fixed/repayment-history` | 10 |
+| `privateGetV5CryptoLoanFixedAvailableInventory` | GET | `v5/crypto-loan-fixed/available-inventory` | 10 |
+| `privateGetV5CryptoLoanFlexibleAvailableInventory` | GET | `v5/crypto-loan-flexible/available-inventory` | 10 |
 | `privateGetV5InsLoanProductInfos` | GET | `v5/ins-loan/product-infos` | 5 |
 | `privateGetV5InsLoanEnsureTokens` | GET | `v5/ins-loan/ensure-tokens` | 5 |
 | `privateGetV5InsLoanEnsureTokensConvert` | GET | `v5/ins-loan/ensure-tokens-convert` | 5 |
@@ -329,6 +338,17 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV5EarnPosition` | GET | `v5/earn/position` | 5 |
 | `privateGetV5EarnYield` | GET | `v5/earn/yield` | 5 |
 | `privateGetV5EarnHourlyYield` | GET | `v5/earn/hourly-yield` | 5 |
+| `privateGetV5EventOrderRealtime` | GET | `v5/event/order-realtime` | 5 |
+| `privateGetV5EventOrderList` | GET | `v5/event/order-list` | 5 |
+| `privateGetV5EventPositions` | GET | `v5/event/positions` | 5 |
+| `privateGetV5EventTrades` | GET | `v5/event/trades` | 5 |
+| `privateGetV5EventSettlements` | GET | `v5/event/settlements` | 5 |
+| `privateGetV5SpotXLaunchpoolUserCurrentStaking` | GET | `v5/spot-x/launchpool/user/current-staking` | 5 |
+| `privateGetV5SpotXTokenSplashUserActivityParams` | GET | `v5/spot-x/token-splash/user/activity-params` | 5 |
+| `privateGetV5RfqRfqDetailList` | GET | `v5/rfq/rfq-detail-list` | 5 |
+| `privateGetV5AlphaPredictionEngineStatus` | GET | `v5/alpha/prediction/engine-status` | 5 |
+| `privateGetV5AlphaPredictionPayTokenList` | GET | `v5/alpha/prediction/pay-token-list` | 5 |
+| `privateGetV5AlphaPredictionSportsTimelineStages` | GET | `v5/alpha/prediction/sports/timeline-stages` | 5 |
 | `privatePostSpotV3PrivateOrder` | POST | `spot/v3/private/order` | 2.5 |
 | `privatePostSpotV3PrivateCancelOrder` | POST | `spot/v3/private/cancel-order` | 2.5 |
 | `privatePostSpotV3PrivateCancelOrders` | POST | `spot/v3/private/cancel-orders` | 2.5 |
@@ -474,4 +494,22 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostV5BrokerAwardDistributeAward` | POST | `v5/broker/award/distribute-award` | 5 |
 | `privatePostV5BrokerAwardDistributionRecord` | POST | `v5/broker/award/distribution-record` | 5 |
 | `privatePostV5EarnPlaceOrder` | POST | `v5/earn/place-order` | 5 |
+| `privatePostV5EventQuotes` | POST | `v5/event/quotes` | 5 |
+| `privatePostV5EventCancel` | POST | `v5/event/cancel` | 5 |
+| `privatePostV5SpotXLaunchpoolUserActivityLog` | POST | `v5/spot-x/launchpool/user/activity-log` | 5 |
+| `privatePostV5SpotXLaunchpoolUserHistory` | POST | `v5/spot-x/launchpool/user/history` | 5 |
+| `privatePostV5AlphaPredictionEventDetail` | POST | `v5/alpha/prediction/event-detail` | 5 |
+| `privatePostV5AlphaPredictionOrderEstimate` | POST | `v5/alpha/prediction/order-estimate` | 5 |
+| `privatePostV5AlphaPredictionBuy` | POST | `v5/alpha/prediction/buy` | 5 |
+| `privatePostV5AlphaPredictionSell` | POST | `v5/alpha/prediction/sell` | 5 |
+| `privatePostV5AlphaPredictionOrderList` | POST | `v5/alpha/prediction/order-list` | 5 |
+| `privatePostV5AlphaPredictionOrderBook` | POST | `v5/alpha/prediction/order-book` | 5 |
+| `privatePostV5AlphaPredictionTokenPrice` | POST | `v5/alpha/prediction/token-price` | 5 |
+| `privatePostV5AlphaPredictionPriceHistory` | POST | `v5/alpha/prediction/price-history` | 5 |
+| `privatePostV5AlphaPredictionPositionList` | POST | `v5/alpha/prediction/position-list` | 5 |
+| `privatePostV5AlphaPredictionPositionHistory` | POST | `v5/alpha/prediction/position-history` | 5 |
+| `privatePostV5AlphaPredictionPortfolioSummary` | POST | `v5/alpha/prediction/portfolio-summary` | 5 |
+| `privatePostV5AlphaPredictionSideMarketList` | POST | `v5/alpha/prediction/side-market-list` | 5 |
+| `privatePostV5AlphaPredictionSportsMatchList` | POST | `v5/alpha/prediction/sports/match-list` | 5 |
+| `privatePostV5AlphaPredictionSportsGroupStageDetail` | POST | `v5/alpha/prediction/sports/group-stage-detail` | 5 |
 

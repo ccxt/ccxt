@@ -142,6 +142,8 @@ class independentreserve(Exchange, ImplicitAPI):
                         'GetRecentTrades': {'cost': 1},
                         'GetFxRates': {'cost': 1},
                         'GetOrderMinimumVolumes': {'cost': 1},
+                        'GetDepositFees': {'cost': 1},
+                        'GetFiatWithdrawalFees': {'cost': 1},
                         'GetCryptoWithdrawalFees': {'cost': 1},
                         'GetCryptoWithdrawalFees2': {'cost': 1},
                         'GetNetworks': {'cost': 1},
@@ -162,11 +164,16 @@ class independentreserve(Exchange, ImplicitAPI):
                         'GetDigitalCurrencyDepositAddresses': {'cost': 1},
                         'GetDigitalCurrencyDepositAddresses2': {'cost': 1},
                         'GetTrades': {'cost': 1},
+                        'GetTradesByOrder': {'cost': 1},
                         'GetBrokerageFees': {'cost': 1},
                         'GetDigitalCurrencyWithdrawal': {'cost': 1},
+                        'GetFiatWithdrawal': {'cost': 1},
+                        'GetDepositLimits': {'cost': 1},
+                        'GetWithdrawalLimits': {'cost': 1},
                         'PlaceLimitOrder': {'cost': 1},
                         'PlaceMarketOrder': {'cost': 1},
                         'CancelOrder': {'cost': 1},
+                        'CancelOrders': {'cost': 1},
                         'SynchDigitalCurrencyDepositAddressWithBlockchain': {'cost': 1},
                         'RequestFiatWithdrawal': {'cost': 1},
                         'WithdrawFiatCurrency': {'cost': 1},
@@ -1059,7 +1066,7 @@ class independentreserve(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: object = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()

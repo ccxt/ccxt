@@ -8,7 +8,6 @@ from ccxt.abstract.alpaca import ImplicitAPI
 from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -164,6 +163,29 @@ class alpaca(Exchange, ImplicitAPI):
             },
             'api': {
                 'broker': {
+                    'private': {
+                        'get': {
+                            'v1/accounts/{account_id}/tokenization/requests': {'cost': 1},
+                            'v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}': {'cost': 1},
+                            'v1/accounts/{account_id}/tokenization/requests:by_client_request_id': {'cost': 1},
+                            'v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id': {'cost': 1},
+                            'v1/fpsl/analytics/{account_id}/loans': {'cost': 1},
+                            'v1/ipos': {'cost': 1},
+                            'v1/ipos/{offering_reference}': {'cost': 1},
+                            'v1/wallets/travel-rule/vasps': {'cost': 1},
+                            'v1beta1/acats': {'cost': 1},
+                            'v1beta1/acats/contrabrokers': {'cost': 1},
+                            'v1beta1/acats/{account_id}': {'cost': 1},
+                            'v1beta1/acats/{account_id}/{acats_id}': {'cost': 1},
+                            'v1beta1/acats/{account_id}/{acats_id}/assets': {'cost': 1},
+                        },
+                        'post': {
+                            'v1beta1/acats/{account_id}': {'cost': 1},
+                        },
+                        'patch': {
+                            'v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info': {'cost': 1},
+                        },
+                    },
                 },
                 'trader': {
                     'private': {
@@ -188,6 +210,13 @@ class alpaca(Exchange, ImplicitAPI):
                             'v2/corporate_actions/announcements': {'cost': 1},
                             'v2/wallets': {'cost': 1},
                             'v2/wallets/transfers': {'cost': 1},
+                            'v1/locates': {'cost': 1},
+                            'v1/locates/{locate_id}': {'cost': 1},
+                            'v1/locates/quotes': {'cost': 1},
+                            'v2/tokenization/requests': {'cost': 1},
+                            'v2/tokenization/requests/{tokenization_request_id}': {'cost': 1},
+                            'v2/tokenization/requests:by_client_request_id': {'cost': 1},
+                            'v2/wallets/travel-rule/vasps': {'cost': 1},
                         },
                         'post': {
                             'v2/orders': {'cost': 1},
@@ -195,6 +224,7 @@ class alpaca(Exchange, ImplicitAPI):
                             'v2/watchlists/{watchlist_id}': {'cost': 1},
                             'v2/watchlists:by_name': {'cost': 1},
                             'v2/wallets/transfers': {'cost': 1},
+                            'v1/locates': {'cost': 1},
                         },
                         'put': {
                             'v2/orders/{order_id}': {'cost': 1},
@@ -204,6 +234,7 @@ class alpaca(Exchange, ImplicitAPI):
                         'patch': {
                             'v2/orders/{order_id}': {'cost': 1},
                             'v2/account/configurations': {'cost': 1},
+                            'v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info': {'cost': 1},
                         },
                         'delete': {
                             'v2/orders': {'cost': 1},
@@ -232,6 +263,8 @@ class alpaca(Exchange, ImplicitAPI):
                     'private': {
                         'get': {
                             'v1beta1/corporate-actions': {'cost': 1},
+                            'v1beta1/fixed_income/latest/prices': {'cost': 1},
+                            'v1beta1/fixed_income/latest/quotes': {'cost': 1},
                             'v1beta1/forex/latest/rates': {'cost': 1},
                             'v1beta1/forex/rates': {'cost': 1},
                             'v1beta1/logos/{symbol}': {'cost': 1},
@@ -316,6 +349,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'APCA-PARTNER-ID': 'ccxt',
             },
             'options': {
+                'minCostUSD': 10,  # alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE',  # Coinbase
@@ -416,15 +450,17 @@ class alpaca(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'forbidden.': PermissionDenied,  # {"message": "forbidden."}
-                    '40410000': InvalidOrder,  # {"code": 40410000, "message": "order is not found."}
+                    '40410000': InvalidOrder,  # { "code": 40410000, "message": "order is not found."}
                     '40010001': BadRequest,  # {"code":40010001,"message":"invalid order type for crypto order"}
-                    '40110000': PermissionDenied,  # {"code": 40110000, "message": "request is not authorized"}
-                    '40310000': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT(requested: 221.63, available: 0)","symbol":"USDT"}
+                    '40110000': PermissionDenied,  # { "code": 40110000, "message": "request is not authorized"}
                     '42910000': RateLimitExceeded,  # {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
-                    'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
+                    'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol,  # {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'cost basis must be': InvalidOrder,  # {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+                    'insufficient balance for': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    'orders are rejected by user request': PermissionDenied,  # {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
         })
@@ -439,7 +475,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         #     {
         #         timestamp: '2023-11-22T08:07:57.654738097-05:00',
-        #         is_open: False,
+        #         is_open: false,
         #         next_open: '2023-11-22T09:30:00-05:00',
         #         next_close: '2023-11-22T16:00:00-05:00'
         #     }
@@ -483,12 +519,12 @@ class alpaca(Exchange, ImplicitAPI):
         #             "symbol": "BTC/USDT",
         #             "name": "Bitcoin / USD Tether",
         #             "status": "active",
-        #             "tradable": True,
-        #             "marginable": False,
+        #             "tradable": true,
+        #             "marginable": false,
         #             "maintenance_margin_requirement": 100,
-        #             "shortable": False,
-        #             "easy_to_borrow": False,
-        #             "fractionable": True,
+        #             "shortable": false,
+        #             "easy_to_borrow": false,
+        #             "fractionable": true,
         #             "attributes": [],
         #             "min_order_size": "0.000026873",
         #             "min_trade_increment": "0.000000001",
@@ -507,12 +543,12 @@ class alpaca(Exchange, ImplicitAPI):
         #         "symbol": "BTC/USDT",
         #         "name": "Bitcoin / USD Tether",
         #         "status": "active",
-        #         "tradable": True,
-        #         "marginable": False,
+        #         "tradable": true,
+        #         "marginable": false,
         #         "maintenance_margin_requirement": 101,
-        #         "shortable": False,
-        #         "easy_to_borrow": False,
-        #         "fractionable": True,
+        #         "shortable": false,
+        #         "easy_to_borrow": false,
+        #         "fractionable": true,
         #         "attributes": [],
         #         "min_order_size": "0.000026873",
         #         "min_trade_increment": "0.000000001",
@@ -538,6 +574,11 @@ class alpaca(Exchange, ImplicitAPI):
         minAmount = self.safe_number(asset, 'min_order_size')
         amount = self.safe_number(asset, 'min_trade_increment')
         price = self.safe_number(asset, 'price_increment')
+        minCost = None
+        if (assetClass == 'crypto') and (quote == 'USD'):
+            # alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+            # USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            minCost = self.safe_number(self.options, 'minCostUSD', self.parse_number('10'))
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -580,7 +621,7 @@ class alpaca(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': minCost,
                     'max': None,
                 },
             },
@@ -740,9 +781,12 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.paginationCalls]: the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
         :param str [params.loc]: crypto location, default: us
         :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocBars
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -750,6 +794,10 @@ class alpaca(Exchange, ImplicitAPI):
         marketId = market['id']
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocBars')
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginationCalls = 10
+        paginationCalls, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginationCalls', 10)
         request = {
             'symbols': marketId,
             'loc': loc,
@@ -760,7 +808,11 @@ class alpaca(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             if since is not None:
-                request['start'] = self.yyyymmdd(since)
+                request['start'] = self.iso8601(since)
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                params = self.omit(params, 'until')
+                request['end'] = self.iso8601(until)
             request['timeframe'] = self.safe_string(self.timeframes, timeframe, timeframe)
             response = await self.marketPublicGetV1beta3CryptoLocBars(self.extend(request, params))
             #
@@ -794,6 +846,22 @@ class alpaca(Exchange, ImplicitAPI):
             #
             bars = self.safe_dict(response, 'bars', {})
             ohlcvs = self.safe_list(bars, marketId, [])
+            if paginate:
+                # the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                pageToken = self.safe_string(response, 'next_page_token')
+                for i in range(1, paginationCalls):
+                    ohlcvsLength = len(ohlcvs)
+                    if (pageToken is None) or ((limit is not None) and (ohlcvsLength >= limit)):
+                        break
+                    request['page_token'] = pageToken
+                    response = await self.marketPublicGetV1beta3CryptoLocBars(self.extend(request, params))
+                    bars = self.safe_dict(response, 'bars', {})
+                    page = self.safe_list(bars, marketId, [])
+                    pageLength = len(page)
+                    if pageLength == 0:
+                        break
+                    ohlcvs = self.array_concat(ohlcvs, page)
+                    pageToken = self.safe_string(response, 'next_page_token')
         elif method == 'marketPublicGetV1beta3CryptoLocLatestBars':
             response = await self.marketPublicGetV1beta3CryptoLocLatestBars(self.extend(request, params))
             #
@@ -866,15 +934,17 @@ class alpaca(Exchange, ImplicitAPI):
 
         https://docs.alpaca.markets/reference/cryptosnapshots-1
 
-        :param str[] symbols: unified symbols of the markets to fetch tickers for
+        :param str[] [symbols]: unified symbols of the markets to fetch tickers for, defaults to all markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        if symbols is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
         if self.markets is None:
             await self.load_markets()
+        if symbols is None:
+            # every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+            allSymbols = self.sort(self.symbols)  # symbol iteration order differs per language
+            symbols = allSymbols
         symbols = self.market_symbols(symbols)
         loc = self.safe_string(params, 'loc', 'us')
         ids = self.market_ids(symbols)
@@ -1116,7 +1186,7 @@ class alpaca(Exchange, ImplicitAPI):
         #      "limit_price": null,
         #      "stop_price": null,
         #      "status": "accepted",
-        #      "extended_hours": False,
+        #      "extended_hours": false,
         #      "legs": null,
         #      "trail_percent": null,
         #      "trail_price": null,
@@ -1202,6 +1272,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1216,9 +1287,13 @@ class alpaca(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, 'until')
-            request['endTime'] = self.iso8601(until)
+            request['until'] = self.iso8601(until)
         if since is not None:
             request['after'] = self.iso8601(since)
+            direction = self.safe_string(params, 'direction')
+            if direction is None:
+                # the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                request['direction'] = 'asc'
         if limit is not None:
             request['limit'] = limit
         response = await self.traderPrivateGetV2Orders(self.extend(request, params))
@@ -1252,7 +1327,7 @@ class alpaca(Exchange, ImplicitAPI):
         #           "limit_price": "1000",
         #           "stop_price": null,
         #           "status": "canceled",
-        #           "extended_hours": False,
+        #           "extended_hours": false,
         #           "legs": null,
         #           "trail_percent": null,
         #           "trail_price": null,
@@ -1275,6 +1350,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
@@ -1293,6 +1369,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
@@ -1617,7 +1694,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        if tag:
+        if (tag is not None) and (tag != ''):
             address = address + ':' + tag
         request = {
             'asset': currency['id'],
@@ -1655,7 +1732,7 @@ class alpaca(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         sandboxMode = self.isSandboxModeEnabled or self.safe_bool(self.options, 'sandboxMode', False)
-        if sandboxMode:
+        if sandboxMode is True:
             # paper-trading hosts do not serve the crypto wallets api at all, so route
             # through the account activities ledger instead, filtered to transfer-like
             # entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1762,7 +1839,7 @@ class alpaca(Exchange, ImplicitAPI):
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
-        # account activities ledger entry(paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        # account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
         #
         #     {
         #         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
@@ -1904,11 +1981,11 @@ class alpaca(Exchange, ImplicitAPI):
         #     {
         #         "id": "43a01bde-4eb1-64fssc26adb5",
         #         "admin_configurations": {
-        #             "allow_instant_ach": True,
+        #             "allow_instant_ach": true,
         #             "max_margin_multiplier": "4"
         #         },
         #         "user_configurations": {
-        #             "fractional_trading": True,
+        #             "fractional_trading": true,
         #             "max_margin_multiplier": "4"
         #         },
         #         "account_number": "744873727",
@@ -1924,14 +2001,14 @@ class alpaca(Exchange, ImplicitAPI):
         #         "cash": "5.92",
         #         "accrued_fees": "0",
         #         "portfolio_value": "48.6",
-        #         "pattern_day_trader": False,
-        #         "trading_blocked": False,
-        #         "transfers_blocked": False,
-        #         "account_blocked": False,
+        #         "pattern_day_trader": false,
+        #         "trading_blocked": false,
+        #         "transfers_blocked": false,
+        #         "account_blocked": false,
         #         "created_at": "2022-06-13T14:59:18.318096Z",
-        #         "trade_suspended_by_user": False,
+        #         "trade_suspended_by_user": false,
         #         "multiplier": "1",
-        #         "shorting_enabled": False,
+        #         "shorting_enabled": false,
         #         "equity": "48.6",
         #         "last_equity": "48.8014266",
         #         "long_market_value": "42.68",
@@ -1970,7 +2047,7 @@ class alpaca(Exchange, ImplicitAPI):
             headers['APCA-API-KEY-ID'] = self.apiKey
             headers['APCA-API-SECRET-KEY'] = self.secret
         query = self.omit(params, self.extract_params(path))
-        if query:
+        if len(query) > 0:
             if (method == 'GET') or (method == 'DELETE'):
                 endpoint += '?' + self.urlencode(query)
             else:
@@ -1990,9 +2067,13 @@ class alpaca(Exchange, ImplicitAPI):
         errorCode = self.safe_string(response, 'code')
         if code is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-        message = self.safe_value(response, 'message')
+        message = self.safe_string(response, 'message')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-            raise ExchangeError(feedback)
+            codeAsString = str(code)
+            if (code < 400) or not (codeAsString in self.httpExceptions):
+                # an error envelope must always throw — also for statuses the http-status handler has no entry for
+                raise ExchangeError(feedback)
+            # unmapped messages on the remaining error statuses fall through to the default http-status handler
         return None

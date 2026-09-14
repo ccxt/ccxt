@@ -84,7 +84,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "event": "subscribed",
         #         "channel": "balances",
         #         "local_currency": "USD",
-        #         "batching": False
+        #         "batching": false
         #     }
         #  snapshot
         #     {
@@ -110,7 +110,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if event == 'subscribed':
             return
         result = {'info': message}
-        balances = self.safe_value(message, 'balances', [])
+        balances = self.safe_list(message, 'balances', [])
         for i in range(0, len(balances)):
             entry = balances[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -135,7 +135,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -173,7 +173,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "event": "updated",
         #         "channel": "prices",
         #         "symbol": "BTC-USD",
-        #         "price": [1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0]
+        #         "price": [ 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0 ]
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -469,8 +469,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #             "tradeId": "0",
         #             "fee": 0,
         #             "price": 30000,
-        #             "marginOrder": False,
-        #             "closePositionOrder": False
+        #             "marginOrder": false,
+        #             "closePositionOrder": false
         #           }
         #         ],
         #         "positions": []
@@ -502,8 +502,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "tradeId": "0",
         #         "fee": 0,
         #         "price": 30000,
-        #         "marginOrder": False,
-        #         "closePositionOrder": False
+        #         "marginOrder": false,
+        #         "closePositionOrder": false
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -518,7 +518,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         elif event == 'rejected':
             raise ExchangeError(self.id + ' ' + self.json(message))
         elif event == 'snapshot':
-            orders = self.safe_value(message, 'orders', [])
+            orders = self.safe_list(message, 'orders', [])
             for i in range(0, len(orders)):
                 order = orders[i]
                 parsedOrder = self.parse_ws_order(order)
@@ -557,8 +557,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "tradeId": "0",
         #         "fee": 0,
         #         "price": 30000,
-        #         "marginOrder": False,
-        #         "closePositionOrder": False
+        #         "marginOrder": false,
+        #         "closePositionOrder": false
         #     }
         #
         datetime = self.safe_string(order, 'transactTime')
@@ -645,7 +645,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "event": "subscribed",
         #         "channel": "l2",
         #         "symbol": "BTC-USDT",
-        #         "batching": False
+        #         "batching": false
         #     }
         #  snapshot
         #     {
@@ -654,10 +654,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "channel": "l2",
         #         "symbol": "BTC-USDT",
         #         "bids": [
-        #           {num: 1, px: 0.01, qty: 22},
+        #           { num: 1, px: 0.01, qty: 22 },
         #         ],
         #         "asks": [
-        #           {num: 1, px: 23840.26, qty: 0.25},
+        #           { num: 1, px: 23840.26, qty: 0.25 },
         #         ],
         #         "timestamp": "2022-08-08T22:03:19.071870Z"
         #     }
@@ -668,7 +668,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "channel": "l2",
         #         "symbol": "BTC-USDT",
         #         "bids": [],
-        #         "asks": [{num: 1, px: 23855.06, qty: 1.04786347}],
+        #         "asks": [ { num: 1, px: 23855.06, qty: 1.04786347 } ],
         #         "timestamp": "2022-08-08T22:03:19.014680Z"
         #     }
         #
@@ -730,7 +730,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "seqnum": 0,
         #         "event": "subscribed",
         #         "channel": "auth",
-        #         "readOnly": False
+        #         "readOnly": false
         #     }
         #
         event = self.safe_string(message, 'event')

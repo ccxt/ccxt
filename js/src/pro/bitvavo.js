@@ -171,7 +171,7 @@ export default class bitvavo extends bitvavoRest {
         //
         this.handleBidAsk(client, message);
         const event = this.safeString(message, 'event');
-        const tickers = this.safeValue(message, 'data', []);
+        const tickers = this.safeList(message, 'data', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -206,7 +206,7 @@ export default class bitvavo extends bitvavoRest {
     }
     handleBidAsk(client, message) {
         const event = 'bidask';
-        const tickers = this.safeValue(message, 'data', []);
+        const tickers = this.safeList(message, 'data', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -1699,7 +1699,7 @@ export default class bitvavo extends bitvavoRest {
         //         }
         //     }
         //
-        const subscriptions = this.safeValue(message, 'subscriptions', {});
+        const subscriptions = this.safeDict(message, 'subscriptions', {});
         const methods = {
             'book': this.handleOrderBookSubscriptions,
         };
@@ -1746,7 +1746,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const messageHash = 'authenticated';
         const authenticated = this.safeBool(message, 'authenticated', false);
-        if (authenticated) {
+        if (authenticated === true) {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash);
         }

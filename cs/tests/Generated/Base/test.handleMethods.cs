@@ -18,10 +18,10 @@ public partial class BaseTest
                     } },
                 } },
             });
-            object initialParams = new Dictionary<string, object>() {
+            Dictionary<string, object> initialParams = new Dictionary<string, object>() {
                 { "defaultType", "valueFromParam" },
             };
-            object market = exchange.safeMarket("TEST1/TEST2");
+            Dictionary<string, object> market = exchange.safeMarket("TEST1/TEST2");
             ((IDictionary<string,object>)market)["type"] = "spot";
             //
             // ########### test different variations ###########

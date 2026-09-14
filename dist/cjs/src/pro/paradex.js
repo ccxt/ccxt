@@ -603,7 +603,7 @@ class paradex extends paradex$1["default"] {
         }
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         //

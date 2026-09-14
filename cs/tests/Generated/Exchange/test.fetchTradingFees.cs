@@ -10,10 +10,10 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchTradingFees(BaseExchange exchange, object skippedProperties)
     {
         string method = "fetchTradingFees";
-        object fees = await ((dynamic)exchange).fetchTradingFees();
+        object fees = await invokeExchangeDynamically(exchange, "fetchTradingFees");
         List<object> symbols = new List<object>(((IDictionary<string,object>)fees).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, symbols);
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             testTradingFee(exchange, skippedProperties, method, symbol, getValue(fees, symbol));

@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchPosition(Exchange exchange, object skippedProperties, object symbol)
     {
         string method = "watchPosition";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             bool success = true;
             try
             {
-                response = await exchange.watchPosition(symbol);
+                response = detypeForComparison(await exchange.WatchPosition(((string)symbol)));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

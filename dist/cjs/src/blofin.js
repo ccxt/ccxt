@@ -21,7 +21,7 @@ class blofin extends blofin$1["default"] {
             'name': 'BloFin',
             'countries': ['US'],
             'version': 'v1',
-            'rateLimit': 100,
+            'rateLimit': 200, // 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -177,6 +177,7 @@ class blofin extends blofin$1["default"] {
                 'public': {
                     'get': {
                         'market/instruments': { 'cost': 1 },
+                        'market/instruments-history': { 'cost': 1 },
                         'market/tickers': { 'cost': 1 },
                         'market/books': { 'cost': 1 },
                         'market/trades': { 'cost': 1 },
@@ -187,6 +188,12 @@ class blofin extends blofin$1["default"] {
                         'market/index-candles': { 'cost': 1 },
                         'market/mark-price-candles': { 'cost': 1 },
                         'market/position-tiers': { 'cost': 1 },
+                        // spot
+                        'spot/market/instruments': { 'cost': 1 },
+                        'spot/market/tickers': { 'cost': 1 },
+                        'spot/market/books': { 'cost': 1 },
+                        'spot/market/trades': { 'cost': 1 },
+                        'spot/market/candles': { 'cost': 1 },
                     },
                 },
                 'private': {
@@ -196,26 +203,28 @@ class blofin extends blofin$1["default"] {
                         'asset/bills': { 'cost': 1 },
                         'asset/withdrawal-history': { 'cost': 1 },
                         'asset/deposit-history': { 'cost': 1 },
+                        'asset/deposit-address': { 'cost': 1 },
                         'account/config': { 'cost': 1 },
                         'asset/currencies': { 'cost': 1 },
                         // trading
                         'account/balance': { 'cost': 1 },
                         'account/positions': { 'cost': 1 },
                         'account/positions-history': { 'cost': 1 },
+                        'account/funding-fees': { 'cost': 1 },
                         'account/margin-mode': { 'cost': 1 },
                         'account/position-mode': { 'cost': 1 },
                         'account/leverage-info': { 'cost': 1 },
                         'account/batch-leverage-info': { 'cost': 1 },
-                        'trade/orders-pending': { 'cost': 1 },
-                        'trade/order-detail': { 'cost': 1 },
-                        'trade/orders-tpsl-pending': { 'cost': 1 },
-                        'trade/order-tpsl-detail': { 'cost': 1 },
-                        'trade/orders-algo-pending': { 'cost': 1 },
-                        'trade/orders-history': { 'cost': 1 },
-                        'trade/orders-tpsl-history': { 'cost': 1 },
-                        'trade/orders-algo-history': { 'cost': 1 }, // todo new
-                        'trade/fills-history': { 'cost': 1 },
-                        'trade/order/price-range': { 'cost': 1 },
+                        'trade/orders-pending': { 'cost': 1.67 },
+                        'trade/order-detail': { 'cost': 1.67 },
+                        'trade/orders-tpsl-pending': { 'cost': 1.67 },
+                        'trade/order-tpsl-detail': { 'cost': 1.67 },
+                        'trade/orders-algo-pending': { 'cost': 1.67 },
+                        'trade/orders-history': { 'cost': 1.67 },
+                        'trade/orders-tpsl-history': { 'cost': 1.67 },
+                        'trade/orders-algo-history': { 'cost': 1.67 }, // todo new
+                        'trade/fills-history': { 'cost': 1.67 },
+                        'trade/order/price-range': { 'cost': 1.67 },
                         // affiliate
                         'affiliate/basic': { 'cost': 1 },
                         'affiliate/referral-code': { 'cost': 1 },
@@ -232,44 +241,63 @@ class blofin extends blofin$1["default"] {
                         'copytrading/account/positions-by-contract': { 'cost': 1 },
                         'copytrading/account/position-mode': { 'cost': 1 },
                         'copytrading/account/leverage-info': { 'cost': 1 },
-                        'copytrading/trade/orders-pending': { 'cost': 1 },
-                        'copytrading/trade/pending-tpsl-by-contract': { 'cost': 1 },
-                        'copytrading/trade/position-history-by-order': { 'cost': 1 },
-                        'copytrading/trade/orders-history': { 'cost': 1 },
-                        'copytrading/trade/pending-tpsl-by-order': { 'cost': 1 },
+                        'copytrading/trade/orders-pending': { 'cost': 1.67 },
+                        'copytrading/trade/pending-tpsl-by-contract': { 'cost': 1.67 },
+                        'copytrading/trade/position-history-by-order': { 'cost': 1.67 },
+                        'copytrading/trade/orders-history': { 'cost': 1.67 },
+                        'copytrading/trade/pending-tpsl-by-order': { 'cost': 1.67 },
                         // user
                         'user/query-apikey': { 'cost': 1 },
                         // tax
                         'spot/trade/fills-history': { 'cost': 1 },
+                        // spot
+                        'spot/trade/orders-pending': { 'cost': 1.67 },
+                        'spot/trade/order-detail': { 'cost': 1.67 },
+                        'spot/trade/orders-algo-pending': { 'cost': 1.67 },
+                        'spot/trade/orders-history': { 'cost': 1.67 },
+                        'spot/trade/orders-algo-history': { 'cost': 1.67 },
+                        'spot/trade/order/price-range': { 'cost': 1.67 },
                     },
                     'post': {
                         // account
                         'asset/transfer': { 'cost': 1 },
                         'asset/demo-apply-money': { 'cost': 1 },
+                        'asset/withdrawal-apply': { 'cost': 1 },
                         // trading
-                        'account/set-margin-mode': { 'cost': 1 },
-                        'account/set-position-mode': { 'cost': 1 },
-                        'account/set-leverage': { 'cost': 1 },
-                        'trade/order': { 'cost': 1 },
-                        'trade/batch-orders': { 'cost': 1 },
-                        'trade/order-tpsl': { 'cost': 1 },
-                        'trade/order-algo': { 'cost': 1 },
-                        'trade/cancel-order': { 'cost': 1 },
-                        'trade/cancel-batch-orders': { 'cost': 1 },
-                        'trade/cancel-tpsl': { 'cost': 1 },
-                        'trade/cancel-algo': { 'cost': 1 },
-                        'trade/close-position': { 'cost': 1 },
+                        'account/set-margin-mode': { 'cost': 1.67 },
+                        'account/set-position-mode': { 'cost': 1.67 },
+                        'account/set-leverage': { 'cost': 1.67 },
+                        'trade/order': { 'cost': 1.67 },
+                        'trade/batch-orders': { 'cost': 1.67 },
+                        'trade/order-tpsl': { 'cost': 1.67 },
+                        'trade/order-algo': { 'cost': 1.67 },
+                        'trade/cancel-order': { 'cost': 1.67 },
+                        'trade/cancel-batch-orders': { 'cost': 1.67 },
+                        'trade/cancel-tpsl': { 'cost': 1.67 },
+                        'trade/cancel-algo': { 'cost': 1.67 },
+                        'trade/amend-order': { 'cost': 1.67 },
+                        'trade/amend-batch-orders': { 'cost': 1.67 },
+                        'trade/amend-tpsl': { 'cost': 1.67 },
+                        'trade/amend-algo': { 'cost': 1.67 },
+                        'trade/close-position': { 'cost': 1.67 },
+                        // spot
+                        'spot/trade/order': { 'cost': 1.67 },
+                        'spot/trade/batch-orders': { 'cost': 1.67 },
+                        'spot/trade/order-algo': { 'cost': 1.67 },
+                        'spot/trade/cancel-order': { 'cost': 1.67 },
+                        'spot/trade/cancel-batch-orders': { 'cost': 1.67 },
+                        'spot/trade/cancel-algo': { 'cost': 1.67 },
                         // copy trading
-                        'copytrading/account/set-position-mode': { 'cost': 1 },
-                        'copytrading/account/set-leverage': { 'cost': 1 },
-                        'copytrading/trade/place-order': { 'cost': 1 },
-                        'copytrading/trade/cancel-order': { 'cost': 1 },
-                        'copytrading/trade/place-tpsl-by-contract': { 'cost': 1 },
-                        'copytrading/trade/cancel-tpsl-by-contract': { 'cost': 1 },
-                        'copytrading/trade/place-tpsl-by-order': { 'cost': 1 },
-                        'copytrading/trade/cancel-tpsl-by-order': { 'cost': 1 },
-                        'copytrading/trade/close-position-by-order': { 'cost': 1 },
-                        'copytrading/trade/close-position-by-contract': { 'cost': 1 },
+                        'copytrading/account/set-position-mode': { 'cost': 1.67 },
+                        'copytrading/account/set-leverage': { 'cost': 1.67 },
+                        'copytrading/trade/place-order': { 'cost': 1.67 },
+                        'copytrading/trade/cancel-order': { 'cost': 1.67 },
+                        'copytrading/trade/place-tpsl-by-contract': { 'cost': 1.67 },
+                        'copytrading/trade/cancel-tpsl-by-contract': { 'cost': 1.67 },
+                        'copytrading/trade/place-tpsl-by-order': { 'cost': 1.67 },
+                        'copytrading/trade/cancel-tpsl-by-order': { 'cost': 1.67 },
+                        'copytrading/trade/close-position-by-order': { 'cost': 1.67 },
+                        'copytrading/trade/close-position-by-contract': { 'cost': 1.67 },
                     },
                 },
             },
@@ -667,7 +695,7 @@ class blofin extends blofin$1["default"] {
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(market, 'spot', false);
-        const quoteVolume = spot ? this.safeString(ticker, 'volCurrency24h') : undefined;
+        const quoteVolume = (spot === true) ? this.safeString(ticker, 'volCurrency24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
         const low = this.safeString(ticker, 'low24h');
@@ -1076,7 +1104,7 @@ class blofin extends blofin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -1259,7 +1287,7 @@ class blofin extends blofin$1["default"] {
         const triggerPriceSlTp = this.safeString2(params, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         const isHedged = this.safeBool(params, 'hedged', false);
-        if (isHedged) {
+        if (isHedged === true) {
             request['positionSide'] = (side === 'buy') ? 'long' : 'short';
         }
         const isMarketOrder = type === 'market';
@@ -1519,7 +1547,7 @@ class blofin extends blofin$1["default"] {
         const market = this.market(symbol);
         const hedged = this.safeBool(params, 'hedged', false);
         let positionSide = 'net';
-        if (hedged) {
+        if (hedged === true) {
             positionSide = (side === 'buy') ? 'short' : 'long';
         }
         const request = {
@@ -1601,23 +1629,23 @@ class blofin extends blofin$1["default"] {
             request['clientOrderId'] = clientOrderId;
         }
         else {
-            if (!isTrigger && !isTpsl) {
+            if ((isTrigger !== true) && (isTpsl !== true)) {
                 request['orderId'] = id.toString();
             }
-            else if (isTpsl) {
+            else if (isTpsl === true) {
                 request['tpslId'] = id.toString();
             }
-            else if (isTrigger) {
+            else if (isTrigger === true) {
                 request['algoId'] = id.toString();
             }
         }
         const query = this.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl']);
-        if (isTpsl) {
+        if (isTpsl === true) {
             const tpslResponse = await this.cancelOrders([id], symbol, params);
             const first = this.safeDict(tpslResponse, 0);
             return first;
         }
-        else if (isTrigger) {
+        else if (isTrigger === true) {
             const triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             const triggerData = this.safeDict(triggerResponse, 'data');
             return this.parseOrder(triggerData, market);
@@ -1696,10 +1724,10 @@ class blofin extends blofin$1["default"] {
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
-        if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
+        if ((isTpSl === true) || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
-        else if (isTrigger || (method === 'privateGetTradeOrdersAlgoPending')) {
+        else if ((isTrigger === true) || (method === 'privateGetTradeOrdersAlgoPending')) {
             request['orderType'] = 'trigger';
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
         }
@@ -2079,7 +2107,7 @@ class blofin extends blofin$1["default"] {
         const clientOrderIds = this.parseIds(this.safeValue(params, 'clientOrderId'));
         const tpslIds = this.parseIds(this.safeValue(params, 'tpslId'));
         const trigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
-        if (trigger) {
+        if (trigger === true) {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
@@ -2093,7 +2121,7 @@ class blofin extends blofin$1["default"] {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (trigger) {
+                if (trigger === true) {
                     request.push({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -2356,7 +2384,7 @@ class blofin extends blofin$1["default"] {
         const contractSizeString = this.numberToString(contractSize);
         const markPriceString = this.safeString(position, 'markPrice');
         let notionalString = this.safeString(position, 'notionalUsd');
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             notionalString = Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber(notionalString);
@@ -2649,7 +2677,7 @@ class blofin extends blofin$1["default"] {
         [method, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
-        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        if ((isTrigger === true) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
         else {

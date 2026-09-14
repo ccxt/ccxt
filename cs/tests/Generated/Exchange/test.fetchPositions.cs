@@ -10,21 +10,21 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchPositions(BaseExchange exchange, object skippedProperties, object symbol)
     {
         string method = "fetchPositions";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         // without symbol
-        object positions = await ((dynamic)exchange).fetchPositions();
+        object positions = await invokeExchangeDynamically(exchange, "fetchPositions");
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             testPosition(exchange, skippedProperties, method, getValue(positions, i), null, now);
         }
         // testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
         // with symbol
-        object positionsForSymbol = await ((dynamic)exchange).fetchPositions(new List<object>() {symbol});
+        object positionsForSymbol = await invokeExchangeDynamically(exchange, "fetchPositions", new List<object>() {symbol});
         assert(((positionsForSymbol is IList<object>) || (positionsForSymbol.GetType().IsGenericType && positionsForSymbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbol)));
         int positionsForSymbolLength = getArrayLength(positionsForSymbol);
         assert(isLessThanOrEqual(positionsForSymbolLength, 4), add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbol)));
-        for (object i = 0; isLessThan(i, getArrayLength(positionsForSymbol)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positionsForSymbol)); postFixIncrement(ref i))
         {
             testPosition(exchange, skippedProperties, method, getValue(positionsForSymbol, i), symbol, now);
         }

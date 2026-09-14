@@ -15,14 +15,14 @@ public partial class BaseTest
             // @SKIP_START_GO
             // 1234567890 (decimal) = 0x499602D2 (hex)
             // BE: 00 00 00 00 49 96 02 D2
-            object num1 = 1234567890;
-            object padding1 = 8;
+            int num1 = 1234567890;
+            int padding1 = 8;
             object result1 = exchange.numberToBE(num1, padding1);
             Assert(exchange.isBinaryMessage(result1));
             Assert(isEqual(exchange.binaryLength(result1), padding1));
             object expectedBinary1 = exchange.base16ToBinary("00000000499602d2");
-            object resultBase64 = exchange.binaryToBase64(result1);
-            object expectedBase64 = exchange.binaryToBase64(expectedBinary1);
+            string resultBase64 = exchange.binaryToBase64(result1);
+            string expectedBase64 = exchange.binaryToBase64(expectedBinary1);
             Assert(isEqual(resultBase64, expectedBase64), add(add(add("Expected base64: ", expectedBase64), ", got: "), resultBase64));
             // 0 with 1-byte padding => 0x00
             object result2 = exchange.numberToBE(0, 1);

@@ -173,6 +173,11 @@ interface Exchange {
     spotPrivateGetV2EtpTransactions(params?: {}): Promise<Dict>;
     spotPrivateGetV2EtpTransaction(params?: {}): Promise<Dict>;
     spotPrivateGetV2EtpLimit(params?: {}): Promise<Dict>;
+    spotPrivateGetV2InviteeRebateReferrals(params?: {}): Promise<Dict>;
+    spotPrivateGetV2InviteeRebateDetail(params?: {}): Promise<Dict>;
+    spotPrivateGetV2InviteeRebateHistory(params?: {}): Promise<Dict>;
+    spotPrivateGetV2InviteeRebateAllRebateDetail(params?: {}): Promise<Dict>;
+    spotPrivateGetV2InviteeRebateBatcherRebateDetail(params?: {}): Promise<Dict>;
     spotPrivatePostV1AccountTransfer(params?: {}): Promise<Dict>;
     spotPrivatePostV1FuturesTransfer(params?: {}): Promise<Dict>;
     spotPrivatePostV2PointTransfer(params?: {}): Promise<Dict>;
@@ -213,6 +218,7 @@ interface Exchange {
     spotPrivatePostV2EtpRedemption(params?: {}): Promise<Dict>;
     spotPrivatePostV2EtpTransactIdCancel(params?: {}): Promise<Dict>;
     spotPrivatePostV2EtpBatchCancel(params?: {}): Promise<Dict>;
+    spotPrivatePostV5AccountUniversalTransfer(params?: {}): Promise<Dict>;
     contractPublicGetApiV1Timestamp(params?: {}): Promise<Dict>;
     contractPublicGetHeartbeat(params?: {}): Promise<Dict>;
     contractPublicGetApiV1ContractContractInfo(params?: {}): Promise<Dict>;
@@ -336,6 +342,12 @@ interface Exchange {
     contractPrivateGetV5AlgoOrderOpens(params?: {}): Promise<Dict>;
     contractPrivateGetV5AlgoOrder(params?: {}): Promise<Dict>;
     contractPrivateGetV5AlgoOrderHistory(params?: {}): Promise<Dict>;
+    contractPrivateGetApiV6CopyTradingTraderInstruments(params?: {}): Promise<Dict>;
+    contractPrivateGetApiV6CopyTradingTraderStatistics(params?: {}): Promise<Dict>;
+    contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory(params?: {}): Promise<Dict>;
+    contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary(params?: {}): Promise<Dict>;
+    contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary(params?: {}): Promise<Dict>;
+    contractPrivateGetApiV6CopyTradingTraderFollowers(params?: {}): Promise<Dict>;
     contractPrivatePostApiV1ContractBalanceValuation(params?: {}): Promise<Dict>;
     contractPrivatePostApiV1ContractAccountInfo(params?: {}): Promise<Dict>;
     contractPrivatePostApiV1ContractPositionInfo(params?: {}): Promise<Dict>;
@@ -461,6 +473,11 @@ interface Exchange {
     contractPrivatePostV5AccountFeeDeductionCurrency(params?: {}): Promise<Dict>;
     contractPrivatePostV5AlgoOrder(params?: {}): Promise<Dict>;
     contractPrivatePostV5AlgoCancelOrders(params?: {}): Promise<Dict>;
+    contractPrivatePostApiV6CopyTradingTraderFollower(params?: {}): Promise<Dict>;
+    contractPrivatePostApiV6CopyTradingTraderTransfer(params?: {}): Promise<Dict>;
+    contractPrivatePostApiV6CopyTradingTraderFollowerSettings(params?: {}): Promise<Dict>;
+    contractPrivatePostApiV6CopyTradingTraderConfig(params?: {}): Promise<Dict>;
+    contractPrivatePostApiV6CopyTradingTraderApikey(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchMyTrades(Exchange exchange, object skippedProperties, object symbol)
     {
         string method = "watchMyTrades";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             object response = new List<object>() {};
             try
             {
-                response = await exchange.watchMyTrades(symbol);
+                response = detypeForComparison(await exchange.WatchMyTrades(((string)symbol)));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }

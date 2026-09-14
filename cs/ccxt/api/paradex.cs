@@ -116,6 +116,13 @@ public partial class paradex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetReferralsConfig",parameters);
     }
 
+    /// <summary>Calls the publicGetStakingBalanceHistoryGlobal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetStakingBalanceHistoryGlobal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetStakingBalanceHistoryGlobal",parameters);
+    }
+
     /// <summary>Calls the publicGetStakingConfig endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetStakingConfig (object parameters = null)
@@ -177,6 +184,13 @@ public partial class paradex : Exchange
     public async Task<Dictionary<string, object>> publicGetVaults (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicGetVaults",parameters);
+    }
+
+    /// <summary>Calls the publicGetVaultsAnalytics endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetVaultsAnalytics (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetVaultsAnalytics",parameters);
     }
 
     /// <summary>Calls the publicGetVaultsBalance endpoint.</summary>
@@ -466,6 +480,41 @@ public partial class paradex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetReferralsSummary",parameters);
     }
 
+    /// <summary>Calls the privateGetRfqs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqs (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqs",parameters);
+    }
+
+    /// <summary>Calls the privateGetRfqsDrafts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqsDrafts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqsDrafts",parameters);
+    }
+
+    /// <summary>Calls the privateGetRfqsMarkets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqsMarkets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqsMarkets",parameters);
+    }
+
+    /// <summary>Calls the privateGetRfqsRfqIdBbo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqsRfqIdBbo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqsRfqIdBbo",parameters);
+    }
+
+    /// <summary>Calls the privateGetStakingBalanceHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetStakingBalanceHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetStakingBalanceHistory",parameters);
+    }
+
     /// <summary>Calls the privateGetStakingHistory endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetStakingHistory (object parameters = null)
@@ -592,6 +641,20 @@ public partial class paradex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSettingsTradingValueDisplay",parameters);
     }
 
+    /// <summary>Calls the privatePostAccountParadigmEnable endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountParadigmEnable (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountParadigmEnable",parameters);
+    }
+
+    /// <summary>Calls the privatePostAccountTerminalToken endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountTerminalToken (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountTerminalToken",parameters);
+    }
+
     /// <summary>Calls the privatePostAccountKeysSubkeysActivate endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostAccountKeysSubkeysActivate (object parameters = null)
@@ -676,6 +739,27 @@ public partial class paradex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostOrdersBatch",parameters);
     }
 
+    /// <summary>Calls the privatePostRfqs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqs (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqs",parameters);
+    }
+
+    /// <summary>Calls the privatePostRfqsDrafts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqsDrafts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqsDrafts",parameters);
+    }
+
+    /// <summary>Calls the privatePostRfqsRfqIdExecute endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqsRfqIdExecute (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqsRfqIdExecute",parameters);
+    }
+
     /// <summary>Calls the privatePostV2Auth endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostV2Auth (object parameters = null)
@@ -716,6 +800,20 @@ public partial class paradex : Exchange
     public async Task<Dictionary<string, object>> privatePutAccountKeysSubkeysPublicKey (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePutAccountKeysSubkeysPublicKey",parameters);
+    }
+
+    /// <summary>Calls the privatePutAccountKeysSubkeysPublicKeyAllowedCidrs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutAccountKeysSubkeysPublicKeyAllowedCidrs (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutAccountKeysSubkeysPublicKeyAllowedCidrs",parameters);
+    }
+
+    /// <summary>Calls the privatePutAccountTokensLookupIdAllowedCidrs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutAccountTokensLookupIdAllowedCidrs (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutAccountTokensLookupIdAllowedCidrs",parameters);
     }
 
     /// <summary>Calls the privatePutOrdersOrderId endpoint.</summary>
@@ -786,6 +884,20 @@ public partial class paradex : Exchange
     public async Task<Dictionary<string, object>> privateDeleteOrdersOrderId (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateDeleteOrdersOrderId",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteRfqsDraftsDraftId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteRfqsDraftsDraftId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteRfqsDraftsDraftId",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteRfqsRfqId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteRfqsRfqId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteRfqsRfqId",parameters);
     }
 
 }

@@ -134,6 +134,7 @@ export default class bit2c extends Exchange {
                     'get': {
                         'Exchanges/{pair}/Ticker': { 'cost': 1 } as Endpoint<Dict>,
                         'Exchanges/{pair}/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'Exchanges/{pair}/orderbook-top': { 'cost': 1 } as Endpoint<Dict>,
                         'Exchanges/{pair}/trades': { 'cost': 1 } as Endpoint<List>,
                         'Exchanges/{pair}/lasttrades': { 'cost': 1 } as Endpoint<List>,
                     },
@@ -142,6 +143,7 @@ export default class bit2c extends Exchange {
                     'post': {
                         'Merchant/CreateCheckout': { 'cost': 1 } as Endpoint<Dict>,
                         'Funds/AddCoinFundsRequest': { 'cost': 1 } as Endpoint<Dict>,
+                        'Funds/WithdrawCoin': { 'cost': 1 } as Endpoint<Dict>,
                         'Order/AddFund': { 'cost': 1 } as Endpoint<Dict>,
                         'Order/AddOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'Order/GetById': { 'cost': 1 } as Endpoint<Dict>,
@@ -161,6 +163,7 @@ export default class bit2c extends Exchange {
                         'Order/GetById': { 'cost': 1 } as Endpoint<Dict>,
                         'Order/AccountHistory': { 'cost': 1 } as Endpoint<List>,
                         'Order/OrderHistory': { 'cost': 1 } as Endpoint<List>,
+                        'Order/HistoryByOrderId': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
             },
@@ -546,7 +549,7 @@ export default class bit2c extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue (response, 'Fees', {});
+        const fees = this.safeDict (response, 'Fees', {});
         const keys = Object.keys (fees);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
@@ -943,8 +946,8 @@ export default class bit2c extends Exchange {
             market = this.safeMarket (marketId, market);
             market = this.safeMarket (reference_parts[0], market);
             const isMaker = this.safeValue (trade, 'isMaker');
-            makerOrTaker = isMaker ? 'maker' : 'taker';
-            orderId = isMaker ? reference_parts[2] : reference_parts[1];
+            makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
+            orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
             const action = this.safeInteger (trade, 'action');
             if (action === 0) {
                 side = 'buy';
@@ -965,7 +968,7 @@ export default class bit2c extends Exchange {
             amount = this.safeString (trade, 'amount');
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
-                if (side) {
+                if ((side !== undefined) && (side !== '')) {
                     side = 'buy';
                 } else {
                     side = 'sell';
@@ -990,7 +993,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    isFiat (code: any) {
+    isFiat (code: any): boolean {
         return code === 'NIS';
     }
 
@@ -1059,7 +1062,7 @@ export default class bit2c extends Exchange {
             }, params);
             const auth = this.urlencode (query);
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + auth;
                 }
             } else {

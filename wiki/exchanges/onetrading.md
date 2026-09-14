@@ -354,9 +354,10 @@ fetch all unfilled currently open orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days |
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest entry to fetch |
 
 
 ```javascript
@@ -377,9 +378,10 @@ fetches information on multiple closed orders made by the user
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest entry to fetch |
 
 
 ```javascript
@@ -424,9 +426,10 @@ fetch all trades made by the user
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since |
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest entry to fetch |
 
 
 ```javascript

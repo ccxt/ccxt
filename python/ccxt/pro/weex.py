@@ -95,7 +95,7 @@ class weex(ccxt.async_support.weex):
         id = self.request_id()
         method = 'SUBSCRIBE'
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-        if unsubscribe:
+        if unsubscribe is True:
             method = 'UNSUBSCRIBE'
         message = {
             'id': id,
@@ -113,7 +113,7 @@ class weex(ccxt.async_support.weex):
         self.authenticate(url)
         method = 'SUBSCRIBE'
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-        if unsubscribe:
+        if unsubscribe is True:
             method = 'UNSUBSCRIBE'
         id = self.request_id()
         message = {
@@ -461,7 +461,7 @@ class weex(ccxt.async_support.weex):
         #                 "p": "2225.15",
         #                 "q": "0.02525",
         #                 "v": "56.1850375",
-        #                 "m": False
+        #                 "m": false
         #             }
         #         ]
         #     }
@@ -496,11 +496,17 @@ class weex(ccxt.async_support.weex):
         #         "p": "2203.73",
         #         "q": "7.214",
         #         "v": "15897.70822",
-        #         "m": False
+        #         "m": false
         #     }
         #
         timestamp = self.safe_integer(trade, 'T')
         symbol = None if (market is None) else market['symbol']
+        isBuyerMaker = self.safe_bool(trade, 'm')  # m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        side = None
+        takerOrMaker = None
+        if isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
+            takerOrMaker = 'taker'  # a public trade is reported from the aggressor's side, same as parseTrade
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 't'),
@@ -509,8 +515,8 @@ class weex(ccxt.async_support.weex):
             'symbol': symbol,
             'order': None,
             'type': None,
-            'side': None,
-            'takerOrMaker': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': self.safe_string(trade, 'p'),
             'amount': self.safe_string(trade, 'q'),
             'cost': self.safe_string(trade, 'v'),
@@ -529,7 +535,7 @@ class weex(ccxt.async_support.weex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         extendedParams = self.extend(params, {
             'callerMethodName': 'watchOHLCV',
@@ -548,7 +554,7 @@ class weex(ccxt.async_support.weex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -561,7 +567,7 @@ class weex(ccxt.async_support.weex):
         firstMarket = self.market(firstSymbol)
         isContract = firstMarket['contract']
         priceType = 'LAST_PRICE'
-        if isContract:
+        if isContract is True:
             priceType, params = self.handle_option_and_params_2(params, callerMethodName, 'price', 'priceType', priceType)
         for i in range(0, len(symbolsAndTimeframes)):
             data = self.safe_list(symbolsAndTimeframes, i)
@@ -592,7 +598,7 @@ class weex(ccxt.async_support.weex):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'unWatchOHLCV'
         return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
@@ -606,7 +612,7 @@ class weex(ccxt.async_support.weex):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -620,7 +626,7 @@ class weex(ccxt.async_support.weex):
         firstMarket = self.market(firstSymbol)
         isContract = firstMarket['contract']
         priceType = 'LAST_PRICE'
-        if isContract:
+        if isContract is True:
             priceType, params = self.handle_option_and_params_2(params, callerMethodName, 'price', 'priceType', priceType)
         for i in range(0, len(symbolsAndTimeframes)):
             data = self.safe_list(symbolsAndTimeframes, i)
@@ -843,8 +849,8 @@ class weex(ccxt.async_support.weex):
         #         "u": 14181847802,
         #         "l": 200,
         #         "d": "CHANGED",
-        #         "b": [["2227.21", "0"], ["2227.20", "46.519"]],
-        #         "a": [["2227.21", "44.092"], ["2227.26", "0"]]
+        #         "b": [ [ "2227.21", "0" ], [ "2227.20", "46.519" ] ],
+        #         "a": [ [ "2227.21", "44.092" ], [ "2227.26", "0" ] ]
         #     }
         #
         market = self.get_market_from_client_and_message(client, message)
@@ -895,7 +901,7 @@ class weex(ccxt.async_support.weex):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
-        if firstMarket['contract']:
+        if firstMarket['contract'] is True:
             raise NotSupported(self.id + ' watchBidsAsks is supported for spot markets only')
         messageHashes = []
         channels = []
@@ -927,7 +933,7 @@ class weex(ccxt.async_support.weex):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
-        if firstMarket['contract']:
+        if firstMarket['contract'] is True:
             raise NotSupported(self.id + ' unWatchBidsAsks is supported for spot markets only')
         subHashes = []
         channels = []
@@ -1112,7 +1118,7 @@ class weex(ccxt.async_support.weex):
         messageHash = 'myTrades'
         symbolKeys = list(symbols.keys())
         market = self.get_market_from_symbols(symbolKeys)
-        if market['contract']:
+        if market['contract'] is True:
             messageHash = 'myContractTrades'
         for j in range(0, len(symbolKeys)):
             symbol = symbolKeys[j]
@@ -1258,12 +1264,12 @@ class weex(ccxt.async_support.weex):
         #                 "clientOrderId": "b-WEEX111125-bf78d975ca38422bb6ea65",
         #                 "type": "MARKET",
         #                 "timeInForce": "IOC",
-        #                 "reduceOnly": False,
+        #                 "reduceOnly": false,
         #                 "triggerPrice": "0",
         #                 "orderSource": "API",
         #                 "openTpslParentOrderId": "0",
-        #                 "setOpenTp": False,
-        #                 "setOpenSl": False,
+        #                 "setOpenTp": false,
+        #                 "setOpenSl": false,
         #                 "takerFeeRate": "0.001",
         #                 "makerFeeRate": "0.001",
         #                 "feeDiscount": "1",
@@ -1302,7 +1308,7 @@ class weex(ccxt.async_support.weex):
         messageHash = 'orders'
         symbolKeys = list(symbols.keys())
         market = self.get_market_from_symbols(symbolKeys)
-        if market['contract']:
+        if market['contract'] is True:
             messageHash = 'contractOrders'
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]
@@ -1325,12 +1331,12 @@ class weex(ccxt.async_support.weex):
         #         "clientOrderId": "b-WEEX111125-bf78d975ca38422bb6ea65",
         #         "type": "MARKET",
         #         "timeInForce": "IOC",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "triggerPrice": "0",
         #         "orderSource": "API",
         #         "openTpslParentOrderId": "0",
-        #         "setOpenTp": False,
-        #         "setOpenSl": False,
+        #         "setOpenTp": false,
+        #         "setOpenSl": false,
         #         "takerFeeRate": "0.001",
         #         "makerFeeRate": "0.001",
         #         "feeDiscount": "1",
@@ -1366,14 +1372,14 @@ class weex(ccxt.async_support.weex):
         #         "clientOrderId": "1747203186927FPIZRP",
         #         "type": "MARKET",
         #         "timeInForce": "IOC",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "triggerPrice": "0",
         #         "triggerPriceType": "CONTRACT_PRICE",
         #         "orderSource": "WEB",
         #         "openTpslParentOrderId": "0",
-        #         "positionTpsl": False,
-        #         "setOpenTp": False,
-        #         "setOpenSl": False,
+        #         "positionTpsl": false,
+        #         "setOpenTp": false,
+        #         "setOpenSl": false,
         #         "leverage": "20",
         #         "takerFeeRate": "0.0006",
         #         "makerFeeRate": "0.0002",
@@ -1480,7 +1486,7 @@ class weex(ccxt.async_support.weex):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':' + 'balance'
         return await self.subscribe_private(messageHash, type, 'account', isContract, params)
@@ -1490,7 +1496,7 @@ class weex(ccxt.async_support.weex):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1545,7 +1551,7 @@ class weex(ccxt.async_support.weex):
         #                 "pendingWithdrawAmount": "0.00000000",
         #                 "pendingTransferInAmount": "0",
         #                 "pendingTransferOutAmount": "0",
-        #                 "liquidating": False,
+        #                 "liquidating": false,
         #                 "legacyAmount": "0.00000000",
         #                 "cumDepositAmount": "167.50000925",
         #                 "cumWithdrawAmount": "166.94609514",
@@ -1620,7 +1626,7 @@ class weex(ccxt.async_support.weex):
         self.set_positions_cache(client, params)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (self.positions is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         newPositions = await self.subscribe_private(messageHash, subscriptionHash, channel, True, params)
@@ -1630,7 +1636,7 @@ class weex(ccxt.async_support.weex):
 
     def set_positions_cache(self, client: Client, params: dict = {}):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1696,7 +1702,7 @@ class weex(ccxt.async_support.weex):
         #                 "openFee": "0.00744880",
         #                 "fundingFee": "0",
         #                 "isolatedMargin": "0",
-        #                 "autoAppendIsolatedMargin": False,
+        #                 "autoAppendIsolatedMargin": false,
         #                 "cumOpenSize": "100",
         #                 "cumOpenValue": "9.31100",
         #                 "cumOpenFee": "0.00744880",
@@ -1735,7 +1741,7 @@ class weex(ccxt.async_support.weex):
         client.resolve(newPositions, 'positions')
 
     def parse_ws_position(self, position: object, market: Market = None):
-        # same api
+        # same as REST api
         return self.parse_position(position, market)
 
     def get_market_from_client_and_message(self, client: Client, message: object):
@@ -1749,9 +1755,9 @@ class weex(ccxt.async_support.weex):
 
     async def pong(self, client: Client, message: object):
         #
-        #     {"event": "ping", "time": "1776078750000"} - public
+        #     { "event": "ping", "time": "1776078750000" } - public
         #
-        #     {"type": "ping", "time": "1776172740000"} - private
+        #     { "type": "ping", "time": "1776172740000" } - private
         #
         response = {
             'id': self.request_id(),
@@ -1764,13 +1770,13 @@ class weex(ccxt.async_support.weex):
 
     def handle_subscription_status(self, client: Client, message: object):
         #
-        #     {"result": True, "id": 2}
+        #     { "result": true, "id": 2 }
         #
         id = self.safe_string(message, 'id')
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id, {})
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-        if unsubscribe:
+        if unsubscribe is True:
             subHashIsPrefix = self.safe_bool(subscription, 'subHashIsPrefix', False)
             messageHashes = self.safe_list(subscription, 'messageHashes', [])
             subHashes = self.safe_list(subscription, 'subMessageHashes', [])
@@ -1781,16 +1787,16 @@ class weex(ccxt.async_support.weex):
             self.clean_cache(subscription)
         return message
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: object) -> bool:
         #
         #     {
-        #         "result": False,
+        #         "result": false,
         #         "id": 1,
         #         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         #     }
         #
         result = self.safe_bool(message, 'result', True)
-        if not result:
+        if result is not True:
             msg = self.safe_string(message, 'msg', '')
             feedback = self.id + ' ' + self.json(message)
             try:
@@ -1804,12 +1810,12 @@ class weex(ccxt.async_support.weex):
 
     def handle_message(self, client: Client, message: object):
         #
-        #     {"id": "5", "method": "PONG"}
+        #     { "id": "5", "method": "PONG" }
         #
-        #     {"result": True, "id": 2}
+        #     { "result": true, "id": 2 }
         #
         #     {
-        #         "result": False,
+        #         "result": false,
         #         "id": 1,
         #         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         #     }

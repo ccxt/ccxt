@@ -116,27 +116,27 @@ class gemini extends \ccxt\async\gemini {
 
     public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
-        // regular v2 $trade
+        // regular v2 trade
         //
         //     {
-        //         "type" => "trade",
-        //         "symbol" => "BTCUSD",
-        //         "event_id" => 122258166738,
-        //         "timestamp" => 1655330221424,
-        //         "price" => "22269.14",
-        //         "quantity" => "0.00004473",
-        //         "side" => "buy"
+        //         "type": "trade",
+        //         "symbol": "BTCUSD",
+        //         "event_id": 122258166738,
+        //         "timestamp": 1655330221424,
+        //         "price": "22269.14",
+        //         "quantity": "0.00004473",
+        //         "side": "buy"
         //     }
         //
-        // multi data $trade
+        // multi data trade
         //
         //    {
-        //        "type" => "trade",
-        //        "symbol" => "ETHUSD",
-        //        "tid" => "1683002242170204", // this is not TS, but somewhat ID
-        //        "price" => "2299.24",
-        //        "amount" => "0.002662",
-        //        "makerSide" => "bid"
+        //        "type": "trade",
+        //        "symbol": "ETHUSD",
+        //        "tid": "1683002242170204", // this is not TS, but somewhat ID
+        //        "price": "2299.24",
+        //        "amount": "0.002662",
+        //        "makerSide": "bid"
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -174,13 +174,13 @@ class gemini extends \ccxt\async\gemini {
     public function handle_trade(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "trade",
-        //         "symbol" => "BTCUSD",
-        //         "event_id" => 122278173770,
-        //         "timestamp" => 1655335880981,
-        //         "price" => "22530.80",
-        //         "quantity" => "0.04",
-        //         "side" => "buy"
+        //         "type": "trade",
+        //         "symbol": "BTCUSD",
+        //         "event_id": 122278173770,
+        //         "timestamp": 1655335880981,
+        //         "price": "22530.80",
+        //         "quantity": "0.04",
+        //         "side": "buy"
         //     }
         //
         $trade = $this->parse_ws_trade($message);
@@ -201,39 +201,39 @@ class gemini extends \ccxt\async\gemini {
     public function handle_trades(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "l2_updates",
-        //         "symbol" => "BTCUSD",
-        //         "changes" => array(
-        //             array( "buy", '22252.37', "0.02" ),
-        //             array( "buy", '22251.61', "0.04" ),
-        //             array( "buy", '22251.60', "0.04" ),
-        //             // some asks
-        //         ),
-        //         "trades" => array(
-        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => "0.00004473", side => "buy" ),
-        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258141090, timestamp => 1655330213216, price => '22250.00', quantity => "0.00704098", side => "buy" ),
-        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258118291, timestamp => 1655330206753, price => '22250.00', quantity => "0.03", side => "buy" ),
-        //         ),
-        //         "auction_events" => array(
-        //             array(
-        //                 "type" => "auction_result",
-        //                 "symbol" => "BTCUSD",
-        //                 "time_ms" => 1655323200000,
-        //                 "result" => "failure",
-        //                 "highest_bid_price" => "21590.88",
-        //                 "lowest_ask_price" => "21602.30",
-        //                 "collar_price" => "21634.73"
-        //             ),
-        //             array(
-        //                 "type" => "auction_indicative",
-        //                 "symbol" => "BTCUSD",
-        //                 "time_ms" => 1655323185000,
-        //                 "result" => "failure",
-        //                 "highest_bid_price" => "21661.90",
-        //                 "lowest_ask_price" => "21663.78",
-        //                 "collar_price" => "21662.845"
-        //             ),
-        //         )
+        //         "type": "l2_updates",
+        //         "symbol": "BTCUSD",
+        //         "changes": [
+        //             [ "buy", '22252.37', "0.02" ],
+        //             [ "buy", '22251.61', "0.04" ],
+        //             [ "buy", '22251.60', "0.04" ],
+        //             // some asks as well
+        //         ],
+        //         "trades": [
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy" },
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy" },
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy" },
+        //         ],
+        //         "auction_events": [
+        //             {
+        //                 "type": "auction_result",
+        //                 "symbol": "BTCUSD",
+        //                 "time_ms": 1655323200000,
+        //                 "result": "failure",
+        //                 "highest_bid_price": "21590.88",
+        //                 "lowest_ask_price": "21602.30",
+        //                 "collar_price": "21634.73"
+        //             },
+        //             {
+        //                 "type": "auction_indicative",
+        //                 "symbol": "BTCUSD",
+        //                 "time_ms": 1655323185000,
+        //                 "result": "failure",
+        //                 "highest_bid_price": "21661.90",
+        //                 "lowest_ask_price": "21663.78",
+        //                 "collar_price": "21662.845"
+        //             },
+        //         ]
         //     }
         //
         $marketId = $this->safe_string_lower($message, 'symbol');
@@ -300,7 +300,7 @@ class gemini extends \ccxt\async\gemini {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -330,27 +330,27 @@ class gemini extends \ccxt\async\gemini {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "candles_15m_updates",
-        //         "symbol" => "BTCUSD",
-        //         "changes" => array(
-        //             array(
+        //         "type": "candles_15m_updates",
+        //         "symbol": "BTCUSD",
+        //         "changes": [
+        //             [
         //                 1561054500000,
         //                 9350.18,
         //                 9358.35,
         //                 9350.18,
         //                 9355.51,
         //                 2.07
-        //             ),
-        //             array(
+        //             ],
+        //             [
         //                 1561053600000,
         //                 9357.33,
         //                 9357.33,
         //                 9350.18,
         //                 9350.18,
         //                 1.5900161
-        //             )
+        //             ]
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $type = $this->safe_string($message, 'type', '');
@@ -360,7 +360,7 @@ class gemini extends \ccxt\async\gemini {
         $marketId = strtolower($this->safe_string($message, 'symbol', ''));
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_symbol($marketId, $market);
-        $changes = $this->safe_value($message, 'changes', array());
+        $changes = $this->safe_list($message, 'changes', array());
         $timeframe = $this->find_timeframe($timeframeId);
         $ohlcvsBySymbol = $this->safe_value($this->ohlcvs, $symbol);
         if ($ohlcvsBySymbol === null) {
@@ -429,12 +429,12 @@ class gemini extends \ccxt\async\gemini {
 
     public function handle_order_book(Client $client, mixed $message) {
         $isInitial = (is_array($message) && array_key_exists('auction_events' ?? '', $message)) && (is_array($message) && array_key_exists('trades' ?? '', $message)) && (is_array($message) && array_key_exists('changes' ?? '', $message));
-        $changes = $this->safe_value($message, 'changes', array());
+        $changes = $this->safe_list($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         } elseif ($isInitial) {
@@ -494,29 +494,29 @@ class gemini extends \ccxt\async\gemini {
     public function handle_bids_asks_for_multidata(Client $client, mixed $rawBidAskChanges, ?int $timestamp, ?int $nonce) {
         //
         // {
-        //     eventId => '1683002916916153',
-        //     events => array(
-        //       array(
-        //         $price => '50945.37',
-        //         reason => 'top-of-book',
-        //         remaining => '0.0',
-        //         side => 'bid',
-        //         $symbol => 'BTCUSDT',
-        //         type => 'change'
-        //       ),
+        //     eventId: '1683002916916153',
+        //     events: [
         //       {
-        //         $price => '50947.75',
-        //         reason => 'top-of-book',
-        //         remaining => '0.11725',
-        //         side => 'bid',
-        //         $symbol => 'BTCUSDT',
-        //         type => 'change'
+        //         price: '50945.37',
+        //         reason: 'top-of-book',
+        //         remaining: '0.0',
+        //         side: 'bid',
+        //         symbol: 'BTCUSDT',
+        //         type: 'change'
+        //       },
+        //       {
+        //         price: '50947.75',
+        //         reason: 'top-of-book',
+        //         remaining: '0.11725',
+        //         side: 'bid',
+        //         symbol: 'BTCUSDT',
+        //         type: 'change'
         //       }
-        //     ),
-        //     socket_sequence => 322,
-        //     $timestamp => 1708674495,
-        //     timestampms => 1708674495174,
-        //     type => 'update'
+        //     ],
+        //     socket_sequence: 322,
+        //     timestamp: 1708674495,
+        //     timestampms: 1708674495174,
+        //     type: 'update'
         // }
         //
         $marketId = $rawBidAskChanges[0]['symbol'];
@@ -568,7 +568,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $symbols = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbols[0]);
-        if (!$firstMarket['spot'] && !$firstMarket['linear']) {
+        if (($firstMarket['spot'] !== true) && ($firstMarket['linear'] !== true)) {
             throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
         }
         $messageHashes = array();
@@ -594,18 +594,18 @@ class gemini extends \ccxt\async\gemini {
 
     public function handle_order_book_for_multidata(Client $client, mixed $rawOrderBookChanges, ?int $timestamp, ?int $nonce) {
         //
-        // $rawOrderBookChanges
+        // rawOrderBookChanges
         //
         // [
-        //   array(
-        //     delta => "4105123935484.817624",
-        //     $price => "0.000000001",
-        //     reason => "initial", // initial|cancel|place
-        //     remaining => "4105123935484.817624",
-        //     side => "bid", // bid|ask
-        //     $symbol => "SHIBUSD",
-        //     type => "change", // seems always change
-        //   ),
+        //   {
+        //     delta: "4105123935484.817624",
+        //     price: "0.000000001",
+        //     reason: "initial", // initial|cancel|place
+        //     remaining: "4105123935484.817624",
+        //     side: "bid", // bid|ask
+        //     symbol: "SHIBUSD",
+        //     type: "change", // seems always change
+        //   },
         //   ...
         //
         $marketId = $rawOrderBookChanges[0]['symbol'];
@@ -643,39 +643,39 @@ class gemini extends \ccxt\async\gemini {
     public function handle_l2_updates(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "l2_updates",
-        //         "symbol" => "BTCUSD",
-        //         "changes" => array(
-        //             array( "buy", '22252.37', "0.02" ),
-        //             array( "buy", '22251.61', "0.04" ),
-        //             array( "buy", '22251.60', "0.04" ),
-        //             // some asks
-        //         ),
-        //         "trades" => array(
-        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => "0.00004473", side => "buy" ),
-        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258141090, timestamp => 1655330213216, price => '22250.00', quantity => "0.00704098", side => "buy" ),
-        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258118291, timestamp => 1655330206753, price => '22250.00', quantity => "0.03", side => "buy" ),
-        //         ),
-        //         "auction_events" => array(
-        //             array(
-        //                 "type" => "auction_result",
-        //                 "symbol" => "BTCUSD",
-        //                 "time_ms" => 1655323200000,
-        //                 "result" => "failure",
-        //                 "highest_bid_price" => "21590.88",
-        //                 "lowest_ask_price" => "21602.30",
-        //                 "collar_price" => "21634.73"
-        //             ),
-        //             array(
-        //                 "type" => "auction_indicative",
-        //                 "symbol" => "BTCUSD",
-        //                 "time_ms" => 1655323185000,
-        //                 "result" => "failure",
-        //                 "highest_bid_price" => "21661.90",
-        //                 "lowest_ask_price" => "21663.79",
-        //                 "collar_price" => "21662.845"
-        //             ),
-        //         )
+        //         "type": "l2_updates",
+        //         "symbol": "BTCUSD",
+        //         "changes": [
+        //             [ "buy", '22252.37', "0.02" ],
+        //             [ "buy", '22251.61', "0.04" ],
+        //             [ "buy", '22251.60', "0.04" ],
+        //             // some asks as well
+        //         ],
+        //         "trades": [
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy" },
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy" },
+        //             { type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy" },
+        //         ],
+        //         "auction_events": [
+        //             {
+        //                 "type": "auction_result",
+        //                 "symbol": "BTCUSD",
+        //                 "time_ms": 1655323200000,
+        //                 "result": "failure",
+        //                 "highest_bid_price": "21590.88",
+        //                 "lowest_ask_price": "21602.30",
+        //                 "collar_price": "21634.73"
+        //             },
+        //             {
+        //                 "type": "auction_indicative",
+        //                 "symbol": "BTCUSD",
+        //                 "time_ms": 1655323185000,
+        //                 "result": "failure",
+        //                 "highest_bid_price": "21661.90",
+        //                 "lowest_ask_price": "21663.79",
+        //                 "collar_price": "21662.845"
+        //             },
+        //         ]
         //     }
         //
         $this->handle_order_book($client, $message);
@@ -721,11 +721,11 @@ class gemini extends \ccxt\async\gemini {
     public function handle_heartbeat(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "heartbeat",
-        //         "timestampms" => 1659740268958,
-        //         "sequence" => 7,
-        //         "trace_id" => "25b3d92476dd3a9a5c03c9bd9e0a0dba",
-        //         "socket_sequence" => 7
+        //         "type": "heartbeat",
+        //         "timestampms": 1659740268958,
+        //         "sequence": 7,
+        //         "trace_id": "25b3d92476dd3a9a5c03c9bd9e0a0dba",
+        //         "socket_sequence": 7
         //     }
         //
         $client->lastPong = $this->milliseconds();
@@ -735,12 +735,12 @@ class gemini extends \ccxt\async\gemini {
     public function handle_subscription(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "subscription_ack",
-        //         "accountId" => 19433282,
-        //         "subscriptionId" => "orderevents-websocket-25b3d92476dd3a9a5c03c9bd9e0a0dba",
-        //         "symbolFilter" => array(),
-        //         "apiSessionFilter" => array(),
-        //         "eventTypeFilter" => array()
+        //         "type": "subscription_ack",
+        //         "accountId": 19433282,
+        //         "subscriptionId": "orderevents-websocket-25b3d92476dd3a9a5c03c9bd9e0a0dba",
+        //         "symbolFilter": [],
+        //         "apiSessionFilter": [],
+        //         "eventTypeFilter": []
         //     }
         //
         return $message;
@@ -748,27 +748,27 @@ class gemini extends \ccxt\async\gemini {
 
     public function handle_order(Client $client, mixed $message) {
         //
-        //     array(
+        //     [
         //         {
-        //             "type" => "accepted",
-        //             "order_id" => "134150423884",
-        //             "event_id" => "134150423886",
-        //             "account_name" => "primary",
-        //             "client_order_id" => "1659739406916",
-        //             "api_session" => "account-pnBFSS0XKGvDamX4uEIt",
-        //             "symbol" => "batbtc",
-        //             "side" => "sell",
-        //             "order_type" => "exchange $limit",
-        //             "timestamp" => "1659739407",
-        //             "timestampms" => 1659739407576,
-        //             "is_live" => true,
-        //             "is_cancelled" => false,
-        //             "is_hidden" => false,
-        //             "original_amount" => "1",
-        //             "price" => "1",
-        //             "socket_sequence" => 139
+        //             "type": "accepted",
+        //             "order_id": "134150423884",
+        //             "event_id": "134150423886",
+        //             "account_name": "primary",
+        //             "client_order_id": "1659739406916",
+        //             "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        //             "symbol": "batbtc",
+        //             "side": "sell",
+        //             "order_type": "exchange limit",
+        //             "timestamp": "1659739407",
+        //             "timestampms": 1659739407576,
+        //             "is_live": true,
+        //             "is_cancelled": false,
+        //             "is_hidden": false,
+        //             "original_amount": "1",
+        //             "price": "1",
+        //             "socket_sequence": 139
         //         }
-        //     )
+        //     ]
         //
         $messageHash = 'orders';
         if ($this->orders === null) {
@@ -786,23 +786,23 @@ class gemini extends \ccxt\async\gemini {
     public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //     {
-        //         "type" => "accepted",
-        //         "order_id" => "134150423884",
-        //         "event_id" => "134150423886",
-        //         "account_name" => "primary",
-        //         "client_order_id" => "1659739406916",
-        //         "api_session" => "account-pnBFSS0XKGvDamX4uEIt",
-        //         "symbol" => "batbtc",
-        //         "side" => "sell",
-        //         "order_type" => "exchange limit",
-        //         "timestamp" => "1659739407",
-        //         "timestampms" => 1659739407576,
-        //         "is_live" => true,
-        //         "is_cancelled" => false,
-        //         "is_hidden" => false,
-        //         "original_amount" => "1",
-        //         "price" => "1",
-        //         "socket_sequence" => 139
+        //         "type": "accepted",
+        //         "order_id": "134150423884",
+        //         "event_id": "134150423886",
+        //         "account_name": "primary",
+        //         "client_order_id": "1659739406916",
+        //         "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        //         "symbol": "batbtc",
+        //         "side": "sell",
+        //         "order_type": "exchange limit",
+        //         "timestamp": "1659739407",
+        //         "timestampms": 1659739407576,
+        //         "is_live": true,
+        //         "is_cancelled": false,
+        //         "is_hidden": false,
+        //         "original_amount": "1",
+        //         "price": "1",
+        //         "socket_sequence": 139
         //     }
         //
         $timestamp = $this->safe_integer($order, 'timestampms');
@@ -869,8 +869,8 @@ class gemini extends \ccxt\async\gemini {
     public function handle_error(Client $client, mixed $message) {
         //
         //     {
-        //         "reason" => "NoValidTradingPairs",
-        //         "result" => "error"
+        //         "reason": "NoValidTradingPairs",
+        //         "result": "error"
         //     }
         //
         throw new ExchangeError($this->json($message));
@@ -880,37 +880,37 @@ class gemini extends \ccxt\async\gemini {
         //
         //  public
         //     {
-        //         "type" => "trade",
-        //         "symbol" => "BTCUSD",
-        //         "event_id" => 122278173770,
-        //         "timestamp" => 1655335880981,
-        //         "price" => "22530.80",
-        //         "quantity" => "0.04",
-        //         "side" => "buy"
+        //         "type": "trade",
+        //         "symbol": "BTCUSD",
+        //         "event_id": 122278173770,
+        //         "timestamp": 1655335880981,
+        //         "price": "22530.80",
+        //         "quantity": "0.04",
+        //         "side": "buy"
         //     }
         //
         //  private
-        //     array(
+        //     [
         //         {
-        //             "type" => "accepted",
-        //             "order_id" => "134150423884",
-        //             "event_id" => "134150423886",
-        //             "account_name" => "primary",
-        //             "client_order_id" => "1659739406916",
-        //             "api_session" => "account-pnBFSS0XKGvDamX4uEIt",
-        //             "symbol" => "batbtc",
-        //             "side" => "sell",
-        //             "order_type" => "exchange limit",
-        //             "timestamp" => "1659739407",
-        //             "timestampms" => 1659739407576,
-        //             "is_live" => true,
-        //             "is_cancelled" => false,
-        //             "is_hidden" => false,
-        //             "original_amount" => "1",
-        //             "price" => "1",
-        //             "socket_sequence" => 139
+        //             "type": "accepted",
+        //             "order_id": "134150423884",
+        //             "event_id": "134150423886",
+        //             "account_name": "primary",
+        //             "client_order_id": "1659739406916",
+        //             "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        //             "symbol": "batbtc",
+        //             "side": "sell",
+        //             "order_type": "exchange limit",
+        //             "timestamp": "1659739407",
+        //             "timestampms": 1659739407576,
+        //             "is_live": true,
+        //             "is_cancelled": false,
+        //             "is_hidden": false,
+        //             "original_amount": "1",
+        //             "price": "1",
+        //             "socket_sequence": 139
         //         }
-        //     )
+        //     ]
         //
         $isArray = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)));
         if ($isArray) {
@@ -1004,7 +1004,7 @@ class gemini extends \ccxt\async\gemini {
                 ),
             ),
         );
-        // $this->options = $this->extend($defaultOptions, $this->options);
+        // this.options = this.extend (defaultOptions, this.options);
         $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(

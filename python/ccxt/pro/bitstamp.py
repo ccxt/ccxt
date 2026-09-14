@@ -309,11 +309,11 @@ class bitstamp(ccxt.async_support.bitstamp):
         #        "price_str":"1000.00"
         #     },
         #     "channel":"private-my_orders_ltcusd-4848701",
-        #     "event": "order_deleted"  # field only present for cancelOrder
+        #     "event": "order_deleted" // field only present for cancelOrder
         # }
         #
         channel = self.safe_string(message, 'channel')
-        order = self.safe_value(message, 'data', {})
+        order = self.safe_dict(message, 'data', {})
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
@@ -341,7 +341,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         #        "amount_at_create": "1.10000000",
         #        "price": 10.23,
         #        "price_str": "10.23",
-        #        "is_liquidation": False,
+        #        "is_liquidation": false,
         #        "trade_account_id": 0
         #    }
         #
@@ -464,7 +464,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         #         "price_str":"1000.00"
         #         },
         #         "channel":"private-my_orders_ltcusd-4848701",
-        #         "event": "order_deleted"  # field only present for cancelOrder
+        #         "event": "order_deleted" // field only present for cancelOrder
         #     }
         #
         channel = self.safe_string(message, 'channel')
@@ -486,7 +486,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         # {
         #     "event": "bts:error",
         #     "channel": '',
-        #     "data": {code: 4009, message: "Connection is unauthorized."}
+        #     "data": { code: 4009, message: "Connection is unauthorized." }
         # }
         event = self.safe_string(message, 'event')
         if event == 'bts:error':
@@ -497,7 +497,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         return True
 
     def handle_message(self, client: Client, message: object):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         #
         #     {
@@ -544,10 +544,10 @@ class bitstamp(ccxt.async_support.bitstamp):
         if (expiresIn is None) or (time > expiresIn):
             # single-flight leader election on a never-dialed client, see
             # https://github.com/ccxt/ccxt/issues/29393: the websocket token is
-            # minted by a private REST call and cached in self.options, so N
-            # concurrent subscribePrivate() calls on a cold instance all pass
+            # minted by a private REST call and cached in this.options, so N
+            # concurrent subscribePrivate () calls on a cold instance all pass
             # the staleness check above and each mint their own token - the
-            # tokens are short lived(valid_sec is 60), so self burns the
+            # tokens are short lived (valid_sec is 60), so this burns the
             # private endpoint and only the last write survives.
             # the flight is registered in client.futures and settled through
             # client.resolve / client.reject, so every mutation of that map
@@ -556,7 +556,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             client = self.client('authenticationFlights')
             if messageHash in client.futures:
                 # a flight is already in progress - wake when the leader
-                # settles it: the token is then in self.options
+                # settles it: the token is then in this.options
                 await client.future(messageHash)
                 return
             future = client.reusableFuture(messageHash)
@@ -585,7 +585,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 # client.futures and wakes every waiter parked on it
                 client.resolve(sessionToken, messageHash)
             except Exception as e:
-                # reject the flight - all waiters raise and the next caller
+                # reject the flight - all waiters throw and the next caller
                 # re-leads instead of deadlocking on a dead flight
                 client.reject(e, messageHash)
             # rethrows to the leader and marks the promise handled, so an

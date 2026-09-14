@@ -20,7 +20,7 @@ import testOnJsonResponse from './test.onJsonResponse.js';
 async function testLanguageSpecific () {
     testCamelCase ();
     testUnCamelCase ();
-    testThrottle ();
+    await testThrottle ();
     testCalculateFee ();
     testSafeBalance ();
     testLegacyHas ();

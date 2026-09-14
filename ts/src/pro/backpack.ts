@@ -1360,7 +1360,7 @@ export default class backpack extends backpackRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         const data = this.safeDict (message, 'data');
