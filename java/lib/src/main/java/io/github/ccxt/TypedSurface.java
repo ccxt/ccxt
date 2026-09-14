@@ -635,15 +635,15 @@ public interface TypedSurface {
     default CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol, Map<String, Object> params) { return this.fetchPositionADLRank(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol) { return fetchPositionADLRankAsync(symbol, (Map<String, Object>) null); }
 
-    default List<Order> createSpotOrders(Object orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createSpotOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> createSpotOrders(Object orders) { return createSpotOrders(orders, (Map<String, Object>) null); }
-    default CompletableFuture<List<Order>> createSpotOrdersAsync(Object orders, Map<String, Object> params) { return this.createSpotOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createSpotOrdersAsync(Object orders) { return createSpotOrdersAsync(orders, (Map<String, Object>) null); }
+    default List<Order> createSpotOrders(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createSpotOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
+    default List<Order> createSpotOrders(List<Map<String, Object>> orders) { return createSpotOrders(orders, (Map<String, Object>) null); }
+    default CompletableFuture<List<Order>> createSpotOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createSpotOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createSpotOrdersAsync(List<Map<String, Object>> orders) { return createSpotOrdersAsync(orders, (Map<String, Object>) null); }
 
-    default List<Order> createContractOrders(Object orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createContractOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> createContractOrders(Object orders) { return createContractOrders(orders, (Map<String, Object>) null); }
-    default CompletableFuture<List<Order>> createContractOrdersAsync(Object orders, Map<String, Object> params) { return this.createContractOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createContractOrdersAsync(Object orders) { return createContractOrdersAsync(orders, (Map<String, Object>) null); }
+    default List<Order> createContractOrders(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createContractOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
+    default List<Order> createContractOrders(List<Map<String, Object>> orders) { return createContractOrders(orders, (Map<String, Object>) null); }
+    default CompletableFuture<List<Order>> createContractOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createContractOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createContractOrdersAsync(List<Map<String, Object>> orders) { return createContractOrdersAsync(orders, (Map<String, Object>) null); }
 
     default Order cancelSpotOrder(String id, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelSpotOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default Order cancelSpotOrder(String id) { return cancelSpotOrder(id, (String) null, (Map<String, Object>) null); }
@@ -665,10 +665,10 @@ public interface TypedSurface {
     default List<Order> cancelAllContractOrders(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelAllContractOrders((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Order>> cancelAllContractOrdersAsync(String symbol, Map<String, Object> params) { return this.cancelAllContractOrders((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Order> cancelOrdersForSymbols(Object orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelOrdersForSymbols((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> cancelOrdersForSymbols(Object orders) { return cancelOrdersForSymbols(orders, (Map<String, Object>) null); }
-    default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(Object orders, Map<String, Object> params) { return this.cancelOrdersForSymbols((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(Object orders) { return cancelOrdersForSymbolsAsync(orders, (Map<String, Object>) null); }
+    default List<Order> cancelOrdersForSymbols(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelOrdersForSymbols((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
+    default List<Order> cancelOrdersForSymbols(List<Map<String, Object>> orders) { return cancelOrdersForSymbols(orders, (Map<String, Object>) null); }
+    default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.cancelOrdersForSymbols((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(List<Map<String, Object>> orders) { return cancelOrdersForSymbolsAsync(orders, (Map<String, Object>) null); }
 
     default List<Liquidation> fetchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchMyLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Liquidation>> fetchMyLiquidationsAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchMyLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
@@ -811,10 +811,10 @@ public interface TypedSurface {
     default List<Position> closeAllPositions(Map<String, Object> params) { return Helpers.joinUnwrapped(this.closeAllPositions((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Position>> closeAllPositionsAsync(Map<String, Object> params) { return this.closeAllPositions((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Order> editOrders(Object orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.editOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> editOrders(Object orders) { return editOrders(orders, (Map<String, Object>) null); }
-    default CompletableFuture<List<Order>> editOrdersAsync(Object orders, Map<String, Object> params) { return this.editOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> editOrdersAsync(Object orders) { return editOrdersAsync(orders, (Map<String, Object>) null); }
+    default List<Order> editOrders(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.editOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
+    default List<Order> editOrders(List<Map<String, Object>> orders) { return editOrders(orders, (Map<String, Object>) null); }
+    default CompletableFuture<List<Order>> editOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.editOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> editOrdersAsync(List<Map<String, Object>> orders) { return editOrdersAsync(orders, (Map<String, Object>) null); }
 
     default List<Order> fetchCanceledAndClosedOrders(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchCanceledAndClosedOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Order>> fetchCanceledAndClosedOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchCanceledAndClosedOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
@@ -1068,10 +1068,10 @@ public interface TypedSurface {
     default CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfit) { return createOrderWithTakeProfitAndStopLossAsync(symbol, type, side, amount, price, takeProfit, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfit, Double stopLoss) { return createOrderWithTakeProfitAndStopLossAsync(symbol, type, side, amount, price, takeProfit, stopLoss, (Map<String, Object>) null); }
 
-    default List<Order> createOrders(Object orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> createOrders(Object orders) { return createOrders(orders, (Map<String, Object>) null); }
-    default CompletableFuture<List<Order>> createOrdersAsync(Object orders, Map<String, Object> params) { return this.createOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createOrdersAsync(Object orders) { return createOrdersAsync(orders, (Map<String, Object>) null); }
+    default List<Order> createOrders(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
+    default List<Order> createOrders(List<Map<String, Object>> orders) { return createOrders(orders, (Map<String, Object>) null); }
+    default CompletableFuture<List<Order>> createOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createOrdersAsync(List<Map<String, Object>> orders) { return createOrdersAsync(orders, (Map<String, Object>) null); }
 
     default Order cancelOrder(String id, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default Order cancelOrder(String id) { return cancelOrder(id, (String) null, (Map<String, Object>) null); }
@@ -1504,10 +1504,10 @@ public interface TypedSurface {
     default CompletableFuture<Order> createOrderWsAsync(String symbol, String type, String side, Double amount) { return createOrderWsAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<Order> createOrderWsAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderWsAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
 
-    default List<Order> createOrdersWs(Object orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createOrdersWs((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> createOrdersWs(Object orders) { return createOrdersWs(orders, (Map<String, Object>) null); }
-    default CompletableFuture<List<Order>> createOrdersWsAsync(Object orders, Map<String, Object> params) { return this.createOrdersWs((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createOrdersWsAsync(Object orders) { return createOrdersWsAsync(orders, (Map<String, Object>) null); }
+    default List<Order> createOrdersWs(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createOrdersWs((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
+    default List<Order> createOrdersWs(List<Map<String, Object>> orders) { return createOrdersWs(orders, (Map<String, Object>) null); }
+    default CompletableFuture<List<Order>> createOrdersWsAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createOrdersWs((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createOrdersWsAsync(List<Map<String, Object>> orders) { return createOrdersWsAsync(orders, (Map<String, Object>) null); }
 
     default Order createPostOnlyOrderWs(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createPostOnlyOrderWs(symbol, (Object) type, (Object) side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default Order createPostOnlyOrderWs(String symbol, String type, String side, Double amount) { return createPostOnlyOrderWs(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
