@@ -3309,7 +3309,7 @@ class pacifica extends Exchange {
          */
         $finalHeaders = array( );
         $agentAddress = null;
-        list($agentAddress, $params) = $this->handle_option('createSubAccount', 'agentAddress');
+        list($agentAddress, $params) = $this->handle_option_and_params($params, 'createSubAccount', 'agentAddress');
         $originAddress = null;
         list($originAddress, $params) = $this->handle_origin_and_single_address('createSubAccount', $params);
         if ($originAddress === null) {
@@ -3328,7 +3328,8 @@ class pacifica extends Exchange {
         if ($subAccountPrivateKey === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        $timestamp = $this->milliseconds();
+        $timestamp = null;
+        list($timestamp, $params) = $this->handle_param_integer($params, 'timestamp', $this->milliseconds());
         $expiryWindow = null;
         list($expiryWindow, $params) = $this->handle_option_and_params_2($params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         $subaccountSignatureHeader = array(
@@ -3356,7 +3357,7 @@ class pacifica extends Exchange {
         $finalHeaders['timestamp'] = $timestamp;
         $finalHeaders['expiry_window'] = $expiryWindow;
         $request = $finalHeaders;
-        $response = $this->privatePostAccountSubaccountCreate($request);
+        $response = $this->privatePostAccountSubaccountCreate($this->extend($request, $params));
         //
         // {
         //   "success" => true,

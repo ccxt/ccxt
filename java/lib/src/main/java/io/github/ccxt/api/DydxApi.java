@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class DydxApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAddressesAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddress", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressParentSubaccountNumberNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAddressesAddressParentSubaccountNumberNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressParentSubaccountNumberNumber", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumber", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAssetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAssetPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAssetPositions", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAssetPositionsParentSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAssetPositionsParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAssetPositionsParentSubaccountNumber", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetCandlesPerpetualMarketsMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetCandlesPerpetualMarketsMarket (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetCandlesPerpetualMarketsMarket", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetComplianceScreenAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetComplianceScreenAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetComplianceScreenAddress", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetFills (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFills", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFillsParentSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetFillsParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFillsParentSubaccountNumber", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFundingPayments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetFundingPayments (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFundingPayments", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFundingPaymentsParentSubaccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetFundingPaymentsParentSubaccount (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFundingPaymentsParentSubaccount", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHeight (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetHeight (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHeight", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetHistoricalPnl (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalPnl", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalPnlParentSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetHistoricalPnlParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalPnlParentSubaccountNumber", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalBlockTradingRewardsAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetHistoricalBlockTradingRewardsAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalBlockTradingRewardsAddress", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalFundingMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetHistoricalFundingMarket (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalFundingMarket", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalTradingRewardAggregationsAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetHistoricalTradingRewardAggregationsAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalTradingRewardAggregationsAddress", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetOrderbooksPerpetualMarketMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetOrderbooksPerpetualMarketMarket (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetOrderbooksPerpetualMarketMarket", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  indexerGetOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  indexerGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetOrders", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetOrdersParentSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetOrdersParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetOrdersParentSubaccountNumber", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetOrdersOrderId", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetPerpetualMarkets (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualMarkets", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetPerpetualPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualPositions", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualPositionsParentSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetPerpetualPositionsParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualPositionsParentSubaccountNumber", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetScreen (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetScreen (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetScreen", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetSparklines (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetSparklines (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetSparklines", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetTime (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTime", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTradesPerpetualMarketMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetTradesPerpetualMarketMarket (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTradesPerpetualMarketMarket", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetTransfers (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTransfers", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTransfersBetween (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetTransfersBetween (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTransfersBetween", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTransfersParentSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetTransfersParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTransfersParentSubaccountNumber", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetVaultV1MegavaultHistoricalPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetVaultV1MegavaultHistoricalPnl (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetVaultV1MegavaultHistoricalPnl", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetVaultV1MegavaultPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetVaultV1MegavaultPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetVaultV1MegavaultPositions", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetVaultV1VaultsHistoricalPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetVaultV1VaultsHistoricalPnl (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetVaultV1VaultsHistoricalPnl", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualMarketSparklines (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetPerpetualMarketSparklines (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualMarketSparklines", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualMarketsTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetPerpetualMarketsTicker (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualMarketsTicker", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPerpetualMarketsTickerOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetPerpetualMarketsTickerOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPerpetualMarketsTickerOrderbook", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTradesPerpetualMarketTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetTradesPerpetualMarketTicker (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTradesPerpetualMarketTicker", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalFundingTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetHistoricalFundingTicker (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalFundingTicker", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetCandlesTickerResolution (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetCandlesTickerResolution (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetCandlesTickerResolution", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAddressesAddressSubaccounts (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccounts", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetFillsParentSubaccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetFillsParentSubaccount (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetFillsParentSubaccount", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetHistoricalPnlParentSubaccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetHistoricalPnlParentSubaccount (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetHistoricalPnlParentSubaccount", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetPnl (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPnl", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPnlParentSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetPnlParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetPnlParentSubaccountNumber", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTradeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTradeHistory", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTradeHistoryParentSubaccountNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerGetTradeHistoryParentSubaccountNumber (Object... optionalArgs)
     {
         return this.callAsync ("indexerGetTradeHistoryParentSubaccountNumber", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerPostTurnkeySignin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerPostTurnkeySignin (Object... optionalArgs)
     {
         return this.callAsync ("indexerPostTurnkeySignin", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerPostTurnkeyUploadAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  indexerPostTurnkeyUploadAddress (Object... optionalArgs)
     {
         return this.callAsync ("indexerPostTurnkeyUploadAddress", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetAbciInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  nodeRpcGetAbciInfo (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetAbciInfo", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetBlock (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  nodeRpcGetBlock (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetBlock", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetBroadcastTxAsync (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  nodeRpcGetBroadcastTxAsync (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetBroadcastTxAsync", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetBroadcastTxSync (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  nodeRpcGetBroadcastTxSync (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetBroadcastTxSync", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRpcGetTx (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  nodeRpcGetTx (Object... optionalArgs)
     {
         return this.callAsync ("nodeRpcGetTx", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (Object... optionalArgs)
     {
         return this.callAsync ("nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRestPostCosmosTxV1beta1Encode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  nodeRestPostCosmosTxV1beta1Encode (Object... optionalArgs)
     {
         return this.callAsync ("nodeRestPostCosmosTxV1beta1Encode", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class DydxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  nodeRestPostCosmosTxV1beta1Simulate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  nodeRestPostCosmosTxV1beta1Simulate (Object... optionalArgs)
     {
         return this.callAsync ("nodeRestPostCosmosTxV1beta1Simulate", optionalArgs);
     }

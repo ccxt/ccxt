@@ -102,7 +102,7 @@ class weex extends Exchange {
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
@@ -3590,10 +3590,7 @@ class weex extends Exchange {
             $currency = $this->currency($code);
         }
         if ($accountType === 'contract') {
-            if ($currency === null) {
-                throw new ExchangeError($this->id . ' fetchLedger() could not resolve currency');
-            }
-            if ($code !== null) {
+            if ($currency !== null) {
                 $request['currency'] = $currency['id'];
             }
             if ($since !== null) {
@@ -3731,6 +3728,110 @@ class weex extends Exchange {
             'position_close_short' => 'trade',
         );
         return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding history entry, requires $since to be set, the span may not exceed 100 days
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingHistory', $symbol, $since, $limit, $params, 100));
+        }
+        $market = null;
+        $request = array(
+            'incomeType' => 'position_funding', // deposit, withdraw, transfer_in, transfer_out, margin_move_in, margin_move_out, position_open_long, position_open_short, position_close_long, position_close_short, position_funding, order_fill_fee_income, order_liquidate_fee_income, start_liquidate, finish_liquidate, order_fix_margin_amount, tracking_follow_pay, tracking_system_pre_receive, tracking_follow_back, tracking_trader_income, tracking_third_party_share
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if ($market['swap'] !== true) {
+                throw new NotSupported($this->id . ' fetchFundingHistory() supports swap contracts only');
+            }
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        $hasSince = (is_array($request) && array_key_exists('startTime' ?? '', $request));
+        $hasUntil = (is_array($request) && array_key_exists('endTime' ?? '', $request));
+        if ($hasSince && !$hasUntil) {
+            $request['endTime'] = $this->milliseconds();
+        } elseif ($hasUntil && !$hasSince) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires $since to be set when until is used');
+        }
+        $response = Async\await($this->contractPrivatePostCapiV3AccountIncome($this->extend($request, $params)));
+        //
+        //     {
+        //         "hasNextPage" => false,
+        //         "nextKey" => null,
+        //         "items" => array(
+        //             {
+        //                 "billId" => "793622764958253481",
+        //                 "asset" => "USDT",
+        //                 "symbol" => "VIRTUALUSDT",
+        //                 "income" => "0.00000378",
+        //                 "incomeType" => "position_funding",
+        //                 "balance" => "29.36239410",
+        //                 "fillFee" => "0",
+        //                 "time" => "1789214411964",
+        //                 "transferReason" => "UNKNOWN_TRANSFER_REASON"
+        //             }
+        //         )
+        //     }
+        //
+        $items = $this->safe_list($response, 'items', array());
+        return $this->parse_incomes($items, $market, $since, $limit);
+    }
+
+    public function parse_income(mixed $income, ?array $market = null): array {
+        //
+        //     {
+        //         "billId" => "793622764958253481",
+        //         "asset" => "USDT",
+        //         "symbol" => "VIRTUALUSDT",
+        //         "income" => "0.00000378",
+        //         "incomeType" => "position_funding",
+        //         "balance" => "29.36239410",
+        //         "fillFee" => "0",
+        //         "time" => "1789214411964",
+        //         "transferReason" => "UNKNOWN_TRANSFER_REASON"
+        //     }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $currencyId = $this->safe_string($income, 'asset');
+        $timestamp = $this->safe_integer($income, 'time');
+        return array(
+            'info' => $income,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'code' => $this->safe_currency_code($currencyId),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'billId'),
+            'amount' => $this->safe_number($income, 'income'),
+        );
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
