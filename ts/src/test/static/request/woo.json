@@ -30,6 +30,14 @@
                         "ETH/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "Empty symbols list, the swap-only gate must not read symbols[0]",
+                "method": "fetchTickers",
+                "url": "https://api.woox.io/v3/public/futures",
+                "input": [
+                    []
+                ]
             }
         ],
         "withdraw": [
