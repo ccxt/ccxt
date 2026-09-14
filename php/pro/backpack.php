@@ -1005,7 +1005,7 @@ class backpack extends \ccxt\async\backpack {
     public function get_cache_index(mixed $orderbook, mixed $cache) {
         //
         // array("E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":array(),"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171)
-        $firstDelta = $this->safe_dict($cache, 0);
+        $firstDelta = $this->safe_value($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDeltaStart = $this->safe_integer($firstDelta, 'U');
         if ($nonce === null) {
