@@ -139,7 +139,7 @@ export default class blofin extends Exchange {
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1895,6 +1895,67 @@ export default class blofin extends Exchange {
         const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
         const data = this.safeList (response, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name blofin#withdraw
+     * @description make a withdrawal
+     * @see https://docs.blofin.com/index.html#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+     * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
+     * @param {string} tag additional identifier (memo / payment id) required by certain networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+     * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
+     * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+     * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
+     * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    override async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': this.numberToString (amount),
+        };
+        const dest = this.safeString (params, 'dest', 'onchain');
+        request['dest'] = dest;
+        params = this.omit (params, 'dest');
+        if (dest === 'onchain') {
+            this.checkAddress (address);
+        }
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        const chain = this.safeString (params, 'chain');
+        if (chain === undefined) {
+            let networkCode: Str = undefined;
+            [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+            if (networkCode !== undefined) {
+                request['chain'] = this.networkCodeToId (networkCode);
+            } else if (dest === 'onchain') {
+                // required for on-chain withdrawals, optional for internal transfers
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');
+            }
+        }
+        const response = await this.privatePostAssetWithdrawalApply (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "withdrawId": "a1b2c3d4e5",
+        //             "clientId": "broker-20260706-0001"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTransaction (data, currency);
     }
 
     /**
