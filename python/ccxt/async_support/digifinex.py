@@ -1225,6 +1225,10 @@ class digifinex(Exchange, ImplicitAPI):
         if market['swap'] is True:
             timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
+        percentage = self.safe_string_2(ticker, 'change', 'price_change_percent')
+        if market['swap'] is True:
+            # swap endpoints return a raw ratio, spot already returns a percent
+            percentage = Precise.string_mul(percentage, '100')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1241,7 +1245,7 @@ class digifinex(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_string_2(ticker, 'change', 'price_change_percent'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'base_vol'),

@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class MexcApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetAnnouncements (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetAnnouncements (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetAnnouncements", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetPing", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTime", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetDefaultSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetDefaultSymbols (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetDefaultSymbols", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetSymbolOffline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetSymbolOffline (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetSymbolOffline", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetExchangeInfo", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetDepth", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPublicGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTrades", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPublicGetHistoricalTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPublicGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetHistoricalTrades", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPublicGetAggTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPublicGetAggTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetAggTrades", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPublicGetKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPublicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetKlines", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetAvgPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetAvgPrice (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetAvgPrice", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Object>  spotPublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTicker24hr", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetTickerPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTickerPrice", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPublicGetTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPublicGetTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTickerBookTicker", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetEtfInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPublicGetEtfInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetEtfInfo", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetKycStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetKycStatus (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetKycStatus", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetUid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetUid (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetUid", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetApiKeyInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetApiKeyInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetApiKeyInfo", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetOrder", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetOpenOrders", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetAllOrders", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetAccount", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetMyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMyTrades", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetStrategyGroup (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetStrategyGroup (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetStrategyGroup", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetStrategyGroupUid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetStrategyGroupUid (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetStrategyGroupUid", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetTradeFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetTradeFee (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetTradeFee", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetSubAccountList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetSubAccountList (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetSubAccountList", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetSubAccountApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetSubAccountApiKey (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetSubAccountApiKey", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetSubAccountAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetSubAccountAsset (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetSubAccountAsset", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetCapitalConfigGetall (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetCapitalConfigGetall (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalConfigGetall", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetCapitalDepositHisrec (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetCapitalDepositHisrec (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalDepositHisrec", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetCapitalWithdrawHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetCapitalWithdrawHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalWithdrawHistory", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetCapitalWithdrawAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetCapitalWithdrawAddress (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalWithdrawAddress", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetCapitalDepositAddress (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetCapitalDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalDepositAddress", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetCapitalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetCapitalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalTransfer", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetCapitalTransferTranId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetCapitalTransferTranId (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalTransferTranId", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetCapitalTransferInternal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetCapitalTransferInternal (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalTransferInternal", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetCapitalSubAccountUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetCapitalSubAccountUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalSubAccountUniversalTransfer", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetCapitalConvert (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetCapitalConvert (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalConvert", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetCapitalConvertList (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetCapitalConvertList (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetCapitalConvertList", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginLoan (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginLoan", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginAllOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginAllOrders", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginMyTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginMyTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginMyTrades", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateGetMarginOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetMarginOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginOpenOrders", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginMaxTransferable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginMaxTransferable (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginMaxTransferable", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginPriceIndex (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginPriceIndex (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginPriceIndex", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginOrder", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginIsolatedAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginIsolatedAccount (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginIsolatedAccount", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginMaxBorrowable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginMaxBorrowable (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginMaxBorrowable", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginRepay (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginRepay (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginRepay", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginIsolatedPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginIsolatedPair (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginIsolatedPair", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginForceLiquidationRec (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginForceLiquidationRec (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginForceLiquidationRec", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginIsolatedMarginData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginIsolatedMarginData (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginIsolatedMarginData", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMarginIsolatedMarginTier (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginIsolatedMarginTier (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginIsolatedMarginTier", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateTaxQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateTaxQuery (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateTaxQuery", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateDetail (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateDetail", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateDetailKickback (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateDetailKickback (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateDetailKickback", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateReferCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateReferCode (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateReferCode", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateAffiliateCommission (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateAffiliateCommission (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateAffiliateCommission", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateAffiliateWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateAffiliateWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateAffiliateWithdraw", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateAffiliateCommissionDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateAffiliateCommissionDetail (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateAffiliateCommissionDetail", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateAffiliateCampaign (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateAffiliateCampaign (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateAffiliateCampaign", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateAffiliateReferral (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateAffiliateReferral (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateAffiliateReferral", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateAffiliateSubaffiliates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateAffiliateSubaffiliates (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateAffiliateSubaffiliates", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetRebateAffiliateList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetRebateAffiliateList (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetRebateAffiliateList", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetMxDeductEnable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetMxDeductEnable (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMxDeductEnable", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetUserDataStream", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetSelfSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetSelfSymbols (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetSelfSymbols", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetAssetInternalTransferRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateGetAssetInternalTransferRecord (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetAssetInternalTransferRecord", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostOrder", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostOrderTest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostOrderTest (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostOrderTest", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostApiKeyInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostApiKeyInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostApiKeyInfo", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSubAccountVirtualSubAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostSubAccountVirtualSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSubAccountVirtualSubAccount", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSubAccountApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostSubAccountApiKey (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSubAccountApiKey", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSubAccountFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostSubAccountFutures (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSubAccountFutures", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSubAccountMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostSubAccountMargin (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSubAccountMargin", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivatePostBatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivatePostBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostBatchOrders", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostStrategyGroup (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostStrategyGroup (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostStrategyGroup", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostStrategyGroupUid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostStrategyGroupUid (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostStrategyGroupUid", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCapitalWithdrawApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostCapitalWithdrawApply (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCapitalWithdrawApply", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCapitalWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostCapitalWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCapitalWithdraw", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCapitalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostCapitalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCapitalTransfer", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCapitalTransferInternal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostCapitalTransferInternal (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCapitalTransferInternal", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCapitalDepositAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostCapitalDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCapitalDepositAddress", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCapitalSubAccountUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostCapitalSubAccountUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCapitalSubAccountUniversalTransfer", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCapitalConvert (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostCapitalConvert (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCapitalConvert", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostMxDeductEnable (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostMxDeductEnable (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostMxDeductEnable", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePostUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostUserDataStream", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePutUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivatePutUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePutUserDataStream", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteOrder", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateDeleteOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteOpenOrders", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateDeleteOrderAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteOrderAll (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteOrderAll", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateDeleteSubAccountApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteSubAccountApiKey (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteSubAccountApiKey", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateDeleteStrategyGroup (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteStrategyGroup (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteStrategyGroup", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateDeleteStrategyGroupUid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteStrategyGroupUid (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteStrategyGroupUid", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  spotPrivateDeleteMarginOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateDeleteMarginOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteMarginOrder", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateDeleteMarginOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteMarginOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteMarginOpenOrders", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateDeleteUserDataStream (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteUserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteUserDataStream", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateDeleteCapitalWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteCapitalWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteCapitalWithdraw", optionalArgs);
     }
@@ -1125,7 +1128,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetPing", optionalArgs);
     }
@@ -1136,7 +1139,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetDetail (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetDetail", optionalArgs);
     }
@@ -1147,7 +1150,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetSupportCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetSupportCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetSupportCurrencies", optionalArgs);
     }
@@ -1158,7 +1161,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetDepthSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetDepthSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetDepthSymbol", optionalArgs);
     }
@@ -1169,7 +1172,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetDepthCommitsSymbolLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetDepthCommitsSymbolLimit (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetDepthCommitsSymbolLimit", optionalArgs);
     }
@@ -1180,7 +1183,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetIndexPriceSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetIndexPriceSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetIndexPriceSymbol", optionalArgs);
     }
@@ -1191,7 +1194,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetFairPriceSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetFairPriceSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetFairPriceSymbol", optionalArgs);
     }
@@ -1202,7 +1205,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetFundingRateSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetFundingRateSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetFundingRateSymbol", optionalArgs);
     }
@@ -1213,7 +1216,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetKlineSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetKlineSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetKlineSymbol", optionalArgs);
     }
@@ -1224,7 +1227,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetKlineIndexPriceSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetKlineIndexPriceSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetKlineIndexPriceSymbol", optionalArgs);
     }
@@ -1235,7 +1238,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetKlineFairPriceSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetKlineFairPriceSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetKlineFairPriceSymbol", optionalArgs);
     }
@@ -1246,7 +1249,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetDealsSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetDealsSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetDealsSymbol", optionalArgs);
     }
@@ -1257,7 +1260,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetTicker", optionalArgs);
     }
@@ -1268,7 +1271,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetRiskReverse (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetRiskReverse (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetRiskReverse", optionalArgs);
     }
@@ -1279,7 +1282,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetRiskReverseHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetRiskReverseHistory (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetRiskReverseHistory", optionalArgs);
     }
@@ -1290,7 +1293,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetFundingRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetFundingRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetFundingRateHistory", optionalArgs);
     }
@@ -1301,7 +1304,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountAssets (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountAssets", optionalArgs);
     }
@@ -1312,7 +1315,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountAssetCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountAssetCurrency (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountAssetCurrency", optionalArgs);
     }
@@ -1323,7 +1326,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountTransferRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountTransferRecord (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountTransferRecord", optionalArgs);
     }
@@ -1334,7 +1337,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountProfitRateType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountProfitRateType (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountProfitRateType", optionalArgs);
     }
@@ -1345,7 +1348,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountAssetAnalysisType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountAssetAnalysisType (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountAssetAnalysisType", optionalArgs);
     }
@@ -1356,7 +1359,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountFeeDeductConfigs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountFeeDeductConfigs (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountFeeDeductConfigs", optionalArgs);
     }
@@ -1367,7 +1370,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountAssetAnalysisYesterdayPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountAssetAnalysisYesterdayPnl (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountAssetAnalysisYesterdayPnl", optionalArgs);
     }
@@ -1378,7 +1381,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountAssetAnalysisTodayPnl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountAssetAnalysisTodayPnl (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountAssetAnalysisTodayPnl", optionalArgs);
     }
@@ -1389,7 +1392,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountConfigContractFeeDiscountConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountConfigContractFeeDiscountConfig (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountConfigContractFeeDiscountConfig", optionalArgs);
     }
@@ -1400,7 +1403,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderFeeDetails (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderFeeDetails (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderFeeDetails", optionalArgs);
     }
@@ -1411,7 +1414,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountDiscountType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountDiscountType (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountDiscountType", optionalArgs);
     }
@@ -1422,7 +1425,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountAssetAnalysisExport (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountAssetAnalysisExport (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountAssetAnalysisExport", optionalArgs);
     }
@@ -1433,7 +1436,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountAssetBookOrderDealFeeTotal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountAssetBookOrderDealFeeTotal (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountAssetBookOrderDealFeeTotal", optionalArgs);
     }
@@ -1444,7 +1447,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountContractFeeRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountContractFeeRate (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountContractFeeRate", optionalArgs);
     }
@@ -1455,7 +1458,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountContractZeroFeeRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountContractZeroFeeRate (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountContractZeroFeeRate", optionalArgs);
     }
@@ -1466,7 +1469,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetPositionListHistoryPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetPositionListHistoryPositions (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetPositionListHistoryPositions", optionalArgs);
     }
@@ -1477,7 +1480,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetPositionOpenPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetPositionOpenPositions (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetPositionOpenPositions", optionalArgs);
     }
@@ -1488,7 +1491,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetPositionFundingRecords (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetPositionFundingRecords (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetPositionFundingRecords", optionalArgs);
     }
@@ -1499,7 +1502,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetPositionPositionMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetPositionPositionMode (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetPositionPositionMode", optionalArgs);
     }
@@ -1510,7 +1513,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderListOpenOrdersSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderListOpenOrdersSymbol (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderListOpenOrdersSymbol", optionalArgs);
     }
@@ -1521,7 +1524,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderListOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderListOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderListOpenOrders", optionalArgs);
     }
@@ -1532,7 +1535,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderListHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderListHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderListHistoryOrders", optionalArgs);
     }
@@ -1543,7 +1546,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderListOrderDealsV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderListOrderDealsV3 (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderListOrderDealsV3", optionalArgs);
     }
@@ -1554,7 +1557,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderExternalSymbolExternalOid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderExternalSymbolExternalOid (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderExternalSymbolExternalOid", optionalArgs);
     }
@@ -1565,7 +1568,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderGetOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderGetOrderId (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderGetOrderId", optionalArgs);
     }
@@ -1576,7 +1579,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderBatchQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderBatchQuery (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderBatchQuery", optionalArgs);
     }
@@ -1587,7 +1590,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderDealDetailsOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderDealDetailsOrderId (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderDealDetailsOrderId", optionalArgs);
     }
@@ -1598,7 +1601,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderListOrderDeals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderListOrderDeals (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderListOrderDeals", optionalArgs);
     }
@@ -1609,7 +1612,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrderListCloseOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrderListCloseOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrderListCloseOrders", optionalArgs);
     }
@@ -1620,7 +1623,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetPlanorderListOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetPlanorderListOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetPlanorderListOrders", optionalArgs);
     }
@@ -1631,7 +1634,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetStoporderListOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetStoporderListOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetStoporderListOrders", optionalArgs);
     }
@@ -1642,7 +1645,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetStoporderOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetStoporderOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetStoporderOpenOrders", optionalArgs);
     }
@@ -1653,7 +1656,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetStoporderOrderDetailsStopOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetStoporderOrderDetailsStopOrderId (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetStoporderOrderDetailsStopOrderId", optionalArgs);
     }
@@ -1664,7 +1667,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountRiskLimit", optionalArgs);
     }
@@ -1675,7 +1678,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountTieredFeeRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountTieredFeeRate (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountTieredFeeRate", optionalArgs);
     }
@@ -1686,7 +1689,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetPositionLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetPositionLeverage (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetPositionLeverage", optionalArgs);
     }
@@ -1697,7 +1700,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetAccountTieredFeeRateV2 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetAccountTieredFeeRateV2 (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccountTieredFeeRateV2", optionalArgs);
     }
@@ -1708,7 +1711,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetTrackorderListOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetTrackorderListOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetTrackorderListOrders", optionalArgs);
     }
@@ -1719,7 +1722,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetMarketMakerSelfTradeBlacklist (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetMarketMakerSelfTradeBlacklist (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetMarketMakerSelfTradeBlacklist", optionalArgs);
     }
@@ -1730,7 +1733,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetMarketMakerSelfTradeBlacklistSearch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetMarketMakerSelfTradeBlacklistSearch (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetMarketMakerSelfTradeBlacklistSearch", optionalArgs);
     }
@@ -1741,7 +1744,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostAccountAssetAnalysisV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostAccountAssetAnalysisV3 (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostAccountAssetAnalysisV3", optionalArgs);
     }
@@ -1752,7 +1755,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostAccountAssetAnalysisCalendarDailyV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostAccountAssetAnalysisCalendarDailyV3 (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostAccountAssetAnalysisCalendarDailyV3", optionalArgs);
     }
@@ -1763,7 +1766,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostAccountAssetAnalysisCalendarMonthlyV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostAccountAssetAnalysisCalendarMonthlyV3 (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostAccountAssetAnalysisCalendarMonthlyV3", optionalArgs);
     }
@@ -1774,7 +1777,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostAccountAssetAnalysisRecentV3 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostAccountAssetAnalysisRecentV3 (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostAccountAssetAnalysisRecentV3", optionalArgs);
     }
@@ -1785,7 +1788,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPositionChangeMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPositionChangeMargin (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPositionChangeMargin", optionalArgs);
     }
@@ -1796,7 +1799,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPositionChangeAutoAddIm (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPositionChangeAutoAddIm (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPositionChangeAutoAddIm", optionalArgs);
     }
@@ -1807,7 +1810,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPositionChangeLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPositionChangeLeverage (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPositionChangeLeverage", optionalArgs);
     }
@@ -1818,7 +1821,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPositionChangePositionMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPositionChangePositionMode (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPositionChangePositionMode", optionalArgs);
     }
@@ -1829,7 +1832,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPositionReverse (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPositionReverse (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPositionReverse", optionalArgs);
     }
@@ -1840,7 +1843,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPositionCloseAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPositionCloseAll (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPositionCloseAll", optionalArgs);
     }
@@ -1851,7 +1854,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderCreate (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderCreate", optionalArgs);
     }
@@ -1862,7 +1865,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderSubmit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderSubmit (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderSubmit", optionalArgs);
     }
@@ -1873,7 +1876,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderSubmitBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderSubmitBatch (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderSubmitBatch", optionalArgs);
     }
@@ -1884,7 +1887,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderChaseLimitOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderChaseLimitOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderChaseLimitOrder", optionalArgs);
     }
@@ -1895,7 +1898,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderChangeLimitOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderChangeLimitOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderChangeLimitOrder", optionalArgs);
     }
@@ -1906,7 +1909,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderCancel", optionalArgs);
     }
@@ -1917,7 +1920,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderBatchCancelWithExternal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderBatchCancelWithExternal (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderBatchCancelWithExternal", optionalArgs);
     }
@@ -1928,7 +1931,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderCancelWithExternal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderCancelWithExternal (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderCancelWithExternal", optionalArgs);
     }
@@ -1939,7 +1942,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderCancelAll", optionalArgs);
     }
@@ -1950,7 +1953,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderOpenOrderTotalCount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderOpenOrderTotalCount (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderOpenOrderTotalCount", optionalArgs);
     }
@@ -1961,7 +1964,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrderBatchQueryWithExternal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrderBatchQueryWithExternal (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrderBatchQueryWithExternal", optionalArgs);
     }
@@ -1972,7 +1975,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostAccountChangeRiskLevel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostAccountChangeRiskLevel (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostAccountChangeRiskLevel", optionalArgs);
     }
@@ -1983,7 +1986,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPlanorderPlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPlanorderPlace (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPlanorderPlace", optionalArgs);
     }
@@ -1994,7 +1997,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPlanorderPlaceV2 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPlanorderPlaceV2 (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPlanorderPlaceV2", optionalArgs);
     }
@@ -2005,7 +2008,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPlanorderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPlanorderCancel (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPlanorderCancel", optionalArgs);
     }
@@ -2016,7 +2019,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPlanorderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPlanorderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPlanorderCancelAll", optionalArgs);
     }
@@ -2027,7 +2030,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostPlanorderChangeStopOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostPlanorderChangeStopOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostPlanorderChangeStopOrder", optionalArgs);
     }
@@ -2038,7 +2041,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostStoporderPlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostStoporderPlace (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostStoporderPlace", optionalArgs);
     }
@@ -2049,7 +2052,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostStoporderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostStoporderCancel (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostStoporderCancel", optionalArgs);
     }
@@ -2060,7 +2063,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostStoporderCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostStoporderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostStoporderCancelAll", optionalArgs);
     }
@@ -2071,7 +2074,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostStoporderChangePrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostStoporderChangePrice (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostStoporderChangePrice", optionalArgs);
     }
@@ -2082,7 +2085,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostStoporderChangePlanPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostStoporderChangePlanPrice (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostStoporderChangePlanPrice", optionalArgs);
     }
@@ -2093,7 +2096,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostTrackorderPlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostTrackorderPlace (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostTrackorderPlace", optionalArgs);
     }
@@ -2104,7 +2107,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostTrackorderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostTrackorderCancel (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostTrackorderCancel", optionalArgs);
     }
@@ -2115,7 +2118,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostTrackorderChangeOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostTrackorderChangeOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostTrackorderChangeOrder", optionalArgs);
     }
@@ -2126,7 +2129,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostMarketMakerSelfTradeBlacklistCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostMarketMakerSelfTradeBlacklistCreate (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostMarketMakerSelfTradeBlacklistCreate", optionalArgs);
     }
@@ -2137,7 +2140,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostMarketMakerSelfTradeBlacklistUpdate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostMarketMakerSelfTradeBlacklistUpdate (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostMarketMakerSelfTradeBlacklistUpdate", optionalArgs);
     }
@@ -2148,7 +2151,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostMarketMakerSelfTradeBlacklistDelete (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostMarketMakerSelfTradeBlacklistDelete (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostMarketMakerSelfTradeBlacklistDelete", optionalArgs);
     }
@@ -2159,7 +2162,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetMarketSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetMarketSymbols (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetMarketSymbols", optionalArgs);
     }
@@ -2170,7 +2173,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetMarketCoinList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetMarketCoinList (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetMarketCoinList", optionalArgs);
     }
@@ -2181,7 +2184,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetCommonTimestamp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetCommonTimestamp (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetCommonTimestamp", optionalArgs);
     }
@@ -2192,7 +2195,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetCommonPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetCommonPing (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetCommonPing", optionalArgs);
     }
@@ -2203,7 +2206,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetMarketTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetMarketTicker (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetMarketTicker", optionalArgs);
     }
@@ -2214,7 +2217,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetMarketDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetMarketDepth (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetMarketDepth", optionalArgs);
     }
@@ -2225,7 +2228,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetMarketDeals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetMarketDeals (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetMarketDeals", optionalArgs);
     }
@@ -2236,7 +2239,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetMarketKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetMarketKline (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetMarketKline", optionalArgs);
     }
@@ -2247,7 +2250,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PublicGetMarketApiDefaultSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PublicGetMarketApiDefaultSymbols (Object... optionalArgs)
     {
         return this.callAsync ("spot2PublicGetMarketApiDefaultSymbols", optionalArgs);
     }
@@ -2258,7 +2261,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetAccountInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetAccountInfo (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetAccountInfo", optionalArgs);
     }
@@ -2269,7 +2272,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetOrderOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetOrderOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetOrderOpenOrders", optionalArgs);
     }
@@ -2280,7 +2283,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetOrderList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetOrderList (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetOrderList", optionalArgs);
     }
@@ -2291,7 +2294,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetOrderQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetOrderQuery (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetOrderQuery", optionalArgs);
     }
@@ -2302,7 +2305,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetOrderDeals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetOrderDeals (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetOrderDeals", optionalArgs);
     }
@@ -2313,7 +2316,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetOrderDealDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetOrderDealDetail (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetOrderDealDetail", optionalArgs);
     }
@@ -2324,7 +2327,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetAssetDepositAddressList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetAssetDepositAddressList (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetAssetDepositAddressList", optionalArgs);
     }
@@ -2335,7 +2338,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetAssetDepositList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetAssetDepositList (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetAssetDepositList", optionalArgs);
     }
@@ -2346,7 +2349,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetAssetAddressList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetAssetAddressList (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetAssetAddressList", optionalArgs);
     }
@@ -2357,7 +2360,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetAssetWithdrawList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetAssetWithdrawList (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetAssetWithdrawList", optionalArgs);
     }
@@ -2368,7 +2371,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetAssetInternalTransferRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetAssetInternalTransferRecord (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetAssetInternalTransferRecord", optionalArgs);
     }
@@ -2379,7 +2382,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetAccountBalance", optionalArgs);
     }
@@ -2390,7 +2393,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetAssetInternalTransferInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetAssetInternalTransferInfo (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetAssetInternalTransferInfo", optionalArgs);
     }
@@ -2401,7 +2404,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateGetMarketApiSymbols (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateGetMarketApiSymbols (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateGetMarketApiSymbols", optionalArgs);
     }
@@ -2412,7 +2415,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivatePostOrderPlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivatePostOrderPlace (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivatePostOrderPlace", optionalArgs);
     }
@@ -2423,7 +2426,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivatePostOrderPlaceBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivatePostOrderPlaceBatch (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivatePostOrderPlaceBatch", optionalArgs);
     }
@@ -2434,7 +2437,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivatePostOrderAdvancedPlaceBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivatePostOrderAdvancedPlaceBatch (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivatePostOrderAdvancedPlaceBatch", optionalArgs);
     }
@@ -2445,7 +2448,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivatePostAssetWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivatePostAssetWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivatePostAssetWithdraw", optionalArgs);
     }
@@ -2456,7 +2459,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivatePostAssetInternalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivatePostAssetInternalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivatePostAssetInternalTransfer", optionalArgs);
     }
@@ -2467,7 +2470,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateDeleteOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateDeleteOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateDeleteOrderCancel", optionalArgs);
     }
@@ -2478,7 +2481,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateDeleteOrderCancelBySymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateDeleteOrderCancelBySymbol (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateDeleteOrderCancelBySymbol", optionalArgs);
     }
@@ -2489,7 +2492,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spot2PrivateDeleteAssetWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  spot2PrivateDeleteAssetWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("spot2PrivateDeleteAssetWithdraw", optionalArgs);
     }
@@ -2500,7 +2503,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  brokerPrivateGetSubAccountUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  brokerPrivateGetSubAccountUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetSubAccountUniversalTransfer", optionalArgs);
     }
@@ -2511,7 +2514,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetSubAccountList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetSubAccountList (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetSubAccountList", optionalArgs);
     }
@@ -2522,7 +2525,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetSubAccountStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetSubAccountStatus (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetSubAccountStatus", optionalArgs);
     }
@@ -2533,7 +2536,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetSubAccountApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetSubAccountApiKey (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetSubAccountApiKey", optionalArgs);
     }
@@ -2544,7 +2547,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  brokerPrivateGetCapitalDepositSubAddress (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  brokerPrivateGetCapitalDepositSubAddress (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetCapitalDepositSubAddress", optionalArgs);
     }
@@ -2555,7 +2558,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  brokerPrivateGetCapitalDepositSubHisrec (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  brokerPrivateGetCapitalDepositSubHisrec (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetCapitalDepositSubHisrec", optionalArgs);
     }
@@ -2566,7 +2569,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  brokerPrivateGetCapitalDepositSubHisrecGetall (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  brokerPrivateGetCapitalDepositSubHisrecGetall (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetCapitalDepositSubHisrecGetall", optionalArgs);
     }
@@ -2577,7 +2580,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetRebateTaxQuery (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetRebateTaxQuery (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetRebateTaxQuery", optionalArgs);
     }
@@ -2588,7 +2591,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivatePostSubAccountVirtualSubAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivatePostSubAccountVirtualSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivatePostSubAccountVirtualSubAccount", optionalArgs);
     }
@@ -2599,7 +2602,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivatePostSubAccountApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivatePostSubAccountApiKey (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivatePostSubAccountApiKey", optionalArgs);
     }
@@ -2610,7 +2613,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivatePostCapitalDepositSubAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivatePostCapitalDepositSubAddress (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivatePostCapitalDepositSubAddress", optionalArgs);
     }
@@ -2621,7 +2624,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivatePostCapitalWithdrawApply (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivatePostCapitalWithdrawApply (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivatePostCapitalWithdrawApply", optionalArgs);
     }
@@ -2632,7 +2635,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivatePostSubAccountUniversalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivatePostSubAccountUniversalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivatePostSubAccountUniversalTransfer", optionalArgs);
     }
@@ -2643,7 +2646,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivatePostSubAccountFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivatePostSubAccountFutures (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivatePostSubAccountFutures", optionalArgs);
     }
@@ -2654,7 +2657,7 @@ public class MexcApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateDeleteSubAccountApiKey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateDeleteSubAccountApiKey (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateDeleteSubAccountApiKey", optionalArgs);
     }

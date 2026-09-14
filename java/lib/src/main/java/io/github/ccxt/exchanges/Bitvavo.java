@@ -2,2055 +2,3340 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 package io.github.ccxt.exchanges;
-
+import io.github.ccxt.api.BitvavoApi;
+import io.github.ccxt.base.Precise;
+import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
-import io.github.ccxt.types.*;
-
+import io.github.ccxt.types.Account;
+import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.DepositAddress;
+import io.github.ccxt.types.DepositWithdrawFees;
+import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.OHLCV;
+import io.github.ccxt.types.Order;
+import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Tickers;
+import io.github.ccxt.types.Trade;
+import io.github.ccxt.types.TradingFeeInterface;
+import io.github.ccxt.types.TradingFees;
+import io.github.ccxt.types.Transaction;
+import io.github.ccxt.types.TransferEntry;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
-/**
- * Typed wrapper for bitvavo. Extends BitvavoCore with typed method overloads.
- */
-public class Bitvavo extends BitvavoCore {
+public class Bitvavo extends BitvavoApi
+{
+   public Bitvavo () {
+       super();
+   }
 
-    public Bitvavo() {
-        super();
+   public Bitvavo (Object options) {
+       super(options);
+   }
+
+    public Object describe()
+    {
+        return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
+            put( "id", "bitvavo" );
+            put( "name", "Bitvavo" );
+            put( "countries", new ArrayList<Object>(Arrays.asList("NL")) );
+            put( "rateLimit", 60 );
+            put( "version", "v2" );
+            put( "certified", false );
+            put( "pro", true );
+            put( "has", new HashMap<String, Object>() {{
+                put( "CORS", null );
+                put( "spot", true );
+                put( "margin", false );
+                put( "swap", false );
+                put( "future", false );
+                put( "option", false );
+                put( "addMargin", false );
+                put( "borrowCrossMargin", false );
+                put( "borrowIsolatedMargin", false );
+                put( "borrowMargin", false );
+                put( "cancelAllOrders", true );
+                put( "cancelAllOrdersAfter", true );
+                put( "cancelOrder", true );
+                put( "closeAllPositions", false );
+                put( "closePosition", false );
+                put( "createLimitOrder", true );
+                put( "createMarketOrder", true );
+                put( "createMarketOrderWithCost", true );
+                put( "createOrder", true );
+                put( "createOrderWithTakeProfitAndStopLoss", false );
+                put( "createOrderWithTakeProfitAndStopLossWs", false );
+                put( "createPostOnlyOrder", true );
+                put( "createReduceOnlyOrder", false );
+                put( "createStopLimitOrder", true );
+                put( "createStopMarketOrder", true );
+                put( "createStopOrder", true );
+                put( "editOrder", true );
+                put( "fetchAccounts", true );
+                put( "fetchBalance", true );
+                put( "fetchBorrowInterest", false );
+                put( "fetchBorrowRate", false );
+                put( "fetchBorrowRateHistories", false );
+                put( "fetchBorrowRateHistory", false );
+                put( "fetchBorrowRates", false );
+                put( "fetchBorrowRatesPerSymbol", false );
+                put( "fetchCrossBorrowRate", false );
+                put( "fetchCrossBorrowRates", false );
+                put( "fetchCurrencies", true );
+                put( "fetchDepositAddress", true );
+                put( "fetchDepositAddresses", false );
+                put( "fetchDepositAddressesByNetwork", false );
+                put( "fetchDeposits", true );
+                put( "fetchDepositWithdrawFee", "emulated" );
+                put( "fetchDepositWithdrawFees", true );
+                put( "fetchFundingHistory", false );
+                put( "fetchFundingInterval", false );
+                put( "fetchFundingIntervals", false );
+                put( "fetchFundingRate", false );
+                put( "fetchFundingRateHistory", false );
+                put( "fetchFundingRates", false );
+                put( "fetchGreeks", false );
+                put( "fetchIndexOHLCV", false );
+                put( "fetchIsolatedBorrowRate", false );
+                put( "fetchIsolatedBorrowRates", false );
+                put( "fetchIsolatedPositions", false );
+                put( "fetchLedger", true );
+                put( "fetchLedgerEntry", false );
+                put( "fetchLeverage", false );
+                put( "fetchLeverages", false );
+                put( "fetchLeverageTiers", false );
+                put( "fetchLiquidations", false );
+                put( "fetchLongShortRatio", false );
+                put( "fetchLongShortRatioHistory", false );
+                put( "fetchMarginAdjustmentHistory", false );
+                put( "fetchMarginMode", false );
+                put( "fetchMarginModes", false );
+                put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarkets", true );
+                put( "fetchMarkOHLCV", false );
+                put( "fetchMarkPrices", false );
+                put( "fetchMyLiquidations", false );
+                put( "fetchMySettlementHistory", false );
+                put( "fetchMyTrades", true );
+                put( "fetchOHLCV", true );
+                put( "fetchOpenInterest", false );
+                put( "fetchOpenInterestHistory", false );
+                put( "fetchOpenInterests", false );
+                put( "fetchOpenOrders", true );
+                put( "fetchOption", false );
+                put( "fetchOptionChain", false );
+                put( "fetchOrder", true );
+                put( "fetchOrderBook", true );
+                put( "fetchOrders", true );
+                put( "fetchPosition", false );
+                put( "fetchPositionHistory", false );
+                put( "fetchPositionMode", false );
+                put( "fetchPositions", false );
+                put( "fetchPositionsForSymbol", false );
+                put( "fetchPositionsHistory", false );
+                put( "fetchPositionsRisk", false );
+                put( "fetchPremiumIndexOHLCV", false );
+                put( "fetchSettlementHistory", false );
+                put( "fetchTicker", true );
+                put( "fetchTickers", true );
+                put( "fetchTime", true );
+                put( "fetchTrades", true );
+                put( "fetchTradingFee", true );
+                put( "fetchTradingFees", true );
+                put( "fetchTransactions", false );
+                put( "fetchTransfer", true );
+                put( "fetchTransfers", true );
+                put( "fetchVolatilityHistory", false );
+                put( "fetchWithdrawals", true );
+                put( "reduceMargin", false );
+                put( "repayCrossMargin", false );
+                put( "repayIsolatedMargin", false );
+                put( "repayMargin", false );
+                put( "setLeverage", false );
+                put( "setMargin", false );
+                put( "setMarginMode", false );
+                put( "setPositionMode", false );
+                put( "transfer", true );
+                put( "withdraw", true );
+            }} );
+            put( "timeframes", new HashMap<String, Object>() {{
+                put( "1m", "1m" );
+                put( "5m", "5m" );
+                put( "15m", "15m" );
+                put( "30m", "30m" );
+                put( "1h", "1h" );
+                put( "2h", "2h" );
+                put( "4h", "4h" );
+                put( "6h", "6h" );
+                put( "8h", "8h" );
+                put( "12h", "12h" );
+                put( "1d", "1d" );
+            }} );
+            put( "urls", new HashMap<String, Object>() {{
+                put( "logo", "https://github.com/user-attachments/assets/35d690b1-5710-47f6-86e9-d638ce38685a" );
+                put( "api", new HashMap<String, Object>() {{
+                    put( "public", "https://api.bitvavo.com" );
+                    put( "private", "https://api.bitvavo.com" );
+                }} );
+                put( "www", "https://bitvavo.com/" );
+                put( "doc", "https://docs.bitvavo.com/" );
+                put( "fees", "https://bitvavo.com/en/fees" );
+                put( "referral", "https://bitvavo.com/?a=24F34952F7" );
+            }} );
+            put( "api", new HashMap<String, Object>() {{
+                put( "public", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "{market}/book", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "report/{market}/book", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{market}/trades", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "report/{market}/trades", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "ticker/price", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker/book", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "{market}/candles", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker/24h", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                            put( "noMarket", 25 );
+                        }} );
+                        put( "time", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "markets", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "assets", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                }} );
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "order", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ordersOpen", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                            put( "noMarket", 100 );
+                        }} );
+                        put( "trades", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "orders", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deposit", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "depositHistory", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "withdrawalHistory", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "account", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "balance", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "stakingBalance", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/fees", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/history", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccounts", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "subaccounts/transfers", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "subaccounts/transfers/{transferId}", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "institutional/subaccounts/balance", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "institutional/subaccounts/history", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "institutional/subaccounts/orders/open", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                            put( "noMarket", 100 );
+                        }} );
+                    }} );
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "order", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelOrdersAfter", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "withdrawal", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "crypto/withdrawal", new HashMap<String, Object>() {{
+                            put( "cost", 25 );
+                        }} );
+                        put( "subaccounts", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "subaccounts/transfers", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                    }} );
+                    put( "put", new HashMap<String, Object>() {{
+                        put( "order", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "delete", new HashMap<String, Object>() {{
+                        put( "order", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders", new HashMap<String, Object>() {{
+                            put( "cost", 25 );
+                            put( "noMarket", 100 );
+                        }} );
+                        put( "atomic/orders", new HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "institutional/subaccounts/order", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "institutional/subaccounts/orders", new HashMap<String, Object>() {{
+                            put( "cost", 25 );
+                            put( "noMarket", 100 );
+                        }} );
+                    }} );
+                }} );
+            }} );
+            put( "fees", new HashMap<String, Object>() {{
+                put( "trading", new HashMap<String, Object>() {{
+                    put( "tierBased", true );
+                    put( "percentage", true );
+                    put( "taker", Bitvavo.this.parseNumber("0.0025") );
+                    put( "maker", Bitvavo.this.parseNumber("0.002") );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("0"), Bitvavo.this.parseNumber("0.0025"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("100000"), Bitvavo.this.parseNumber("0.0020"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("250000"), Bitvavo.this.parseNumber("0.0016"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("500000"), Bitvavo.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("1000000"), Bitvavo.this.parseNumber("0.0010"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("2500000"), Bitvavo.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("5000000"), Bitvavo.this.parseNumber("0.0006"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("10000000"), Bitvavo.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("25000000"), Bitvavo.this.parseNumber("0.0004"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("0"), Bitvavo.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("100000"), Bitvavo.this.parseNumber("0.0010"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("250000"), Bitvavo.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("500000"), Bitvavo.this.parseNumber("0.0006"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("1000000"), Bitvavo.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("2500000"), Bitvavo.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("5000000"), Bitvavo.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("10000000"), Bitvavo.this.parseNumber("0.0003"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("25000000"), Bitvavo.this.parseNumber("0.0003"))))) );
+                    }} );
+                }} );
+            }} );
+            put( "requiredCredentials", new HashMap<String, Object>() {{
+                put( "apiKey", true );
+                put( "secret", true );
+            }} );
+            put( "features", new HashMap<String, Object>() {{
+                put( "spot", new HashMap<String, Object>() {{
+                    put( "sandbox", false );
+                    put( "createOrder", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "triggerPrice", true );
+                        put( "triggerPriceType", null );
+                        put( "triggerDirection", null );
+                        put( "stopLossPrice", true );
+                        put( "takeProfitPrice", true );
+                        put( "attachedStopLossTakeProfit", null );
+                        put( "timeInForce", new HashMap<String, Object>() {{
+                            put( "IOC", true );
+                            put( "FOK", true );
+                            put( "PO", true );
+                            put( "GTD", false );
+                        }} );
+                        put( "hedged", false );
+                        put( "trailing", false );
+                        put( "leverage", false );
+                        put( "marketBuyRequiresPrice", false );
+                        put( "marketBuyByCost", true );
+                        put( "selfTradePrevention", new HashMap<String, Object>() {{
+                            put( "EXPIRE_MAKER", false );
+                            put( "EXPIRE_TAKER", false );
+                            put( "EXPIRE_BOTH", true );
+                            put( "NONE", false );
+                        }} );
+                        put( "iceberg", false );
+                    }} );
+                    put( "createOrders", null );
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 1000 );
+                        put( "daysBack", 100000 );
+                        put( "untilDays", 100000 );
+                        put( "symbolRequired", true );
+                    }} );
+                    put( "fetchOrder", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "trigger", false );
+                        put( "trailing", false );
+                        put( "symbolRequired", true );
+                    }} );
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", null );
+                        put( "trigger", false );
+                        put( "trailing", false );
+                        put( "symbolRequired", true );
+                    }} );
+                    put( "fetchOrders", new HashMap<String, Object>() {{
+                        put( "marginMode", true );
+                        put( "limit", 1000 );
+                        put( "daysBack", 100000 );
+                        put( "untilDays", 100000 );
+                        put( "trigger", false );
+                        put( "trailing", false );
+                        put( "symbolRequired", true );
+                    }} );
+                    put( "fetchClosedOrders", null );
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
+                        put( "limit", 1440 );
+                    }} );
+                }} );
+                put( "swap", new HashMap<String, Object>() {{
+                    put( "linear", null );
+                    put( "inverse", null );
+                }} );
+                put( "future", new HashMap<String, Object>() {{
+                    put( "linear", null );
+                    put( "inverse", null );
+                }} );
+            }} );
+            put( "exceptions", new HashMap<String, Object>() {{
+                put( "exact", new HashMap<String, Object>() {{
+                    put( "101", ExchangeError.class );
+                    put( "102", BadRequest.class );
+                    put( "103", RateLimitExceeded.class );
+                    put( "104", RateLimitExceeded.class );
+                    put( "105", RateLimitExceeded.class );
+                    put( "107", ExchangeNotAvailable.class );
+                    put( "108", ExchangeNotAvailable.class );
+                    put( "109", ExchangeNotAvailable.class );
+                    put( "110", BadRequest.class );
+                    put( "200", BadRequest.class );
+                    put( "201", BadRequest.class );
+                    put( "202", BadRequest.class );
+                    put( "203", BadSymbol.class );
+                    put( "204", BadRequest.class );
+                    put( "205", BadRequest.class );
+                    put( "206", BadRequest.class );
+                    put( "210", InvalidOrder.class );
+                    put( "211", InvalidOrder.class );
+                    put( "212", InvalidOrder.class );
+                    put( "213", InvalidOrder.class );
+                    put( "214", InvalidOrder.class );
+                    put( "215", InvalidOrder.class );
+                    put( "216", InsufficientFunds.class );
+                    put( "217", InvalidOrder.class );
+                    put( "230", ExchangeError.class );
+                    put( "231", ExchangeError.class );
+                    put( "232", BadRequest.class );
+                    put( "233", OrderNotFound.class );
+                    put( "234", InvalidOrder.class );
+                    put( "235", ExchangeError.class );
+                    put( "236", BadRequest.class );
+                    put( "240", OrderNotFound.class );
+                    put( "300", AuthenticationError.class );
+                    put( "301", AuthenticationError.class );
+                    put( "302", AuthenticationError.class );
+                    put( "303", AuthenticationError.class );
+                    put( "304", AuthenticationError.class );
+                    put( "305", AuthenticationError.class );
+                    put( "306", AuthenticationError.class );
+                    put( "307", PermissionDenied.class );
+                    put( "308", AuthenticationError.class );
+                    put( "309", AuthenticationError.class );
+                    put( "310", PermissionDenied.class );
+                    put( "311", PermissionDenied.class );
+                    put( "312", PermissionDenied.class );
+                    put( "315", BadRequest.class );
+                    put( "317", AccountSuspended.class );
+                    put( "400", ExchangeError.class );
+                    put( "401", ExchangeError.class );
+                    put( "402", PermissionDenied.class );
+                    put( "403", PermissionDenied.class );
+                    put( "404", OnMaintenance.class );
+                    put( "405", ExchangeError.class );
+                    put( "406", BadRequest.class );
+                    put( "407", ExchangeError.class );
+                    put( "408", InsufficientFunds.class );
+                    put( "409", InvalidAddress.class );
+                    put( "410", ExchangeError.class );
+                    put( "411", BadRequest.class );
+                    put( "412", InvalidAddress.class );
+                    put( "413", InvalidAddress.class );
+                    put( "414", ExchangeError.class );
+                }} );
+                put( "broad", new HashMap<String, Object>() {{
+                    put( "start parameter is invalid", BadRequest.class );
+                    put( "symbol parameter is invalid", BadSymbol.class );
+                    put( "amount parameter is invalid", InvalidOrder.class );
+                    put( "orderId parameter is invalid", InvalidOrder.class );
+                }} );
+            }} );
+            put( "options", new HashMap<String, Object>() {{
+                put( "mica", true );
+                put( "currencyToPrecisionRoundingMode", TRUNCATE );
+                put( "recvWindow", 10000 );
+                put( "networks", new HashMap<String, Object>() {{
+                    put( "ERC20", "ETH" );
+                    put( "TRC20", "TRX" );
+                }} );
+                put( "operatorId", null );
+                put( "fetchCurrencies", new HashMap<String, Object>() {{
+                    put( "fiatCurrencies", new ArrayList<Object>(Arrays.asList("EUR")) );
+                }} );
+            }} );
+            put( "precisionMode", TICK_SIZE );
+            put( "commonCurrencies", new HashMap<String, Object>() {{
+                put( "MIOTA", "IOTA" );
+            }} );
+            put( "rollingWindowSize", 60000 );
+        }});
     }
 
-    public Bitvavo(Object options) {
-        super(options);
+    /**
+     * @method
+     * @name bitvavo#fetchTime
+     * @see https://docs.bitvavo.com/docs/rest-api/get-server-time/
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.publicGetTime(parameters)).join();
+            //
+            //     { "time": 1590379519148 }
+            //
+            return this.safeInteger(response, "time");
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+
     }
 
-    // --- loadMarkets (special: first arg is boolean reload) ---
-    @SuppressWarnings("unchecked")
-    public Map<String, MarketInterface> loadMarkets(boolean reload) {
-        Object res = super.loadMarkets(reload).join();
-        java.util.LinkedHashMap<String, MarketInterface> result = new java.util.LinkedHashMap<>();
-        for (Map.Entry<String, Object> entry : ((Map<String, Object>) res).entrySet()) {
-            result.put(entry.getKey(), new MarketInterface(entry.getValue()));
+    /**
+     * @method
+     * @name bitvavo#fetchMarkets
+     * @see https://docs.bitvavo.com/docs/rest-api/get-markets/
+     * @description retrieves data on all markets for bitvavo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            List<Object> response = (this.publicGetMarkets(parameters)).join();
+            //
+            //    {
+            //        "market": "BTC-EUR",
+            //        "status": "trading",
+            //        "base": "BTC",
+            //        "quote": "EUR",
+            //        "pricePrecision": "0", // deprecated, this is mostly 0 across other markets too, which is abnormal, so we ignore this.
+            //        "tickSize": "1.00",
+            //        "minOrderInBaseAsset": "0.00006100",
+            //        "minOrderInQuoteAsset": "5.00",
+            //        "maxOrderInBaseAsset": "1000000000.00000000",
+            //        "maxOrderInQuoteAsset": "1000000000.00",
+            //        "quantityDecimals": "8",
+            //        "notionalDecimals": "2",
+            //        "maxOpenOrders": "100",
+            //        "feeCategory": "A",
+            //        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
+            //    }
+            //
+            return this.parseMarkets(response);
+        });
+
+    }
+
+    public Object parseMarkets(Object markets)
+    {
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Object fees = this.fees;
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
+        {
+            Object market = Helpers.GetValue(markets, i);
+            String id = this.safeString(market, "market");
+            String baseId = this.safeString(market, "base");
+            String quoteId = this.safeString(market, "quote");
+            String base = this.safeCurrencyCode(baseId);
+            String quote = this.safeCurrencyCode(quoteId);
+            String status = this.safeString(market, "status");
+final Object finalBase = base;
+            final Object finalStatus = status;
+                        ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
+                put( "id", id );
+                put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                put( "base", finalBase );
+                put( "quote", quote );
+                put( "settle", null );
+                put( "baseId", baseId );
+                put( "quoteId", quoteId );
+                put( "settleId", null );
+                put( "type", "spot" );
+                put( "spot", true );
+                put( "margin", false );
+                put( "swap", false );
+                put( "future", false );
+                put( "option", false );
+                put( "active", (Helpers.isEqual(finalStatus, "trading")) );
+                put( "contract", false );
+                put( "linear", null );
+                put( "inverse", null );
+                put( "contractSize", null );
+                put( "expiry", null );
+                put( "expiryDatetime", null );
+                put( "strike", null );
+                put( "optionType", null );
+                put( "taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker") );
+                put( "maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker") );
+                put( "precision", new HashMap<String, Object>() {{
+                    put( "amount", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "quantityDecimals"))) );
+                    put( "price", Bitvavo.this.safeNumber(market, "tickSize") );
+                    put( "cost", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "notionalDecimals"))) );
+                }} );
+                put( "limits", new HashMap<String, Object>() {{
+                    put( "leverage", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                    put( "amount", new HashMap<String, Object>() {{
+                        put( "min", Bitvavo.this.safeNumber(market, "minOrderInBaseAsset") );
+                        put( "max", Bitvavo.this.safeNumber(market, "maxOrderInBaseAsset") );
+                    }} );
+                    put( "price", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                    put( "cost", new HashMap<String, Object>() {{
+                        put( "min", Bitvavo.this.safeNumber(market, "minOrderInQuoteAsset") );
+                        put( "max", Bitvavo.this.safeNumber(market, "maxOrderInQuoteAsset") );
+                    }} );
+                }} );
+                put( "created", null );
+                put( "info", market );
+            }}));
         }
         return result;
     }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, MarketInterface>> loadMarketsAsync(boolean reload) {
-        return super.loadMarkets(reload).thenApply(res -> {
-            java.util.LinkedHashMap<String, MarketInterface> result = new java.util.LinkedHashMap<>();
-            for (Map.Entry<String, Object> entry : ((Map<String, Object>) res).entrySet()) {
-                result.put(entry.getKey(), new MarketInterface(entry.getValue()));
-            }
-            return result;
+
+    /**
+     * @method
+     * @name bitvavo#fetchCurrencies
+     * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            List<Object> response = (this.publicGetAssets(parameters)).join();
+            //
+            //     [
+            //         {
+            //             "symbol": "USDT",
+            //             "displayTicker": "USDT",
+            //             "name": "Tether",
+            //             "slug": "tether",
+            //             "popularity": -1,
+            //             "decimals": 6,
+            //             "depositFee": "0",
+            //             "depositConfirmations": 64,
+            //             "depositStatus": "OK",
+            //             "withdrawalFee": "3.2",
+            //             "withdrawalMinAmount": "3.2",
+            //             "withdrawalStatus": "OK",
+            //             "networks": [
+            //               "ETH"
+            //             ],
+            //             "light": {
+            //               "color": "#009393",
+            //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+            //               }
+            //             },
+            //             "dark": {
+            //               "color": "#009393",
+            //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+            //               }
+            //             },
+            //             "visibility": "PUBLIC",
+            //             "message": ""
+            //         },
+            //     ]
+            //
+            return this.parseCurrencies(response);
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    public Currencies fetchCurrencies(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchCurrencies(params));
-        return new Currencies(res);
-    }
-    public Currencies fetchCurrencies() { return fetchCurrencies((Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Currencies> fetchCurrenciesAsync(Map<String, Object> params) {
-        return super.fetchCurrencies(params).thenApply(Currencies::new);
-    }
-    public CompletableFuture<Currencies> fetchCurrenciesAsync() { return fetchCurrenciesAsync((Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<MarketInterface> fetchMarkets(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarkets(params));
-        return toTypedList(res, MarketInterface::new);
-    }
-    public List<MarketInterface> fetchMarkets() { return fetchMarkets((Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<MarketInterface>> fetchMarketsAsync(Map<String, Object> params) {
-        return super.fetchMarkets(params).thenApply(res -> toTypedList(res, MarketInterface::new));
-    }
-    public CompletableFuture<List<MarketInterface>> fetchMarketsAsync() { return fetchMarketsAsync((Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Account> fetchAccounts(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchAccounts(params));
-        return toTypedList(res, Account::new);
-    }
-    public List<Account> fetchAccounts() { return fetchAccounts((Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Account>> fetchAccountsAsync(Map<String, Object> params) {
-        return super.fetchAccounts(params).thenApply(res -> toTypedList(res, Account::new));
-    }
-    public CompletableFuture<List<Account>> fetchAccountsAsync() { return fetchAccountsAsync((Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<DepositAddress> fetchDepositAddresses(List<String> codes, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositAddresses(codes, params));
-        return toTypedList(res, DepositAddress::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddressesAsync(List<String> codes, Map<String, Object> params) {
-        return super.fetchDepositAddresses(codes, params).thenApply(res -> toTypedList(res, DepositAddress::new));
-    }
-    public List<DepositAddress> fetchDepositAddresses(String[] codes, Map<String, Object> params) { return fetchDepositAddresses(codes == null ? null : java.util.Arrays.asList(codes), params); }
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddressesAsync(String[] codes, Map<String, Object> params) { return fetchDepositAddressesAsync(codes == null ? null : java.util.Arrays.asList(codes), params); }
-
-    @SuppressWarnings("unchecked")
-    public MarginMode fetchMarginMode(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarginMode(symbol, params));
-        return new MarginMode(res);
-    }
-    public MarginMode fetchMarginMode(String symbol) { return fetchMarginMode(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginMode> fetchMarginModeAsync(String symbol, Map<String, Object> params) {
-        return super.fetchMarginMode(symbol, params).thenApply(MarginMode::new);
-    }
-    public CompletableFuture<MarginMode> fetchMarginModeAsync(String symbol) { return fetchMarginModeAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public MarginModes fetchMarginModes(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarginModes(symbols, params));
-        return new MarginModes(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginModes> fetchMarginModesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchMarginModes(symbols, params).thenApply(MarginModes::new);
-    }
-    public MarginModes fetchMarginModes(String[] symbols, Map<String, Object> params) { return fetchMarginModes(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<MarginModes> fetchMarginModesAsync(String[] symbols, Map<String, Object> params) { return fetchMarginModesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public Long fetchTime(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTime(params));
-        return (res instanceof Number n) ? n.longValue() : null;
-    }
-    public Long fetchTime() { return fetchTime((Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Long> fetchTimeAsync(Map<String, Object> params) {
-        return super.fetchTime(params).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
-    }
-    public CompletableFuture<Long> fetchTimeAsync() { return fetchTimeAsync((Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public CrossBorrowRates fetchCrossBorrowRates(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchCrossBorrowRates(params));
-        return new CrossBorrowRates(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<CrossBorrowRates> fetchCrossBorrowRatesAsync(Map<String, Object> params) {
-        return super.fetchCrossBorrowRates(params).thenApply(CrossBorrowRates::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public IsolatedBorrowRates fetchIsolatedBorrowRates(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchIsolatedBorrowRates(params));
-        return new IsolatedBorrowRates(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<IsolatedBorrowRates> fetchIsolatedBorrowRatesAsync(Map<String, Object> params) {
-        return super.fetchIsolatedBorrowRates(params).thenApply(IsolatedBorrowRates::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public LeverageTiers fetchLeverageTiers(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLeverageTiers(symbols, params));
-        return new LeverageTiers(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLeverageTiers(symbols, params).thenApply(LeverageTiers::new);
-    }
-    public LeverageTiers fetchLeverageTiers(String[] symbols, Map<String, Object> params) { return fetchLeverageTiers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(String[] symbols, Map<String, Object> params) { return fetchLeverageTiersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public FundingRates fetchFundingRates(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingRates(symbols, params));
-        return new FundingRates(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<FundingRates> fetchFundingRatesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchFundingRates(symbols, params).thenApply(FundingRates::new);
-    }
-    public FundingRates fetchFundingRates(String[] symbols, Map<String, Object> params) { return fetchFundingRates(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<FundingRates> fetchFundingRatesAsync(String[] symbols, Map<String, Object> params) { return fetchFundingRatesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public FundingRates fetchFundingIntervals(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingIntervals(symbols, params));
-        return new FundingRates(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchFundingIntervals(symbols, params).thenApply(FundingRates::new);
-    }
-    public FundingRates fetchFundingIntervals(String[] symbols, Map<String, Object> params) { return fetchFundingIntervals(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(String[] symbols, Map<String, Object> params) { return fetchFundingIntervalsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
-    @SuppressWarnings("unchecked")
-    public TransferEntry transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.transfer(code, amount, fromAccount, toAccount, params));
-        return new TransferEntry(res);
     }
-    public TransferEntry transfer(String code, Double amount, String fromAccount, String toAccount) { return transfer(code, amount, fromAccount, toAccount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<TransferEntry> transferAsync(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params) {
-        return super.transfer(code, amount, fromAccount, toAccount, params).thenApply(TransferEntry::new);
-    }
-    public CompletableFuture<TransferEntry> transferAsync(String code, Double amount, String fromAccount, String toAccount) { return transferAsync(code, amount, fromAccount, toAccount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Transaction withdraw(String code, Double amount, String address, String tag, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.withdraw(code, amount, address, tag, params));
-        return new Transaction(res);
-    }
-    public Transaction withdraw(String code, Double amount, String address) { return withdraw(code, amount, address, (String) null, (Map<String, Object>) null); }
-    public Transaction withdraw(String code, Double amount, String address, String tag) { return withdraw(code, amount, address, tag, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, String tag, Map<String, Object> params) {
-        return super.withdraw(code, amount, address, tag, params).thenApply(Transaction::new);
-    }
-    public CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address) { return withdrawAsync(code, amount, address, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, String tag) { return withdrawAsync(code, amount, address, tag, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public DepositAddress createDepositAddress(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createDepositAddress(code, params));
-        return new DepositAddress(res);
-    }
-    public DepositAddress createDepositAddress(String code) { return createDepositAddress(code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<DepositAddress> createDepositAddressAsync(String code, Map<String, Object> params) {
-        return super.createDepositAddress(code, params).thenApply(DepositAddress::new);
-    }
-    public CompletableFuture<DepositAddress> createDepositAddressAsync(String code) { return createDepositAddressAsync(code, (Map<String, Object>) null); }
 
-    @SuppressWarnings("unchecked")
-    public Leverage fetchLeverage(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLeverage(symbol, params));
-        return new Leverage(res);
+    public Object parseCurrency(Object rawCurrency)
+    {
+        //
+        //     [
+        //         {
+        //             "symbol": "USDT",
+        //             "displayTicker": "USDT",
+        //             "name": "Tether",
+        //             "slug": "tether",
+        //             "popularity": -1,
+        //             "decimals": 6,
+        //             "depositFee": "0",
+        //             "depositConfirmations": 64,
+        //             "depositStatus": "OK",
+        //             "withdrawalFee": "3.2",
+        //             "withdrawalMinAmount": "3.2",
+        //             "withdrawalStatus": "OK",
+        //             "networks": [
+        //               "ETH"
+        //             ],
+        //             "light": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        //               }
+        //             },
+        //             "dark": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        //               }
+        //             },
+        //             "visibility": "PUBLIC",
+        //             "message": ""
+        //         },
+        //     ]
+        //
+        Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
+        String id = this.safeString(rawCurrency, "symbol");
+        String code = this.safeCurrencyCode(id);
+        Object isFiat = this.inArray(code, fiatCurrencies);
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
+        Object networksArray = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
+        Boolean deposit = Helpers.isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
+        Boolean withdrawal = Helpers.isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
+        Boolean active = Helpers.isTrue(deposit) && Helpers.isTrue(withdrawal);
+        Double withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
+        String precision = this.safeString(rawCurrency, "decimals", "8");
+        Double minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
+        // btw, absolutely all of them have 1 network atm
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksArray)); j++)
+        {
+            Object networkId = Helpers.GetValue(networksArray, j);
+            Object networkCode = this.networkIdToCode(networkId, code);
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                final Object finalDeposit = deposit;
+                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+    put( "info", rawCurrency );
+    put( "id", networkId );
+    put( "network", finalNetworkCode );
+    put( "active", active );
+    put( "deposit", finalDeposit );
+    put( "withdraw", withdrawal );
+    put( "fee", withdrawFee );
+    put( "precision", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(precision)) );
+    put( "limits", new HashMap<String, Object>() {{
+        put( "withdraw", new HashMap<String, Object>() {{
+            put( "min", minWithdraw );
+            put( "max", null );
+        }} );
+    }} );
+}});
+            }
+        }
+        final Object finalDeposit_2 = deposit;
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+            put( "info", rawCurrency );
+            put( "id", id );
+            put( "code", code );
+            put( "name", Bitvavo.this.safeString(rawCurrency, "name") );
+            put( "active", active );
+            put( "deposit", finalDeposit_2 );
+            put( "withdraw", withdrawal );
+            put( "networks", networks );
+            put( "fee", withdrawFee );
+            put( "precision", null );
+            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "limits", new HashMap<String, Object>() {{
+                put( "amount", new HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "deposit", new HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new HashMap<String, Object>() {{
+                    put( "min", minWithdraw );
+                    put( "max", null );
+                }} );
+            }} );
+        }});
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTicker
+     * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "market", Helpers.GetValue(market, "id") );
+            }};
+            Object response = (this.publicGetTicker24h(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "market":"ETH-BTC",
+            //         "open":"0.022578",
+            //         "high":"0.023019",
+            //         "low":"0.022572",
+            //         "last":"0.023019",
+            //         "volume":"25.16366324",
+            //         "volumeQuote":"0.57333305",
+            //         "bid":"0.023039",
+            //         "bidSize":"0.53500578",
+            //         "ask":"0.023041",
+            //         "askSize":"0.47859202",
+            //         "timestamp":1590381666900
+            //     }
+            //
+            return this.parseTicker(response, market);
+        }).thenApply(Ticker::new);
+
+    }
+
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "market":"ETH-BTC",
+        //         "open":"0.022578",
+        //         "high":"0.023019",
+        //         "low":"0.022573",
+        //         "last":"0.023019",
+        //         "volume":"25.16366324",
+        //         "volumeQuote":"0.57333305",
+        //         "bid":"0.023039",
+        //         "bidSize":"0.53500578",
+        //         "ask":"0.023041",
+        //         "askSize":"0.47859202",
+        //         "timestamp":1590381666900
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        String marketId = this.safeString(ticker, "market");
+        String symbol = this.safeSymbol(marketId, market, "-");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
+        String last = this.safeString(ticker, "last");
+        String baseVolume = this.safeString(ticker, "volume");
+        String quoteVolume = this.safeString(ticker, "volumeQuote");
+        String open = this.safeString(ticker, "open");
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", symbol );
+            put( "timestamp", timestamp );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
+            put( "high", Bitvavo.this.safeString(ticker, "high") );
+            put( "low", Bitvavo.this.safeString(ticker, "low") );
+            put( "bid", Bitvavo.this.safeString(ticker, "bid") );
+            put( "bidVolume", Bitvavo.this.safeString(ticker, "bidSize") );
+            put( "ask", Bitvavo.this.safeString(ticker, "ask") );
+            put( "askVolume", Bitvavo.this.safeString(ticker, "askSize") );
+            put( "vwap", null );
+            put( "open", open );
+            put( "close", last );
+            put( "last", last );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", null );
+            put( "average", null );
+            put( "baseVolume", baseVolume );
+            put( "quoteVolume", quoteVolume );
+            put( "info", ticker );
+        }}, market);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTickers
+     * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object response = (this.publicGetTicker24h(parameters)).join();
+            //
+            //     [
+            //         {
+            //             "market":"ADA-BTC",
+            //             "open":"0.0000059595",
+            //             "high":"0.0000059765",
+            //             "low":"0.0000059595",
+            //             "last":"0.0000059765",
+            //             "volume":"2923.172",
+            //             "volumeQuote":"0.01743483",
+            //             "bid":"0.0000059515",
+            //             "bidSize":"1117.630919",
+            //             "ask":"0.0000059585",
+            //             "askSize":"809.999739",
+            //             "timestamp":1590382266324
+            //         }
+            //     ]
+            //
+            return this.parseTickers(response, symbols);
+        }).thenApply(Tickers::new);
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTrades
+     * @see https://docs.bitvavo.com/docs/rest-api/get-trades/
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            if (Helpers.isTrue(paginate))
+            {
+                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
+            }
+            Object request = new HashMap<String, Object>() {{
+                put( "market", Helpers.GetValue(market, "id") );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "start", since);
+            }
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            List<Object> response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
+            //
+            //     [
+            //         {
+            //             "id":"94154c98-6e8b-4e33-92a8-74e33fc05650",
+            //             "timestamp":1590382761859,
+            //             "amount":"0.06026079",
+            //             "price":"8095.3",
+            //             "side":"buy"
+            //         }
+            //     ]
+            //
+            return this.parseTrades(response, market, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+
+    }
+
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "id":"94154c98-6e8b-4e33-92a8-74e33fc05650",
+        //         "timestamp":1590382761859,
+        //         "amount":"0.06026079",
+        //         "price":"8095.3",
+        //         "side":"buy"
+        //     }
+        //
+        // createOrder, fetchOpenOrders, fetchOrders, editOrder (private)
+        //
+        //     {
+        //         "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //         "timestamp":1590505649245,
+        //         "amount":"0.249825",
+        //         "price":"183.49",
+        //         "taker":true,
+        //         "fee":"0.12038925",
+        //         "feeCurrency":"EUR",
+        //         "settled":true
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //         "timestamp":1590505649245,
+        //         "market":"ETH-EUR",
+        //         "side":"sell",
+        //         "amount":"0.249825",
+        //         "price":"183.49",
+        //         "taker":true,
+        //         "fee":"0.12038925",
+        //         "feeCurrency":"EUR",
+        //         "settled":true
+        //     }
+        //
+        // watchMyTrades (private)
+        //
+        //     {
+        //         "event": "fill",
+        //         "timestamp": 1590964470132,
+        //         "market": "ETH-EUR",
+        //         "orderId": "85d082e1-eda4-4209-9580-248281a29a9a",
+        //         "fillId": "861d2da5-aa93-475c-8d9a-dce431bd4211",
+        //         "side": "sell",
+        //         "amount": "0.1",
+        //         "price": "211.46",
+        //         "taker": true,
+        //         "fee": "0.056",
+        //         "feeCurrency": "EUR"
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        Long timestamp = this.safeInteger(trade, "timestamp");
+        String side = this.safeString(trade, "side");
+        String id = this.safeString2(trade, "id", "fillId");
+        String marketId = this.safeString(trade, "market");
+        String symbol = this.safeSymbol(marketId, market, "-");
+        Object taker = this.safeValue(trade, "taker");
+        String takerOrMaker = null;
+        if (Helpers.isTrue(!Helpers.isEqual(taker, null)))
+        {
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(taker, true))))) ? "taker" : "maker";
+        }
+        String feeCostString = this.safeString(trade, "fee");
+        Object fee = null;
+        if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
+        {
+            String feeCurrencyId = this.safeString(trade, "feeCurrency");
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            final Object finalFeeCostString = feeCostString;
+            fee = new HashMap<String, Object>() {{
+                put( "cost", finalFeeCostString );
+                put( "currency", feeCurrencyCode );
+            }};
+        }
+        String orderId = this.safeString(trade, "orderId");
+        final Object finalTakerOrMaker = takerOrMaker;
+        final Object finalFee = fee;
+        return this.safeTrade(new HashMap<String, Object>() {{
+            put( "info", trade );
+            put( "id", id );
+            put( "symbol", symbol );
+            put( "timestamp", timestamp );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
+            put( "order", orderId );
+            put( "type", null );
+            put( "side", side );
+            put( "takerOrMaker", finalTakerOrMaker );
+            put( "price", priceString );
+            put( "amount", amountString );
+            put( "cost", null );
+            put( "fee", finalFee );
+        }}, market);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTradingFees
+     * @see https://docs.bitvavo.com/docs/rest-api/get-account-fees/
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            List<Object> response = (this.privateGetAccount(parameters)).join();
+            //
+            //     {
+            //         "fees": {
+            //           "taker": "0.0025",
+            //           "maker": "0.0015",
+            //           "volume": "10000.00"
+            //         }
+            //     }
+            //
+            return this.parseTradingFees(response);
+        }).thenApply(TradingFees::new);
+
+    }
+
+    public Object parseTradingFees(Object fees, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "fees": {
+        //           "taker": "0.0025",
+        //           "maker": "0.0015",
+        //           "volume": "10000.00"
+        //         }
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object feesValue = this.safeValue(fees, "fees");
+        Double maker = this.safeNumber(feesValue, "maker");
+        Double taker = this.safeNumber(feesValue, "taker");
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+        {
+            Object symbol = Helpers.GetValue(this.symbols, i);
+            Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+    put( "info", fees );
+    put( "symbol", symbol );
+    put( "maker", maker );
+    put( "taker", taker );
+    put( "percentage", true );
+    put( "tierBased", true );
+}});
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTradingFee
+     * @see https://docs.bitvavo.com/docs/rest-api/get-market-fees/
+     * @description fetch the trading fees for a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "market", Helpers.GetValue(market, "id") );
+            }};
+            Map<String, Object> response = (this.privateGetAccountFees(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "tier": "0",
+            //         "volume": "10000.00",
+            //         "taker": "0.0025",
+            //         "maker": "0.0015"
+            //     }
+            //
+            return this.parseTradingFee(response, market);
+        }).thenApply(TradingFeeInterface::new);
+
+    }
+
+    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        return new HashMap<String, Object>() {{
+            put( "info", fee );
+            put( "symbol", Bitvavo.this.safeSymbol(null, market) );
+            put( "maker", Bitvavo.this.safeNumber(fee, "maker") );
+            put( "taker", Bitvavo.this.safeNumber(fee, "taker") );
+            put( "percentage", true );
+            put( "tierBased", true );
+        }};
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchOrderBook
+     * @see https://docs.bitvavo.com/docs/rest-api/get-order-book/
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "market", Helpers.GetValue(market, "id") );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "depth", limit);
+            }
+            Map<String, Object> response = (this.publicGetMarketBook(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "market":"BTC-EUR",
+            //         "nonce":35883831,
+            //         "bids":[
+            //             ["8097.4","0.6229099"],
+            //             ["8097.2","0.64151283"],
+            //             ["8097.1","0.24966294"],
+            //         ],
+            //         "asks":[
+            //             ["8097.5","1.36916911"],
+            //             ["8098.8","0.33462248"],
+            //             ["8099.3","1.12908646"],
+            //         ]
+            //     }
+            //
+            Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
+            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "nonce"));
+            return orderbook;
+        }).thenApply(OrderBook::new);
+
+    }
+
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        //
+        //     [
+        //         1590383700000,
+        //         "8088.5",
+        //         "8088.5",
+        //         "8088.5",
+        //         "8088.5",
+        //         "0.04788623"
+        //     ]
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
+    }
+
+    public Object fetchOHLCVRequest(Object symbol, Object... optionalArgs)
+    {
+        Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Object request = new HashMap<String, Object>() {{
+            put( "market", Helpers.GetValue(market, "id") );
+            put( "interval", Bitvavo.this.safeString(Bitvavo.this.timeframes, timeframe, timeframe) );
+        }};
+        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        {
+            // https://github.com/ccxt/ccxt/issues/9227
+            int duration = this.parseTimeframe(timeframe);
+            Helpers.addElementToObject(request, "start", since);
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+            {
+                limit = 1440;
+            } else
+            {
+                limit = Helpers.mathMin(limit, 1440);
+            }
+            Helpers.addElementToObject(request, "end", this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000)));
+        }
+        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+        request = ((List<Object>) requestparametersVariable).get(0);
+        parameters = ((List<Object>) requestparametersVariable).get(1);
+        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        {
+            Helpers.addElementToObject(request, "limit", limit); // default 1440, max 1440
+        }
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchOHLCV
+     * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            if (Helpers.isTrue(paginate))
+            {
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1440)).join();
+            }
+            Object request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, parameters);
+            List<Object> response = (this.publicGetMarketCandles(request)).join();
+            //
+            //     [
+            //         [1590383700000,"8088.5","8088.5","8088.5","8088.5","0.04788623"],
+            //         [1590383580000,"8091.3","8091.5","8091.3","8091.5","0.04931221"],
+            //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
+            //     ]
+            //
+            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+
+    }
+
+    public Object parseBalance(Object response)
+    {
+        Map<String, Object> result = new HashMap<String, Object>() {{
+            put( "info", response );
+            put( "timestamp", null );
+            put( "datetime", null );
+        }};
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        {
+            Object balance = Helpers.GetValue(response, i);
+            String currencyId = this.safeString(balance, "symbol");
+            String code = this.safeCurrencyCode(currencyId);
+            Object account = this.account();
+            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
+            Helpers.addElementToObject(account, "used", this.safeString(balance, "inOrder"));
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
+        }
+        return this.safeBalance(result);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchBalance
+     * @see https://docs.bitvavo.com/docs/rest-api/get-account-balance/
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            List<Object> response = (this.privateGetBalance(parameters)).join();
+            //
+            //     [
+            //         {
+            //             "symbol": "BTC",
+            //             "available": "1.57593193",
+            //             "inOrder": "0.74832374"
+            //         }
+            //     ]
+            //
+            return this.parseBalance(response);
+        }).thenApply(Balances::new);
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchAccounts
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
+     * @description fetch all the accounts associated with a profile
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> response = (this.privateGetSubaccounts(parameters)).join();
+            //
+            //     {
+            //         "items": [
+            //             {
+            //                 "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //                 "type": "spot",
+            //                 "status": "open",
+            //                 "label": "string"
+            //             }
+            //         ],
+            //         "currentPage": 0,
+            //         "totalPages": 0,
+            //         "maxItems": 0
+            //     }
+            //
+            Object accounts = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            return this.parseAccounts(accounts);
+        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+
+    }
+
+    public Object parseAccount(Object account)
+    {
+        return new HashMap<String, Object>() {{
+            put( "id", Bitvavo.this.safeString(account, "id") );
+            put( "type", Bitvavo.this.safeString(account, "type") );
+            put( "code", null );
+            put( "info", account );
+        }};
+    }
+
+    /**
+     * @method
+     * @name bitvavo#transfer
+     * @see https://docs.bitvavo.com/docs/institutional-api/create-transfer/
+     * @description transfer currency internally between the master account and a subaccount
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
+     * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccountId] the unique identifier for the subaccount
+     * @param {string} [params.clientRequestId] client defined unique id
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    {
+        final Object fromAccount3 = fromAccount2;
+        final Object toAccount3 = toAccount2;
+        return CompletableFuture.supplyAsync(() -> {
+            Object fromAccount = fromAccount3;
+            Object toAccount = toAccount3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Object subaccountId = this.safeString(parameters, "subaccountId");
+            parameters = this.omit(parameters, "subaccountId");
+            String direction = null;
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromAccount, "master"))) && Helpers.isTrue((Helpers.isEqual(toAccount, "master")))))
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
+            } else if (Helpers.isTrue(Helpers.isEqual(fromAccount, "master")))
+            {
+                direction = "masterToSub";
+                if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+                {
+                    subaccountId = toAccount;
+                }
+            } else if (Helpers.isTrue(Helpers.isEqual(toAccount, "master")))
+            {
+                direction = "subToMaster";
+                if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+                {
+                    subaccountId = fromAccount;
+                }
+            } else
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires either fromAccount or toAccount to be master")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
+            }
+            final Object finalSubaccountId = subaccountId;
+            final Object finalDirection = direction;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "subaccountId", finalSubaccountId );
+                put( "direction", finalDirection );
+                put( "symbol", Helpers.GetValue(currency, "id") );
+                put( "amount", Bitvavo.this.currencyToPrecision(code, amount) );
+            }};
+            Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "direction": "masterToSub",
+            //         "symbol": "BTC",
+            //         "amount": "0.1",
+            //         "status": "completed",
+            //         "createdAt": "1700000000000"
+            //     }
+            //
+            return this.parseTransfer(response, currency);
+        }).thenApply(TransferEntry::new);
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTransfers
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-transfers/
+     * @description fetch a history of internal transfers made on an account
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccountId] the unique identifier for the subaccount
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object request = new HashMap<String, Object>() {{}};
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
+            }
+            String subaccountId = this.safeString(parameters, "subaccountId");
+            if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTransfers() requires a subaccountId parameter")) ;
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "start", since);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", limit);
+            }
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = (this.privateGetSubaccountsTransfers(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "items": [
+            //             {
+            //                 "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //                 "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //                 "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //                 "direction": "masterToSub",
+            //                 "symbol": "BTC",
+            //                 "amount": "0.1",
+            //                 "status": "completed",
+            //                 "createdAt": "1700000000000"
+            //             }
+            //         ],
+            //         "start": 0,
+            //         "end": 0,
+            //         "limit": 25
+            //     }
+            //
+            Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTransfers(items, currency, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTransfer
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-transfer/
+     * @description fetches a transfer
+     * @param {string} id transfer id
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> fetchTransfer(String id, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "transferId", id );
+            }};
+            Map<String, Object> response = (this.privateGetSubaccountsTransfersTransferId(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "direction": "masterToSub",
+            //         "symbol": "BTC",
+            //         "amount": "0.1",
+            //         "status": "completed",
+            //         "createdAt": "1700000000000"
+            //     }
+            //
+            return this.parseTransfer(response, currency);
+        }).thenApply(TransferEntry::new);
+
+    }
+
+    public String parseTransferStatus(Object status)
+    {
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "completed", "ok" );
+            put( "pending", "pending" );
+            put( "failed", "failed" );
+        }};
+        return this.safeString(statuses, ((String)status), status);
+    }
+
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        String currencyId = this.safeString(transfer, "symbol");
+        String code = this.safeCurrencyCode(currencyId, currency);
+        String subaccountId = this.safeString(transfer, "subaccountId");
+        String direction = this.safeString(transfer, "direction");
+        String fromAccount = null;
+        String toAccount = null;
+        if (Helpers.isTrue(Helpers.isEqual(direction, "masterToSub")))
+        {
+            fromAccount = "master";
+            toAccount = subaccountId;
+        } else if (Helpers.isTrue(Helpers.isEqual(direction, "subToMaster")))
+        {
+            fromAccount = subaccountId;
+            toAccount = "master";
+        }
+        Long timestamp = this.safeInteger(transfer, "createdAt");
+        if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+        {
+            timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
+        }
+        final Object finalTimestamp = timestamp;
+        final Object finalFromAccount = fromAccount;
+        final Object finalToAccount = toAccount;
+        return new HashMap<String, Object>() {{
+            put( "info", transfer );
+            put( "id", Bitvavo.this.safeString(transfer, "transferId") );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", Bitvavo.this.iso8601(finalTimestamp) );
+            put( "currency", code );
+            put( "amount", Bitvavo.this.safeNumber(transfer, "amount") );
+            put( "fromAccount", finalFromAccount );
+            put( "toAccount", finalToAccount );
+            put( "status", Bitvavo.this.parseTransferStatus(Bitvavo.this.safeString(transfer, "status")) );
+        }};
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchDepositAddress
+     * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-data/
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(currency, "id") );
+            }};
+            Map<String, Object> response = (this.privateGetDeposit(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
+            //         "paymentId": "10002653"
+            //     }
+            //
+            String address = this.safeString(response, "address");
+            String tag = this.safeString(response, "paymentId");
+            this.checkAddress(address);
+            return new HashMap<String, Object>() {{
+                put( "info", response );
+                put( "currency", code );
+                put( "network", null );
+                put( "address", address );
+                put( "tag", tag );
+            }};
+        }).thenApply(DepositAddress::new);
+
+    }
+
+    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        Object price = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
+        }
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        final Object finalSide = side;
+        final Object finalType = type;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "market", Helpers.GetValue(market, "id") );
+            put( "side", finalSide );
+            put( "orderType", finalType );
+        }};
+        Boolean isMarketOrder = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) || Helpers.isTrue((Helpers.isEqual(type, "stopLoss")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfit")));
+        Boolean isLimitOrder = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "limit"))) || Helpers.isTrue((Helpers.isEqual(type, "stopLossLimit")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfitLimit")));
+        String timeInForce = this.safeString(parameters, "timeInForce");
+        Object triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
+        Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
+        Object stopLossPrice = this.safeValue(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
+        Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
+        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
+        if (Helpers.isTrue(isMarketOrder))
+        {
+            Object cost = null;
+            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            {
+                Object priceString = this.numberToString(price);
+                Object amountString = this.numberToString(amount);
+                String quoteAmount = Precise.stringMul(amountString, priceString);
+                cost = this.parseNumber(quoteAmount);
+            } else
+            {
+                cost = this.safeNumber(parameters, "cost");
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
+            {
+                Object precision = Helpers.GetValue(this.currency(Helpers.GetValue(market, "quote")), "precision");
+                Helpers.addElementToObject(request, "amountQuote", this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode));
+            } else
+            {
+                Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+            }
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost")));
+        } else if (Helpers.isTrue(isLimitOrder))
+        {
+            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+        }
+        Boolean isTakeProfit = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfit")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfitLimit")));
+        Boolean isStopLoss = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isTrue(isTakeProfit))))) || Helpers.isTrue((Helpers.isEqual(type, "stopLoss")))) || Helpers.isTrue((Helpers.isEqual(type, "stopLossLimit")));
+        if (Helpers.isTrue(isStopLoss))
+        {
+            if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
+            {
+                triggerPrice = stopLossPrice;
+            }
+            Helpers.addElementToObject(request, "orderType", ((Helpers.isTrue(isMarketOrder))) ? "stopLoss" : "stopLossLimit");
+        } else if (Helpers.isTrue(isTakeProfit))
+        {
+            if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
+            {
+                triggerPrice = takeProfitPrice;
+            }
+            Helpers.addElementToObject(request, "orderType", ((Helpers.isTrue(isMarketOrder))) ? "takeProfit" : "takeProfitLimit");
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+        {
+            Helpers.addElementToObject(request, "triggerAmount", this.priceToPrecision(symbol, triggerPrice));
+            Helpers.addElementToObject(request, "triggerType", "price");
+            Helpers.addElementToObject(request, "triggerReference", "lastTrade"); // 'bestBid', 'bestAsk', 'midPrice'
+        }
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeInForce, null))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "PO")))))
+        {
+            Helpers.addElementToObject(request, "timeInForce", timeInForce);
+        }
+        if (Helpers.isTrue(postOnly))
+        {
+            Helpers.addElementToObject(request, "postOnly", true);
+        }
+        Object operatorId = null;
+        List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "operatorId");
+        operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
+        parameters = ((List<Object>) operatorIdparametersVariable).get(1);
+        if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
+        {
+            Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
+        } else
+        {
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+        }
+        Object selfTradePrevention = null;
+        List<Object> selfTradePreventionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = ((List<Object>) selfTradePreventionparametersVariable).get(0);
+        parameters = ((List<Object>) selfTradePreventionparametersVariable).get(1);
+        if (Helpers.isTrue(!Helpers.isEqual(selfTradePrevention, null)))
+        {
+            if (Helpers.isTrue(Helpers.isEqual(selfTradePrevention, "EXPIRE_BOTH")))
+            {
+                Helpers.addElementToObject(request, "selfTradePrevention", "cancelBoth");
+            } else
+            {
+                Helpers.addElementToObject(request, "selfTradePrevention", selfTradePrevention);
+            }
+        }
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#createOrder
+     * @description create a trade order
+     * @see https://docs.bitvavo.com/docs/rest-api/create-order/
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+     * @param {float} [params.stopPrice] Alias for triggerPrice
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {string} [params.triggerType] "price"
+     * @param {string} [params.triggerReference] "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
+     * @param {string} [params.selfTradePrevention] one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
+     * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
+     * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object price = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Map<String, Object> response = (this.privatePostOrder(request)).join();
+            //
+            //      {
+            //          "orderId":"dec6a640-5b4c-45bc-8d22-3b41c6716630",
+            //          "market":"DOGE-EUR",
+            //          "created":1654789135146,
+            //          "updated":1654789135153,
+            //          "status":"new",
+            //          "side":"buy",
+            //          "orderType":"stopLossLimit",
+            //          "amount":"200",
+            //          "amountRemaining":"200",
+            //          "price":"0.07471",
+            //          "triggerPrice":"0.0747",
+            //          "triggerAmount":"0.0747",
+            //          "triggerType":"price",
+            //          "triggerReference":"lastTrade",
+            //          "onHold":"14.98",
+            //          "onHoldCurrency":"EUR",
+            //          "filledAmount":"0",
+            //          "filledAmountQuote":"0",
+            //          "feePaid":"0",
+            //          "feeCurrency":"EUR",
+            //          "fills":[ // filled with market orders only
+            //             {
+            //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+            //                 "timestamp":1590505649245,
+            //                 "amount":"0.249825",
+            //                 "price":"183.49",
+            //                 "taker":true,
+            //                 "fee":"0.12038925",
+            //                 "feeCurrency":"EUR",
+            //                 "settled":true
+            //             }
+            //          ],
+            //          "selfTradePrevention":"decrementAndCancel",
+            //          "visible":true,
+            //          "timeInForce":"GTC",
+            //          "postOnly":false
+            //      }
+            //
+            return this.parseOrder(response, market);
+        }).thenApply(Order::new);
+
+    }
+
+    public Object editOrderRequest(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    {
+        Object amount = Helpers.getArg(optionalArgs, 0, null);
+        Object price = Helpers.getArg(optionalArgs, 1, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+        Object request = new HashMap<String, Object>() {{}};
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Double amountRemaining = this.safeNumber(parameters, "amountRemaining");
+        String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
+        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("amountRemaining", "triggerPrice", "stopPrice", "triggerAmount")));
+        if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+        {
+            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+        {
+            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(amountRemaining, null)))
+        {
+            Helpers.addElementToObject(request, "amountRemaining", this.amountToPrecision(symbol, amountRemaining));
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+        {
+            Helpers.addElementToObject(request, "triggerAmount", this.priceToPrecision(symbol, triggerPrice));
+        }
+        request = this.extend(request, parameters);
+        if (Helpers.isTrue(this.isEmpty(request)))
+        {
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
+        }
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+        {
+            Helpers.addElementToObject(request, "orderId", id);
+        }
+        Object operatorId = null;
+        List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "operatorId");
+        operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
+        parameters = ((List<Object>) operatorIdparametersVariable).get(1);
+        if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
+        {
+            Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
+        } else
+        {
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+        }
+        Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+        return request;
+    }
+
+    /**
+     * @method
+     * @name bitvavo#editOrder
+     * @description edit a trade order
+     * @see https://docs.bitvavo.com/docs/rest-api/update-order/
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object amount = Helpers.getArg(optionalArgs, 0, null);
+            Object price = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+            Map<String, Object> response = (this.privatePutOrder(request)).join();
+            return this.parseOrder(response, market);
+        }).thenApply(Order::new);
+
+    }
+
+    public Object cancelOrderRequest(Object id, Object... optionalArgs)
+    {
+        Object symbol = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+        }
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "market", Helpers.GetValue(market, "id") );
+        }};
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+        {
+            Helpers.addElementToObject(request, "orderId", id);
+        }
+        Object operatorId = null;
+        List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "operatorId");
+        operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
+        parameters = ((List<Object>) operatorIdparametersVariable).get(1);
+        if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
+        {
+            Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
+        } else
+        {
+            throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+        }
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.bitvavo.com/docs/rest-api/cancel-order/
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = this.cancelOrderRequest(id, symbol, parameters);
+            Map<String, Object> response = (this.privateDeleteOrder(request)).join();
+            //
+            //     {
+            //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
+            //     }
+            //
+            return this.parseOrder(response, market);
+        }).thenApply(Order::new);
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#cancelAllOrders
+     * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
+     * @description cancel all open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+                Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+            }
+            Object operatorId = null;
+            List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "operatorId");
+            operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
+            parameters = ((List<Object>) operatorIdparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
+            {
+                Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
+            } else
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            }
+            List<Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
+            //
+            //     [
+            //         {
+            //             "orderId": "1be6d0df-d5dc-4b53-a250-3376f3b393e6"
+            //         }
+            //     ]
+            //
+            return this.parseOrders(response, market);
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
+     * @returns {object} the api result
+     */
+    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isGreaterThan(timeout, 300000)))
+            {
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
+            }
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))) && Helpers.isTrue((Helpers.isLessThan(timeout, 10000)))))
+            {
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object codGroupId = null;
+            List<Object> codGroupIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
+            codGroupId = ((List<Object>) codGroupIdparametersVariable).get(0);
+            parameters = ((List<Object>) codGroupIdparametersVariable).get(1);
+            final Object finalCodGroupId = codGroupId;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "codGroupId", finalCodGroupId );
+                put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) Bitvavo.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
+            }};
+            Map<String, Object> response = (this.privatePostCancelOrdersAfter(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "codGroupId": 1,
+            //         "timeOfExpirySeconds": 17202139111
+            //     }
+            //
+            return response;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.bitvavo.com/docs/rest-api/get-order/
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "market", Helpers.GetValue(market, "id") );
+            }};
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
+            if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+            {
+                Helpers.addElementToObject(request, "orderId", id);
+            }
+            Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            //         "market":"ETH-EUR",
+            //         "created":1590505649241,
+            //         "updated":1590505649241,
+            //         "status":"filled",
+            //         "side":"sell",
+            //         "orderType":"market",
+            //         "amount":"0.249825",
+            //         "amountRemaining":"0",
+            //         "onHold":"0",
+            //         "onHoldCurrency":"ETH",
+            //         "filledAmount":"0.249825",
+            //         "filledAmountQuote":"45.84038925",
+            //         "feePaid":"0.12038925",
+            //         "feeCurrency":"EUR",
+            //         "fills":[
+            //             {
+            //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+            //                 "timestamp":1590505649245,
+            //                 "amount":"0.249825",
+            //                 "price":"183.49",
+            //                 "taker":true,
+            //                 "fee":"0.12038925",
+            //                 "feeCurrency":"EUR",
+            //                 "settled":true
+            //             }
+            //         ],
+            //         "selfTradePrevention":"decrementAndCancel",
+            //         "visible":false,
+            //         "disableMarketProtection":false
+            //     }
+            //
+            return this.parseOrder(response, market);
+        }).thenApply(Order::new);
+
+    }
+
+    public Object fetchOrdersRequest(Object... optionalArgs)
+    {
+        Object symbol = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Object request = new HashMap<String, Object>() {{
+            put( "market", Helpers.GetValue(market, "id") );
+        }};
+        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        {
+            Helpers.addElementToObject(request, "start", since);
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        {
+            Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
+        }
+        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+        request = ((List<Object>) requestparametersVariable).get(0);
+        parameters = ((List<Object>) requestparametersVariable).get(1);
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchOrders
+     * @see https://docs.bitvavo.com/docs/rest-api/get-orders/
+     * @description fetches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            if (Helpers.isTrue(paginate))
+            {
+                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters)).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
+            List<Object> response = (this.privateGetOrders(request)).join();
+            //
+            //     [
+            //         {
+            //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            //             "market":"ETH-EUR",
+            //             "created":1590505649241,
+            //             "updated":1590505649241,
+            //             "status":"filled",
+            //             "side":"sell",
+            //             "orderType":"market",
+            //             "amount":"0.249825",
+            //             "amountRemaining":"0",
+            //             "onHold":"0",
+            //             "onHoldCurrency":"ETH",
+            //             "filledAmount":"0.249825",
+            //             "filledAmountQuote":"45.84038925",
+            //             "feePaid":"0.12038925",
+            //             "feeCurrency":"EUR",
+            //             "fills":[
+            //                 {
+            //                     "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+            //                     "timestamp":1590505649245,
+            //                     "amount":"0.249825",
+            //                     "price":"183.49",
+            //                     "taker":true,
+            //                     "fee":"0.12038925",
+            //                     "feeCurrency":"EUR",
+            //                     "settled":true
+            //                 }
+            //             ],
+            //             "selfTradePrevention":"decrementAndCancel",
+            //             "visible":false,
+            //             "disableMarketProtection":false
+            //         }
+            //     ]
+            //
+            return this.parseOrders(response, market, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchOpenOrders
+     * @see https://docs.bitvavo.com/docs/rest-api/get-open-orders/
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+                Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+            }
+            List<Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
+            //
+            //     [
+            //         {
+            //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            //             "market":"ETH-EUR",
+            //             "created":1590505649241,
+            //             "updated":1590505649241,
+            //             "status":"filled",
+            //             "side":"sell",
+            //             "orderType":"market",
+            //             "amount":"0.249825",
+            //             "amountRemaining":"0",
+            //             "onHold":"0",
+            //             "onHoldCurrency":"ETH",
+            //             "filledAmount":"0.249825",
+            //             "filledAmountQuote":"45.84038925",
+            //             "feePaid":"0.12038925",
+            //             "feeCurrency":"EUR",
+            //             "fills":[
+            //                 {
+            //                     "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+            //                     "timestamp":1590505649245,
+            //                     "amount":"0.249825",
+            //                     "price":"183.49",
+            //                     "taker":true,
+            //                     "fee":"0.12038925",
+            //                     "feeCurrency":"EUR",
+            //                     "settled":true
+            //                 }
+            //             ],
+            //             "selfTradePrevention":"decrementAndCancel",
+            //             "visible":false,
+            //             "disableMarketProtection":false
+            //         }
+            //     ]
+            //
+            return this.parseOrders(response, market, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+
+    }
+
+    public String parseOrderStatus(Object status)
+    {
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "new", "open" );
+            put( "canceled", "canceled" );
+            put( "canceledAuction", "canceled" );
+            put( "canceledSelfTradePrevention", "canceled" );
+            put( "canceledIOC", "canceled" );
+            put( "canceledFOK", "canceled" );
+            put( "canceledMarketProtection", "canceled" );
+            put( "canceledPostOnly", "canceled" );
+            put( "filled", "closed" );
+            put( "partiallyFilled", "open" );
+            put( "expired", "canceled" );
+            put( "rejected", "canceled" );
+            put( "awaitingTrigger", "open" );
+        }};
+        return this.safeString(statuses, ((String)status), status);
+    }
+
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        //
+        // cancelOrder, cancelAllOrders
+        //
+        //     {
+        //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
+        //     }
+        //
+        // createOrder, fetchOrder, fetchOpenOrders, fetchOrders, editOrder
+        //
+        //     {
+        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //         "market":"ETH-EUR",
+        //         "created":1590505649241,
+        //         "updated":1590505649241,
+        //         "status":"filled",
+        //         "side":"sell",
+        //         "orderType":"market",
+        //         "amount":"0.249825",
+        //         "amountRemaining":"0",
+        //         "price": "183.49", // limit orders only
+        //         "onHold":"0",
+        //         "onHoldCurrency":"ETH",
+        //         "filledAmount":"0.249825",
+        //         "filledAmountQuote":"45.84038925",
+        //         "feePaid":"0.12038925",
+        //         "feeCurrency":"EUR",
+        //         "fills":[
+        //             {
+        //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                 "timestamp":1590505649245,
+        //                 "amount":"0.249825",
+        //                 "price":"183.49",
+        //                 "taker":true,
+        //                 "fee":"0.12038925",
+        //                 "feeCurrency":"EUR",
+        //                 "settled":true
+        //             }
+        //         ],
+        //         "selfTradePrevention":"decrementAndCancel",
+        //         "visible":false,
+        //         "disableMarketProtection":false
+        //         "timeInForce": "GTC",
+        //         "postOnly": true,
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        String id = this.safeString(order, "orderId");
+        Long timestamp = this.safeInteger(order, "created");
+        String marketId = this.safeString(order, "market");
+        market = this.safeMarket(marketId, market, "-");
+        Object symbol = Helpers.GetValue(market, "symbol");
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
+        String side = this.safeString(order, "side");
+        String type = this.safeString(order, "orderType");
+        String price = this.safeString(order, "price");
+        String amount = this.safeString(order, "amount");
+        String remaining = this.safeString(order, "amountRemaining");
+        String filled = this.safeString(order, "filledAmount");
+        String cost = this.safeString(order, "filledAmountQuote");
+        if (Helpers.isTrue(Helpers.isEqual(cost, null)))
+        {
+            String amountQuote = this.safeString(order, "amountQuote");
+            String amountQuoteRemaining = this.safeString(order, "amountQuoteRemaining");
+            cost = Precise.stringSub(amountQuote, amountQuoteRemaining);
+        }
+        Object fee = null;
+        Double feeCost = this.safeNumber(order, "feePaid");
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        {
+            String feeCurrencyId = this.safeString(order, "feeCurrency");
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            final Object finalFeeCost = feeCost;
+            fee = new HashMap<String, Object>() {{
+                put( "cost", finalFeeCost );
+                put( "currency", feeCurrencyCode );
+            }};
+        }
+        Object rawTrades = this.safeValue(order, "fills", new ArrayList<Object>(Arrays.asList()));
+        String timeInForce = this.safeString(order, "timeInForce");
+        Object postOnly = this.safeValue(order, "postOnly");
+        // https://github.com/ccxt/ccxt/issues/8489
+        final Object finalCost = cost;
+        final Object finalFee = fee;
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", order );
+            put( "id", id );
+            put( "clientOrderId", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", null );
+            put( "symbol", symbol );
+            put( "type", type );
+            put( "timeInForce", timeInForce );
+            put( "postOnly", postOnly );
+            put( "side", side );
+            put( "price", price );
+            put( "triggerPrice", Bitvavo.this.safeNumber(order, "triggerPrice") );
+            put( "amount", amount );
+            put( "cost", finalCost );
+            put( "average", null );
+            put( "filled", filled );
+            put( "remaining", remaining );
+            put( "status", status );
+            put( "fee", finalFee );
+            put( "trades", rawTrades );
+        }}, market);
+    }
+
+    public Object fetchMyTradesRequest(Object... optionalArgs)
+    {
+        Object symbol = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Object request = new HashMap<String, Object>() {{
+            put( "market", Helpers.GetValue(market, "id") );
+        }};
+        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        {
+            Helpers.addElementToObject(request, "start", since);
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        {
+            Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
+        }
+        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+        request = ((List<Object>) requestparametersVariable).get(0);
+        parameters = ((List<Object>) requestparametersVariable).get(1);
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchMyTrades
+     * @see https://docs.bitvavo.com/docs/rest-api/get-trade-history/
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
+            if (Helpers.isTrue(paginate))
+            {
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
+            List<Object> response = (this.privateGetTrades(request)).join();
+            //
+            //     [
+            //         {
+            //             "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+            //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            //             "timestamp":1590505649245,
+            //             "market":"ETH-EUR",
+            //             "side":"sell",
+            //             "amount":"0.249825",
+            //             "price":"183.49",
+            //             "taker":true,
+            //             "fee":"0.12038925",
+            //             "feeCurrency":"EUR",
+            //             "settled":true
+            //         }
+            //     ]
+            //
+            return this.parseTrades(response, market, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchLedger
+     * @see https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {int} [params.page] the page number for the transaction history
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+     */
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object request = new HashMap<String, Object>() {{}};
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "fromDate", since);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "maxItems", Helpers.mathMin(limit, 100));
+            }
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("toDate", request, parameters);
+            request = ((List<Object>) requestparametersVariable).get(0);
+            parameters = ((List<Object>) requestparametersVariable).get(1);
+            Map<String, Object> response = (this.privateGetAccountHistory(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "items": [
+            //             {
+            //                 "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+            //                 "executedAt": "2021-01-01T00:00:00.000Z",
+            //                 "type": "sell",
+            //                 "priceCurrency": "EUR",
+            //                 "priceAmount": "1000.00",
+            //                 "sentCurrency": "EUR",
+            //                 "sentAmount": "0.1",
+            //                 "receivedCurrency": "BTC",
+            //                 "receivedAmount": "0.0001",
+            //                 "feesCurrency": "EUR",
+            //                 "feesAmount": "0.01",
+            //                 "address": "string"
+            //             }
+            //         ],
+            //         "currentPage": 1,
+            //         "totalPages": 1,
+            //         "maxItems": 100
+            //     }
+            //
+            Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            return this.parseLedger(items, currency, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+
+    }
+
+    public Object parseLedgerEntryType(Object type)
+    {
+        Map<String, Object> types = new HashMap<String, Object>() {{
+            put( "buy", "trade" );
+            put( "sell", "trade" );
+            put( "deposit", "transaction" );
+            put( "withdrawal", "transaction" );
+            put( "withdrawal_cancelled", "transaction" );
+            put( "internal_transfer", "transaction" );
+            put( "external_transferred_funds", "transaction" );
+        }};
+        return this.safeString(types, ((String)type), type);
+    }
+
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    {
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        String rawType = this.safeString(item, "type");
+        Object type = this.parseLedgerEntryType(rawType);
+        String currencyId = this.safeString(item, "receivedCurrency");
+        String amount = this.safeString(item, "receivedAmount");
+        String direction = "in";
+        if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+        {
+            currencyId = this.safeString(item, "sentCurrency");
+            amount = this.safeString(item, "sentAmount");
+            direction = "out";
+        }
+        String code = this.safeCurrencyCode(currencyId);
+        currency = this.safeCurrency(currencyId, currency);
+        Long timestamp = this.parse8601(this.safeString(item, "executedAt"));
+        Object fee = null;
+        String feeCost = this.safeString(item, "feesAmount");
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        {
+            String feeCurrencyId = this.safeString(item, "feesCurrency");
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            final Object finalFeeCost = feeCost;
+            fee = new HashMap<String, Object>() {{
+                put( "cost", finalFeeCost );
+                put( "currency", feeCurrencyCode );
+            }};
+        }
+        final Object finalDirection = direction;
+        final Object finalAmount = amount;
+        final Object finalFee = fee;
+        return this.safeLedgerEntry(new HashMap<String, Object>() {{
+            put( "info", item );
+            put( "id", Bitvavo.this.safeString(item, "transactionId") );
+            put( "direction", finalDirection );
+            put( "account", null );
+            put( "referenceId", Bitvavo.this.safeString(item, "transactionId") );
+            put( "referenceAccount", Bitvavo.this.safeString(item, "address") );
+            put( "type", type );
+            put( "currency", code );
+            put( "amount", finalAmount );
+            put( "timestamp", timestamp );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
+            put( "before", null );
+            put( "after", null );
+            put( "status", "ok" );
+            put( "fee", finalFee );
+        }}, currency);
+    }
+
+    public Object withdrawRequest(String code, Object amount, Object address, Object... optionalArgs)
+    {
+        Object tag = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", Helpers.GetValue(currency, "id") );
+            put( "amount", Bitvavo.this.currencyToPrecision(code, amount) );
+            put( "address", address );
+        }};
+        if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
+        {
+            Helpers.addElementToObject(request, "paymentId", tag);
+        }
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#withdraw
+     * @see https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object tag = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
+            this.checkAddress(address);
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Object request = this.withdrawRequest(code, amount, address, tag, parameters);
+            Map<String, Object> response = (this.privatePostWithdrawal(request)).join();
+            //
+            //     {
+            //         "success": true,
+            //         "symbol": "BTC",
+            //         "amount": "1.5"
+            //     }
+            //
+            return this.parseTransaction(response, currency);
+        }).thenApply(Transaction::new);
+
+    }
+
+    public Object fetchWithdrawalsRequest(Object... optionalArgs)
+    {
+        Object code = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Object currency = null;
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        {
+            Helpers.addElementToObject(request, "start", since);
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        {
+            Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
+        }
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchWithdrawals
+     * @see https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+            }
+            List<Object> response = (this.privateGetWithdrawalHistory(request)).join();
+            //
+            //     [
+            //         {
+            //             "timestamp":1590531212000,
+            //             "symbol":"ETH",
+            //             "amount":"0.091",
+            //             "fee":"0.009",
+            //             "status":"awaiting_bitvavo_inspection",
+            //             "address":"0xe42b309f1eE9F0cbf7f54CcF3bc2159eBfA6735b",
+            //             "paymentId": "10002653",
+            //             "txId": "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3",
+            //         }
+            //     ]
+            //
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
+                put( "type", "withdrawal" );
+            }});
+        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+
+    }
+
+    public Object fetchDepositsRequest(Object... optionalArgs)
+    {
+        Object code = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Object currency = null;
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        {
+            Helpers.addElementToObject(request, "start", since);
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        {
+            Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
+        }
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchDeposits
+     * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-history/
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object request = this.fetchDepositsRequest(code, since, limit, parameters);
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+            }
+            List<Object> response = (this.privateGetDepositHistory(request)).join();
+            //
+            //     [
+            //         {
+            //             "timestamp":1590492401000,
+            //             "symbol":"ETH",
+            //             "amount":"0.249825",
+            //             "fee":"0",
+            //             "status":"completed",
+            //             "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
+            //         }
+            //     ]
+            //
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
+                put( "type", "deposit" );
+            }});
+        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+
+    }
+
+    public String parseTransactionStatus(Object status)
+    {
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "awaiting_processing", "pending" );
+            put( "awaiting_email_confirmation", "pending" );
+            put( "awaiting_bitvavo_inspection", "pending" );
+            put( "approved", "pending" );
+            put( "sending", "pending" );
+            put( "in_mempool", "pending" );
+            put( "processed", "pending" );
+            put( "completed", "ok" );
+            put( "canceled", "canceled" );
+        }};
+        return this.safeString(statuses, ((String)status), status);
+    }
+
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    {
+        //
+        // withdraw
+        //
+        //     {
+        //         "success": true,
+        //         "symbol": "BTC",
+        //         "amount": "1.5"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "timestamp": 1542967486256,
+        //         "symbol": "BTC",
+        //         "amount": "0.99994",
+        //         "address": "BitcoinAddress",
+        //         "paymentId": "10002653",
+        //         "txId": "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3",
+        //         "fee": "0.00006",
+        //         "status": "awaiting_processing"
+        //     }
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "timestamp":1590492401000,
+        //         "symbol":"ETH",
+        //         "amount":"0.249825",
+        //         "fee":"0",
+        //         "status":"completed",
+        //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
+        //     }
+        //
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object id = null;
+        Long timestamp = this.safeInteger(transaction, "timestamp");
+        String currencyId = this.safeString(transaction, "symbol");
+        String code = this.safeCurrencyCode(currencyId, currency);
+        String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+        Double amount = this.safeNumber(transaction, "amount");
+        String address = this.safeString(transaction, "address");
+        String txid = this.safeString(transaction, "txId");
+        Object fee = null;
+        Double feeCost = this.safeNumber(transaction, "fee");
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        {
+            final Object finalFeeCost = feeCost;
+            fee = new HashMap<String, Object>() {{
+                put( "cost", finalFeeCost );
+                put( "currency", code );
+            }};
+        }
+        String type = null;
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(transaction, "success"))) || Helpers.isTrue((Helpers.inOp(transaction, "address")))))
+        {
+            type = "withdrawal";
+        } else
+        {
+            type = "deposit";
+        }
+        String tag = this.safeString(transaction, "paymentId");
+        final Object finalType = type;
+        final Object finalFee = fee;
+        return new HashMap<String, Object>() {{
+            put( "info", transaction );
+            put( "id", id );
+            put( "txid", txid );
+            put( "timestamp", timestamp );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
+            put( "addressFrom", null );
+            put( "address", address );
+            put( "addressTo", address );
+            put( "tagFrom", null );
+            put( "tag", tag );
+            put( "tagTo", tag );
+            put( "type", finalType );
+            put( "amount", amount );
+            put( "currency", code );
+            put( "status", status );
+            put( "updated", null );
+            put( "fee", finalFee );
+            put( "network", null );
+            put( "comment", null );
+            put( "internal", null );
+        }};
+    }
+
+    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    {
+        //
+        //   {
+        //       "symbol": "1INCH",
+        //       "name": "1inch",
+        //       "decimals": 8,
+        //       "depositFee": "0",
+        //       "depositConfirmations": 64,
+        //       "depositStatus": "OK",
+        //       "withdrawalFee": "6.1",
+        //       "withdrawalMinAmount": "6.1",
+        //       "withdrawalStatus": "OK",
+        //       "networks": [
+        //         "ETH"
+        //       ],
+        //       "message": ""
+        //   }
+        //
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Map<String, Object> result = new HashMap<String, Object>() {{
+            put( "info", fee );
+            put( "withdraw", new HashMap<String, Object>() {{
+                put( "fee", Bitvavo.this.safeNumber(fee, "withdrawalFee") );
+                put( "percentage", false );
+            }} );
+            put( "deposit", new HashMap<String, Object>() {{
+                put( "fee", Bitvavo.this.safeNumber(fee, "depositFee") );
+                put( "percentage", false );
+            }} );
+            put( "networks", new HashMap<String, Object>() {{}} );
+        }};
+        Object networks = this.safeValue(fee, "networks");
+        Object networkId = this.safeValue(networks, 0); // Bitvavo currently only supports one network per currency
+        String currencyCode = this.safeString(currency, "code");
+        if (Helpers.isTrue(Helpers.isEqual(networkId, "Mainnet")))
+        {
+            networkId = currencyCode;
+        }
+        Object networkCode = this.networkIdToCode(networkId, currencyCode);
+        if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+        {
+            Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+    put( "deposit", Helpers.GetValue(result, "deposit") );
+    put( "withdraw", Helpers.GetValue(result, "withdraw") );
+}});
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object codes = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            List<Object> response = (this.publicGetAssets(parameters)).join();
+            //
+            //   [
+            //       {
+            //           "symbol": "1INCH",
+            //           "name": "1inch",
+            //           "decimals": 8,
+            //           "depositFee": "0",
+            //           "depositConfirmations": 64,
+            //           "depositStatus": "OK",
+            //           "withdrawalFee": "6.1",
+            //           "withdrawalMinAmount": "6.1",
+            //           "withdrawalStatus": "OK",
+            //           "networks": [
+            //             "ETH"
+            //           ],
+            //           "message": ""
+            //       },
+            //   ]
+            //
+            return this.parseDepositWithdrawFees(response, codes, "symbol");
+        }).thenApply(DepositWithdrawFees::new);
+
+    }
+
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        Object api = Helpers.getArg(optionalArgs, 0, "public");
+        Object method = Helpers.getArg(optionalArgs, 1, "GET");
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object query = this.omit(parameters, this.extractParams(path));
+        Object url = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
+        Boolean getOrDelete = Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")));
+        if (Helpers.isTrue(getOrDelete))
+        {
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+            {
+                url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
+            }
+        }
+        if (Helpers.isTrue(Helpers.isEqual(api, "private")))
+        {
+            this.checkRequiredCredentials();
+            Object payload = "";
+            if (!Helpers.isTrue(getOrDelete))
+            {
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+                {
+                    body = this.json(query);
+                    payload = body;
+                }
+            }
+            Object timestamp = String.valueOf(this.milliseconds());
+            Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, method), url), payload);
+            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
+            final Object finalTimestamp = timestamp;
+            headers = new HashMap<String, Object>() {{
+                put( "BITVAVO-ACCESS-KEY", Bitvavo.this.apiKey );
+                put( "BITVAVO-ACCESS-SIGNATURE", signature );
+                put( "BITVAVO-ACCESS-TIMESTAMP", finalTimestamp );
+                put( "BITVAVO-ACCESS-WINDOW", accessWindow );
+            }};
+            if (!Helpers.isTrue(getOrDelete))
+            {
+                Helpers.addElementToObject(headers, "Content-Type", "application/json");
+            }
+        }
+        url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), url);
+        final Object finalUrl = url;
+        final Object finalMethod = method;
+        final Object finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", finalMethod );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
+    }
+
+    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    {
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        {
+            return null;  // fallback to default error handler
+        }
+        //
+        //     {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
+        //     {"errorCode":203,"error":"symbol parameter is required."}
+        //     {"errorCode":205,"error":"symbol parameter is invalid."}
+        //
+        String errorCode = this.safeString(response, "errorCode");
+        String error = this.safeString(response, "error");
+        if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
+        {
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), error, feedback);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
+            throw new ExchangeError((String)feedback) ;
+        }
+        return null;
+    }
+
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
+    {
+        Object config = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "noMarket"))) && !Helpers.isTrue((Helpers.inOp(parameters, "market")))))
+        {
+            return Helpers.GetValue(config, "noMarket");
+        }
+        return this.safeValue(config, "cost", 1);
     }
-    public Leverage fetchLeverage(String symbol) { return fetchLeverage(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Leverage> fetchLeverageAsync(String symbol, Map<String, Object> params) {
-        return super.fetchLeverage(symbol, params).thenApply(Leverage::new);
-    }
-    public CompletableFuture<Leverage> fetchLeverageAsync(String symbol) { return fetchLeverageAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Leverages fetchLeverages(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLeverages(symbols, params));
-        return new Leverages(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Leverages> fetchLeveragesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLeverages(symbols, params).thenApply(Leverages::new);
-    }
-    public Leverages fetchLeverages(String[] symbols, Map<String, Object> params) { return fetchLeverages(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<Leverages> fetchLeveragesAsync(String[] symbols, Map<String, Object> params) { return fetchLeveragesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public MarginModification addMargin(String symbol, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.addMargin(symbol, amount, params));
-        return new MarginModification(res);
-    }
-    public MarginModification addMargin(String symbol, Double amount) { return addMargin(symbol, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginModification> addMarginAsync(String symbol, Double amount, Map<String, Object> params) {
-        return super.addMargin(symbol, amount, params).thenApply(MarginModification::new);
-    }
-    public CompletableFuture<MarginModification> addMarginAsync(String symbol, Double amount) { return addMarginAsync(symbol, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public MarginModification reduceMargin(String symbol, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.reduceMargin(symbol, amount, params));
-        return new MarginModification(res);
-    }
-    public MarginModification reduceMargin(String symbol, Double amount) { return reduceMargin(symbol, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginModification> reduceMarginAsync(String symbol, Double amount, Map<String, Object> params) {
-        return super.reduceMargin(symbol, amount, params).thenApply(MarginModification::new);
-    }
-    public CompletableFuture<MarginModification> reduceMarginAsync(String symbol, Double amount) { return reduceMarginAsync(symbol, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public MarginModification setMargin(String symbol, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.setMargin(symbol, amount, params));
-        return new MarginModification(res);
-    }
-    public MarginModification setMargin(String symbol, Double amount) { return setMargin(symbol, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginModification> setMarginAsync(String symbol, Double amount, Map<String, Object> params) {
-        return super.setMargin(symbol, amount, params).thenApply(MarginModification::new);
-    }
-    public CompletableFuture<MarginModification> setMarginAsync(String symbol, Double amount) { return setMarginAsync(symbol, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public LongShortRatio fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLongShortRatio(symbol, timeframe, params));
-        return new LongShortRatio(res);
-    }
-    public LongShortRatio fetchLongShortRatio(String symbol) { return fetchLongShortRatio(symbol, (String) null, (Map<String, Object>) null); }
-    public LongShortRatio fetchLongShortRatio(String symbol, String timeframe) { return fetchLongShortRatio(symbol, timeframe, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol, String timeframe, Map<String, Object> params) {
-        return super.fetchLongShortRatio(symbol, timeframe, params).thenApply(LongShortRatio::new);
-    }
-    public CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol) { return fetchLongShortRatioAsync(symbol, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol, String timeframe) { return fetchLongShortRatioAsync(symbol, timeframe, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<LongShortRatio> fetchLongShortRatioHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLongShortRatioHistory(symbol, timeframe, since, limit, params));
-        return toTypedList(res, LongShortRatio::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistoryAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchLongShortRatioHistory(symbol, timeframe, since, limit, params).thenApply(res -> toTypedList(res, LongShortRatio::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<MarginModification> fetchMarginAdjustmentHistory(String symbol, String type, Double since, Double limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarginAdjustmentHistory(symbol, type, since, limit, params));
-        return toTypedList(res, MarginModification::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistoryAsync(String symbol, String type, Double since, Double limit, Map<String, Object> params) {
-        return super.fetchMarginAdjustmentHistory(symbol, type, since, limit, params).thenApply(res -> toTypedList(res, MarginModification::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOpenInterestHistory(symbol, timeframe, since, limit, params));
-        return toTypedList(res, OpenInterest::new);
-    }
-    public List<OpenInterest> fetchOpenInterestHistory(String symbol) { return fetchOpenInterestHistory(symbol, "1h", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe) { return fetchOpenInterestHistory(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since) { return fetchOpenInterestHistory(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit) { return fetchOpenInterestHistory(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchOpenInterestHistory(symbol, timeframe, since, limit, params).thenApply(res -> toTypedList(res, OpenInterest::new));
-    }
-    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol) { return fetchOpenInterestHistoryAsync(symbol, "1h", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol, String timeframe) { return fetchOpenInterestHistoryAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol, String timeframe, Long since) { return fetchOpenInterestHistoryAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol, String timeframe, Long since, Long limit) { return fetchOpenInterestHistoryAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public OpenInterests fetchOpenInterests(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOpenInterests(symbols, params));
-        return new OpenInterests(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchOpenInterests(symbols, params).thenApply(OpenInterests::new);
-    }
-    public OpenInterests fetchOpenInterests(String[] symbols, Map<String, Object> params) { return fetchOpenInterests(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(String[] symbols, Map<String, Object> params) { return fetchOpenInterestsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public MarginLoan repayCrossMargin(String code, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.repayCrossMargin(code, amount, params));
-        return new MarginLoan(res);
-    }
-    public MarginLoan repayCrossMargin(String code, Double amount) { return repayCrossMargin(code, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginLoan> repayCrossMarginAsync(String code, Double amount, Map<String, Object> params) {
-        return super.repayCrossMargin(code, amount, params).thenApply(MarginLoan::new);
-    }
-    public CompletableFuture<MarginLoan> repayCrossMarginAsync(String code, Double amount) { return repayCrossMarginAsync(code, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public MarginLoan repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.repayIsolatedMargin(symbol, code, amount, params));
-        return new MarginLoan(res);
-    }
-    public MarginLoan repayIsolatedMargin(String symbol, String code, Double amount) { return repayIsolatedMargin(symbol, code, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginLoan> repayIsolatedMarginAsync(String symbol, String code, Double amount, Map<String, Object> params) {
-        return super.repayIsolatedMargin(symbol, code, amount, params).thenApply(MarginLoan::new);
-    }
-    public CompletableFuture<MarginLoan> repayIsolatedMarginAsync(String symbol, String code, Double amount) { return repayIsolatedMarginAsync(symbol, code, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public MarginLoan borrowCrossMargin(String code, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.borrowCrossMargin(code, amount, params));
-        return new MarginLoan(res);
-    }
-    public MarginLoan borrowCrossMargin(String code, Double amount) { return borrowCrossMargin(code, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginLoan> borrowCrossMarginAsync(String code, Double amount, Map<String, Object> params) {
-        return super.borrowCrossMargin(code, amount, params).thenApply(MarginLoan::new);
-    }
-    public CompletableFuture<MarginLoan> borrowCrossMarginAsync(String code, Double amount) { return borrowCrossMarginAsync(code, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.borrowIsolatedMargin(symbol, code, amount, params));
-        return new MarginLoan(res);
-    }
-    public MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount) { return borrowIsolatedMargin(symbol, code, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginLoan> borrowIsolatedMarginAsync(String symbol, String code, Double amount, Map<String, Object> params) {
-        return super.borrowIsolatedMargin(symbol, code, amount, params).thenApply(MarginLoan::new);
-    }
-    public CompletableFuture<MarginLoan> borrowIsolatedMarginAsync(String symbol, String code, Double amount) { return borrowIsolatedMarginAsync(symbol, code, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public MarginLoan borrowMargin(String code, Double amount, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.borrowMargin(code, amount, symbol, params));
-        return new MarginLoan(res);
-    }
-    public MarginLoan borrowMargin(String code, Double amount) { return borrowMargin(code, amount, (String) null, (Map<String, Object>) null); }
-    public MarginLoan borrowMargin(String code, Double amount, String symbol) { return borrowMargin(code, amount, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount, String symbol, Map<String, Object> params) {
-        return super.borrowMargin(code, amount, symbol, params).thenApply(MarginLoan::new);
-    }
-    public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount) { return borrowMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount, String symbol) { return borrowMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public MarginLoan repayMargin(String code, Double amount, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.repayMargin(code, amount, symbol, params));
-        return new MarginLoan(res);
-    }
-    public MarginLoan repayMargin(String code, Double amount) { return repayMargin(code, amount, (String) null, (Map<String, Object>) null); }
-    public MarginLoan repayMargin(String code, Double amount, String symbol) { return repayMargin(code, amount, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol, Map<String, Object> params) {
-        return super.repayMargin(code, amount, symbol, params).thenApply(MarginLoan::new);
-    }
-    public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount) { return repayMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol) { return repayMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOHLCV(symbol, timeframe, since, limit, params));
-        return toTypedList(res, OHLCV::new);
-    }
-    public List<OHLCV> fetchOHLCV(String symbol) { return fetchOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchOHLCV(String symbol, String timeframe) { return fetchOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since) { return fetchOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchOHLCV(symbol, timeframe, since, limit, params).thenApply(res -> toTypedList(res, OHLCV::new));
-    }
-    public CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol) { return fetchOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe) { return fetchOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since) { return fetchOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchSpotOHLCV(symbol, timeframe, since, limit, params));
-        return toTypedList(res, OHLCV::new);
-    }
-    public List<OHLCV> fetchSpotOHLCV(String symbol) { return fetchSpotOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe) { return fetchSpotOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since) { return fetchSpotOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchSpotOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchSpotOHLCV(symbol, timeframe, since, limit, params).thenApply(res -> toTypedList(res, OHLCV::new));
-    }
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol) { return fetchSpotOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe) { return fetchSpotOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since) { return fetchSpotOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchSpotOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchContractOHLCV(symbol, timeframe, since, limit, params));
-        return toTypedList(res, OHLCV::new);
-    }
-    public List<OHLCV> fetchContractOHLCV(String symbol) { return fetchContractOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchContractOHLCV(String symbol, String timeframe) { return fetchContractOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since) { return fetchContractOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchContractOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchContractOHLCV(symbol, timeframe, since, limit, params).thenApply(res -> toTypedList(res, OHLCV::new));
-    }
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol) { return fetchContractOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe) { return fetchContractOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since) { return fetchContractOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchContractOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Account> loadAccounts(Object reload, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.loadAccounts(reload, params));
-        return toTypedList(res, Account::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Account>> loadAccountsAsync(Object reload, Map<String, Object> params) {
-        return super.loadAccounts(reload, params).thenApply(res -> toTypedList(res, Account::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<BorrowInterest> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchBorrowInterest(code, symbol, since, limit, params));
-        return toTypedList(res, BorrowInterest::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<BorrowInterest>> fetchBorrowInterestAsync(String code, String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchBorrowInterest(code, symbol, since, limit, params).thenApply(res -> toTypedList(res, BorrowInterest::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<LedgerEntry> fetchLedger(String code, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLedger(code, since, limit, params));
-        return toTypedList(res, LedgerEntry::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<LedgerEntry>> fetchLedgerAsync(String code, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchLedger(code, since, limit, params).thenApply(res -> toTypedList(res, LedgerEntry::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public LedgerEntry fetchLedgerEntry(String id, String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLedgerEntry(id, code, params));
-        return new LedgerEntry(res);
-    }
-    public LedgerEntry fetchLedgerEntry(String id) { return fetchLedgerEntry(id, (String) null, (Map<String, Object>) null); }
-    public LedgerEntry fetchLedgerEntry(String id, String code) { return fetchLedgerEntry(id, code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id, String code, Map<String, Object> params) {
-        return super.fetchLedgerEntry(id, code, params).thenApply(LedgerEntry::new);
-    }
-    public CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id) { return fetchLedgerEntryAsync(id, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id, String code) { return fetchLedgerEntryAsync(id, code, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Balances fetchBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchBalance(params));
-        return new Balances(res);
-    }
-    public Balances fetchBalance() { return fetchBalance((Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Balances> fetchBalanceAsync(Map<String, Object> params) {
-        return super.fetchBalance(params).thenApply(Balances::new);
-    }
-    public CompletableFuture<Balances> fetchBalanceAsync() { return fetchBalanceAsync((Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Balance fetchPartialBalance(Object part, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPartialBalance(part, params));
-        return new Balance(res);
-    }
-    public Balance fetchPartialBalance(Object part) { return fetchPartialBalance(part, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Balance> fetchPartialBalanceAsync(Object part, Map<String, Object> params) {
-        return super.fetchPartialBalance(part, params).thenApply(Balance::new);
-    }
-    public CompletableFuture<Balance> fetchPartialBalanceAsync(Object part) { return fetchPartialBalanceAsync(part, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Balance fetchFreeBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFreeBalance(params));
-        return new Balance(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Balance> fetchFreeBalanceAsync(Map<String, Object> params) {
-        return super.fetchFreeBalance(params).thenApply(Balance::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Balance fetchUsedBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchUsedBalance(params));
-        return new Balance(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Balance> fetchUsedBalanceAsync(Map<String, Object> params) {
-        return super.fetchUsedBalance(params).thenApply(Balance::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Balance fetchTotalBalance(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTotalBalance(params));
-        return new Balance(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Balance> fetchTotalBalanceAsync(Map<String, Object> params) {
-        return super.fetchTotalBalance(params).thenApply(Balance::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Status fetchStatus(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchStatus(params));
-        return new Status(res);
-    }
-    public Status fetchStatus() { return fetchStatus((Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Status> fetchStatusAsync(Map<String, Object> params) {
-        return super.fetchStatus(params).thenApply(Status::new);
-    }
-    public CompletableFuture<Status> fetchStatusAsync() { return fetchStatusAsync((Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public DepositWithdrawFees fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFees(codes, params));
-        return new DepositWithdrawFees(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(List<String> codes, Map<String, Object> params) {
-        return super.fetchDepositWithdrawFees(codes, params).thenApply(DepositWithdrawFees::new);
-    }
-    public DepositWithdrawFees fetchDepositWithdrawFees(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFees(codes == null ? null : java.util.Arrays.asList(codes), params); }
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFeesAsync(codes == null ? null : java.util.Arrays.asList(codes), params); }
-
-    @SuppressWarnings("unchecked")
-    public DepositWithdrawFee fetchDepositWithdrawFee(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFee(code, params));
-        return new DepositWithdrawFee(res);
-    }
-    public DepositWithdrawFee fetchDepositWithdrawFee(String code) { return fetchDepositWithdrawFee(code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code, Map<String, Object> params) {
-        return super.fetchDepositWithdrawFee(code, params).thenApply(DepositWithdrawFee::new);
-    }
-    public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code) { return fetchDepositWithdrawFeeAsync(code, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public CrossBorrowRate fetchCrossBorrowRate(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchCrossBorrowRate(code, params));
-        return new CrossBorrowRate(res);
-    }
-    public CrossBorrowRate fetchCrossBorrowRate(String code) { return fetchCrossBorrowRate(code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRateAsync(String code, Map<String, Object> params) {
-        return super.fetchCrossBorrowRate(code, params).thenApply(CrossBorrowRate::new);
-    }
-    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRateAsync(String code) { return fetchCrossBorrowRateAsync(code, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public IsolatedBorrowRate fetchIsolatedBorrowRate(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchIsolatedBorrowRate(symbol, params));
-        return new IsolatedBorrowRate(res);
-    }
-    public IsolatedBorrowRate fetchIsolatedBorrowRate(String symbol) { return fetchIsolatedBorrowRate(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRateAsync(String symbol, Map<String, Object> params) {
-        return super.fetchIsolatedBorrowRate(symbol, params).thenApply(IsolatedBorrowRate::new);
-    }
-    public CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRateAsync(String symbol) { return fetchIsolatedBorrowRateAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Tickers fetchSpotTickers(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchSpotTickers(symbols, params));
-        return new Tickers(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Tickers> fetchSpotTickersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchSpotTickers(symbols, params).thenApply(Tickers::new);
-    }
-    public Tickers fetchSpotTickers(String[] symbols, Map<String, Object> params) { return fetchSpotTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<Tickers> fetchSpotTickersAsync(String[] symbols, Map<String, Object> params) { return fetchSpotTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public Tickers fetchContractTickers(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchContractTickers(symbols, params));
-        return new Tickers(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Tickers> fetchContractTickersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchContractTickers(symbols, params).thenApply(Tickers::new);
-    }
-    public Tickers fetchContractTickers(String[] symbols, Map<String, Object> params) { return fetchContractTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<Tickers> fetchContractTickersAsync(String[] symbols, Map<String, Object> params) { return fetchContractTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public OrderBooks fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderBooks(symbols, limit, params));
-        return new OrderBooks(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<OrderBooks> fetchOrderBooksAsync(List<String> symbols, Long limit, Map<String, Object> params) {
-        return super.fetchOrderBooks(symbols, limit, params).thenApply(OrderBooks::new);
-    }
-    public OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooks(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
-    public CompletableFuture<OrderBooks> fetchOrderBooksAsync(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
-
-    @SuppressWarnings("unchecked")
-    public Order createTwapOrder(String symbol, String side, Double amount, Double duration, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createTwapOrder(symbol, side, amount, duration, params));
-        return new Order(res);
-    }
-    public Order createTwapOrder(String symbol, String side, Double amount, Double duration) { return createTwapOrder(symbol, side, amount, duration, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createTwapOrderAsync(String symbol, String side, Double amount, Double duration, Map<String, Object> params) {
-        return super.createTwapOrder(symbol, side, amount, duration, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createTwapOrderAsync(String symbol, String side, Double amount, Double duration) { return createTwapOrderAsync(symbol, side, amount, duration, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Conversion createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createConvertTrade(id, fromCode, toCode, amount, params));
-        return new Conversion(res);
-    }
-    public Conversion createConvertTrade(String id, String fromCode, String toCode) { return createConvertTrade(id, fromCode, toCode, (Double) null, (Map<String, Object>) null); }
-    public Conversion createConvertTrade(String id, String fromCode, String toCode, Double amount) { return createConvertTrade(id, fromCode, toCode, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode, Double amount, Map<String, Object> params) {
-        return super.createConvertTrade(id, fromCode, toCode, amount, params).thenApply(Conversion::new);
-    }
-    public CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode) { return createConvertTradeAsync(id, fromCode, toCode, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode, Double amount) { return createConvertTradeAsync(id, fromCode, toCode, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Conversion fetchConvertTrade(String id, String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchConvertTrade(id, code, params));
-        return new Conversion(res);
-    }
-    public Conversion fetchConvertTrade(String id) { return fetchConvertTrade(id, (String) null, (Map<String, Object>) null); }
-    public Conversion fetchConvertTrade(String id, String code) { return fetchConvertTrade(id, code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Conversion> fetchConvertTradeAsync(String id, String code, Map<String, Object> params) {
-        return super.fetchConvertTrade(id, code, params).thenApply(Conversion::new);
-    }
-    public CompletableFuture<Conversion> fetchConvertTradeAsync(String id) { return fetchConvertTradeAsync(id, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Conversion> fetchConvertTradeAsync(String id, String code) { return fetchConvertTradeAsync(id, code, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Conversion> fetchConvertTradeHistory(String code, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchConvertTradeHistory(code, since, limit, params));
-        return toTypedList(res, Conversion::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Conversion>> fetchConvertTradeHistoryAsync(String code, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchConvertTradeHistory(code, since, limit, params).thenApply(res -> toTypedList(res, Conversion::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public PositionModeInfo fetchPositionMode(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositionMode(symbol, params));
-        return new PositionModeInfo(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<PositionModeInfo> fetchPositionModeAsync(String symbol, Map<String, Object> params) {
-        return super.fetchPositionMode(symbol, params).thenApply(PositionModeInfo::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public ADL fetchADLRank(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchADLRank(symbol, params));
-        return new ADL(res);
-    }
-    public ADL fetchADLRank(String symbol) { return fetchADLRank(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<ADL> fetchADLRankAsync(String symbol, Map<String, Object> params) {
-        return super.fetchADLRank(symbol, params).thenApply(ADL::new);
-    }
-    public CompletableFuture<ADL> fetchADLRankAsync(String symbol) { return fetchADLRankAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<ADL> fetchPositionsADLRank(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositionsADLRank(symbols, params));
-        return toTypedList(res, ADL::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<ADL>> fetchPositionsADLRankAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchPositionsADLRank(symbols, params).thenApply(res -> toTypedList(res, ADL::new));
-    }
-    public List<ADL> fetchPositionsADLRank(String[] symbols, Map<String, Object> params) { return fetchPositionsADLRank(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<List<ADL>> fetchPositionsADLRankAsync(String[] symbols, Map<String, Object> params) { return fetchPositionsADLRankAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public ADL fetchPositionADLRank(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositionADLRank(symbol, params));
-        return new ADL(res);
-    }
-    public ADL fetchPositionADLRank(String symbol) { return fetchPositionADLRank(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol, Map<String, Object> params) {
-        return super.fetchPositionADLRank(symbol, params).thenApply(ADL::new);
-    }
-    public CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol) { return fetchPositionADLRankAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> createSpotOrders(Object orders, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createSpotOrders(orders, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> createSpotOrders(Object orders) { return createSpotOrders(orders, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> createSpotOrdersAsync(Object orders, Map<String, Object> params) {
-        return super.createSpotOrders(orders, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> createSpotOrdersAsync(Object orders) { return createSpotOrdersAsync(orders, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> createContractOrders(Object orders, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createContractOrders(orders, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> createContractOrders(Object orders) { return createContractOrders(orders, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> createContractOrdersAsync(Object orders, Map<String, Object> params) {
-        return super.createContractOrders(orders, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> createContractOrdersAsync(Object orders) { return createContractOrdersAsync(orders, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order cancelSpotOrder(String id, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelSpotOrder(id, symbol, params));
-        return new Order(res);
-    }
-    public Order cancelSpotOrder(String id) { return cancelSpotOrder(id, (String) null, (Map<String, Object>) null); }
-    public Order cancelSpotOrder(String id, String symbol) { return cancelSpotOrder(id, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> cancelSpotOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.cancelSpotOrder(id, symbol, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> cancelSpotOrderAsync(String id) { return cancelSpotOrderAsync(id, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> cancelSpotOrderAsync(String id, String symbol) { return cancelSpotOrderAsync(id, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order cancelContractOrder(String id, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelContractOrder(id, symbol, params));
-        return new Order(res);
-    }
-    public Order cancelContractOrder(String id) { return cancelContractOrder(id, (String) null, (Map<String, Object>) null); }
-    public Order cancelContractOrder(String id, String symbol) { return cancelContractOrder(id, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> cancelContractOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.cancelContractOrder(id, symbol, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> cancelContractOrderAsync(String id) { return cancelContractOrderAsync(id, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> cancelContractOrderAsync(String id, String symbol) { return cancelContractOrderAsync(id, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> cancelAllSpotOrders(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelAllSpotOrders(symbol, params));
-        return toTypedList(res, Order::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelAllSpotOrdersAsync(String symbol, Map<String, Object> params) {
-        return super.cancelAllSpotOrders(symbol, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> cancelAllContractOrders(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelAllContractOrders(symbol, params));
-        return toTypedList(res, Order::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelAllContractOrdersAsync(String symbol, Map<String, Object> params) {
-        return super.cancelAllContractOrders(symbol, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> cancelOrdersForSymbols(Object orders, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelOrdersForSymbols(orders, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> cancelOrdersForSymbols(Object orders) { return cancelOrdersForSymbols(orders, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(Object orders, Map<String, Object> params) {
-        return super.cancelOrdersForSymbols(orders, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(Object orders) { return cancelOrdersForSymbolsAsync(orders, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Liquidation> fetchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMyLiquidations(symbol, since, limit, params));
-        return toTypedList(res, Liquidation::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Liquidation>> fetchMyLiquidationsAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchMyLiquidations(symbol, since, limit, params).thenApply(res -> toTypedList(res, Liquidation::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Liquidation> fetchLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLiquidations(symbol, since, limit, params));
-        return toTypedList(res, Liquidation::new);
-    }
-    public List<Liquidation> fetchLiquidations(String symbol) { return fetchLiquidations(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Liquidation> fetchLiquidations(String symbol, Long since) { return fetchLiquidations(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Liquidation> fetchLiquidations(String symbol, Long since, Long limit) { return fetchLiquidations(symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Liquidation>> fetchLiquidationsAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchLiquidations(symbol, since, limit, params).thenApply(res -> toTypedList(res, Liquidation::new));
-    }
-    public CompletableFuture<List<Liquidation>> fetchLiquidationsAsync(String symbol) { return fetchLiquidationsAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Liquidation>> fetchLiquidationsAsync(String symbol, Long since) { return fetchLiquidationsAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Liquidation>> fetchLiquidationsAsync(String symbol, Long since, Long limit) { return fetchLiquidationsAsync(symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Greeks fetchGreeks(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchGreeks(symbol, params));
-        return new Greeks(res);
-    }
-    public Greeks fetchGreeks(String symbol) { return fetchGreeks(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Greeks> fetchGreeksAsync(String symbol, Map<String, Object> params) {
-        return super.fetchGreeks(symbol, params).thenApply(Greeks::new);
-    }
-    public CompletableFuture<Greeks> fetchGreeksAsync(String symbol) { return fetchGreeksAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public OptionChain fetchOptionChain(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOptionChain(code, params));
-        return new OptionChain(res);
-    }
-    public OptionChain fetchOptionChain(String code) { return fetchOptionChain(code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<OptionChain> fetchOptionChainAsync(String code, Map<String, Object> params) {
-        return super.fetchOptionChain(code, params).thenApply(OptionChain::new);
-    }
-    public CompletableFuture<OptionChain> fetchOptionChainAsync(String code) { return fetchOptionChainAsync(code, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Option fetchOption(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOption(symbol, params));
-        return new Option(res);
-    }
-    public Option fetchOption(String symbol) { return fetchOption(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Option> fetchOptionAsync(String symbol, Map<String, Object> params) {
-        return super.fetchOption(symbol, params).thenApply(Option::new);
-    }
-    public CompletableFuture<Option> fetchOptionAsync(String symbol) { return fetchOptionAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Conversion fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchConvertQuote(fromCode, toCode, amount, params));
-        return new Conversion(res);
-    }
-    public Conversion fetchConvertQuote(String fromCode, String toCode) { return fetchConvertQuote(fromCode, toCode, (Double) null, (Map<String, Object>) null); }
-    public Conversion fetchConvertQuote(String fromCode, String toCode, Double amount) { return fetchConvertQuote(fromCode, toCode, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode, Double amount, Map<String, Object> params) {
-        return super.fetchConvertQuote(fromCode, toCode, amount, params).thenApply(Conversion::new);
-    }
-    public CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode) { return fetchConvertQuoteAsync(fromCode, toCode, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode, Double amount) { return fetchConvertQuoteAsync(fromCode, toCode, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Transaction> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositsWithdrawals(code, since, limit, params));
-        return toTypedList(res, Transaction::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawalsAsync(String code, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchDepositsWithdrawals(code, since, limit, params).thenApply(res -> toTypedList(res, Transaction::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Transaction> fetchDeposits(String code, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDeposits(code, since, limit, params));
-        return toTypedList(res, Transaction::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Transaction>> fetchDepositsAsync(String code, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchDeposits(code, since, limit, params).thenApply(res -> toTypedList(res, Transaction::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Transaction> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchWithdrawals(code, since, limit, params));
-        return toTypedList(res, Transaction::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Transaction>> fetchWithdrawalsAsync(String code, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchWithdrawals(code, since, limit, params).thenApply(res -> toTypedList(res, Transaction::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<FundingRateHistory> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingRateHistory(symbol, since, limit, params));
-        return toTypedList(res, FundingRateHistory::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistoryAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchFundingRateHistory(symbol, since, limit, params).thenApply(res -> toTypedList(res, FundingRateHistory::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<FundingHistory> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingHistory(symbol, since, limit, params));
-        return toTypedList(res, FundingHistory::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistoryAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchFundingHistory(symbol, since, limit, params).thenApply(res -> toTypedList(res, FundingHistory::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public DepositAddress fetchDepositAddress(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchDepositAddress(code, params));
-        return new DepositAddress(res);
-    }
-    public DepositAddress fetchDepositAddress(String code) { return fetchDepositAddress(code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<DepositAddress> fetchDepositAddressAsync(String code, Map<String, Object> params) {
-        return super.fetchDepositAddress(code, params).thenApply(DepositAddress::new);
-    }
-    public CompletableFuture<DepositAddress> fetchDepositAddressAsync(String code) { return fetchDepositAddressAsync(code, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public DepositAddress fetchContractDepositAddress(String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchContractDepositAddress(code, params));
-        return new DepositAddress(res);
-    }
-    public DepositAddress fetchContractDepositAddress(String code) { return fetchContractDepositAddress(code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<DepositAddress> fetchContractDepositAddressAsync(String code, Map<String, Object> params) {
-        return super.fetchContractDepositAddress(code, params).thenApply(DepositAddress::new);
-    }
-    public CompletableFuture<DepositAddress> fetchContractDepositAddressAsync(String code) { return fetchContractDepositAddressAsync(code, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<LeverageTier> fetchMarketLeverageTiers(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarketLeverageTiers(symbol, params));
-        return toTypedList(res, LeverageTier::new);
-    }
-    public List<LeverageTier> fetchMarketLeverageTiers(String symbol) { return fetchMarketLeverageTiers(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiersAsync(String symbol, Map<String, Object> params) {
-        return super.fetchMarketLeverageTiers(symbol, params).thenApply(res -> toTypedList(res, LeverageTier::new));
-    }
-    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiersAsync(String symbol) { return fetchMarketLeverageTiersAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public LastPrices fetchLastPrices(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchLastPrices(symbols, params));
-        return new LastPrices(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<LastPrices> fetchLastPricesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLastPrices(symbols, params).thenApply(LastPrices::new);
-    }
-    public LastPrices fetchLastPrices(String[] symbols, Map<String, Object> params) { return fetchLastPrices(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<LastPrices> fetchLastPricesAsync(String[] symbols, Map<String, Object> params) { return fetchLastPricesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public TradingFees fetchTradingFees(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTradingFees(params));
-        return new TradingFees(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<TradingFees> fetchTradingFeesAsync(Map<String, Object> params) {
-        return super.fetchTradingFees(params).thenApply(TradingFees::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Currencies fetchConvertCurrencies(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchConvertCurrencies(params));
-        return new Currencies(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Currencies> fetchConvertCurrenciesAsync(Map<String, Object> params) {
-        return super.fetchConvertCurrencies(params).thenApply(Currencies::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public FundingRate fetchFundingRate(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingRate(symbol, params));
-        return new FundingRate(res);
-    }
-    public FundingRate fetchFundingRate(String symbol) { return fetchFundingRate(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<FundingRate> fetchFundingRateAsync(String symbol, Map<String, Object> params) {
-        return super.fetchFundingRate(symbol, params).thenApply(FundingRate::new);
-    }
-    public CompletableFuture<FundingRate> fetchFundingRateAsync(String symbol) { return fetchFundingRateAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public FundingRate fetchFundingInterval(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchFundingInterval(symbol, params));
-        return new FundingRate(res);
-    }
-    public FundingRate fetchFundingInterval(String symbol) { return fetchFundingInterval(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<FundingRate> fetchFundingIntervalAsync(String symbol, Map<String, Object> params) {
-        return super.fetchFundingInterval(symbol, params).thenApply(FundingRate::new);
-    }
-    public CompletableFuture<FundingRate> fetchFundingIntervalAsync(String symbol) { return fetchFundingIntervalAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarkOHLCV(symbol, timeframe, since, limit, params));
-        return toTypedList(res, OHLCV::new);
-    }
-    public List<OHLCV> fetchMarkOHLCV(String symbol) { return fetchMarkOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe) { return fetchMarkOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe, Long since) { return fetchMarkOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchMarkOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchMarkOHLCV(symbol, timeframe, since, limit, params).thenApply(res -> toTypedList(res, OHLCV::new));
-    }
-    public CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol) { return fetchMarkOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol, String timeframe) { return fetchMarkOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol, String timeframe, Long since) { return fetchMarkOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchMarkOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchIndexOHLCV(symbol, timeframe, since, limit, params));
-        return toTypedList(res, OHLCV::new);
-    }
-    public List<OHLCV> fetchIndexOHLCV(String symbol) { return fetchIndexOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe) { return fetchIndexOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe, Long since) { return fetchIndexOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchIndexOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchIndexOHLCV(symbol, timeframe, since, limit, params).thenApply(res -> toTypedList(res, OHLCV::new));
-    }
-    public CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol) { return fetchIndexOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol, String timeframe) { return fetchIndexOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol, String timeframe, Long since) { return fetchIndexOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchIndexOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPremiumIndexOHLCV(symbol, timeframe, since, limit, params));
-        return toTypedList(res, OHLCV::new);
-    }
-    public List<OHLCV> fetchPremiumIndexOHLCV(String symbol) { return fetchPremiumIndexOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe) { return fetchPremiumIndexOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since) { return fetchPremiumIndexOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchPremiumIndexOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchPremiumIndexOHLCV(symbol, timeframe, since, limit, params).thenApply(res -> toTypedList(res, OHLCV::new));
-    }
-    public CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol) { return fetchPremiumIndexOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol, String timeframe) { return fetchPremiumIndexOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol, String timeframe, Long since) { return fetchPremiumIndexOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchPremiumIndexOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Transaction> fetchTransactions(String code, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTransactions(code, since, limit, params));
-        return toTypedList(res, Transaction::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Transaction>> fetchTransactionsAsync(String code, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchTransactions(code, since, limit, params).thenApply(res -> toTypedList(res, Transaction::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public TransferEntry fetchTransfer(String id, String code, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTransfer(id, code, params));
-        return new TransferEntry(res);
-    }
-    public TransferEntry fetchTransfer(String id) { return fetchTransfer(id, (String) null, (Map<String, Object>) null); }
-    public TransferEntry fetchTransfer(String id, String code) { return fetchTransfer(id, code, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<TransferEntry> fetchTransferAsync(String id, String code, Map<String, Object> params) {
-        return super.fetchTransfer(id, code, params).thenApply(TransferEntry::new);
-    }
-    public CompletableFuture<TransferEntry> fetchTransferAsync(String id) { return fetchTransferAsync(id, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<TransferEntry> fetchTransferAsync(String id, String code) { return fetchTransferAsync(id, code, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<TransferEntry> fetchTransfers(String code, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTransfers(code, since, limit, params));
-        return toTypedList(res, TransferEntry::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<TransferEntry>> fetchTransfersAsync(String code, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchTransfers(code, since, limit, params).thenApply(res -> toTypedList(res, TransferEntry::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public Order closePosition(String symbol, String side, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.closePosition(symbol, side, params));
-        return new Order(res);
-    }
-    public Order closePosition(String symbol) { return closePosition(symbol, (String) null, (Map<String, Object>) null); }
-    public Order closePosition(String symbol, String side) { return closePosition(symbol, side, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> closePositionAsync(String symbol, String side, Map<String, Object> params) {
-        return super.closePosition(symbol, side, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> closePositionAsync(String symbol) { return closePositionAsync(symbol, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> closePositionAsync(String symbol, String side) { return closePositionAsync(symbol, side, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Position> closeAllPositions(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.closeAllPositions(params));
-        return toTypedList(res, Position::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Position>> closeAllPositionsAsync(Map<String, Object> params) {
-        return super.closeAllPositions(params).thenApply(res -> toTypedList(res, Position::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> editOrders(Object orders, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.editOrders(orders, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> editOrders(Object orders) { return editOrders(orders, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> editOrdersAsync(Object orders, Map<String, Object> params) {
-        return super.editOrders(orders, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> editOrdersAsync(Object orders) { return editOrdersAsync(orders, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> fetchCanceledAndClosedOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchCanceledAndClosedOrders(symbol, since, limit, params));
-        return toTypedList(res, Order::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchCanceledAndClosedOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Position> fetchPositionHistory(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositionHistory(symbol, since, limit, params));
-        return toTypedList(res, Position::new);
-    }
-    public List<Position> fetchPositionHistory(String symbol) { return fetchPositionHistory(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Position> fetchPositionHistory(String symbol, Long since) { return fetchPositionHistory(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Position> fetchPositionHistory(String symbol, Long since, Long limit) { return fetchPositionHistory(symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Position>> fetchPositionHistoryAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchPositionHistory(symbol, since, limit, params).thenApply(res -> toTypedList(res, Position::new));
-    }
-    public CompletableFuture<List<Position>> fetchPositionHistoryAsync(String symbol) { return fetchPositionHistoryAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Position>> fetchPositionHistoryAsync(String symbol, Long since) { return fetchPositionHistoryAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Position>> fetchPositionHistoryAsync(String symbol, Long since, Long limit) { return fetchPositionHistoryAsync(symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Position> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositionsHistory(symbols, since, limit, params));
-        return toTypedList(res, Position::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Position>> fetchPositionsHistoryAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchPositionsHistory(symbols, since, limit, params).thenApply(res -> toTypedList(res, Position::new));
-    }
-    public List<Position> fetchPositionsHistory(String[] symbols, Long since, Long limit, Map<String, Object> params) { return fetchPositionsHistory(symbols == null ? null : java.util.Arrays.asList(symbols), since, limit, params); }
-    public CompletableFuture<List<Position>> fetchPositionsHistoryAsync(String[] symbols, Long since, Long limit, Map<String, Object> params) { return fetchPositionsHistoryAsync(symbols == null ? null : java.util.Arrays.asList(symbols), since, limit, params); }
-
-    @SuppressWarnings("unchecked")
-    public List<Position> fetchPositionsRisk(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositionsRisk(symbols, params));
-        return toTypedList(res, Position::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Position>> fetchPositionsRiskAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchPositionsRisk(symbols, params).thenApply(res -> toTypedList(res, Position::new));
-    }
-    public List<Position> fetchPositionsRisk(String[] symbols, Map<String, Object> params) { return fetchPositionsRisk(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<List<Position>> fetchPositionsRiskAsync(String[] symbols, Map<String, Object> params) { return fetchPositionsRiskAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public List<Position> fetchPositionsForSymbol(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositionsForSymbol(symbol, params));
-        return toTypedList(res, Position::new);
-    }
-    public List<Position> fetchPositionsForSymbol(String symbol) { return fetchPositionsForSymbol(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Position>> fetchPositionsForSymbolAsync(String symbol, Map<String, Object> params) {
-        return super.fetchPositionsForSymbol(symbol, params).thenApply(res -> toTypedList(res, Position::new));
-    }
-    public CompletableFuture<List<Position>> fetchPositionsForSymbolAsync(String symbol) { return fetchPositionsForSymbolAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Tickers fetchBidsAsks(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchBidsAsks(symbols, params));
-        return new Tickers(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Tickers> fetchBidsAsksAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchBidsAsks(symbols, params).thenApply(Tickers::new);
-    }
-    public Tickers fetchBidsAsks(String[] symbols, Map<String, Object> params) { return fetchBidsAsks(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<Tickers> fetchBidsAsksAsync(String[] symbols, Map<String, Object> params) { return fetchBidsAsksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public Ticker fetchMarkPrice(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarkPrice(symbol, params));
-        return new Ticker(res);
-    }
-    public Ticker fetchMarkPrice(String symbol) { return fetchMarkPrice(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Ticker> fetchMarkPriceAsync(String symbol, Map<String, Object> params) {
-        return super.fetchMarkPrice(symbol, params).thenApply(Ticker::new);
-    }
-    public CompletableFuture<Ticker> fetchMarkPriceAsync(String symbol) { return fetchMarkPriceAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Tickers fetchMarkPrices(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMarkPrices(symbols, params));
-        return new Tickers(res);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Tickers> fetchMarkPricesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchMarkPrices(symbols, params).thenApply(Tickers::new);
-    }
-    public Tickers fetchMarkPrices(String[] symbols, Map<String, Object> params) { return fetchMarkPrices(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<Tickers> fetchMarkPricesAsync(String[] symbols, Map<String, Object> params) { return fetchMarkPricesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public OrderBook fetchL3OrderBook(String symbol, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchL3OrderBook(symbol, limit, params));
-        return new OrderBook(res);
-    }
-    public OrderBook fetchL3OrderBook(String symbol) { return fetchL3OrderBook(symbol, (Long) null, (Map<String, Object>) null); }
-    public OrderBook fetchL3OrderBook(String symbol, Long limit) { return fetchL3OrderBook(symbol, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol, Long limit, Map<String, Object> params) {
-        return super.fetchL3OrderBook(symbol, limit, params).thenApply(OrderBook::new);
-    }
-    public CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol) { return fetchL3OrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<OrderBook> fetchL3OrderBookAsync(String symbol, Long limit) { return fetchL3OrderBookAsync(symbol, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Trade> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTrades(symbol, since, limit, params));
-        return toTypedList(res, Trade::new);
-    }
-    public List<Trade> fetchTrades(String symbol) { return fetchTrades(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Trade> fetchTrades(String symbol, Long since) { return fetchTrades(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Trade> fetchTrades(String symbol, Long since, Long limit) { return fetchTrades(symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Trade>> fetchTradesAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchTrades(symbol, since, limit, params).thenApply(res -> toTypedList(res, Trade::new));
-    }
-    public CompletableFuture<List<Trade>> fetchTradesAsync(String symbol) { return fetchTradesAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Trade>> fetchTradesAsync(String symbol, Long since) { return fetchTradesAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Trade>> fetchTradesAsync(String symbol, Long since, Long limit) { return fetchTradesAsync(symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public OrderBook fetchOrderBook(String symbol, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderBook(symbol, limit, params));
-        return new OrderBook(res);
-    }
-    public OrderBook fetchOrderBook(String symbol) { return fetchOrderBook(symbol, (Long) null, (Map<String, Object>) null); }
-    public OrderBook fetchOrderBook(String symbol, Long limit) { return fetchOrderBook(symbol, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<OrderBook> fetchOrderBookAsync(String symbol, Long limit, Map<String, Object> params) {
-        return super.fetchOrderBook(symbol, limit, params).thenApply(OrderBook::new);
-    }
-    public CompletableFuture<OrderBook> fetchOrderBookAsync(String symbol) { return fetchOrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<OrderBook> fetchOrderBookAsync(String symbol, Long limit) { return fetchOrderBookAsync(symbol, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public OpenInterest fetchOpenInterest(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOpenInterest(symbol, params));
-        return new OpenInterest(res);
-    }
-    public OpenInterest fetchOpenInterest(String symbol) { return fetchOpenInterest(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<OpenInterest> fetchOpenInterestAsync(String symbol, Map<String, Object> params) {
-        return super.fetchOpenInterest(symbol, params).thenApply(OpenInterest::new);
-    }
-    public CompletableFuture<OpenInterest> fetchOpenInterestAsync(String symbol) { return fetchOpenInterestAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public OrderBook fetchL2OrderBook(String symbol, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchL2OrderBook(symbol, limit, params));
-        return new OrderBook(res);
-    }
-    public OrderBook fetchL2OrderBook(String symbol) { return fetchL2OrderBook(symbol, (Long) null, (Map<String, Object>) null); }
-    public OrderBook fetchL2OrderBook(String symbol, Long limit) { return fetchL2OrderBook(symbol, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<OrderBook> fetchL2OrderBookAsync(String symbol, Long limit, Map<String, Object> params) {
-        return super.fetchL2OrderBook(symbol, limit, params).thenApply(OrderBook::new);
-    }
-    public CompletableFuture<OrderBook> fetchL2OrderBookAsync(String symbol) { return fetchL2OrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<OrderBook> fetchL2OrderBookAsync(String symbol, Long limit) { return fetchL2OrderBookAsync(symbol, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order editLimitBuyOrder(String id, String symbol, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.editLimitBuyOrder(id, symbol, amount, price, params));
-        return new Order(res);
-    }
-    public Order editLimitBuyOrder(String id, String symbol, Double amount) { return editLimitBuyOrder(id, symbol, amount, (Double) null, (Map<String, Object>) null); }
-    public Order editLimitBuyOrder(String id, String symbol, Double amount, Double price) { return editLimitBuyOrder(id, symbol, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> editLimitBuyOrderAsync(String id, String symbol, Double amount, Double price, Map<String, Object> params) {
-        return super.editLimitBuyOrder(id, symbol, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> editLimitBuyOrderAsync(String id, String symbol, Double amount) { return editLimitBuyOrderAsync(id, symbol, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> editLimitBuyOrderAsync(String id, String symbol, Double amount, Double price) { return editLimitBuyOrderAsync(id, symbol, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order editLimitSellOrder(String id, String symbol, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.editLimitSellOrder(id, symbol, amount, price, params));
-        return new Order(res);
-    }
-    public Order editLimitSellOrder(String id, String symbol, Double amount) { return editLimitSellOrder(id, symbol, amount, (Double) null, (Map<String, Object>) null); }
-    public Order editLimitSellOrder(String id, String symbol, Double amount, Double price) { return editLimitSellOrder(id, symbol, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> editLimitSellOrderAsync(String id, String symbol, Double amount, Double price, Map<String, Object> params) {
-        return super.editLimitSellOrder(id, symbol, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> editLimitSellOrderAsync(String id, String symbol, Double amount) { return editLimitSellOrderAsync(id, symbol, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> editLimitSellOrderAsync(String id, String symbol, Double amount, Double price) { return editLimitSellOrderAsync(id, symbol, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order editLimitOrder(String id, String symbol, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.editLimitOrder(id, symbol, side, amount, price, params));
-        return new Order(res);
-    }
-    public Order editLimitOrder(String id, String symbol, String side, Double amount) { return editLimitOrder(id, symbol, side, amount, (Double) null, (Map<String, Object>) null); }
-    public Order editLimitOrder(String id, String symbol, String side, Double amount, Double price) { return editLimitOrder(id, symbol, side, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> editLimitOrderAsync(String id, String symbol, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.editLimitOrder(id, symbol, side, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> editLimitOrderAsync(String id, String symbol, String side, Double amount) { return editLimitOrderAsync(id, symbol, side, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> editLimitOrderAsync(String id, String symbol, String side, Double amount, Double price) { return editLimitOrderAsync(id, symbol, side, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.editOrder(id, symbol, type, side, amount, price, params));
-        return new Order(res);
-    }
-    public Order editOrder(String id, String symbol, String type, String side) { return editOrder(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order editOrder(String id, String symbol, String type, String side, Double amount) { return editOrder(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public Order editOrder(String id, String symbol, String type, String side, Double amount, Double price) { return editOrder(id, symbol, type, side, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.editOrder(id, symbol, type, side, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> editOrderAsync(String id, String symbol, String type, String side) { return editOrderAsync(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> editOrderAsync(String id, String symbol, String type, String side, Double amount) { return editOrderAsync(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price) { return editOrderAsync(id, symbol, type, side, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order editOrderWithClientOrderId(String clientOrderId, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount, price, params));
-        return new Order(res);
-    }
-    public Order editOrderWithClientOrderId(String clientOrderId, String symbol, String type, String side) { return editOrderWithClientOrderId(clientOrderId, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order editOrderWithClientOrderId(String clientOrderId, String symbol, String type, String side, Double amount) { return editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public Order editOrderWithClientOrderId(String clientOrderId, String symbol, String type, String side, Double amount, Double price) { return editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> editOrderWithClientOrderIdAsync(String clientOrderId, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> editOrderWithClientOrderIdAsync(String clientOrderId, String symbol, String type, String side) { return editOrderWithClientOrderIdAsync(clientOrderId, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> editOrderWithClientOrderIdAsync(String clientOrderId, String symbol, String type, String side, Double amount) { return editOrderWithClientOrderIdAsync(clientOrderId, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> editOrderWithClientOrderIdAsync(String clientOrderId, String symbol, String type, String side, Double amount, Double price) { return editOrderWithClientOrderIdAsync(clientOrderId, symbol, type, side, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Position fetchPosition(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPosition(symbol, params));
-        return new Position(res);
-    }
-    public Position fetchPosition(String symbol) { return fetchPosition(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Position> fetchPositionAsync(String symbol, Map<String, Object> params) {
-        return super.fetchPosition(symbol, params).thenApply(Position::new);
-    }
-    public CompletableFuture<Position> fetchPositionAsync(String symbol) { return fetchPositionAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Position> fetchPositions(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPositions(symbols, params));
-        return toTypedList(res, Position::new);
-    }
-    public List<Position> fetchPositions() { return fetchPositions((List<String>) null, (Map<String, Object>) null); }
-    public List<Position> fetchPositions(List<String> symbols) { return fetchPositions(symbols, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Position>> fetchPositionsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchPositions(symbols, params).thenApply(res -> toTypedList(res, Position::new));
-    }
-    public CompletableFuture<List<Position>> fetchPositionsAsync() { return fetchPositionsAsync((List<String>) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Position>> fetchPositionsAsync(List<String> symbols) { return fetchPositionsAsync(symbols, (Map<String, Object>) null); }
-    public List<Position> fetchPositions(String[] symbols, Map<String, Object> params) { return fetchPositions(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<List<Position>> fetchPositionsAsync(String[] symbols, Map<String, Object> params) { return fetchPositionsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public Ticker fetchTicker(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTicker(symbol, params));
-        return new Ticker(res);
-    }
-    public Ticker fetchTicker(String symbol) { return fetchTicker(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Ticker> fetchTickerAsync(String symbol, Map<String, Object> params) {
-        return super.fetchTicker(symbol, params).thenApply(Ticker::new);
-    }
-    public CompletableFuture<Ticker> fetchTickerAsync(String symbol) { return fetchTickerAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Tickers fetchTickers(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTickers(symbols, params));
-        return new Tickers(res);
-    }
-    public Tickers fetchTickers() { return fetchTickers((List<String>) null, (Map<String, Object>) null); }
-    public Tickers fetchTickers(List<String> symbols) { return fetchTickers(symbols, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Tickers> fetchTickersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchTickers(symbols, params).thenApply(Tickers::new);
-    }
-    public CompletableFuture<Tickers> fetchTickersAsync() { return fetchTickersAsync((List<String>) null, (Map<String, Object>) null); }
-    public CompletableFuture<Tickers> fetchTickersAsync(List<String> symbols) { return fetchTickersAsync(symbols, (Map<String, Object>) null); }
-    public Tickers fetchTickers(String[] symbols, Map<String, Object> params) { return fetchTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<Tickers> fetchTickersAsync(String[] symbols, Map<String, Object> params) { return fetchTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public Order fetchOrder(String id, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrder(id, symbol, params));
-        return new Order(res);
-    }
-    public Order fetchOrder(String id) { return fetchOrder(id, (String) null, (Map<String, Object>) null); }
-    public Order fetchOrder(String id, String symbol) { return fetchOrder(id, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> fetchOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.fetchOrder(id, symbol, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> fetchOrderAsync(String id) { return fetchOrderAsync(id, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> fetchOrderAsync(String id, String symbol) { return fetchOrderAsync(id, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order fetchOrderWithClientOrderId(String clientOrderId, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderWithClientOrderId(clientOrderId, symbol, params));
-        return new Order(res);
-    }
-    public Order fetchOrderWithClientOrderId(String clientOrderId) { return fetchOrderWithClientOrderId(clientOrderId, (String) null, (Map<String, Object>) null); }
-    public Order fetchOrderWithClientOrderId(String clientOrderId, String symbol) { return fetchOrderWithClientOrderId(clientOrderId, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> fetchOrderWithClientOrderIdAsync(String clientOrderId, String symbol, Map<String, Object> params) {
-        return super.fetchOrderWithClientOrderId(clientOrderId, symbol, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> fetchOrderWithClientOrderIdAsync(String clientOrderId) { return fetchOrderWithClientOrderIdAsync(clientOrderId, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> fetchOrderWithClientOrderIdAsync(String clientOrderId, String symbol) { return fetchOrderWithClientOrderIdAsync(clientOrderId, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public String fetchOrderStatus(String id, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderStatus(id, symbol, params));
-        return (String) res;
-    }
-    public String fetchOrderStatus(String id) { return fetchOrderStatus(id, (String) null, (Map<String, Object>) null); }
-    public String fetchOrderStatus(String id, String symbol) { return fetchOrderStatus(id, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<String> fetchOrderStatusAsync(String id, String symbol, Map<String, Object> params) {
-        return super.fetchOrderStatus(id, symbol, params).thenApply(res -> (String) res);
-    }
-    public CompletableFuture<String> fetchOrderStatusAsync(String id) { return fetchOrderStatusAsync(id, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<String> fetchOrderStatusAsync(String id, String symbol) { return fetchOrderStatusAsync(id, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order fetchUnifiedOrder(Object order, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchUnifiedOrder(order, params));
-        return new Order(res);
-    }
-    public Order fetchUnifiedOrder(Object order) { return fetchUnifiedOrder(order, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> fetchUnifiedOrderAsync(Object order, Map<String, Object> params) {
-        return super.fetchUnifiedOrder(order, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> fetchUnifiedOrderAsync(Object order) { return fetchUnifiedOrderAsync(order, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createOrder(symbol, type, side, amount, price, params));
-        return new Order(res);
-    }
-    public Order createOrder(String symbol, String type, String side, Double amount) { return createOrder(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public Order createOrder(String symbol, String type, String side, Double amount, Double price) { return createOrder(symbol, type, side, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.createOrder(symbol, type, side, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createOrderAsync(String symbol, String type, String side, Double amount) { return createOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createTrailingAmountOrder(String symbol, String type, String side, Double amount, Double price, Double trailingAmount, Double trailingTriggerPrice, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, params));
-        return new Order(res);
-    }
-    public Order createTrailingAmountOrder(String symbol, String type, String side, Double amount) { return createTrailingAmountOrder(symbol, type, side, amount, (Double) null, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createTrailingAmountOrder(String symbol, String type, String side, Double amount, Double price) { return createTrailingAmountOrder(symbol, type, side, amount, price, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createTrailingAmountOrder(String symbol, String type, String side, Double amount, Double price, Double trailingAmount) { return createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, (Double) null, (Map<String, Object>) null); }
-    public Order createTrailingAmountOrder(String symbol, String type, String side, Double amount, Double price, Double trailingAmount, Double trailingTriggerPrice) { return createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createTrailingAmountOrderAsync(String symbol, String type, String side, Double amount, Double price, Double trailingAmount, Double trailingTriggerPrice, Map<String, Object> params) {
-        return super.createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createTrailingAmountOrderAsync(String symbol, String type, String side, Double amount) { return createTrailingAmountOrderAsync(symbol, type, side, amount, (Double) null, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTrailingAmountOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createTrailingAmountOrderAsync(symbol, type, side, amount, price, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTrailingAmountOrderAsync(String symbol, String type, String side, Double amount, Double price, Double trailingAmount) { return createTrailingAmountOrderAsync(symbol, type, side, amount, price, trailingAmount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTrailingAmountOrderAsync(String symbol, String type, String side, Double amount, Double price, Double trailingAmount, Double trailingTriggerPrice) { return createTrailingAmountOrderAsync(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, params));
-        return new Order(res);
-    }
-    public Order createTrailingPercentOrder(String symbol, String type, String side, Double amount) { return createTrailingPercentOrder(symbol, type, side, amount, (Double) null, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price) { return createTrailingPercentOrder(symbol, type, side, amount, price, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent) { return createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, (Double) null, (Map<String, Object>) null); }
-    public Order createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice) { return createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createTrailingPercentOrderAsync(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> params) {
-        return super.createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createTrailingPercentOrderAsync(String symbol, String type, String side, Double amount) { return createTrailingPercentOrderAsync(symbol, type, side, amount, (Double) null, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTrailingPercentOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createTrailingPercentOrderAsync(symbol, type, side, amount, price, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTrailingPercentOrderAsync(String symbol, String type, String side, Double amount, Double price, Double trailingPercent) { return createTrailingPercentOrderAsync(symbol, type, side, amount, price, trailingPercent, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTrailingPercentOrderAsync(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice) { return createTrailingPercentOrderAsync(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketOrderWithCost(symbol, side, cost, params));
-        return new Order(res);
-    }
-    public Order createMarketOrderWithCost(String symbol, String side, Double cost) { return createMarketOrderWithCost(symbol, side, cost, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createMarketOrderWithCostAsync(String symbol, String side, Double cost, Map<String, Object> params) {
-        return super.createMarketOrderWithCost(symbol, side, cost, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createMarketOrderWithCostAsync(String symbol, String side, Double cost) { return createMarketOrderWithCostAsync(symbol, side, cost, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketBuyOrderWithCost(symbol, cost, params));
-        return new Order(res);
-    }
-    public Order createMarketBuyOrderWithCost(String symbol, Double cost) { return createMarketBuyOrderWithCost(symbol, cost, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createMarketBuyOrderWithCostAsync(String symbol, Double cost, Map<String, Object> params) {
-        return super.createMarketBuyOrderWithCost(symbol, cost, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createMarketBuyOrderWithCostAsync(String symbol, Double cost) { return createMarketBuyOrderWithCostAsync(symbol, cost, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketSellOrderWithCost(symbol, cost, params));
-        return new Order(res);
-    }
-    public Order createMarketSellOrderWithCost(String symbol, Double cost) { return createMarketSellOrderWithCost(symbol, cost, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createMarketSellOrderWithCostAsync(String symbol, Double cost, Map<String, Object> params) {
-        return super.createMarketSellOrderWithCost(symbol, cost, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createMarketSellOrderWithCostAsync(String symbol, Double cost) { return createMarketSellOrderWithCostAsync(symbol, cost, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createTriggerOrder(String symbol, String type, String side, Double amount, Double price, Double triggerPrice, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createTriggerOrder(symbol, type, side, amount, price, triggerPrice, params));
-        return new Order(res);
-    }
-    public Order createTriggerOrder(String symbol, String type, String side, Double amount) { return createTriggerOrder(symbol, type, side, amount, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createTriggerOrder(String symbol, String type, String side, Double amount, Double price) { return createTriggerOrder(symbol, type, side, amount, price, (Double) null, (Map<String, Object>) null); }
-    public Order createTriggerOrder(String symbol, String type, String side, Double amount, Double price, Double triggerPrice) { return createTriggerOrder(symbol, type, side, amount, price, triggerPrice, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createTriggerOrderAsync(String symbol, String type, String side, Double amount, Double price, Double triggerPrice, Map<String, Object> params) {
-        return super.createTriggerOrder(symbol, type, side, amount, price, triggerPrice, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createTriggerOrderAsync(String symbol, String type, String side, Double amount) { return createTriggerOrderAsync(symbol, type, side, amount, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTriggerOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createTriggerOrderAsync(symbol, type, side, amount, price, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTriggerOrderAsync(String symbol, String type, String side, Double amount, Double price, Double triggerPrice) { return createTriggerOrderAsync(symbol, type, side, amount, price, triggerPrice, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createStopLossOrder(String symbol, String type, String side, Double amount, Double price, Double stopLossPrice, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createStopLossOrder(symbol, type, side, amount, price, stopLossPrice, params));
-        return new Order(res);
-    }
-    public Order createStopLossOrder(String symbol, String type, String side, Double amount) { return createStopLossOrder(symbol, type, side, amount, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createStopLossOrder(String symbol, String type, String side, Double amount, Double price) { return createStopLossOrder(symbol, type, side, amount, price, (Double) null, (Map<String, Object>) null); }
-    public Order createStopLossOrder(String symbol, String type, String side, Double amount, Double price, Double stopLossPrice) { return createStopLossOrder(symbol, type, side, amount, price, stopLossPrice, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createStopLossOrderAsync(String symbol, String type, String side, Double amount, Double price, Double stopLossPrice, Map<String, Object> params) {
-        return super.createStopLossOrder(symbol, type, side, amount, price, stopLossPrice, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createStopLossOrderAsync(String symbol, String type, String side, Double amount) { return createStopLossOrderAsync(symbol, type, side, amount, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createStopLossOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createStopLossOrderAsync(symbol, type, side, amount, price, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createStopLossOrderAsync(String symbol, String type, String side, Double amount, Double price, Double stopLossPrice) { return createStopLossOrderAsync(symbol, type, side, amount, price, stopLossPrice, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createTakeProfitOrder(String symbol, String type, String side, Double amount, Double price, Double takeProfitPrice, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createTakeProfitOrder(symbol, type, side, amount, price, takeProfitPrice, params));
-        return new Order(res);
-    }
-    public Order createTakeProfitOrder(String symbol, String type, String side, Double amount) { return createTakeProfitOrder(symbol, type, side, amount, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createTakeProfitOrder(String symbol, String type, String side, Double amount, Double price) { return createTakeProfitOrder(symbol, type, side, amount, price, (Double) null, (Map<String, Object>) null); }
-    public Order createTakeProfitOrder(String symbol, String type, String side, Double amount, Double price, Double takeProfitPrice) { return createTakeProfitOrder(symbol, type, side, amount, price, takeProfitPrice, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createTakeProfitOrderAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfitPrice, Map<String, Object> params) {
-        return super.createTakeProfitOrder(symbol, type, side, amount, price, takeProfitPrice, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createTakeProfitOrderAsync(String symbol, String type, String side, Double amount) { return createTakeProfitOrderAsync(symbol, type, side, amount, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTakeProfitOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createTakeProfitOrderAsync(symbol, type, side, amount, price, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createTakeProfitOrderAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfitPrice) { return createTakeProfitOrderAsync(symbol, type, side, amount, price, takeProfitPrice, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Double amount, Double price, Double takeProfit, Double stopLoss, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, takeProfit, stopLoss, params));
-        return new Order(res);
-    }
-    public Order createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Double amount) { return createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, (Double) null, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Double amount, Double price) { return createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Double amount, Double price, Double takeProfit) { return createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, takeProfit, (Double) null, (Map<String, Object>) null); }
-    public Order createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Double amount, Double price, Double takeProfit, Double stopLoss) { return createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, takeProfit, stopLoss, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfit, Double stopLoss, Map<String, Object> params) {
-        return super.createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, takeProfit, stopLoss, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount) { return createOrderWithTakeProfitAndStopLossAsync(symbol, type, side, amount, (Double) null, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderWithTakeProfitAndStopLossAsync(symbol, type, side, amount, price, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfit) { return createOrderWithTakeProfitAndStopLossAsync(symbol, type, side, amount, price, takeProfit, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfit, Double stopLoss) { return createOrderWithTakeProfitAndStopLossAsync(symbol, type, side, amount, price, takeProfit, stopLoss, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> createOrders(Object orders, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createOrders(orders, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> createOrders(Object orders) { return createOrders(orders, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> createOrdersAsync(Object orders, Map<String, Object> params) {
-        return super.createOrders(orders, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> createOrdersAsync(Object orders) { return createOrdersAsync(orders, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order cancelOrder(String id, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelOrder(id, symbol, params));
-        return new Order(res);
-    }
-    public Order cancelOrder(String id) { return cancelOrder(id, (String) null, (Map<String, Object>) null); }
-    public Order cancelOrder(String id, String symbol) { return cancelOrder(id, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> cancelOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.cancelOrder(id, symbol, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> cancelOrderAsync(String id) { return cancelOrderAsync(id, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> cancelOrderAsync(String id, String symbol) { return cancelOrderAsync(id, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order cancelOrderWithClientOrderId(String clientOrderId, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelOrderWithClientOrderId(clientOrderId, symbol, params));
-        return new Order(res);
-    }
-    public Order cancelOrderWithClientOrderId(String clientOrderId) { return cancelOrderWithClientOrderId(clientOrderId, (String) null, (Map<String, Object>) null); }
-    public Order cancelOrderWithClientOrderId(String clientOrderId, String symbol) { return cancelOrderWithClientOrderId(clientOrderId, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> cancelOrderWithClientOrderIdAsync(String clientOrderId, String symbol, Map<String, Object> params) {
-        return super.cancelOrderWithClientOrderId(clientOrderId, symbol, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> cancelOrderWithClientOrderIdAsync(String clientOrderId) { return cancelOrderWithClientOrderIdAsync(clientOrderId, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> cancelOrderWithClientOrderIdAsync(String clientOrderId, String symbol) { return cancelOrderWithClientOrderIdAsync(clientOrderId, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> cancelOrders(List<String> ids, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelOrders(ids, symbol, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> cancelOrders(List<String> ids) { return cancelOrders(ids, (String) null, (Map<String, Object>) null); }
-    public List<Order> cancelOrders(List<String> ids, String symbol) { return cancelOrders(ids, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelOrdersAsync(List<String> ids, String symbol, Map<String, Object> params) {
-        return super.cancelOrders(ids, symbol, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> cancelOrdersAsync(List<String> ids) { return cancelOrdersAsync(ids, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> cancelOrdersAsync(List<String> ids, String symbol) { return cancelOrdersAsync(ids, symbol, (Map<String, Object>) null); }
-    public List<Order> cancelOrders(String[] ids, String symbol, Map<String, Object> params) { return cancelOrders(ids == null ? null : java.util.Arrays.asList(ids), symbol, params); }
-    public CompletableFuture<List<Order>> cancelOrdersAsync(String[] ids, String symbol, Map<String, Object> params) { return cancelOrdersAsync(ids == null ? null : java.util.Arrays.asList(ids), symbol, params); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> cancelOrdersWithClientOrderIds(List<String> clientOrderIds, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelOrdersWithClientOrderIds(clientOrderIds, symbol, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> cancelOrdersWithClientOrderIds(List<String> clientOrderIds) { return cancelOrdersWithClientOrderIds(clientOrderIds, (String) null, (Map<String, Object>) null); }
-    public List<Order> cancelOrdersWithClientOrderIds(List<String> clientOrderIds, String symbol) { return cancelOrdersWithClientOrderIds(clientOrderIds, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIdsAsync(List<String> clientOrderIds, String symbol, Map<String, Object> params) {
-        return super.cancelOrdersWithClientOrderIds(clientOrderIds, symbol, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIdsAsync(List<String> clientOrderIds) { return cancelOrdersWithClientOrderIdsAsync(clientOrderIds, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIdsAsync(List<String> clientOrderIds, String symbol) { return cancelOrdersWithClientOrderIdsAsync(clientOrderIds, symbol, (Map<String, Object>) null); }
-    public List<Order> cancelOrdersWithClientOrderIds(String[] clientOrderIds, String symbol, Map<String, Object> params) { return cancelOrdersWithClientOrderIds(clientOrderIds == null ? null : java.util.Arrays.asList(clientOrderIds), symbol, params); }
-    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIdsAsync(String[] clientOrderIds, String symbol, Map<String, Object> params) { return cancelOrdersWithClientOrderIdsAsync(clientOrderIds == null ? null : java.util.Arrays.asList(clientOrderIds), symbol, params); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> cancelAllOrders(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelAllOrders(symbol, params));
-        return toTypedList(res, Order::new);
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelAllOrdersAsync(String symbol, Map<String, Object> params) {
-        return super.cancelAllOrders(symbol, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public Order cancelUnifiedOrder(Order order, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelUnifiedOrder(order, params));
-        return new Order(res);
-    }
-    public Order cancelUnifiedOrder(Order order) { return cancelUnifiedOrder(order, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> cancelUnifiedOrderAsync(Order order, Map<String, Object> params) {
-        return super.cancelUnifiedOrder(order, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> cancelUnifiedOrderAsync(Order order) { return cancelUnifiedOrderAsync(order, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrders(symbol, since, limit, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> fetchOrders() { return fetchOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchOrders(String symbol) { return fetchOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchOrders(String symbol, Long since) { return fetchOrders(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchOrders(String symbol, Long since, Long limit) { return fetchOrders(symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> fetchOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> fetchOrdersAsync() { return fetchOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchOrdersAsync(String symbol) { return fetchOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchOrdersAsync(String symbol, Long since) { return fetchOrdersAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchOrdersAsync(String symbol, Long since, Long limit) { return fetchOrdersAsync(symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Trade> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOrderTrades(id, symbol, since, limit, params));
-        return toTypedList(res, Trade::new);
-    }
-    public List<Trade> fetchOrderTrades(String id) { return fetchOrderTrades(id, (String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Trade> fetchOrderTrades(String id, String symbol) { return fetchOrderTrades(id, symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Trade> fetchOrderTrades(String id, String symbol, Long since) { return fetchOrderTrades(id, symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Trade> fetchOrderTrades(String id, String symbol, Long since, Long limit) { return fetchOrderTrades(id, symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Trade>> fetchOrderTradesAsync(String id, String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchOrderTrades(id, symbol, since, limit, params).thenApply(res -> toTypedList(res, Trade::new));
-    }
-    public CompletableFuture<List<Trade>> fetchOrderTradesAsync(String id) { return fetchOrderTradesAsync(id, (String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Trade>> fetchOrderTradesAsync(String id, String symbol) { return fetchOrderTradesAsync(id, symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Trade>> fetchOrderTradesAsync(String id, String symbol, Long since) { return fetchOrderTradesAsync(id, symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Trade>> fetchOrderTradesAsync(String id, String symbol, Long since, Long limit) { return fetchOrderTradesAsync(id, symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchOpenOrders(symbol, since, limit, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> fetchOpenOrders() { return fetchOpenOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchOpenOrders(String symbol) { return fetchOpenOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchOpenOrders(String symbol, Long since) { return fetchOpenOrders(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchOpenOrders(String symbol, Long since, Long limit) { return fetchOpenOrders(symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> fetchOpenOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchOpenOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> fetchOpenOrdersAsync() { return fetchOpenOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchOpenOrdersAsync(String symbol) { return fetchOpenOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchOpenOrdersAsync(String symbol, Long since) { return fetchOpenOrdersAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchOpenOrdersAsync(String symbol, Long since, Long limit) { return fetchOpenOrdersAsync(symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchClosedOrders(symbol, since, limit, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> fetchClosedOrders() { return fetchClosedOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchClosedOrders(String symbol) { return fetchClosedOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchClosedOrders(String symbol, Long since) { return fetchClosedOrders(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchClosedOrders(String symbol, Long since, Long limit) { return fetchClosedOrders(symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> fetchClosedOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchClosedOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> fetchClosedOrdersAsync() { return fetchClosedOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchClosedOrdersAsync(String symbol) { return fetchClosedOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchClosedOrdersAsync(String symbol, Long since) { return fetchClosedOrdersAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchClosedOrdersAsync(String symbol, Long since, Long limit) { return fetchClosedOrdersAsync(symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchCanceledOrders(symbol, since, limit, params));
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> fetchCanceledOrders() { return fetchCanceledOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchCanceledOrders(String symbol) { return fetchCanceledOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchCanceledOrders(String symbol, Long since) { return fetchCanceledOrders(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Order> fetchCanceledOrders(String symbol, Long since, Long limit) { return fetchCanceledOrders(symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> fetchCanceledOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchCanceledOrders(symbol, since, limit, params).thenApply(res -> toTypedList(res, Order::new));
-    }
-    public CompletableFuture<List<Order>> fetchCanceledOrdersAsync() { return fetchCanceledOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchCanceledOrdersAsync(String symbol) { return fetchCanceledOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchCanceledOrdersAsync(String symbol, Long since) { return fetchCanceledOrdersAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Order>> fetchCanceledOrdersAsync(String symbol, Long since, Long limit) { return fetchCanceledOrdersAsync(symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Trade> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchMyTrades(symbol, since, limit, params));
-        return toTypedList(res, Trade::new);
-    }
-    public List<Trade> fetchMyTrades() { return fetchMyTrades((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Trade> fetchMyTrades(String symbol) { return fetchMyTrades(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public List<Trade> fetchMyTrades(String symbol, Long since) { return fetchMyTrades(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public List<Trade> fetchMyTrades(String symbol, Long since, Long limit) { return fetchMyTrades(symbol, since, limit, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Trade>> fetchMyTradesAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
-        return super.fetchMyTrades(symbol, since, limit, params).thenApply(res -> toTypedList(res, Trade::new));
-    }
-    public CompletableFuture<List<Trade>> fetchMyTradesAsync() { return fetchMyTradesAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Trade>> fetchMyTradesAsync(String symbol) { return fetchMyTradesAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Trade>> fetchMyTradesAsync(String symbol, Long since) { return fetchMyTradesAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
-    public CompletableFuture<List<Trade>> fetchMyTradesAsync(String symbol, Long since, Long limit) { return fetchMyTradesAsync(symbol, since, limit, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createLimitOrder(String symbol, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createLimitOrder(symbol, side, amount, price, params));
-        return new Order(res);
-    }
-    public Order createLimitOrder(String symbol, String side, Double amount, Double price) { return createLimitOrder(symbol, side, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createLimitOrderAsync(String symbol, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.createLimitOrder(symbol, side, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createLimitOrderAsync(String symbol, String side, Double amount, Double price) { return createLimitOrderAsync(symbol, side, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createMarketOrder(String symbol, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketOrder(symbol, side, amount, price, params));
-        return new Order(res);
-    }
-    public Order createMarketOrder(String symbol, String side, Double amount) { return createMarketOrder(symbol, side, amount, (Double) null, (Map<String, Object>) null); }
-    public Order createMarketOrder(String symbol, String side, Double amount, Double price) { return createMarketOrder(symbol, side, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createMarketOrderAsync(String symbol, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.createMarketOrder(symbol, side, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createMarketOrderAsync(String symbol, String side, Double amount) { return createMarketOrderAsync(symbol, side, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createMarketOrderAsync(String symbol, String side, Double amount, Double price) { return createMarketOrderAsync(symbol, side, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createLimitBuyOrder(String symbol, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createLimitBuyOrder(symbol, amount, price, params));
-        return new Order(res);
-    }
-    public Order createLimitBuyOrder(String symbol, Double amount, Double price) { return createLimitBuyOrder(symbol, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createLimitBuyOrderAsync(String symbol, Double amount, Double price, Map<String, Object> params) {
-        return super.createLimitBuyOrder(symbol, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createLimitBuyOrderAsync(String symbol, Double amount, Double price) { return createLimitBuyOrderAsync(symbol, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createLimitSellOrder(String symbol, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createLimitSellOrder(symbol, amount, price, params));
-        return new Order(res);
-    }
-    public Order createLimitSellOrder(String symbol, Double amount, Double price) { return createLimitSellOrder(symbol, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createLimitSellOrderAsync(String symbol, Double amount, Double price, Map<String, Object> params) {
-        return super.createLimitSellOrder(symbol, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createLimitSellOrderAsync(String symbol, Double amount, Double price) { return createLimitSellOrderAsync(symbol, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createMarketBuyOrder(String symbol, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketBuyOrder(symbol, amount, params));
-        return new Order(res);
-    }
-    public Order createMarketBuyOrder(String symbol, Double amount) { return createMarketBuyOrder(symbol, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createMarketBuyOrderAsync(String symbol, Double amount, Map<String, Object> params) {
-        return super.createMarketBuyOrder(symbol, amount, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createMarketBuyOrderAsync(String symbol, Double amount) { return createMarketBuyOrderAsync(symbol, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createMarketSellOrder(String symbol, Double amount, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createMarketSellOrder(symbol, amount, params));
-        return new Order(res);
-    }
-    public Order createMarketSellOrder(String symbol, Double amount) { return createMarketSellOrder(symbol, amount, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createMarketSellOrderAsync(String symbol, Double amount, Map<String, Object> params) {
-        return super.createMarketSellOrder(symbol, amount, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createMarketSellOrderAsync(String symbol, Double amount) { return createMarketSellOrderAsync(symbol, amount, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createPostOnlyOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createPostOnlyOrder(symbol, type, side, amount, price, params));
-        return new Order(res);
-    }
-    public Order createPostOnlyOrder(String symbol, String type, String side, Double amount) { return createPostOnlyOrder(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public Order createPostOnlyOrder(String symbol, String type, String side, Double amount, Double price) { return createPostOnlyOrder(symbol, type, side, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createPostOnlyOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.createPostOnlyOrder(symbol, type, side, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createPostOnlyOrderAsync(String symbol, String type, String side, Double amount) { return createPostOnlyOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createPostOnlyOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createPostOnlyOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createReduceOnlyOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createReduceOnlyOrder(symbol, type, side, amount, price, params));
-        return new Order(res);
-    }
-    public Order createReduceOnlyOrder(String symbol, String type, String side, Double amount) { return createReduceOnlyOrder(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public Order createReduceOnlyOrder(String symbol, String type, String side, Double amount, Double price) { return createReduceOnlyOrder(symbol, type, side, amount, price, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createReduceOnlyOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.createReduceOnlyOrder(symbol, type, side, amount, price, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createReduceOnlyOrderAsync(String symbol, String type, String side, Double amount) { return createReduceOnlyOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createReduceOnlyOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createReduceOnlyOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createStopOrder(String symbol, String type, String side, Double amount, Double price, Double triggerPrice, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createStopOrder(symbol, type, side, amount, price, triggerPrice, params));
-        return new Order(res);
-    }
-    public Order createStopOrder(String symbol, String type, String side, Double amount) { return createStopOrder(symbol, type, side, amount, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public Order createStopOrder(String symbol, String type, String side, Double amount, Double price) { return createStopOrder(symbol, type, side, amount, price, (Double) null, (Map<String, Object>) null); }
-    public Order createStopOrder(String symbol, String type, String side, Double amount, Double price, Double triggerPrice) { return createStopOrder(symbol, type, side, amount, price, triggerPrice, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createStopOrderAsync(String symbol, String type, String side, Double amount, Double price, Double triggerPrice, Map<String, Object> params) {
-        return super.createStopOrder(symbol, type, side, amount, price, triggerPrice, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createStopOrderAsync(String symbol, String type, String side, Double amount) { return createStopOrderAsync(symbol, type, side, amount, (Double) null, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createStopOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createStopOrderAsync(symbol, type, side, amount, price, (Double) null, (Map<String, Object>) null); }
-    public CompletableFuture<Order> createStopOrderAsync(String symbol, String type, String side, Double amount, Double price, Double triggerPrice) { return createStopOrderAsync(symbol, type, side, amount, price, triggerPrice, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createStopLimitOrder(String symbol, String side, Double amount, Double price, Double triggerPrice, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createStopLimitOrder(symbol, side, amount, price, triggerPrice, params));
-        return new Order(res);
-    }
-    public Order createStopLimitOrder(String symbol, String side, Double amount, Double price, Double triggerPrice) { return createStopLimitOrder(symbol, side, amount, price, triggerPrice, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createStopLimitOrderAsync(String symbol, String side, Double amount, Double price, Double triggerPrice, Map<String, Object> params) {
-        return super.createStopLimitOrder(symbol, side, amount, price, triggerPrice, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createStopLimitOrderAsync(String symbol, String side, Double amount, Double price, Double triggerPrice) { return createStopLimitOrderAsync(symbol, side, amount, price, triggerPrice, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Order createStopMarketOrder(String symbol, String side, Double amount, Double triggerPrice, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createStopMarketOrder(symbol, side, amount, triggerPrice, params));
-        return new Order(res);
-    }
-    public Order createStopMarketOrder(String symbol, String side, Double amount, Double triggerPrice) { return createStopMarketOrder(symbol, side, amount, triggerPrice, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Order> createStopMarketOrderAsync(String symbol, String side, Double amount, Double triggerPrice, Map<String, Object> params) {
-        return super.createStopMarketOrder(symbol, side, amount, triggerPrice, params).thenApply(Order::new);
-    }
-    public CompletableFuture<Order> createStopMarketOrderAsync(String symbol, String side, Double amount, Double triggerPrice) { return createStopMarketOrderAsync(symbol, side, amount, triggerPrice, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public TradingFeeInterface fetchTradingFee(String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTradingFee(symbol, params));
-        return new TradingFeeInterface(res);
-    }
-    public TradingFeeInterface fetchTradingFee(String symbol) { return fetchTradingFee(symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<TradingFeeInterface> fetchTradingFeeAsync(String symbol, Map<String, Object> params) {
-        return super.fetchTradingFee(symbol, params).thenApply(TradingFeeInterface::new);
-    }
-    public CompletableFuture<TradingFeeInterface> fetchTradingFeeAsync(String symbol) { return fetchTradingFeeAsync(symbol, (Map<String, Object>) null); }
-
 }

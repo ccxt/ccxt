@@ -1719,6 +1719,7 @@ func (this *Alpaca) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchOrdersAsync(optionalArgs ...any) <-chan any {
@@ -1739,8 +1740,8 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes132612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes132612)
+		retRes132712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes132712)
 	}
 	var request map[string]any = map[string]any{
 		"status": "all",
@@ -1753,10 +1754,15 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var until any = this.SafeInteger(params, "until")
 	if IsTrue(!IsEqual(until, nil)) {
 		params = this.Omit(params, "until")
-		AddElementToObject(request, "endTime", this.Iso8601(until))
+		AddElementToObject(request, "until", this.Iso8601(until))
 	}
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "after", this.Iso8601(since))
+		var direction any = this.SafeString(params, "direction")
+		if IsTrue(IsEqual(direction, nil)) {
+			// the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+			AddElementToObject(request, "direction", "asc")
+		}
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
@@ -1819,6 +1825,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
@@ -1841,9 +1848,9 @@ func (this *Alpaca) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "open",
 	}
 
-	retRes140715 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes140715)
-	ch <- retRes140715
+	retRes141415 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes141415)
+	ch <- retRes141415
 	return nil
 }
 
@@ -1857,6 +1864,7 @@ func (this *Alpaca) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
@@ -1879,9 +1887,9 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"status": "closed",
 	}
 
-	retRes142615 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes142615)
-	ch <- retRes142615
+	retRes143415 := (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes143415)
+	ch <- retRes143415
 	return nil
 }
 
@@ -1918,8 +1926,8 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes144812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes144812)
+		retRes145612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes145612)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -2091,8 +2099,8 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes159912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes159912)
+		retRes160712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes160712)
 	}
 	var market any = nil
 	var request any = map[string]any{
@@ -2225,8 +2233,8 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes171512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes171512)
+		retRes172312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes172312)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2299,8 +2307,8 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes176912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes176912)
+		retRes177712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes177712)
 	}
 	var currency any = this.Currency(code)
 	if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((!IsEqual(tag, "")))) {
@@ -2349,8 +2357,8 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 	defer ReturnPanicError(ch)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes180812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes180812)
+		retRes181612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes181612)
 	}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
@@ -2464,9 +2472,9 @@ func (this *Alpaca) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes189815 := (<-this.FetchTransactionsHelperAsync("BOTH", code, since, limit, params))
-	PanicOnError(retRes189815)
-	ch <- retRes189815
+	retRes190615 := (<-this.FetchTransactionsHelperAsync("BOTH", code, since, limit, params))
+	PanicOnError(retRes190615)
+	ch <- retRes190615
 	return nil
 }
 
@@ -2498,9 +2506,9 @@ func (this *Alpaca) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes191315 := (<-this.FetchTransactionsHelperAsync("INCOMING", code, since, limit, params))
-	PanicOnError(retRes191315)
-	ch <- retRes191315
+	retRes192115 := (<-this.FetchTransactionsHelperAsync("INCOMING", code, since, limit, params))
+	PanicOnError(retRes192115)
+	ch <- retRes192115
 	return nil
 }
 
@@ -2532,9 +2540,9 @@ func (this *Alpaca) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes192815 := (<-this.FetchTransactionsHelperAsync("OUTGOING", code, since, limit, params))
-	PanicOnError(retRes192815)
-	ch <- retRes192815
+	retRes193615 := (<-this.FetchTransactionsHelperAsync("OUTGOING", code, since, limit, params))
+	PanicOnError(retRes193615)
+	ch <- retRes193615
 	return nil
 }
 func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -2688,8 +2696,8 @@ func (this *Alpaca) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes207412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes207412)
+		retRes208212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes208212)
 	}
 
 	response := (<-this.TraderPrivateGetV2Account(params))
@@ -3228,6 +3236,7 @@ func (this *Alpaca) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
@@ -3262,6 +3271,7 @@ func (this *Alpaca) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
@@ -3296,6 +3306,7 @@ func (this *Alpaca) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {

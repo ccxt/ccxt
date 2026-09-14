@@ -420,6 +420,8 @@ Ticker tick = exchange.watchTicker("BTC/USDT");
 CompletableFuture<Ticker> future = exchange.watchTickerAsync("BTC/USDT", null);
 ```
 
+Typed values are views over the unified payload: `Ticker`, `Order`, `Trade`, ... implement `Map<String, Object>` (`OHLCV` implements `List<Object>`), so `ticker.get("info")`, `exchange.json(ticker)` and passing a typed value to any map-accepting API all work; the public fields are the typed projection.
+
 
 See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for more usage examples.
 

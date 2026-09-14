@@ -11811,12 +11811,9 @@ public partial class bybit : Exchange
         }
         if (isTrue(isEqual(method, "POST")))
         {
-            string? brokerId = this.safeString(this.options, "brokerId");
-            if (isTrue(!isEqual(brokerId, null)))
-            {
-                headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
-                ((IDictionary<string,object>)headers)["Referer"] = brokerId;
-            }
+            string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
+            headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
+            ((IDictionary<string,object>)headers)["Referer"] = brokerId;
         }
         return new Dictionary<string, object>() {
             { "url", url },

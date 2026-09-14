@@ -2736,17 +2736,23 @@ class kucoin extends Exchange {
         //         "markPrice" => "1572.68"
         //     }
         //
-        $percentage = $this->safe_string($ticker, 'changeRate');
-        if ($percentage !== null) {
-            $percentage = Precise::string_mul($percentage, '100');
-        } else {
-            $percentage = $this->safe_string($ticker, 'priceChangePercent');
-        }
         $last = $this->safe_string_n($ticker, array( 'last', 'lastTradedPrice', 'lastPrice' ));
         $last = $this->safe_string($ticker, 'price', $last);
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
+        $percentage = $this->safe_string($ticker, 'changeRate');
+        if ($percentage !== null) {
+            $percentage = Precise::string_mul($percentage, '100');
+        } else {
+            $percentage = $this->safe_string($ticker, 'priceChangePercent');
+            // uta spot sends a ratio under this name and uta swap sends a $percentage->
+            // An unresolved $market has no `spot` key at all, so read it the way okx
+            // does and leave the value alone rather than scaling on a guess.
+            if ($this->safe_bool($market, 'spot', false)) {
+                $percentage = Precise::string_mul($percentage, '100');
+            }
+        }
         $baseVolume = $this->safe_string_2($ticker, 'vol', 'baseVolume');
         $quoteVolume = $this->safe_string_2($ticker, 'volValue', 'quoteVolume');
         $timestamp = $this->safe_integer_n($ticker, array( 'time', 'datetime', 'timePoint' ));

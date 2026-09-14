@@ -19,7 +19,7 @@ public partial class extended : Exchange
             { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", true },
+                { "spot", false },
                 { "margin", false },
                 { "swap", true },
                 { "future", false },
@@ -706,6 +706,9 @@ public partial class extended : Exchange
         double? contractSize = null;
         bool? linear = null;
         bool? inverse = null;
+        // SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
+        // only advertises the capability and gates the unified spot tests, it does not filter
+        // markets, so accounts still holding spot balances keep resolving their symbols
         if (isTrue(isEqual(type, "spot")))
         {
             isSpot = true;

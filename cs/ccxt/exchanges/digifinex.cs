@@ -1480,6 +1480,12 @@ public partial class digifinex : Exchange
             timestamp = this.safeInteger(ticker, "timestamp");
         }
         string? last = this.safeString(ticker, "last");
+        string? percentage = this.safeString2(ticker, "change", "price_change_percent");
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
+        {
+            // swap endpoints return a raw ratio, spot already returns a percent
+            percentage = Precise.stringMul(percentage, "100");
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1496,7 +1502,7 @@ public partial class digifinex : Exchange
             { "last", last },
             { "previousClose", null },
             { "change", null },
-            { "percentage", this.safeString2(ticker, "change", "price_change_percent") },
+            { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "vol", "volume_24h") },
             { "quoteVolume", this.safeString(ticker, "base_vol") },

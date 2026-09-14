@@ -3,7 +3,7 @@
 
 package io.github.ccxt.types;
 
-public final class OHLCV {
+public final class OHLCV extends TypedList {
     public Long timestamp;
     public Double open;
     public Double high;
@@ -12,6 +12,7 @@ public final class OHLCV {
     public Double volume;
 
     public OHLCV(Object raw) {
+        super(raw);
         this.timestamp = TypeHelper.safeIntegerAt(raw, 0);
         this.open = TypeHelper.safeFloatAt(raw, 1);
         this.high = TypeHelper.safeFloatAt(raw, 2);
